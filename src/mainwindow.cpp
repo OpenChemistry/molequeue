@@ -17,7 +17,7 @@ MainWindow::MainWindow()
 
   m_trayIcon->show();
 
-  setWindowTitle(tr("Systray"));
+  setWindowTitle(tr("MoleQueue"));
   resize(400, 300);
 
   // Start up our local socket server
