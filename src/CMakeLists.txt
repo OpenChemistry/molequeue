@@ -7,6 +7,6 @@ qt4_wrap_cpp(moc_srcs mainwindow.h)
 qt4_wrap_ui(ui_srcs mainwindow.ui)
 qt4_add_resources(rcc_srcs queuetray.qrc)
 
-add_executable(QueueTray MACOSX_BUNDLE
+add_executable(molequeue MACOSX_BUNDLE
   main.cpp mainwindow.cpp ${moc_srcs} ${ui_srcs} ${rcc_srcs})
-target_link_libraries(QueueTray ${QT_LIBRARIES})
+target_link_libraries(molequeue ${QT_LIBRARIES})

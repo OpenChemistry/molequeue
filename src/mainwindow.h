@@ -4,6 +4,7 @@
 
 #include <QtGui/QMainWindow>
 #include <QtGui/QSystemTrayIcon>
+#include <QtNetwork/QLocalSocket>
 
 class QAction;
 class QIcon;
@@ -23,10 +24,10 @@ public:
   ~MainWindow();
 
   void setVisible(bool visible);
-  
+
 protected:
   void closeEvent(QCloseEvent *event);
-  
+
 private slots:
   void setIcon(int index);
   void iconActivated(QSystemTrayIcon::ActivationReason reason);
@@ -34,27 +35,32 @@ private slots:
   void messageClicked();
   void newConnection();
   void socketReadyRead();
-  
+  void socketError(QLocalSocket::LocalSocketError socketError);
+  void socketConnected();
+  void removeServer();
+
 private:
   void createIconGroupBox();
   void createMessageGroupBox();
   void createActions();
   void createMainMenu();
   void createTrayIcon();
-  
+
   /** Our MainWindow GUI. */
   Ui::MainWindow *m_ui;
-  
+
   QAction *m_minimizeAction;
   QAction *m_maximizeAction;
   QAction *m_restoreAction;
   QAction *m_quitAction;
-  
+
   QIcon *m_icon;
   QSystemTrayIcon *m_trayIcon;
   QMenu *m_trayIconMenu;
 
   QLocalServer *m_server;
+
+  bool m_removeServer;
 };
 
 #endif
