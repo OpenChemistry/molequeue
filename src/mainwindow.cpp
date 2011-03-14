@@ -19,6 +19,8 @@
 
 #include "terminalprocess.h"
 
+#include "sshcommand.h"
+
 #include <QtCore/QProcess>
 #include <QtCore/QProcessEnvironment>
 #include <QtCore/QTimer>
@@ -152,11 +154,11 @@ void MainWindow::newConnection()
     sshEnv.insert("EDITOR", env.value("EDITOR"));
   if (env.contains("SSH_AUTH_SOCK"))
     sshEnv.insert("SSH_AUTH_SOCK", env.value("SSH_AUTH_SOCK"));
-  env.insert("SSH_ASKPASS", "/usr/bin/pinentry-qt4");
+  sshEnv.insert("SSH_ASKPASS", "/usr/bin/pinentry-qt4");
   ssh.setProcessEnvironment(sshEnv);
   ssh.setProcessChannelMode(QProcess::MergedChannels);
   //ssh.start("env");
-  ssh.start("ssh", QStringList() << "localhost");// << "ls");
+  ssh.start("ssh", QStringList() << "unobtanium");// << "ls");
   if (!ssh.waitForStarted()) {
     qDebug() << "Failed to start SSH...";
     return;
@@ -229,6 +231,46 @@ void MainWindow::removeServer()
   }
 }
 
+void MainWindow::moveFile()
+{
+  qDebug() << "Calling SSH...";
+  TerminalProcess ssh;
+  QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
+  QProcessEnvironment sshEnv;
+  if (env.contains("DISPLAY"))
+    sshEnv.insert("DISPLAY", env.value("DISPLAY"));
+  if (env.contains("EDITOR"))
+    sshEnv.insert("EDITOR", env.value("EDITOR"));
+  if (env.contains("SSH_AUTH_SOCK"))
+    sshEnv.insert("SSH_AUTH_SOCK", env.value("SSH_AUTH_SOCK"));
+  sshEnv.insert("SSH_ASKPASS", "/usr/bin/pinentry-qt4");
+  ssh.setProcessEnvironment(sshEnv);
+  ssh.setProcessChannelMode(QProcess::MergedChannels);
+  //ssh.start("env");
+  ssh.start("scp", QStringList() << "MoleQueue.cbp"
+            << "unobtanium:");// << "ls");
+  if (!ssh.waitForStarted()) {
+    qDebug() << "Failed to start SSH...";
+    return;
+  }
+  ssh.closeWriteChannel();
+  if (!ssh.waitForFinished()) {
+    ssh.close();
+    qDebug() << "Failed to exit.";
+  }
+  QByteArray result = ssh.readAll();
+  qDebug() << "scp output:" << result << "Return code:" << ssh.exitCode();
+
+  SshCommand command(this);
+  command.setHostName("unobtanium");
+  QString out;
+  int exitCode = -1;
+  bool success = command.execute("ls -la", out, exitCode);
+
+  success = command.copyTo("MoleQueue.cbp", "MoleQueue666.cbp");
+  success = command.copyDirTo("bin", "MoleQueueBin");
+}
+
 void MainWindow::createIconGroupBox()
 {
 }
@@ -261,6 +303,11 @@ void MainWindow::createMainMenu()
   QAction *test = new QAction(tr("&Test"), this);
   connect(test, SIGNAL(triggered()), this, SLOT(showMessage()));
   file->addAction(test);
+
+  QAction *move = new QAction(tr("&Move"), this);
+  connect(move, SIGNAL(triggered()), this, SLOT(moveFile()));
+  file->addAction(move);
+
   file->addAction(m_quitAction);
   m_ui->menubar->addMenu(file);
 }

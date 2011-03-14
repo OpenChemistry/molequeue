@@ -31,7 +31,7 @@ class TerminalProcess : public QProcess
   Q_OBJECT
 
 public:
-  TerminalProcess();
+  explicit TerminalProcess(QObject *parent = 0);
   ~TerminalProcess();
 
 protected:

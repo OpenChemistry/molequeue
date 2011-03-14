@@ -55,6 +55,9 @@ private slots:
   void socketConnected();
   void removeServer();
 
+  /** Move file to appropriate place for execution. */
+  void moveFile();
+
 private:
   void createIconGroupBox();
   void createMessageGroupBox();
