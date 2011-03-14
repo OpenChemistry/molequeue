@@ -1,3 +1,18 @@
+/******************************************************************************
+
+  This source file is part of the MoleQueue project.
+
+  Copyright 2011 Kitware, Inc.
+
+  This source code is released under the New BSD License, (the "License").
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+
+******************************************************************************/
 
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
@@ -10,10 +25,11 @@ class QAction;
 class QIcon;
 class QLocalServer;
 
-namespace Ui
-{
+namespace Ui {
 class MainWindow;
 }
+
+namespace MoleQueue {
 
 class MainWindow : public QMainWindow
 {
@@ -62,5 +78,7 @@ private:
 
   bool m_removeServer;
 };
+
+} // End namespace
 
 #endif

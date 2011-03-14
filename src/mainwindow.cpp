@@ -1,5 +1,23 @@
+/******************************************************************************
+
+  This source file is part of the MoleQueue project.
+
+  Copyright 2011 Kitware, Inc.
+
+  This source code is released under the New BSD License, (the "License").
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+
+******************************************************************************/
+
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+
+#include "terminalprocess.h"
 
 #include <QtCore/QProcess>
 #include <QtCore/QProcessEnvironment>
@@ -8,6 +26,8 @@
 #include <QtGui/QCloseEvent>
 #include <QtNetwork/QLocalServer>
 #include <QtNetwork/QLocalSocket>
+
+namespace MoleQueue {
 
 MainWindow::MainWindow() : m_removeServer(false)
 {
@@ -27,9 +47,8 @@ MainWindow::MainWindow() : m_removeServer(false)
   m_server = new QLocalServer(this);
   if (!m_server->listen("MoleQueue")) {
     QMessageBox::critical(this, tr("MoleQueue Server"),
-                                tr("Unable to start the server: %1.\n'%2'")
-                                  .arg(m_server->errorString())
-                          .arg(m_server->fullServerName()));
+                                tr("Unable to start the server: %1.")
+                                  .arg(m_server->errorString()));
     //m_server->removeServer("MoleQueue");
     m_server->close();
     m_removeServer = true;
@@ -48,7 +67,8 @@ MainWindow::MainWindow() : m_removeServer(false)
     return;
   }
   else {
-    qDebug() << "Connecting server new connection up...";
+    qDebug() << "Connecting server new connection up..."
+             << m_server->fullServerName();
     connect(m_server, SIGNAL(newConnection()), this, SLOT(newConnection()));
   }
 }
@@ -123,18 +143,31 @@ void MainWindow::newConnection()
 
   // Experimental QProcess for ssh
   qDebug() << "Calling SSH...";
-  QProcess ssh;
+  TerminalProcess ssh;
   QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
+  QProcessEnvironment sshEnv;
+  if (env.contains("DISPLAY"))
+    sshEnv.insert("DISPLAY", env.value("DISPLAY"));
+  if (env.contains("EDITOR"))
+    sshEnv.insert("EDITOR", env.value("EDITOR"));
+  if (env.contains("SSH_AUTH_SOCK"))
+    sshEnv.insert("SSH_AUTH_SOCK", env.value("SSH_AUTH_SOCK"));
   env.insert("SSH_ASKPASS", "/usr/bin/pinentry-qt4");
-  ssh.setProcessEnvironment(env);
-  ssh.start("env");
-  //ssh.start("ssh", QStringList() << "unobtanium" << "ls");
+  ssh.setProcessEnvironment(sshEnv);
+  ssh.setProcessChannelMode(QProcess::MergedChannels);
+  //ssh.start("env");
+  ssh.start("ssh", QStringList() << "localhost");// << "ls");
   if (!ssh.waitForStarted()) {
     qDebug() << "Failed to start SSH...";
     return;
   }
-//  ssh.write("ls ~/");
-//  ssh.write("exit");
+  ssh.waitForReadyRead();
+  ssh.write("ls ~/\n");
+  ssh.waitForBytesWritten();
+  ssh.waitForReadyRead();
+  QByteArray res = ssh.readAll();
+  qDebug() << "ls:" << res;
+  ssh.write("env\nexit\n");
   ssh.closeWriteChannel();
   if (!ssh.waitForFinished()) {
     ssh.close();
@@ -255,3 +288,5 @@ void MainWindow::createTrayIcon()
   m_trayIcon->showMessage("info",
                           "System tray resident queue manager initialized.");
 }
+
+} // End namespace

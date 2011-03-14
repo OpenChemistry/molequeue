@@ -14,25 +14,30 @@
 
 ******************************************************************************/
 
-#include <QtGui/QApplication>
-#include <QtGui/QSystemTrayIcon>
-#include <QtGui/QMessageBox>
+#include "terminalprocess.h"
 
-#include "mainwindow.h"
+#ifdef Q_OS_UNIX
+# include <unistd.h>
+#endif
 
-int main(int argc, char *argv[])
+namespace MoleQueue {
+
+TerminalProcess::TerminalProcess()
 {
-  QApplication app(argc, argv);
-
-  if (!QSystemTrayIcon::isSystemTrayAvailable()) {
-    QMessageBox::critical(0, QObject::tr("QueueTray"),
-                          QObject::tr("System tray not available on this system."));
-    return 1;
-  }
-
-  QApplication::setQuitOnLastWindowClosed(false);
-
-  MoleQueue::MainWindow window;
-  window.show();
-  return app.exec();
 }
+
+TerminalProcess::~TerminalProcess()
+{
+}
+
+void TerminalProcess::setupChildProcess()
+{
+#ifdef Q_OS_UNIX
+  // Become the session leader on Unix (no-op on Windows). This makes things
+  // like SSH use GUIs to prompt for passwords (SSH_ASKPASS) as there is no
+  // tty associated with the process.
+  setsid();
+#endif
+}
+
+} // End namespace

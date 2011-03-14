@@ -14,25 +14,30 @@
 
 ******************************************************************************/
 
-#include <QtGui/QApplication>
-#include <QtGui/QSystemTrayIcon>
-#include <QtGui/QMessageBox>
+#ifndef TERMINALPROCESS_H
+#define TERMINALPROCESS_H
 
-#include "mainwindow.h"
+#include <QtCore/QProcess>
 
-int main(int argc, char *argv[])
+namespace MoleQueue {
+
+/**
+ * Special QProcess derived class, calls setsid on Unix to remove tty,
+ * allowing us to give a GUI prompt for SSH etc.
+ */
+
+class TerminalProcess : public QProcess
 {
-  QApplication app(argc, argv);
+  Q_OBJECT
 
-  if (!QSystemTrayIcon::isSystemTrayAvailable()) {
-    QMessageBox::critical(0, QObject::tr("QueueTray"),
-                          QObject::tr("System tray not available on this system."));
-    return 1;
-  }
+public:
+  TerminalProcess();
+  ~TerminalProcess();
 
-  QApplication::setQuitOnLastWindowClosed(false);
+protected:
+  virtual void setupChildProcess();
+};
 
-  MoleQueue::MainWindow window;
-  window.show();
-  return app.exec();
-}
+} // End namespace
+
+#endif // TERMINALPROCESS_H
