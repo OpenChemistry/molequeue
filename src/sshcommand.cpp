@@ -206,7 +206,7 @@ bool SshCommand::copyDirFrom(const QString &remoteDir, const QString &localDir)
   remoteSpec += ":" + remoteDir;
 
   // Build up the command line with local and remote files
-  args << localDir << remoteSpec;
+  args << remoteSpec << localDir;
 
   qDebug() << m_scpCommand << " " << args.join(" ");
 

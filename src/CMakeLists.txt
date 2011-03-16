@@ -6,12 +6,14 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR})
 set(mq_srcs
   main.cpp
   mainwindow.cpp
+  queue.cpp
   sshcommand.cpp
   sshconnection.cpp
   terminalprocess.cpp)
 
 set(mq_moc
   mainwindow.h
+  queue.h
   sshcommand.h
   sshconnection.h
   terminalprocess.h)

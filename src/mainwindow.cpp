@@ -269,6 +269,10 @@ void MainWindow::moveFile()
 
   success = command.copyTo("MoleQueue.cbp", "MoleQueue666.cbp");
   success = command.copyDirTo("bin", "MoleQueueBin");
+
+  // Now try copying some files over here!
+  success = command.copyFrom("test.py", "test.py");
+  success = command.copyDirFrom("src/cml-reader", "cml-reader");
 }
 
 void MainWindow::createIconGroupBox()
