@@ -4,8 +4,8 @@ include(${QT_USE_FILE})
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 set(mq_srcs
-  main.cpp
   mainwindow.cpp
+  program.cpp
   queue.cpp
   sshcommand.cpp
   sshconnection.cpp
@@ -13,6 +13,7 @@ set(mq_srcs
 
 set(mq_moc
   mainwindow.h
+  program.h
   queue.h
   sshcommand.h
   sshconnection.h
@@ -22,6 +23,10 @@ qt4_wrap_cpp(moc_srcs ${mq_moc})
 qt4_wrap_ui(ui_srcs mainwindow.ui)
 qt4_add_resources(rcc_srcs queuetray.qrc)
 
-add_executable(molequeue MACOSX_BUNDLE
+add_library(molequeue_static STATIC
   ${mq_srcs} ${moc_srcs} ${ui_srcs} ${rcc_srcs})
-target_link_libraries(molequeue ${QT_LIBRARIES})
+
+add_executable(molequeue MACOSX_BUNDLE main.cpp)
+target_link_libraries(molequeue molequeue_static ${QT_LIBRARIES})
+
+add_subdirectory(testing)

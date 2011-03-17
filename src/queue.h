@@ -17,19 +17,43 @@
 #ifndef QUEUE_H
 #define QUEUE_H
 
-#include <QObject>
+#include <QtCore/QObject>
+
+#include <QtCore/QList>
+
+#include "program.h"
 
 namespace MoleQueue {
+
+/**
+ * Abstract queue, generally want QueueLocal, or QueueRemote derived classes
+ * as they will provide the facilities required. The queue instances
+ * themselves refer to the Program classes to actually run jobs with a
+ * particular code.
+ *
+ * Some of the states are skipped for local jobs where there is no separate
+ * queue manager such as SGE or PBS.
+ */
 
 class Queue : public QObject
 {
   Q_OBJECT
 public:
   explicit Queue(QObject *parent = 0);
+  ~Queue();
 
 signals:
 
 public slots:
+  /**
+   * Submit a new job to the queue.
+   * \param job The Program object to submit to the queue.
+   * \return True on successful addition to the queue.
+   */
+  bool submit(const Program &job);
+
+protected:
+  QList<Program> m_jobs;
 
 };
 

@@ -23,4 +23,14 @@ Queue::Queue(QObject *parent) :
 {
 }
 
+Queue::~Queue()
+{
+
+}
+
+bool Queue::submit(const Program &job)
+{
+
+}
+
 } // End namespace
