@@ -20,8 +20,7 @@
 
 namespace MoleQueue {
 
-Program::Program(QObject *parent) : QObject(parent), m_runDirect(true),
-  m_delimiter("$$")
+Program::Program() : m_runDirect(true), m_delimiter("$$")
 {
 }
 
@@ -29,11 +28,18 @@ Program::~Program()
 {
 }
 
+Program::Program(const Program &other)
+{
+  m_runDirect = other.m_runDirect;
+  m_runTemplate = other.m_runTemplate;
+  m_delimiter = other.m_delimiter;
+  m_replacements = other.m_replacements;
+}
+
 QString Program::expandedRunTemplate() const
 {
   QString expanded(m_runTemplate);
   foreach(const QString &key, m_replacements.keys()) {
-    qDebug() << "Key:" << key << "=" << m_replacements[key];
     expanded = expanded.replace(m_delimiter + key + m_delimiter,
                                 m_replacements[key]);
   }
@@ -52,6 +58,15 @@ QString Program::replacement(const QString &keyword) const
 void Program::setReplacement(const QString &keyword, const QString &value)
 {
   m_replacements[keyword] = value;
+}
+
+QString Program::replacementList() const
+{
+  QString list;
+  foreach(const QString &key, m_replacements.keys()) {
+    list = "Keyword: " + key + " = " + m_replacements[key] + "\n";
+  }
+  return list;
 }
 
 } // End namespace

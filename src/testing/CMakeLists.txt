@@ -1,6 +1,3 @@
-include(CTest)
-enable_testing()
-
 include_directories(..)
 
 set(MyTests

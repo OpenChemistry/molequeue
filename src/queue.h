@@ -18,7 +18,7 @@
 #define QUEUE_H
 
 #include <QtCore/QObject>
-
+#include <QtCore/QMap>
 #include <QtCore/QList>
 
 #include "program.h"
@@ -32,7 +32,9 @@ namespace MoleQueue {
  * particular code.
  *
  * Some of the states are skipped for local jobs where there is no separate
- * queue manager such as SGE or PBS.
+ * queue manager such as SGE or PBS. This queue class is a simple FIFO approach
+ * and it is assumed that the remote job management system will implement any
+ * more sophisticated job management, balancing, etc.
  */
 
 class Queue : public QObject
@@ -41,6 +43,49 @@ class Queue : public QObject
 public:
   explicit Queue(QObject *parent = 0);
   ~Queue();
+
+  /**
+   * Set the name of the queue. This should be unique, and will be used in the
+   * GUI to refer to this queue.
+   */
+  virtual void setName(const QString &name) { m_name = name; }
+
+  /** Get the name of the queue. */
+  QString name() const { return m_name; }
+
+  /**
+   * Add a new program to the queue. Program names must be unique in each
+   * queue, as they are used to specify which program will be used.
+   * @param program The program to be added to the queue.
+   * @param replace Defaults to false, if true replace any program with the
+   * same name in this queue.
+   * @return True on success, false on failure.
+   */
+  bool addProgram(const Program &program, bool replace = false);
+
+  /**
+   * Attempt to remove a program from the queue. The program name is used
+   * as the criteria to decice which object to remove.
+   * @param program The program to be removed from the queue.
+   * @return True on success, false on failure.
+   */
+  bool removeProgram(const Program &program);
+
+  /**
+   * Attempt to remove a program from the queue. The program name is used
+   * as the criteria to decice which object to remove.
+   * @param name The name of the program to be removed from the queue.
+   * @return True on success, false on failure.
+   */
+  bool removeProgram(const QString &name);
+
+  /**
+   * Retrieve the program object associated with the supplied name.
+   * @param name The name of the program.
+   * @return The Program object, and invalid object can be returned if the
+   * requested program is not in this queue.
+   */
+  Program program(const QString &name);
 
 signals:
 
@@ -53,6 +98,8 @@ public slots:
   bool submit(const Program &job);
 
 protected:
+  QString m_name;
+  QMap<QString, Program> m_programs;
   QList<Program> m_jobs;
 
 };

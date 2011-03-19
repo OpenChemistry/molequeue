@@ -19,13 +19,40 @@
 namespace MoleQueue {
 
 Queue::Queue(QObject *parent) :
-  QObject(parent)
+  QObject(parent), m_name("Undefined")
 {
 }
 
 Queue::~Queue()
 {
 
+}
+
+bool Queue::addProgram(const Program &program, bool replace)
+{
+  // Check for duplicates, unless we are replacing, and return false if found.
+  if (!replace && m_programs.contains(program.name()))
+    return false;
+
+  m_programs[program.name()] = program;
+}
+
+bool Queue::removeProgram(const Program &program)
+{
+  return removeProgram(program.name());
+}
+
+bool Queue::removeProgram(const QString &name)
+{
+  return m_programs.remove(name) >= 1 ? true : false;
+}
+
+Program Queue::program(const QString &name)
+{
+  if (m_programs.contains(name))
+    return m_programs[name];
+  else
+    return Program(); // FIXME: Set as invalid if required.
 }
 
 bool Queue::submit(const Program &job)

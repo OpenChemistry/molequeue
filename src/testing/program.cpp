@@ -34,5 +34,14 @@ int program(int argc, char *argv[])
   cout << "Template: " << program.runTemplate().toStdString() << endl;
   cout << "Expanded: " << program.expandedRunTemplate().toStdString() << endl;
 
+  MoleQueue::Program programCopy = program;
+  cout << "TemplateCopy: " << programCopy.runTemplate().toStdString() << endl;
+  cout << "ExpandedCopy: " << programCopy.expandedRunTemplate().toStdString() << endl;
+  programCopy.setReplacement("input", "myOtherInput.inp");
+  cout << "Template: " << program.runTemplate().toStdString() << endl;
+  cout << "Expanded: " << program.expandedRunTemplate().toStdString() << endl;
+  cout << "TemplateCopy: " << programCopy.runTemplate().toStdString() << endl;
+  cout << "ExpandedCopy: " << programCopy.expandedRunTemplate().toStdString() << endl;
+
   return error ? 1 : 0;
 }

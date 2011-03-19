@@ -335,9 +335,6 @@ void MainWindow::createTrayIcon()
     m_trayIcon->setToolTip("Queue manager...");
   else
     m_trayIcon->setToolTip("Queue manager (no message support)...");
-
-  m_trayIcon->showMessage("info",
-                          "System tray resident queue manager initialized.");
 }
 
 } // End namespace

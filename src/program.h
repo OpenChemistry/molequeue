@@ -17,7 +17,6 @@
 #ifndef PROGRAM_H
 #define PROGRAM_H
 
-#include <QtCore/QObject>
 #include <QtCore/QString>
 #include <QtCore/QMap>
 
@@ -34,16 +33,29 @@ namespace MoleQueue {
  * if the executable, and options etc remain unchanged.
  */
 
-class Program : public QObject
+class Program
 {
-  Q_OBJECT
 
 public:
-  explicit Program(QObject *parent = 0);
+  Program();
   ~Program();
 
+  /** Copy constructor. */
+  Program(const Program &other);
+
   /**
-   * Will the program be run directly, or via an execution script.
+   * Set the name of the program. This is the name that will often show up in
+   * the GUI, and many common names such as GAMESS, GAMESS-UK, Gaussian,
+   * MolPro etc are used by GUIs such as Avogadro with its input generator
+   * dialogs to match up input files to programs.
+   */
+  void setName(const QString &name) { m_name = name; }
+
+  /** Get the name of the program. Often used by GUIs etc. */
+  QString name() const { return m_name; }
+
+  /**
+   * Will the program be run directly, or via an execution script?
    * Note that many queuing systems require that a job specification be
    * written, but local jobs might avoid this step for some codes.
    */
@@ -94,7 +106,18 @@ public:
    */
   void setReplacement(const QString &keyword, const QString &value);
 
+  /**
+   * Return a string with a list of keyword and replacement value pairs.
+   * Mainly useful for debugging purposes.
+   */
+  QString replacementList() const;
+
 protected:
+  /** The name of the program. This is normally used to describe what programs
+   * have been configured for each queue.
+   */
+  QString m_name;
+
   /** Should the code be run directly, or via a shell script? */
   bool m_runDirect;
 

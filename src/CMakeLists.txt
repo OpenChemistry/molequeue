@@ -13,7 +13,6 @@ set(mq_srcs
 
 set(mq_moc
   mainwindow.h
-  program.h
   queue.h
   sshcommand.h
   sshconnection.h
