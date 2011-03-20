@@ -1,8 +1,8 @@
 
 #include <iostream>
 
-#include "program.h"
-#include "queue.h"
+#include <MoleQueue/program.h>
+#include <MoleQueue/queue.h>
 
 using std::cout;
 using std::cerr;
@@ -38,6 +38,27 @@ int queue(int argc, char *argv[])
   gaussian.setRunTemplate("gaussian $$input$$");
 
   MoleQueue::Queue queue;
+  if (!queue.addProgram(gamess)) {
+    error = true;
+    cout << "Error adding the gamess program to the queue." << endl;
+  }
+  if (!queue.addProgram(gaussian)) {
+    error = true;
+    cout << "Error adding the gaussian program to the queue." << endl;
+  }
+  QStringList programs = queue.programs();
+  cout << "Programs in queue: " << programs.join(" ").toStdString() << endl;
+
+  if (!queue.removeProgram("GAMESS")) {
+    error = true;
+    cout << "Error removing the GAMESS program from the queue." << endl;
+  }
+
+  foreach (const QString &name, programs)
+    cout << name.toStdString() << endl;
+
+  programs = queue.programs();
+  cout << "Programs in queue: " << programs.join(" ").toStdString() << endl;
 
   return error ? 1 : 0;
 }

@@ -20,6 +20,7 @@
 #include <QtCore/QObject>
 #include <QtCore/QMap>
 #include <QtCore/QList>
+#include <QtCore/QStringList>
 
 #include "program.h"
 
@@ -86,6 +87,17 @@ public:
    * requested program is not in this queue.
    */
   Program program(const QString &name);
+
+  /**
+   * Clear all programs, useful if you would like ot reset a Queue.
+   */
+  void clearPrograms();
+
+  /**
+   * Retrieve a list of the programs that this Queue object has been configured
+   * with. This can be used by interfaces to show available resources.
+   */
+  QStringList programs() const;
 
 signals:
 

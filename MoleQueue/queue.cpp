@@ -35,6 +35,7 @@ bool Queue::addProgram(const Program &program, bool replace)
     return false;
 
   m_programs[program.name()] = program;
+  return true;
 }
 
 bool Queue::removeProgram(const Program &program)
@@ -53,6 +54,20 @@ Program Queue::program(const QString &name)
     return m_programs[name];
   else
     return Program(); // FIXME: Set as invalid if required.
+}
+
+void Queue::clearPrograms()
+{
+  m_programs.clear();
+}
+
+QStringList Queue::programs() const
+{
+  QStringList programs;
+  foreach(const Program &prog, m_programs) {
+    programs << prog.name();
+  }
+  return programs;
 }
 
 bool Queue::submit(const Program &job)

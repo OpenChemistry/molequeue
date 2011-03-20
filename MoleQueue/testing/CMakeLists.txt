@@ -2,6 +2,7 @@ include_directories(..)
 
 set(MyTests
   program
+  queue
   )
 
 create_test_sourcelist(Tests MoleQueueTests.cxx ${MyTests})

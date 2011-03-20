@@ -26,5 +26,6 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
     "MinSizeRel" "RelWithDebInfo")
 endif()
 
-add_subdirectory(src)
-
+# This is necessary for tests, includes etc.
+include_directories("${MoleQueue_SOURCE_DIR}")
+add_subdirectory(MoleQueue)
