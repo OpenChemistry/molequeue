@@ -25,7 +25,7 @@ int main(int argc, char *argv[])
   QApplication app(argc, argv);
 
   if (!QSystemTrayIcon::isSystemTrayAvailable()) {
-    QMessageBox::critical(0, QObject::tr("QueueTray"),
+    QMessageBox::critical(0, QObject::tr("MoleQueue"),
                           QObject::tr("System tray not available on this system."));
     return 1;
   }

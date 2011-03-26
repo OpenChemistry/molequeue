@@ -74,7 +74,7 @@ public:
 
   /**
    * Attempt to remove a program from the queue. The program name is used
-   * as the criteria to decice which object to remove.
+   * as the criteria to decide which object to remove.
    * @param name The name of the program to be removed from the queue.
    * @return True on success, false on failure.
    */

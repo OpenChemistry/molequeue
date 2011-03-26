@@ -64,9 +64,8 @@ void Queue::clearPrograms()
 QStringList Queue::programs() const
 {
   QStringList programs;
-  foreach(const Program &prog, m_programs) {
+  foreach(const Program &prog, m_programs)
     programs << prog.name();
-  }
   return programs;
 }
 
