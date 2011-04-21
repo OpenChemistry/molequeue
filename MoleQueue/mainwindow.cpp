@@ -18,8 +18,9 @@
 #include "ui_mainwindow.h"
 
 #include "terminalprocess.h"
-
 #include "sshcommand.h"
+#include "ProgramItemModel.h"
+#include "program.h"
 
 #include <QtCore/QProcess>
 #include <QtCore/QProcessEnvironment>
@@ -39,6 +40,7 @@ MainWindow::MainWindow() : m_removeServer(false)
   createActions();
   createMainMenu();
   createTrayIcon();
+  createJobModel();
 
   m_trayIcon->show();
 
@@ -328,13 +330,32 @@ void MainWindow::createTrayIcon()
   m_trayIcon = new QSystemTrayIcon(this);
   m_trayIcon->setContextMenu(m_trayIconMenu);
 
-  m_icon = new QIcon(":icons/avogadro.png");
+  m_icon = new QIcon(":/icons/avogadro.png");
   m_trayIcon->setIcon(*m_icon);
 
   if (m_trayIcon->supportsMessages())
     m_trayIcon->setToolTip("Queue manager...");
   else
     m_trayIcon->setToolTip("Queue manager (no message support)...");
+}
+
+void MainWindow::createJobModel()
+{
+  m_jobModel = new ProgramItemModel(&m_jobs, this);
+  m_ui->jobView->setModel(m_jobModel);
+  m_ui->jobView->setAlternatingRowColors(true);
+  m_ui->jobView->setSelectionBehavior(QAbstractItemView::SelectRows);
+  m_ui->jobView->setRootIsDecorated(false);
+  m_ui->jobView->header()->setStretchLastSection(false);
+  m_ui->jobView->header()->setResizeMode(0, QHeaderView::Stretch);
+  //m_ui->jobView->header()->setResizeMode(0, QHeaderView::Stretch);
+
+  Program *job = new Program;
+  job->setName("Test job...");
+  m_jobModel->add(job);
+  job = new Program;
+  job->setName("My GAMESS job...");
+  m_jobModel->add(job);
 }
 
 } // End namespace

@@ -22,6 +22,8 @@
 
 namespace MoleQueue {
 
+class Queue;
+
 /**
  * Class to represent a computer program. Embodies how to execute the program,
  * possibly logic to set the number of cores (if specified on the command line)
@@ -37,11 +39,23 @@ class Program
 {
 
 public:
-  Program();
+  explicit Program(Queue *queue = 0);
   ~Program();
 
   /** Copy constructor. */
   Program(const Program &other);
+
+  /**
+   * @enum Various valid job statuses.
+   */
+  enum Status {
+    UNDEFINED = 0,
+    QUEUED,
+    REMOTEQUEUED,
+    RUNNING,
+    COMPLETE,
+    FAILED
+  };
 
   /**
    * Set the name of the program. This is the name that will often show up in
@@ -53,6 +67,15 @@ public:
 
   /** Get the name of the program. Often used by GUIs etc. */
   QString name() const { return m_name; }
+
+  /**
+   * Set the title of the job. This is the title that will show up in job list
+   * in the GUI
+   */
+  void setTitle(const QString &title) { m_title = title; }
+
+  /** Get the name of the program. Often used by GUIs etc. */
+  QString title() const { return m_title; }
 
   /**
    * Will the program be run directly, or via an execution script?
@@ -112,11 +135,45 @@ public:
    */
   QString replacementList() const;
 
+  /**
+   * Set the Queue that the Program belongs to, this is effectively the parent.
+   */
+  void setQueue(Queue *queue) { m_queue = queue; }
+
+  /**
+   * Get the queue that the program belongs to.
+   */
+  Queue * queue() { return m_queue; }
+  const Queue * queue() const { return m_queue; }
+
+  /**
+   * Get the name of the queue that the program belongs to.
+   */
+  QString queueName() const;
+
+  /**
+   * Set the current status of the job.
+   */
+  void setStatus(Status status) { m_status = status; }
+
+  /**
+   * Get the current status of the job.
+   */
+  Status status() const { return m_status; }
+
+  /**
+   * Get a string describing the current status of the job.
+   */
+  QString statusString() const;
+
 protected:
   /** The name of the program. This is normally used to describe what programs
    * have been configured for each queue.
    */
   QString m_name;
+
+  /** The title of the job, if set. */
+  QString m_title;
 
   /** Should the code be run directly, or via a shell script? */
   bool m_runDirect;
@@ -135,6 +192,12 @@ protected:
    * complex program input specifications for computational codes.
    */
   QMap<QString, QString> m_replacements;
+
+  /** The current status of the job. */
+  Status m_status;
+
+  /** The Queue that the Program belongs to/is being run by. */
+  Queue *m_queue;
 
 };
 

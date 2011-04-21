@@ -16,11 +16,14 @@
 
 #include "program.h"
 
+#include "queue.h"
+
 #include <QtCore/QDebug>
 
 namespace MoleQueue {
 
-Program::Program() : m_runDirect(true), m_delimiter("$$")
+Program::Program(Queue *queue) : m_runDirect(true), m_delimiter("$$"),
+  m_status(UNDEFINED), m_queue(queue)
 {
 }
 
@@ -34,6 +37,7 @@ Program::Program(const Program &other)
   m_runTemplate = other.m_runTemplate;
   m_delimiter = other.m_delimiter;
   m_replacements = other.m_replacements;
+  m_queue = other.m_queue;
 }
 
 QString Program::expandedRunTemplate() const
@@ -67,6 +71,34 @@ QString Program::replacementList() const
     list = "Keyword: " + key + " = " + m_replacements[key] + "\n";
   }
   return list;
+}
+
+QString Program::queueName() const
+{
+  if (m_queue)
+    return m_queue->name();
+  else
+    return "None";
+}
+
+QString Program::statusString() const
+{
+  switch (m_status) {
+  case UNDEFINED:
+    return "Undefined";
+  case QUEUED:
+    return "Queued locally";
+  case REMOTEQUEUED:
+    return "Queued remotely";
+  case RUNNING:
+    return "Running";
+  case COMPLETE:
+    return "Completed";
+  case FAILED:
+    return "Failed";
+  default:
+    return "Undefined";
+  }
 }
 
 } // End namespace

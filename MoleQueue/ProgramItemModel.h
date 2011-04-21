@@ -14,26 +14,30 @@
 
 ******************************************************************************/
 
-#ifndef QUEUEITEMMODEL_H
-#define QUEUEITEMMODEL_H
+#ifndef ProgramItemModel_H
+#define ProgramItemModel_H
 
 #include <QtCore/QModelIndex>
 #include <QtCore/QList>
 
 namespace MoleQueue {
 
-class Queue;
+class Program;
 
-class QueueItemModel : public QAbstractItemModel
+class ProgramItemModel : public QAbstractItemModel
 {
   Q_OBJECT
 
 public:
-  explicit QueueItemModel(QList<Queue *> *queueList, QObject *parent = 0);
+  explicit ProgramItemModel(QList<Program *> *programList, QObject *parent = 0);
 
   QModelIndex parent(const QModelIndex & index) const;
   int rowCount(const QModelIndex & parent = QModelIndex()) const;
   int columnCount(const QModelIndex & parent = QModelIndex()) const;
+
+  QVariant headerData(int section, Qt::Orientation orientation,
+                      int role = Qt::DisplayRole) const;
+
   QVariant data(const QModelIndex & index, int role = Qt::DisplayRole) const;
   bool setData(const QModelIndex & index, const QVariant & value,
                int role = Qt::EditRole);
@@ -45,11 +49,11 @@ public:
   void clear();
 
 private:
-  QList<Queue *> *m_queueList;
+  QList<Program *> *m_jobList;
 
-private slots:
-  void add(Queue *queue);
-  void remove(Queue *queue);
+public slots:
+  void add(Program *program);
+  void remove(Program *program);
 
   void queuesChanged();
 };

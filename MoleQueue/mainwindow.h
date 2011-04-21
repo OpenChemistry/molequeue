@@ -31,6 +31,10 @@ class MainWindow;
 
 namespace MoleQueue {
 
+class Queue;
+class Program;
+class ProgramItemModel;
+
 class MainWindow : public QMainWindow
 {
   Q_OBJECT
@@ -64,6 +68,7 @@ private:
   void createActions();
   void createMainMenu();
   void createTrayIcon();
+  void createJobModel();
 
   /** Our MainWindow GUI. */
   Ui::MainWindow *m_ui;
@@ -80,6 +85,11 @@ private:
   QLocalServer *m_server;
 
   bool m_removeServer;
+
+  QList<Queue *> m_queues;
+
+  QList<Program *> m_jobs;
+  ProgramItemModel *m_jobModel;
 };
 
 } // End namespace
