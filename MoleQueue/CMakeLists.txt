@@ -4,19 +4,25 @@ include(${QT_USE_FILE})
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 set(mq_srcs
+  Connection.cpp
   mainwindow.cpp
   program.cpp
   ProgramItemModel.cpp
   queue.cpp
+  QueueLocal.cpp
+  QueueRemote.cpp
   QueueItemModel.cpp
   sshcommand.cpp
   sshconnection.cpp
   terminalprocess.cpp)
 
 set(mq_moc
+  Connection.h
   mainwindow.h
   ProgramItemModel.h
   queue.h
+  QueueLocal.h
+  QueueRemote.h
   QueueItemModel.h
   sshcommand.h
   sshconnection.h

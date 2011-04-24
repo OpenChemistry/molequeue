@@ -21,6 +21,9 @@
 #include "sshcommand.h"
 #include "ProgramItemModel.h"
 #include "program.h"
+#include "Connection.h"
+#include "QueueLocal.h"
+#include "QueueRemote.h"
 
 #include <QtCore/QProcess>
 #include <QtCore/QProcessEnvironment>
@@ -33,7 +36,7 @@
 
 namespace MoleQueue {
 
-MainWindow::MainWindow() : m_removeServer(false)
+MainWindow::MainWindow() : m_removeServer(false), m_connection(0)
 {
   m_ui = new Ui::MainWindow;
   m_ui->setupUi(this);
@@ -41,12 +44,13 @@ MainWindow::MainWindow() : m_removeServer(false)
   createActions();
   createMainMenu();
   createTrayIcon();
+  createQueues();
   createJobModel();
 
   m_trayIcon->show();
 
   setWindowTitle(tr("MoleQueue"));
-  resize(400, 300);
+  resize(600, 300);
 
   // Start up our local socket server
   m_server = new QLocalServer(this);
@@ -143,6 +147,8 @@ void MainWindow::newConnection()
   connect(clientSocket, SIGNAL(disconnected()),
           clientSocket, SLOT(deleteLater()));
 
+  m_connection = new Connection(clientSocket, this);
+/*
   QByteArray block;
   QDataStream out(&block, QIODevice::WriteOnly);
   out.setVersion(QDataStream::Qt_4_7);
@@ -197,6 +203,7 @@ void MainWindow::newConnection()
   }
   QByteArray result = ssh.readAll();
   qDebug() << "Output:" << result;
+*/
 }
 
 void MainWindow::socketReadyRead()
@@ -357,6 +364,17 @@ void MainWindow::createTrayIcon()
     m_trayIcon->setToolTip("Queue manager (no message support)...");
 }
 
+void MainWindow::createQueues()
+{
+  m_queues.push_back(new QueueLocal);
+  m_queues.push_back(new QueueRemote);
+
+  Queue *queue = m_queues[0];
+  Program gamess = queue->program("GAMESS");
+  gamess.setInputFile("/home/marcus/build/gamess/methane/methane.inp");
+  queue->submit(gamess);
+}
+
 void MainWindow::createJobModel()
 {
   m_jobModel = new ProgramItemModel(&m_jobs, this);
@@ -369,10 +387,12 @@ void MainWindow::createJobModel()
   //m_ui->jobView->header()->setResizeMode(0, QHeaderView::Stretch);
 
   Program *job = new Program;
-  job->setName("Test job...");
+  job->setName("MOPAC");
+  job->setTitle("Test job...");
   m_jobModel->add(job);
   job = new Program;
-  job->setName("My GAMESS job...");
+  job->setName("GAMESS");
+  job->setTitle("My GAMESS job...");
   m_jobModel->add(job);
 }
 

@@ -42,7 +42,7 @@ class Queue : public QObject
 {
   Q_OBJECT
 public:
-  explicit Queue(QObject *parent = 0);
+  explicit Queue(const QString &name = "Undefined", QObject *parent = 0);
   ~Queue();
 
   /**
@@ -100,6 +100,7 @@ public:
   QStringList programs() const;
 
 signals:
+  void jobStateChanged(Program *job);
 
 public slots:
   /**
@@ -107,7 +108,7 @@ public slots:
    * \param job The Program object to submit to the queue.
    * \return True on successful addition to the queue.
    */
-  bool submit(const Program &job);
+  virtual bool submit(const Program &job);
 
 protected:
   QString m_name;

@@ -34,6 +34,7 @@ namespace MoleQueue {
 class Queue;
 class Program;
 class ProgramItemModel;
+class Connection;
 
 class MainWindow : public QMainWindow
 {
@@ -47,6 +48,8 @@ public:
 
 protected:
   void closeEvent(QCloseEvent *event);
+
+public slots:
 
 private slots:
   void setIcon(int index);
@@ -68,6 +71,7 @@ private:
   void createActions();
   void createMainMenu();
   void createTrayIcon();
+  void createQueues();
   void createJobModel();
 
   /** Our MainWindow GUI. */
@@ -90,6 +94,8 @@ private:
 
   QList<Program *> m_jobs;
   ProgramItemModel *m_jobModel;
+
+  Connection *m_connection;
 };
 
 } // End namespace

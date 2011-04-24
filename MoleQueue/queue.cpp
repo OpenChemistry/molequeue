@@ -18,8 +18,8 @@
 
 namespace MoleQueue {
 
-Queue::Queue(QObject *parent) :
-  QObject(parent), m_name("Undefined")
+Queue::Queue(const QString &name, QObject *parent) :
+  QObject(parent), m_name(name)
 {
 }
 
@@ -69,9 +69,9 @@ QStringList Queue::programs() const
   return programs;
 }
 
-bool Queue::submit(const Program &job)
+bool Queue::submit(const Program &)
 {
-
+  return false;
 }
 
 } // End namespace

@@ -37,6 +37,8 @@ Program::Program(const Program &other)
   m_runTemplate = other.m_runTemplate;
   m_delimiter = other.m_delimiter;
   m_replacements = other.m_replacements;
+  m_workingDirectory = other.m_workingDirectory;
+  m_inputFile = other.m_inputFile;
   m_queue = other.m_queue;
 }
 

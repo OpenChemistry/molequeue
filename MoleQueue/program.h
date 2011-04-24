@@ -152,6 +152,29 @@ public:
   QString queueName() const;
 
   /**
+   * \return The working directory (usually relative to home directory).
+   */
+  QString workingDirectory() const { return m_workingDirectory; }
+
+  /**
+   * Set the working directory (usually relative to the home directory) to run
+   * the program.
+   * \param dir The working directory to use.
+   */
+  void setWorkingDirectory(const QString &dir) { m_workingDirectory = dir; }
+
+  /**
+   * \return The input file that will be used when running the job.
+   */
+  QString inputFile() const { return m_inputFile; }
+
+  /**
+   * Set the input file to use for the job.
+   * \param file The input file path.
+   */
+  void setInputFile(const QString &file) { m_inputFile = file; }
+
+  /**
    * Set the current status of the job.
    */
   void setStatus(Status status) { m_status = status; }
@@ -192,6 +215,12 @@ protected:
    * complex program input specifications for computational codes.
    */
   QMap<QString, QString> m_replacements;
+
+  /** The working directory (usually relative to home directory) to run code. */
+  QString m_workingDirectory;
+
+  /** Path to the input file. */
+  QString m_inputFile;
 
   /** The current status of the job. */
   Status m_status;
