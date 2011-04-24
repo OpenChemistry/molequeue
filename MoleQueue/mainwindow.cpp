@@ -25,6 +25,7 @@
 #include <QtCore/QProcess>
 #include <QtCore/QProcessEnvironment>
 #include <QtCore/QTimer>
+#include <QtCore/QDataStream>
 #include <QtGui/QMessageBox>
 #include <QtGui/QCloseEvent>
 #include <QtNetwork/QLocalServer>
@@ -141,7 +142,24 @@ void MainWindow::newConnection()
 
   connect(clientSocket, SIGNAL(disconnected()),
           clientSocket, SLOT(deleteLater()));
-  clientSocket->write("Hello");
+
+  QByteArray block;
+  QDataStream out(&block, QIODevice::WriteOnly);
+  out.setVersion(QDataStream::Qt_4_7);
+  out << static_cast<quint16>(0);
+  out << QString("Hello from the server...");
+
+  QList<QString> list;
+  list << "GAMESS" << "MOPAC";
+
+  out << list;
+
+  out.device()->seek(0);
+  out << static_cast<quint16>(block.size() - sizeof(quint16));
+
+  qDebug() << "size:" << block.size() << sizeof(quint16) << "message:" << block;
+
+  clientSocket->write(block);
   clientSocket->flush();
   clientSocket->disconnectFromServer();
 
