@@ -50,6 +50,8 @@ protected:
   void closeEvent(QCloseEvent *event);
 
 public slots:
+  void readSettings();
+  void writeSettings();
 
 private slots:
   void setIcon(int index);
@@ -96,6 +98,9 @@ private:
   ProgramItemModel *m_jobModel;
 
   Connection *m_connection;
+
+  QString m_tmpDir;
+  QString m_localDir;
 };
 
 } // End namespace

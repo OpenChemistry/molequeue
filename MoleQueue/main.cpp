@@ -26,7 +26,7 @@ int main(int argc, char *argv[])
   QCoreApplication::setOrganizationDomain("kitware.com");
   QCoreApplication::setApplicationName("MoleQueue");
   QCoreApplication::setApplicationVersion("0.2.0");
-
+  
   QApplication app(argc, argv);
 
   if (!QSystemTrayIcon::isSystemTrayAvailable()) {

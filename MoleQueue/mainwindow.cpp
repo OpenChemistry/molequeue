@@ -28,7 +28,9 @@
 #include <QtCore/QProcess>
 #include <QtCore/QProcessEnvironment>
 #include <QtCore/QTimer>
+#include <QtCore/QSettings>
 #include <QtCore/QDataStream>
+#include <QtCore/QDir>
 #include <QtGui/QMessageBox>
 #include <QtGui/QCloseEvent>
 #include <QtNetwork/QLocalServer>
@@ -40,6 +42,9 @@ MainWindow::MainWindow() : m_removeServer(false), m_connection(0)
 {
   m_ui = new Ui::MainWindow;
   m_ui->setupUi(this);
+
+  // Read in our settings
+  readSettings();
 
   createActions();
   createMainMenu();
@@ -84,6 +89,7 @@ MainWindow::MainWindow() : m_removeServer(false), m_connection(0)
 
 MainWindow::~MainWindow()
 {
+  writeSettings();
   delete m_ui;
   m_ui = 0;
 }
@@ -107,6 +113,21 @@ void MainWindow::closeEvent(QCloseEvent *event)
     hide();
     event->ignore();
   }
+}
+
+void MainWindow::readSettings()
+{
+  QSettings settings;
+  m_tmpDir = settings.value("tmpDir", QDir::tempPath() + "/MoleQueue").toString();
+  m_localDir = settings.value("localDir",
+                              QDir::homePath() + "/.molequeue/local").toString();
+}
+
+void MainWindow::writeSettings()
+{
+  QSettings settings;
+  settings.setValue("tmpDir"  , m_tmpDir);
+  settings.setValue("localDir", m_localDir);
 }
 
 void MainWindow::setIcon(int index)
