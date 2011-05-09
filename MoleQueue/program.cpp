@@ -40,6 +40,8 @@ Program::Program(const Program &other)
   m_workingDirectory = other.m_workingDirectory;
   m_inputFile = other.m_inputFile;
   m_queue = other.m_queue;
+  m_title = other.m_title;
+  m_name = other.m_name;
 }
 
 QString Program::expandedRunTemplate() const

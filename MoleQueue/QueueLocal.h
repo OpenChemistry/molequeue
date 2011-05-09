@@ -43,15 +43,22 @@ public slots:
   virtual bool submit(const Program &job);
 
 protected slots:
-  void finished(int exitCode, QProcess::ExitStatus exitStatus);
+  /** Job started successfully. */
+  void jobStarted();
+
+  /** Job completed successfully. */
+  void jobFinished();
+  void jobFinished(int exitCode, QProcess::ExitStatus exitStatus);
+  void processStateChanged(QProcess::ProcessState newState);
 
 protected:
   /** Set up some default programs. */
   void setupPrograms();
 
-  void runProgram();
+  void runProgram(int jobId);
 
   QProcess *m_process;
+  int m_currentJob;
 };
 
 } // End namespace

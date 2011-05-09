@@ -19,17 +19,22 @@
 
 #include <QtCore/QModelIndex>
 #include <QtCore/QList>
+#include <QtCore/QPointer>
 
 namespace MoleQueue {
 
 class Program;
+class Queue;
 
 class ProgramItemModel : public QAbstractItemModel
 {
   Q_OBJECT
 
 public:
-  explicit ProgramItemModel(QList<Program *> *programList, QObject *parent = 0);
+  explicit ProgramItemModel(QObject *parent = 0);
+
+  /** Add a Queue to the model. */
+  void addQueue(Queue *queue);
 
   QModelIndex parent(const QModelIndex & index) const;
   int rowCount(const QModelIndex & parent = QModelIndex()) const;
@@ -49,7 +54,8 @@ public:
   void clear();
 
 private:
-  QList<Program *> *m_jobList;
+  QList<Program *> m_jobList;
+  QList< QPointer<Queue> > m_queues;
 
 public slots:
   void add(Program *program);

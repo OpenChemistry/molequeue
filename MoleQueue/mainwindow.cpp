@@ -377,7 +377,11 @@ void MainWindow::createQueues()
 
 void MainWindow::createJobModel()
 {
-  m_jobModel = new ProgramItemModel(&m_jobs, this);
+  m_jobModel = new ProgramItemModel(this);
+
+  m_queues.push_back(new QueueLocal(this));
+  m_jobModel->addQueue(m_queues.back());
+
   m_ui->jobView->setModel(m_jobModel);
   m_ui->jobView->setAlternatingRowColors(true);
   m_ui->jobView->setSelectionBehavior(QAbstractItemView::SelectRows);
@@ -386,14 +390,27 @@ void MainWindow::createJobModel()
   m_ui->jobView->header()->setResizeMode(0, QHeaderView::Stretch);
   //m_ui->jobView->header()->setResizeMode(0, QHeaderView::Stretch);
 
-  Program *job = new Program;
-  job->setName("MOPAC");
-  job->setTitle("Test job...");
-  m_jobModel->add(job);
-  job = new Program;
-  job->setName("GAMESS");
-  job->setTitle("My GAMESS job...");
-  m_jobModel->add(job);
+  Queue *queue = m_queues.back();
+  Program newJob = queue->program("sleep");
+  newJob.setTitle("Test job...");
+  newJob.setReplacement("time", "5");
+  queue->submit(newJob);
+
+  newJob.setTitle("Test job longer...");
+  newJob.setReplacement("time", "8");
+  queue->submit(newJob);
+  newJob.setTitle("Test job longest...");
+  newJob.setReplacement("time", "12");
+  queue->submit(newJob);
+
+  // Now set up the remote queue
+  m_queues.push_back(new QueueRemote(this));
+  queue = m_queues.back();
+  m_jobModel->addQueue(m_queues.back());
+  Program remJob = queue->program("sleep");
+  remJob.setTitle("Test remote job...");
+  newJob.setReplacement("time", "5");
+  queue->submit(remJob);
 }
 
 } // End namespace

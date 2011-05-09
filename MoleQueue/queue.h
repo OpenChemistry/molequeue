@@ -100,7 +100,9 @@ public:
   QStringList programs() const;
 
 signals:
+  void jobAdded(Program *job);
   void jobStateChanged(Program *job);
+  void jobRemoved(Program *job);
 
 public slots:
   /**

@@ -17,13 +17,24 @@
 #include "ProgramItemModel.h"
 
 #include "program.h"
+#include "queue.h"
 
 namespace MoleQueue {
 
-ProgramItemModel::ProgramItemModel(QList<Program *> *jobList, QObject *parent)
+ProgramItemModel::ProgramItemModel(QObject *parent)
   : QAbstractItemModel(parent)
 {
-  m_jobList = jobList;
+}
+
+void ProgramItemModel::addQueue(Queue *queue)
+{
+  if (m_queues.contains(queue))
+    return;
+  else {
+    m_queues.push_back(queue);
+    connect(queue, SIGNAL(jobAdded(Program*)), this, SLOT(add(Program*)));
+    connect(queue, SIGNAL(jobStateChanged(Program*)), this, SLOT(queuesChanged()));
+  }
 }
 
 QModelIndex ProgramItemModel::parent(const QModelIndex &index) const
@@ -33,8 +44,8 @@ QModelIndex ProgramItemModel::parent(const QModelIndex &index) const
 
 int ProgramItemModel::rowCount(const QModelIndex &parent) const
 {
-  if (!parent.isValid() && m_jobList)
-    return m_jobList->size();
+  if (!parent.isValid())
+    return m_jobList.size();
   else
     return 0;
 }
@@ -104,8 +115,8 @@ Qt::ItemFlags ProgramItemModel::flags(const QModelIndex &index) const
 QModelIndex ProgramItemModel::index(int row, int column,
                                     const QModelIndex &parent) const
 {
-  if (row >= 0 && row < m_jobList->size())
-    return createIndex(row, column, (*m_jobList)[row]);
+  if (row >= 0 && row < m_jobList.size())
+    return createIndex(row, column, m_jobList[row]);
   else
     return QModelIndex();
 }
@@ -116,9 +127,9 @@ void ProgramItemModel::clear()
 
 void ProgramItemModel::add(Program *job)
 {
-  int row = m_jobList->size();
+  int row = m_jobList.size();
   beginInsertRows(QModelIndex(), row, row);
-  m_jobList->push_back(job);
+  m_jobList.push_back(job);
   endInsertRows();
 }
 
@@ -128,6 +139,7 @@ void ProgramItemModel::remove(Program *job)
 
 void ProgramItemModel::queuesChanged()
 {
+  this->reset();
 }
 
 } // End of namespace

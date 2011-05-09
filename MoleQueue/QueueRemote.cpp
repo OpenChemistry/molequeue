@@ -21,6 +21,7 @@ namespace MoleQueue {
 QueueRemote::QueueRemote(QObject *parent) :
   Queue("Remote", parent)
 {
+  setupPrograms();
 }
 
 QueueRemote::~QueueRemote()
@@ -31,7 +32,30 @@ bool QueueRemote::submit(const Program &job)
 {
   m_jobs.push_back(job);
   m_jobs.back().setStatus(Program::QUEUED);
+  emit(jobAdded(&m_jobs.back()));
   return true;
+}
+
+void QueueRemote::setupPrograms()
+{
+  Program gamess;
+  gamess.setName("GAMESS");
+  gamess.setRunDirect(true);
+  gamess.setReplacement("input", "myInput.inp");
+  gamess.setReplacement("ncpus", "2");
+  gamess.setRunTemplate("/home/marcus/build/gamess/rungms $$input$$ 2010 $$ncpus$$");
+  gamess.setWorkingDirectory("/home/marcus/local/gamess");
+  gamess.setQueue(this);
+  m_programs["GAMESS"] = gamess;
+
+  Program sleep;
+  sleep.setName("sleep");
+  sleep.setRunDirect(true);
+  sleep.setReplacement("time", "10");
+  sleep.setRunTemplate("sleep $$time$$");
+  sleep.setWorkingDirectory("/home/marcus/local");
+  sleep.setQueue(this);
+  m_programs["sleep"] = sleep;
 }
 
 } // End namespace

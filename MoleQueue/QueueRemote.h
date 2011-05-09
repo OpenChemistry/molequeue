@@ -39,6 +39,10 @@ public slots:
    * \return True on successful addition to the queue.
    */
   bool submit(const Program &job);
+
+protected:
+  /** Set up some default programs. */
+  void setupPrograms();
 };
 
 } // End namespace
