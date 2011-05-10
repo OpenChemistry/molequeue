@@ -281,7 +281,7 @@ void MainWindow::removeServer()
 
 void MainWindow::moveFile()
 {
-  qDebug() << "Calling SSH...";
+/*  qDebug() << "Calling SSH...";
   TerminalProcess ssh;
   QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
   QProcessEnvironment sshEnv;
@@ -320,7 +320,7 @@ void MainWindow::moveFile()
 
   // Now try copying some files over here!
   success = command.copyFrom("test.py", "test.py");
-  success = command.copyDirFrom("src/cml-reader", "cml-reader");
+  success = command.copyDirFrom("src/cml-reader", "cml-reader"); */
 }
 
 void MainWindow::createIconGroupBox()
@@ -430,7 +430,8 @@ void MainWindow::createJobModel()
   m_jobModel->addQueue(m_queues.back());
   Program remJob = queue->program("sleep");
   remJob.setTitle("Test remote job...");
-  newJob.setReplacement("time", "5");
+  remJob.setReplacement("time", "5");
+  remJob.setInputFile("methane.gamout");
   queue->submit(remJob);
 }
 

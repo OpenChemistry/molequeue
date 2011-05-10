@@ -21,6 +21,9 @@
 
 namespace MoleQueue {
 
+class TerminalProcess;
+class SshCommand;
+
 /**
  * Remote queue.
  */
@@ -40,9 +43,32 @@ public slots:
    */
   bool submit(const Program &job);
 
+protected slots:
+  /** Job started successfully. */
+  void jobStarted();
+
+  /** Job completed successfully. */
+  void jobFinished();
+
 protected:
   /** Set up some default programs. */
   void setupPrograms();
+
+  /** Set up our SSH connection. */
+  void setupProcess();
+
+  /** Submit the job to the remote queue. */
+  void submitJob(int index);
+
+  /** Poll the job to see if it is complete. */
+
+  /** Push files to the remote host. */
+
+  /** Retrieve files from the remote host. */
+
+  /** Our SSH connection to the remote host. */
+  TerminalProcess *m_process;
+  SshCommand *m_ssh;
 };
 
 } // End namespace
