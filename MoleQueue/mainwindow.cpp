@@ -24,6 +24,7 @@
 #include "Connection.h"
 #include "QueueLocal.h"
 #include "QueueRemote.h"
+#include "QueueSGE.h"
 
 #include <QtCore/QProcess>
 #include <QtCore/QProcessEnvironment>
@@ -387,13 +388,13 @@ void MainWindow::createTrayIcon()
 
 void MainWindow::createQueues()
 {
-  m_queues.push_back(new QueueLocal);
-  m_queues.push_back(new QueueRemote);
+//  m_queues.push_back(new QueueLocal);
+//  m_queues.push_back(new QueueRemote);
 
-  Queue *queue = m_queues[0];
-  Program gamess = queue->program("GAMESS");
-  gamess.setInputFile("/home/marcus/build/gamess/methane/methane.inp");
-  queue->submit(gamess);
+//  Queue *queue = m_queues[0];
+//  Program gamess = queue->program("GAMESS");
+//  gamess.setInputFile("/home/marcus/build/gamess/methane/methane.inp");
+//  queue->submit(gamess);
 }
 
 void MainWindow::createJobModel()
@@ -415,23 +416,23 @@ void MainWindow::createJobModel()
   Program newJob = queue->program("sleep");
   newJob.setTitle("Test job...");
   newJob.setReplacement("time", "5");
-  queue->submit(newJob);
+//  queue->submit(newJob);
 
   newJob.setTitle("Test job longer...");
   newJob.setReplacement("time", "8");
-  queue->submit(newJob);
+//  queue->submit(newJob);
   newJob.setTitle("Test job longest...");
   newJob.setReplacement("time", "12");
-  queue->submit(newJob);
+//  queue->submit(newJob);
 
   // Now set up the remote queue
-  m_queues.push_back(new QueueRemote(this));
+  m_queues.push_back(new QueueSGE(this));
   queue = m_queues.back();
   m_jobModel->addQueue(m_queues.back());
-  Program remJob = queue->program("sleep");
-  remJob.setTitle("Test remote job...");
+  Program remJob = queue->program("GAMESS");
+  remJob.setTitle("benzene-gms");
   remJob.setReplacement("time", "5");
-  remJob.setInputFile("methane.gamout");
+  remJob.setInputFile("benzene.inp");
   queue->submit(remJob);
 }
 

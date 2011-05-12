@@ -19,6 +19,7 @@
 #include "queue.h"
 
 #include <QtCore/QDebug>
+#include <QtCore/QFileInfo>
 
 namespace MoleQueue {
 
@@ -85,15 +86,28 @@ QString Program::queueName() const
     return "None";
 }
 
+void Program::setWorkingDirectory(const QString &dir)
+{
+  m_workingDirectory = dir;
+  setReplacement("workingDirectory", dir);
+}
+
+void Program::setInputFile(const QString &file)
+{
+  m_inputFile = file;
+  QFileInfo info(file);
+  setReplacement("input", info.baseName());
+}
+
 QString Program::statusString() const
 {
   switch (m_status) {
   case UNDEFINED:
     return "Undefined";
   case QUEUED:
-    return "Queued locally";
+    return "Queued (L)";
   case REMOTEQUEUED:
-    return "Queued remotely";
+    return "Queued (R)";
   case RUNNING:
     return "Running";
   case COMPLETE:

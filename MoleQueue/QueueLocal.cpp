@@ -35,6 +35,7 @@ QueueLocal::QueueLocal(QObject *parent) :
 
 QueueLocal::~QueueLocal()
 {
+  delete m_process;
 }
 
 bool QueueLocal::submit(const Program &job)

@@ -20,12 +20,13 @@
 #include "terminalprocess.h"
 #include "sshcommand.h"
 
+#include <QtCore/QTimer>
 #include <QtCore/QDebug>
 
 namespace MoleQueue {
 
 QueueRemote::QueueRemote(QObject *parent) :
-  Queue("Remote", parent), m_process(0)
+  Queue("Remote", parent), m_ssh(0), m_timer(0), m_interval(10)
 {
   setupPrograms();
   setupProcess();
@@ -33,6 +34,9 @@ QueueRemote::QueueRemote(QObject *parent) :
 
 QueueRemote::~QueueRemote()
 {
+  delete m_ssh;
+  if (m_timer)
+    m_timer->deleteLater();
 }
 
 bool QueueRemote::submit(const Program &job)
@@ -54,6 +58,11 @@ void QueueRemote::jobFinished()
 
 }
 
+void QueueRemote::pollRemote()
+{
+
+}
+
 void QueueRemote::setupPrograms()
 {
   Program gamess;
@@ -61,8 +70,9 @@ void QueueRemote::setupPrograms()
   gamess.setRunDirect(true);
   gamess.setReplacement("input", "myInput.inp");
   gamess.setReplacement("ncpus", "2");
-  gamess.setRunTemplate("/home/marcus/build/gamess/rungms $$input$$ 2010 $$ncpus$$");
-  gamess.setWorkingDirectory("/home/marcus/local/gamess");
+  gamess.setRunTemplate(
+        "/home/marcus/build/gamess/rungms $$input$$ 2010 $$ncpus$$ >& $$input$$.log");
+  gamess.setWorkingDirectory("/home/marcus/remote/gamess");
   gamess.setQueue(this);
   m_programs["GAMESS"] = gamess;
 
@@ -80,6 +90,7 @@ void QueueRemote::setupProcess()
 {
   m_ssh = new SshCommand(this);
   m_ssh->setHostName("localhost");
+  m_timer = new QTimer(this);
 }
 
 void QueueRemote::submitJob(int jobId)
@@ -89,7 +100,9 @@ void QueueRemote::submitJob(int jobId)
   qDebug() << "Job (R):" << jobId << job.workingDirectory()
            << job.expandedRunTemplate();
 
-  QString command = "ssh localhost " + job.expandedRunTemplate();
+  job.setWorkingDirectory(job.workingDirectory() + "/" + QString::number(jobId));
+  QString command = "cd " + job.workingDirectory() + " && "
+      + job.expandedRunTemplate() + " &";
   qDebug() << "Running command:" << command;
 
   QString output;
@@ -97,15 +110,17 @@ void QueueRemote::submitJob(int jobId)
 
   if (!job.inputFile().isEmpty()) {
     qDebug() << "Input file:" << job.inputFile();
-    job.setWorkingDirectory(job.workingDirectory() + "/" + QString::number(jobId));
     m_ssh->execute("mkdir -p " + job.workingDirectory(), output, exitCode);
+    qDebug() << "mkdir:" << output << exitCode;
     m_ssh->copyTo(job.inputFile(), job.workingDirectory());
   }
   else {
     qDebug() << "No input file.";
   }
-  m_ssh->execute(job.expandedRunTemplate(), output, exitCode);
-  qDebug() << "Output:" << output << exitCode;
+  m_ssh->execute(command, output, exitCode);
+  qDebug() << "Run gamess:" << output << exitCode;
+  m_ssh->execute("echo $!", output, exitCode);
+  qDebug() << "PID:" << output << exitCode;
 }
 
 } // End namespace

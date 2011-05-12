@@ -14,10 +14,12 @@
 
 ******************************************************************************/
 
-#ifndef QUEUEREMOTE_H
-#define QUEUEREMOTE_H
+#ifndef QueueSGE_H
+#define QueueSGE_H
 
 #include "queue.h"
+
+#include <QtCore/QMap>
 
 class QTimer;
 
@@ -30,12 +32,12 @@ class SshCommand;
  * Remote queue.
  */
 
-class QueueRemote : public Queue
+class QueueSGE : public Queue
 {
   Q_OBJECT
 public:
-  explicit QueueRemote(QObject *parent = 0);
-  ~QueueRemote();
+  explicit QueueSGE(QObject *parent = 0);
+  ~QueueSGE();
 
 public slots:
   /**
@@ -47,10 +49,10 @@ public slots:
 
 protected slots:
   /** Job started successfully. */
-  virtual void jobStarted();
+  virtual void jobStarted(Program *job);
 
   /** Job completed successfully. */
-  virtual void jobFinished();
+  virtual void jobFinished(Program *job);
 
   /** Slot for polling remote jobs that are currently active. */
   virtual void pollRemote();
@@ -77,10 +79,13 @@ protected:
   /** A timer for polling the remote host if jobs are active. **/
   QTimer *m_timer;
 
-  /** The interval, in seconds, to poll the remote host. **/
+  /** The interval, in seconds, to poll the remote host. Default is 10 seconds. **/
   int m_interval;
+
+  /** A map of all active remote jobs, associated with their unique remote id. **/
+  QMap<QString, Program *> m_remoteJobs;
 };
 
 } // End namespace
 
-#endif // QUEUEREMOTE_H
+#endif // QueueSGE_H

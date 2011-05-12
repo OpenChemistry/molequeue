@@ -161,7 +161,7 @@ public:
    * the program.
    * \param dir The working directory to use.
    */
-  void setWorkingDirectory(const QString &dir) { m_workingDirectory = dir; }
+  void setWorkingDirectory(const QString &dir);
 
   /**
    * \return The input file that will be used when running the job.
@@ -172,7 +172,7 @@ public:
    * Set the input file to use for the job.
    * \param file The input file path.
    */
-  void setInputFile(const QString &file) { m_inputFile = file; }
+  void setInputFile(const QString &file);
 
   /**
    * Set the current status of the job.

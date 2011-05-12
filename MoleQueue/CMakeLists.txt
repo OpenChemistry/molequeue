@@ -11,6 +11,7 @@ set(mq_srcs
   queue.cpp
   QueueLocal.cpp
   QueueRemote.cpp
+  QueueSGE.cpp
   QueueItemModel.cpp
   sshcommand.cpp
   sshconnection.cpp
@@ -23,6 +24,7 @@ set(mq_moc
   queue.h
   QueueLocal.h
   QueueRemote.h
+  QueueSGE.h
   QueueItemModel.h
   sshcommand.h
   sshconnection.h

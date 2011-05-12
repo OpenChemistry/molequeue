@@ -17,6 +17,7 @@
 #include "sshcommand.h"
 #include "terminalprocess.h"
 #include <QtCore/QProcessEnvironment>
+#include <QtCore/QDir>
 #include <QtCore/QDebug>
 
 namespace MoleQueue {
@@ -63,7 +64,7 @@ bool SshCommand::execute(const QString &command, QString &output, int &exitCode)
     return false;
   }
   output = m_process->readAll();
-  qDebug() << "Output:" << output;
+  qDebug() << "SSH command:" << output;
   exitCode = m_process->exitCode();
   m_process->close();
   return true;
@@ -77,7 +78,7 @@ bool SshCommand::copyTo(const QString &localFile, const QString &remoteFile)
     initializeProcess();
 
   QStringList args = scpArgs();
-  args << "-v";
+//  args << "-v";
   QString remoteFileSpec;
   if (m_userName.isEmpty())
     remoteFileSpec = m_hostName;
@@ -195,6 +196,10 @@ bool SshCommand::copyDirFrom(const QString &remoteDir, const QString &localDir)
     return false;
   if (!m_process)
     initializeProcess();
+
+  QDir local(localDir);
+  if (!local.exists())
+    local.mkpath(localDir);
 
   QStringList args = scpArgs();
   args << "-r";
