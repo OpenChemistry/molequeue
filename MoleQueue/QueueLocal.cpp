@@ -19,6 +19,7 @@
 #include <QtCore/QProcess>
 #include <QtCore/QProcessEnvironment>
 
+#include <QtCore/QDir>
 #include <QtCore/QFile>
 #include <QtCore/QFileInfo>
 #include <QtCore/QVariant>
@@ -133,11 +134,23 @@ void QueueLocal::runProgram(int jobId)
   }
 
   Program &job = m_jobs[jobId];
-  QFile input(job.inputFile());
-  QFileInfo info(input);
-  input.copy(job.workingDirectory() + "/" + info.baseName() + ".inp");
-  qDebug() << "Moving file" << job.inputFile() << "->"
-           << job.workingDirectory() + "/" + info.baseName() + ".inp";
+  job.setWorkingDirectory(job.workingDirectory() + "/" + QString::number(jobId));
+  QDir dir;
+  dir.mkpath(job.workingDirectory());
+  if (!job.input().isEmpty()) {
+    QFile inputFile(job.workingDirectory() + "/" + job.inputFile());
+    inputFile.open(QFile::WriteOnly);
+    inputFile.write(job.input().toLocal8Bit());
+    inputFile.close();
+  }
+  else {
+    QFile input(job.inputFile());
+    QFileInfo info(input);
+    input.copy(job.workingDirectory() + "/" + info.baseName() + ".inp");
+    qDebug() << "Moving file" << job.inputFile() << "->"
+             << job.workingDirectory() + "/" + info.baseName() + ".inp";
+  }
+  QFileInfo info(job.workingDirectory() + "/" + job.inputFile());
   job.setReplacement("input", info.baseName());
   m_process->setProperty("JOB_ID", jobId);
 
@@ -145,8 +158,10 @@ void QueueLocal::runProgram(int jobId)
            << job.expandedRunTemplate();
 
   m_process->setWorkingDirectory(job.workingDirectory());
-  //m_process->setStandardOutputFile(job.workingDirectory() + "/" +
-  //                                 info.baseName() + ".gamout");
+  if (job.name() == "GAMESS") {
+    m_process->setStandardOutputFile(job.workingDirectory() + "/" +
+                                     info.baseName() + ".gamout");
+  }
 
   m_process->start(job.expandedRunTemplate());
 

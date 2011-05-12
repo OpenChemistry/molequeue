@@ -175,6 +175,19 @@ public:
   void setInputFile(const QString &file);
 
   /**
+   * \return The input that will be used when running the job, if empty then
+   * it is assumed that m_inputFile points to a valid input file.
+   */
+  QString input() const { return m_input; }
+
+  /**
+   * Set the input to use for the job. If this is set, it will be used in
+   * preference to the inputFile, and will be written to disk.
+   * \param file The input file path.
+   */
+  void setInput(const QString &input) { m_input = input; }
+
+  /**
    * Set the current status of the job.
    */
   void setStatus(Status status) { m_status = status; }
@@ -221,6 +234,9 @@ protected:
 
   /** Path to the input file. */
   QString m_inputFile;
+
+  /** The input file, if set this will be written and sent to the server. */
+  QString m_input;
 
   /** The current status of the job. */
   Status m_status;

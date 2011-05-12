@@ -40,6 +40,7 @@ Program::Program(const Program &other)
   m_replacements = other.m_replacements;
   m_workingDirectory = other.m_workingDirectory;
   m_inputFile = other.m_inputFile;
+  m_input = other.m_input;
   m_queue = other.m_queue;
   m_title = other.m_title;
   m_name = other.m_name;

@@ -24,7 +24,7 @@
 namespace MoleQueue {
 
 Connection::Connection(QLocalSocket *socket, QObject *parent) : QObject(parent),
-  m_socket(socket), m_blockSize(0)
+  m_socket(socket), m_blockSize(0), m_state(IDLE)
 {
   if (m_socket) {
     connect(m_socket, SIGNAL(readyRead()), this, SLOT(newDataReady()));
@@ -50,19 +50,33 @@ void Connection::newDataReady()
   if (in.atEnd())
     return;
 
-  QString message;
-  in >> message;
-  qDebug() << "Message:" << message;
-
-  if (m_socket->bytesAvailable()) {
-    if (m_socket->bytesAvailable() < static_cast<int>(sizeof(quint16)))
-      return;
-    in >> m_blockSize;
-    if (in.atEnd())
-      return;
-
-    in >> message;
-    qDebug() << "Message2:" << message;
+  // If idle, we expect to receive a command as a QString
+  switch (m_state) {
+    case IDLE: {
+      QString command;
+      in >> command;
+      qDebug() << "IDLE:" << command;
+      if (command == "Submit") {
+        m_state = INPUT_FILE;
+        sendMessage("Submit: ready");
+      }
+      m_blockSize = 0;
+      break;
+    }
+    case INPUT_FILE: {
+      // Receive the input file, submit it to the correct queue.
+      // We expect a string with the queue name, a second string with the
+      // input file name and then a third string with the input file.
+      QString strings[4];
+      in >> strings[0] >> strings[1] >> strings[2] >> strings[3];
+      qDebug() << strings[0];
+      qDebug() << strings[1];
+      qDebug() << strings[2];
+      qDebug() << strings[3];
+      emit(jobSubmitted(strings[0], strings[1], strings[2], strings[3]));
+      m_blockSize = 0;
+      m_state = IDLE;
+    }
 
   }
 

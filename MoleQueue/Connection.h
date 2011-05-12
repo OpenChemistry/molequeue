@@ -39,6 +39,16 @@ public:
   ~Connection();
 
   /**
+   * An enum to track the current state of communication with the client.
+   */
+  enum State {
+    IDLE,
+    INPUT_FILE,
+    OUTPUT_FILE,
+    ERROR
+  };
+
+  /**
    * Set the name of the Connection. This should be unique, and will be used in
    * the GUI to refer to this Connection.
    */
@@ -52,7 +62,8 @@ signals:
   void disconnect();
 
   /** The client submitted a new job. */
-  void jobSubmitted(QString queue, QString program, QString fileName);
+  void jobSubmitted(const QString &queue, const QString &program,
+                    const QString &fileName, const QString &input);
 
 public slots:
   /**
@@ -72,6 +83,8 @@ protected:
 
   QLocalSocket *m_socket;
   quint16 m_blockSize;
+
+  State m_state;
 };
 
 } // End namespace

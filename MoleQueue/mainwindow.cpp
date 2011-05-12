@@ -170,6 +170,8 @@ void MainWindow::newConnection()
           clientSocket, SLOT(deleteLater()));
 
   m_connection = new Connection(clientSocket, this);
+  connect(m_connection, SIGNAL(jobSubmitted(QString,QString,QString,QString)),
+          this, SLOT(submitJob(QString,QString,QString,QString)));
 /*
   QByteArray block;
   QDataStream out(&block, QIODevice::WriteOnly);
@@ -278,6 +280,23 @@ void MainWindow::removeServer()
   else {
     qDebug() << "Server not removed, client received response.";
   }
+}
+
+void MainWindow::submitJob(const QString &queue, const QString &program,
+                           const QString &fileName, const QString &input)
+{
+  Queue *q = 0;
+  if (queue == "local")
+    q = m_queues[0];
+  else if (queue == "remote")
+    q = m_queues[1];
+  Program job = q->program(program);
+  job.setTitle(fileName);
+  job.setInputFile(fileName);
+  job.setInput(input);
+  q->submit(job);
+  qDebug() << "Mainwindow submitting job" << queue << program << fileName
+           << "\n\n" << input;
 }
 
 void MainWindow::moveFile()
@@ -433,7 +452,7 @@ void MainWindow::createJobModel()
   remJob.setTitle("benzene-gms");
   remJob.setReplacement("time", "5");
   remJob.setInputFile("benzene.inp");
-  queue->submit(remJob);
+  //queue->submit(remJob);
 }
 
 } // End namespace

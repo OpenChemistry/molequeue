@@ -54,6 +54,10 @@ public slots:
   void writeSettings();
 
 private slots:
+  /** Receive new job submissions, send them to the appropriate queue. */
+  void submitJob(const QString &queue, const QString &program,
+                 const QString &fileName, const QString &input);
+
   void setIcon(int index);
   void iconActivated(QSystemTrayIcon::ActivationReason reason);
   void showMessage();
