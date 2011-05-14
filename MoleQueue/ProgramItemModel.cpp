@@ -37,7 +37,7 @@ void ProgramItemModel::addQueue(Queue *queue)
   }
 }
 
-QModelIndex ProgramItemModel::parent(const QModelIndex &index) const
+QModelIndex ProgramItemModel::parent(const QModelIndex &) const
 {
   return QModelIndex();
 }

@@ -188,6 +188,18 @@ public:
   void setInput(const QString &input) { m_input = input; }
 
   /**
+   * \return The full path of the output file that was produced. This is used
+   * to open the output file in external programs.
+   */
+  QString outputFile() const { return m_outputFile; }
+
+  /**
+   * Set the output file to produced by the job.
+   * \param file The input file path.
+   */
+  void setOutputFile(const QString &file);
+
+  /**
    * Set the current status of the job.
    */
   void setStatus(Status status) { m_status = status; }
@@ -237,6 +249,9 @@ protected:
 
   /** The input file, if set this will be written and sent to the server. */
   QString m_input;
+
+  /** Full path to the output file. */
+  QString m_outputFile;
 
   /** The current status of the job. */
   Status m_status;

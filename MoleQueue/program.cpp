@@ -41,6 +41,7 @@ Program::Program(const Program &other)
   m_workingDirectory = other.m_workingDirectory;
   m_inputFile = other.m_inputFile;
   m_input = other.m_input;
+  m_outputFile = other.m_outputFile;
   m_queue = other.m_queue;
   m_title = other.m_title;
   m_name = other.m_name;
@@ -98,6 +99,13 @@ void Program::setInputFile(const QString &file)
   m_inputFile = file;
   QFileInfo info(file);
   setReplacement("input", info.baseName());
+}
+
+void Program::setOutputFile(const QString &file)
+{
+  m_outputFile = file;
+  QFileInfo info(file);
+  setReplacement("output", info.baseName());
 }
 
 QString Program::statusString() const

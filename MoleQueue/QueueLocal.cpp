@@ -39,6 +39,16 @@ QueueLocal::~QueueLocal()
   delete m_process;
 }
 
+void QueueLocal::readSettings(const QSettings &settings)
+{
+  Queue::readSettings(settings);
+}
+
+void QueueLocal::writeSettings(QSettings &settings) const
+{
+  Queue::writeSettings(settings);
+}
+
 bool QueueLocal::submit(const Program &job)
 {
   m_jobs.push_back(job);
@@ -134,7 +144,8 @@ void QueueLocal::runProgram(int jobId)
   }
 
   Program &job = m_jobs[jobId];
-  job.setWorkingDirectory(job.workingDirectory() + "/" + QString::number(jobId));
+  job.setWorkingDirectory(job.workingDirectory() + "/"
+                          + QString::number(jobId + m_jobIndexOffset));
   QDir dir;
   dir.mkpath(job.workingDirectory());
   if (!job.input().isEmpty()) {
@@ -146,9 +157,14 @@ void QueueLocal::runProgram(int jobId)
   else {
     QFile input(job.inputFile());
     QFileInfo info(input);
-    input.copy(job.workingDirectory() + "/" + info.baseName() + ".inp");
-    qDebug() << "Moving file" << job.inputFile() << "->"
-             << job.workingDirectory() + "/" + info.baseName() + ".inp";
+    if (info.exists()) {
+      input.copy(job.workingDirectory() + "/" + info.baseName() + ".inp");
+      qDebug() << "Moving file" << job.inputFile() << "->"
+               << job.workingDirectory() + "/" + info.baseName() + ".inp";
+    }
+    else {
+      qDebug() << "Error - file not found.";
+    }
   }
   QFileInfo info(job.workingDirectory() + "/" + job.inputFile());
   job.setReplacement("input", info.baseName());
@@ -161,6 +177,8 @@ void QueueLocal::runProgram(int jobId)
   if (job.name() == "GAMESS") {
     m_process->setStandardOutputFile(job.workingDirectory() + "/" +
                                      info.baseName() + ".gamout");
+    job.setOutputFile(job.workingDirectory() + "/" +
+                      info.baseName() + ".gamout");
   }
 
   m_process->start(job.expandedRunTemplate());

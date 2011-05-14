@@ -20,6 +20,7 @@
 #include "terminalprocess.h"
 #include "sshcommand.h"
 
+#include <QtCore/QDir>
 #include <QtCore/QTimer>
 #include <QtCore/QDebug>
 
@@ -30,6 +31,7 @@ QueueSGE::QueueSGE(QObject *parent) :
 {
   setupPrograms();
   setupProcess();
+  m_localDir = QDir::homePath() + "/local/SGE";
 }
 
 QueueSGE::~QueueSGE()
@@ -58,7 +60,12 @@ void QueueSGE::jobFinished(Program *job)
   job->setStatus(Program::COMPLETE);
   emit(jobStateChanged(job));
   // Now retrieve our output files, and put them in the local queue store
-  m_ssh->copyDirFrom(job->workingDirectory(), "/home/marcus/local/SGE");
+  int i = 0;
+  for (i = 0; i < m_jobs.size(); ++i)
+    if (&m_jobs[i] == job)
+      break;
+  QString localDir = m_localDir + "/" + QString::number(i + m_jobIndexOffset);
+  m_ssh->copyDirFrom(job->workingDirectory(), localDir);
 }
 
 void QueueSGE::pollRemote()
@@ -144,7 +151,32 @@ void QueueSGE::submitJob(int jobId)
   qDebug() << "Job (R):" << jobId << job.workingDirectory()
            << job.expandedRunTemplate();
 
-  job.setWorkingDirectory(job.workingDirectory() + "/" + QString::number(jobId));
+  // This is the remote working directory
+  job.setWorkingDirectory(job.workingDirectory() + "/"
+                          + QString::number(jobId + m_jobIndexOffset));
+
+  QString localDir = m_localDir + "/" + QString::number(jobId + m_jobIndexOffset);
+  if (!job.input().isEmpty()) {
+    QDir dir;
+    dir.mkpath(localDir);
+    QFile inputFile(localDir + "/" + job.inputFile());
+    inputFile.open(QFile::WriteOnly);
+    inputFile.write(job.input().toLocal8Bit());
+    inputFile.close();
+  }
+  else {
+    QFile input(job.inputFile());
+    QFileInfo info(input);
+    if (info.exists()) {
+      input.copy(localDir + "/" + info.baseName() + ".inp");
+      qDebug() << "Moving file" << job.inputFile() << "->"
+               << localDir + "/" + info.baseName() + ".inp";
+    }
+    else {
+      qDebug() << "Error - file not found.";
+    }
+  }
+
   QString command = "source /etc/profile && qsub -N \"" + job.title() + "\" "
       + job.expandedRunTemplate();
   qDebug() << "Running command:" << command;
@@ -156,7 +188,8 @@ void QueueSGE::submitJob(int jobId)
     qDebug() << "Input file:" << job.inputFile();
     m_ssh->execute("mkdir -p " + job.workingDirectory(), output, exitCode);
     qDebug() << "mkdir:" << output << exitCode;
-    m_ssh->copyTo(job.inputFile(), job.workingDirectory());
+    m_ssh->copyTo(localDir + "/" + job.inputFile(),
+                  job.workingDirectory());
   }
   else {
     qDebug() << "No input file.";

@@ -8,6 +8,7 @@ set(mq_srcs
   mainwindow.cpp
   program.cpp
   ProgramItemModel.cpp
+  ProgramTableView.cpp
   queue.cpp
   QueueLocal.cpp
   QueueRemote.cpp
@@ -21,6 +22,7 @@ set(mq_moc
   Connection.h
   mainwindow.h
   ProgramItemModel.h
+  ProgramTableView.h
   queue.h
   QueueLocal.h
   QueueRemote.h

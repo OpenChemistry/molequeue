@@ -34,6 +34,16 @@ public:
   explicit QueueLocal(QObject *parent = 0);
   ~QueueLocal();
 
+  /**
+   * Read settings for the queue, done early on at startup.
+   */
+  virtual void readSettings(const QSettings &settings);
+
+  /**
+   * Write settings for the queue, done just before closing the server.
+   */
+  virtual void writeSettings(QSettings &settings) const;
+
 public slots:
   /**
    * Submit a new job to the queue.

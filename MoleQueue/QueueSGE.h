@@ -84,6 +84,9 @@ protected:
 
   /** A map of all active remote jobs, associated with their unique remote id. **/
   QMap<QString, Program *> m_remoteJobs;
+
+  /** The local directory used to stage files, and retrieve them. **/
+  QString m_localDir;
 };
 
 } // End namespace

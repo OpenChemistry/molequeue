@@ -16,7 +16,7 @@
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
-     <widget class="QTreeView" name="jobView"/>
+     <widget class="MoleQueue::ProgramTableView" name="jobView"/>
     </item>
    </layout>
   </widget>
@@ -45,6 +45,13 @@
    </property>
   </action>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>MoleQueue::ProgramTableView</class>
+   <extends>QTreeView</extends>
+   <header location="global">MoleQueue/ProgramTableView.h</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

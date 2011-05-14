@@ -44,14 +44,13 @@ MainWindow::MainWindow() : m_removeServer(false), m_connection(0)
   m_ui = new Ui::MainWindow;
   m_ui->setupUi(this);
 
-  // Read in our settings
-  readSettings();
-
   createActions();
   createMainMenu();
   createTrayIcon();
   createQueues();
   createJobModel();
+
+  readSettings();
 
   m_trayIcon->show();
 
@@ -122,6 +121,15 @@ void MainWindow::readSettings()
   m_tmpDir = settings.value("tmpDir", QDir::tempPath() + "/MoleQueue").toString();
   m_localDir = settings.value("localDir",
                               QDir::homePath() + "/.molequeue/local").toString();
+
+  // Process the queues.
+  settings.beginGroup("queues");
+  foreach(Queue *queue, m_queues) {
+    settings.beginGroup(queue->name());
+    queue->readSettings(settings);
+    settings.endGroup();
+  }
+  settings.endGroup();
 }
 
 void MainWindow::writeSettings()
@@ -129,6 +137,15 @@ void MainWindow::writeSettings()
   QSettings settings;
   settings.setValue("tmpDir"  , m_tmpDir);
   settings.setValue("localDir", m_localDir);
+
+  // Process the queues.
+  settings.beginGroup("queues");
+  foreach(Queue *queue, m_queues) {
+    settings.beginGroup(queue->name());
+    queue->writeSettings(settings);
+    settings.endGroup();
+  }
+  settings.endGroup();
 }
 
 void MainWindow::setIcon(int index)
@@ -283,7 +300,7 @@ void MainWindow::removeServer()
 }
 
 void MainWindow::submitJob(const QString &queue, const QString &program,
-                           const QString &fileName, const QString &input)
+                           const QString &title, const QString &input)
 {
   Queue *q = 0;
   if (queue == "local")
@@ -291,12 +308,14 @@ void MainWindow::submitJob(const QString &queue, const QString &program,
   else if (queue == "remote")
     q = m_queues[1];
   Program job = q->program(program);
-  job.setTitle(fileName);
-  job.setInputFile(fileName);
+  job.setTitle(title);
+  QString inputFile = title;
+  inputFile.replace(" ", "_");
+  job.setInputFile(inputFile + ".inp");
   job.setInput(input);
   q->submit(job);
-  qDebug() << "Mainwindow submitting job" << queue << program << fileName
-           << "\n\n" << input;
+  qDebug() << "Mainwindow submitting job" << queue << program << title
+           << inputFile << "\n\n" << input;
 }
 
 void MainWindow::moveFile()

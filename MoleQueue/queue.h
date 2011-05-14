@@ -24,6 +24,8 @@
 
 #include "program.h"
 
+class QSettings;
+
 namespace MoleQueue {
 
 /**
@@ -53,6 +55,16 @@ public:
 
   /** Get the name of the queue. */
   QString name() const { return m_name; }
+
+  /**
+   * Read settings for the queue, done early on at startup.
+   */
+  virtual void readSettings(const QSettings &settings);
+
+  /**
+   * Write settings for the queue, done just before closing the server.
+   */
+  virtual void writeSettings(QSettings &settings) const;
 
   /**
    * Add a new program to the queue. Program names must be unique in each
@@ -116,6 +128,18 @@ protected:
   QString m_name;
   QMap<QString, Program> m_programs;
   QList<Program> m_jobs;
+
+  /** This stores the long running job number, largely used as a directory for
+   * storage or staged files. This is often an offset applied to the locally
+   * used index into the array of actual jobs stored in a running instance.
+   * The first time MoleQueue is run for a new queue it will be zero, after that
+   * it will keep a count of the total number of jobs run.
+   *
+   * This will require clean up passes/possible reset at some future time. The
+   * data will live longer term in a database/permanent storage. Queues are only
+   * intended for short term storage while processing jobs.
+   */
+  unsigned int m_jobIndexOffset;
 
 };
 

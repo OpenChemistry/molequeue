@@ -100,7 +100,9 @@ void QueueRemote::submitJob(int jobId)
   qDebug() << "Job (R):" << jobId << job.workingDirectory()
            << job.expandedRunTemplate();
 
-  job.setWorkingDirectory(job.workingDirectory() + "/" + QString::number(jobId));
+  // This is the remote working directory...
+  job.setWorkingDirectory(job.workingDirectory() + "/"
+                          + QString::number(jobId + m_jobIndexOffset));
   QString command = "cd " + job.workingDirectory() + " && "
       + job.expandedRunTemplate() + " &";
   qDebug() << "Running command:" << command;

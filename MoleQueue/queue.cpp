@@ -16,16 +16,28 @@
 
 #include "queue.h"
 
+#include <QtCore/QSettings>
+
 namespace MoleQueue {
 
 Queue::Queue(const QString &name, QObject *parent) :
-  QObject(parent), m_name(name)
+  QObject(parent), m_name(name), m_jobIndexOffset(0)
 {
 }
 
 Queue::~Queue()
 {
 
+}
+
+void Queue::readSettings(const QSettings &settings)
+{
+  m_jobIndexOffset = settings.value("jobIndexOffset", 0).toUInt();
+}
+
+void Queue::writeSettings(QSettings &settings) const
+{
+  settings.setValue("jobIndexOffset", m_jobIndexOffset + m_jobs.size());
 }
 
 bool Queue::addProgram(const Program &program, bool replace)
