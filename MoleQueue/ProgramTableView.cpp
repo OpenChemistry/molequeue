@@ -45,8 +45,8 @@ void ProgramTableView::contextMenuEvent(QContextMenuEvent *e)
       connect(action, SIGNAL(triggered()), this, SLOT(openInAvogadro()));
     }
     else {
-      menu->addAction(QString("Row %1, Col %2 was clicked on").arg(index.row())
-                      .arg(index.column()));
+      QAction *action = menu->addAction("&Hold");
+      action = menu->addAction("&Cancel");
     }
     menu->exec(QCursor::pos());
   }

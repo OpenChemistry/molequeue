@@ -23,13 +23,15 @@
 #include <QtCore/QFile>
 #include <QtCore/QFileInfo>
 #include <QtCore/QVariant>
+#include <QtCore/QSettings>
+#include <QtCore/QThread>
 
 #include <QtCore/QDebug>
 
 namespace MoleQueue {
 
 QueueLocal::QueueLocal(QObject *parent) :
-  Queue("Local", parent), m_process(0), m_currentJob(0)
+  Queue("Local", parent), m_process(0), m_currentJob(0), m_cores(-1)
 {
   setupPrograms();
 }
@@ -42,11 +44,13 @@ QueueLocal::~QueueLocal()
 void QueueLocal::readSettings(const QSettings &settings)
 {
   Queue::readSettings(settings);
+  m_cores = settings.value("cores", -1).toInt();
 }
 
 void QueueLocal::writeSettings(QSettings &settings) const
 {
   Queue::writeSettings(settings);
+  settings.setValue("cores", m_cores);
 }
 
 bool QueueLocal::submit(const Program &job)
@@ -116,7 +120,7 @@ void QueueLocal::setupPrograms()
   gamess.setName("GAMESS");
   gamess.setRunDirect(true);
   gamess.setReplacement("input", "myInput.inp");
-  gamess.setReplacement("ncpus", "2");
+  gamess.setReplacement("ncpus", QString::number(cores()));
   gamess.setRunTemplate("/home/marcus/build/gamess/rungms $$input$$ 2010 $$ncpus$$");
   gamess.setWorkingDirectory("/home/marcus/local/gamess");
   gamess.setQueue(this);
@@ -200,6 +204,14 @@ void QueueLocal::runProgram(int jobId)
   QByteArray result = m_process->readAll();
   qDebug() << "scp output:" << result << "Return code:" << m_process->exitCode();
 */
+}
+
+int QueueLocal::cores() const
+{
+  if (m_cores > 0)
+    return m_cores;
+  else
+    return QThread::idealThreadCount();
 }
 
 } // End namespace

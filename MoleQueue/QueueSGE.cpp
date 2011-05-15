@@ -198,7 +198,7 @@ void QueueSGE::submitJob(int jobId)
   QStringList parts = output.split(" ", QString::SkipEmptyParts);
   // Check if the job was submitted successfully
   if (parts.size() > 3 && parts[0] == "Your" && parts[1] == "job") {
-    job.setTitle(job.title() + "(" + parts[2] + ")");
+    job.setTitle(job.title() + " (jobId: " + parts[2] + ")");
     job.setStatus(Program::REMOTEQUEUED);
     m_remoteJobs[parts[2]] = &job;
     if (!m_timer->isActive())

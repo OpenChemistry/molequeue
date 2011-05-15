@@ -67,8 +67,12 @@ protected:
 
   void runProgram(int jobId);
 
+  /** The number of cores available. */
+  int cores() const;
+
   QProcess *m_process;
   int m_currentJob;
+  int m_cores;
 };
 
 } // End namespace
