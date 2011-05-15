@@ -211,7 +211,7 @@ int QueueLocal::cores() const
   if (m_cores > 0)
     return m_cores;
   else
-    return QThread::idealThreadCount();
+    return QThread::idealThreadCount() > 8 ? 8 : QThread::idealThreadCount();
 }
 
 } // End namespace
