@@ -43,6 +43,11 @@ void ProgramTableView::contextMenuEvent(QContextMenuEvent *e)
       QAction *action = menu->addAction("&Open in Avogadro");
       action->setData(QVariant(job->outputFile()));
       connect(action, SIGNAL(triggered()), this, SLOT(openInAvogadro()));
+      action = menu->addAction("&Store in database");
+      action = menu->addAction("&Remove");
+    }
+    else if (job->status() == Program::RUNNING) {
+      QAction *action = menu->addAction("&Kill");
     }
     else {
       QAction *action = menu->addAction("&Hold");
