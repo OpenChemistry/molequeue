@@ -14,41 +14,32 @@
 
 ******************************************************************************/
 
-#ifndef QUEUEMANAGERDIALOG_H
-#define QUEUEMANAGERDIALOG_H
+#ifndef QUEUESETTINGSDIALOG_H
+#define QUEUESETTINGSDIALOG_H
 
 #include <QDialog>
-#include <QTableWidget>
 
 namespace Ui {
-class QueueManagerDialog;
+    class QueueSettingsDialog;
 }
 
 namespace MoleQueue {
 
 class Queue;
-class QueueManager;
 
-class QueueManagerDialog : public QDialog
+class QueueSettingsDialog : public QDialog
 {
-  Q_OBJECT
+    Q_OBJECT
 
 public:
-  explicit QueueManagerDialog(QueueManager *manager, QWidget *parent = 0);
-  ~QueueManagerDialog();
-
-private slots:
-  void addQueue();
-  void removeQueue();
-  void queueAdded(const MoleQueue::Queue *queue);
-  void queueRemoved(const MoleQueue::Queue *queue);
-  void itemDoubleClicked(QTableWidgetItem *item);
+    explicit QueueSettingsDialog(Queue *queue, QWidget *parent = 0);
+    ~QueueSettingsDialog();
 
 private:
-  Ui::QueueManagerDialog *ui;
-  QueueManager *m_queueManager;
+    Ui::QueueSettingsDialog *ui;
+    Queue *m_queue;
 };
 
 } // end MoleQueue namespace
 
-#endif // QUEUEMANAGERDIALOG_H
+#endif // QUEUESETTINGSDIALOG_H

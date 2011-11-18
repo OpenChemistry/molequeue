@@ -14,41 +14,35 @@
 
 ******************************************************************************/
 
-#ifndef QUEUEMANAGERDIALOG_H
-#define QUEUEMANAGERDIALOG_H
+#include "queuesettingsdialog.h"
+#include "ui_queuesettingsdialog.h"
 
-#include <QDialog>
-#include <QTableWidget>
-
-namespace Ui {
-class QueueManagerDialog;
-}
+#include "queue.h"
 
 namespace MoleQueue {
 
-class Queue;
-class QueueManager;
-
-class QueueManagerDialog : public QDialog
+QueueSettingsDialog::QueueSettingsDialog(Queue *queue, QWidget *parent)
+  : QDialog(parent),
+    ui(new Ui::QueueSettingsDialog),
+    m_queue(queue)
 {
-  Q_OBJECT
+  ui->setupUi(this);
 
-public:
-  explicit QueueManagerDialog(QueueManager *manager, QWidget *parent = 0);
-  ~QueueManagerDialog();
+  ui->nameLineEdit->setText(queue->name());
+  ui->typeNameLabel->setText(queue->typeName());
 
-private slots:
-  void addQueue();
-  void removeQueue();
-  void queueAdded(const MoleQueue::Queue *queue);
-  void queueRemoved(const MoleQueue::Queue *queue);
-  void itemDoubleClicked(QTableWidgetItem *item);
+  // populate programs table
+  int row = 0;
+  ui->programsTable->setRowCount(queue->programs().size());
+  foreach(const QString &programName, queue->programs()){
+    QTableWidgetItem *item = new QTableWidgetItem(programName);
+    ui->programsTable->setItem(row++, 0, item);
+  }
+}
 
-private:
-  Ui::QueueManagerDialog *ui;
-  QueueManager *m_queueManager;
-};
+QueueSettingsDialog::~QueueSettingsDialog()
+{
+  delete ui;
+}
 
 } // end MoleQueue namespace
-
-#endif // QUEUEMANAGERDIALOG_H

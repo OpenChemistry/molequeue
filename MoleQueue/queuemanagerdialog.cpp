@@ -24,6 +24,7 @@
 #include "mainwindow.h"
 #include "addqueuedialog.h"
 #include "queuemanager.h"
+#include "queuesettingsdialog.h"
 
 namespace MoleQueue {
 
@@ -51,6 +52,7 @@ QueueManagerDialog::QueueManagerDialog(QueueManager *queueManager, QWidget *pare
   // connect slots
   connect(queueManager, SIGNAL(queueAdded(const MoleQueue::Queue*)), this, SLOT(queueAdded(const MoleQueue::Queue*)));
   connect(queueManager, SIGNAL(queueRemoved(const MoleQueue::Queue*)), this, SLOT(queueRemoved(const MoleQueue::Queue*)));
+  connect(ui->queueTable, SIGNAL(itemDoubleClicked(QTableWidgetItem*)), this, SLOT(itemDoubleClicked(QTableWidgetItem*)));
   connect(ui->addQueueButton, SIGNAL(clicked()), this, SLOT(addQueue()));
   connect(ui->closeButton, SIGNAL(clicked()), this, SLOT(close()));
 }
@@ -89,6 +91,15 @@ void QueueManagerDialog::queueRemoved(const MoleQueue::Queue *queue)
       ui->queueTable->removeRow(i);
     }
   }
+}
+
+void QueueManagerDialog::itemDoubleClicked(QTableWidgetItem *item)
+{
+  int row = item->row();
+  Queue *queue = m_queueManager->queues()[row];
+
+  QueueSettingsDialog dialog(queue, this);
+  dialog.exec();
 }
 
 } // end MoleQueue namespace

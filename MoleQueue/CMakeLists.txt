@@ -15,6 +15,7 @@ set(mq_srcs
   QueueRemote.cpp
   queuemanager.cpp
   queuemanagerdialog.cpp
+  queuesettingsdialog.cpp
   QueueSGE.cpp
   QueueItemModel.cpp
   sshcommand.cpp
@@ -32,6 +33,7 @@ set(mq_moc
   QueueRemote.h
   queuemanager.h
   queuemanagerdialog.h
+  queuesettingsdialog.h
   QueueSGE.h
   QueueItemModel.h
   sshcommand.h
@@ -42,7 +44,9 @@ qt4_wrap_cpp(moc_srcs ${mq_moc})
 qt4_wrap_ui(ui_srcs
   addqueuedialog.ui
   mainwindow.ui
-  queuemanagerdialog.ui)
+  queuemanagerdialog.ui
+  queuesettingsdialog.ui
+)
 qt4_add_resources(rcc_srcs queuetray.qrc)
 
 add_library(molequeue_static STATIC
