@@ -6,6 +6,7 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR})
 set(mq_srcs
   addqueuedialog.cpp
   Connection.cpp
+  job.cpp
   mainwindow.cpp
   program.cpp
   ProgramItemModel.cpp
@@ -25,6 +26,7 @@ set(mq_srcs
 set(mq_moc
   addqueuedialog.h
   Connection.h
+  job.h
   mainwindow.h
   ProgramItemModel.h
   ProgramTableView.h
