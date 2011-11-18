@@ -72,7 +72,6 @@ private slots:
   void moveFile();
 
 private:
-  void createIconGroupBox();
   void createMessageGroupBox();
   void createActions();
   void createMainMenu();
@@ -86,7 +85,6 @@ private:
   QAction *m_minimizeAction;
   QAction *m_maximizeAction;
   QAction *m_restoreAction;
-  QAction *m_quitAction;
 
   QIcon *m_icon;
   QSystemTrayIcon *m_trayIcon;

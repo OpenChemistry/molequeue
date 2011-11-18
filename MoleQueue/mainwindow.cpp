@@ -39,9 +39,11 @@
 
 namespace MoleQueue {
 
-MainWindow::MainWindow() : m_removeServer(false), m_connection(0)
+MainWindow::MainWindow()
+  : m_ui(new Ui::MainWindow),
+    m_removeServer(false),
+    m_connection(0)
 {
-  m_ui = new Ui::MainWindow;
   m_ui->setupUi(this);
 
   createActions();
@@ -53,9 +55,6 @@ MainWindow::MainWindow() : m_removeServer(false), m_connection(0)
   readSettings();
 
   m_trayIcon->show();
-
-  setWindowTitle(tr("MoleQueue"));
-  resize(600, 300);
 
   // Start up our local socket server
   m_server = new QLocalServer(this);
@@ -77,7 +76,6 @@ MainWindow::MainWindow() : m_removeServer(false), m_connection(0)
     connect(socket, SIGNAL(connected()), this, SLOT(socketConnected()));
 
     QTimer::singleShot(1000, this, SLOT(removeServer()));
-//    close();
     return;
   }
   else {
@@ -90,17 +88,17 @@ MainWindow::MainWindow() : m_removeServer(false), m_connection(0)
 MainWindow::~MainWindow()
 {
   writeSettings();
+
   delete m_ui;
-  m_ui = 0;
 }
 
- void MainWindow::setVisible(bool visible)
- {
-   m_minimizeAction->setEnabled(visible);
-   m_maximizeAction->setEnabled(!isMaximized());
-   m_restoreAction->setEnabled(isMaximized() || !visible);
-   QMainWindow::setVisible(visible);
- }
+void MainWindow::setVisible(bool visible)
+{
+  m_ui->actionMinimize->setEnabled(visible);
+  m_ui->actionMaximize->setEnabled(!isMaximized());
+  m_ui->actionRestore->setEnabled(isMaximized() || !visible);
+  QMainWindow::setVisible(visible);
+}
 
 void MainWindow::closeEvent(QCloseEvent *event)
 {
@@ -123,7 +121,7 @@ void MainWindow::readSettings()
                               QDir::homePath() + "/.molequeue/local").toString();
 
   // Process the queues.
-  settings.beginGroup("queues");
+  settings.beginGroup("Queues");
   foreach(Queue *queue, m_queues) {
     settings.beginGroup(queue->name());
     queue->readSettings(settings);
@@ -139,7 +137,7 @@ void MainWindow::writeSettings()
   settings.setValue("localDir", m_localDir);
 
   // Process the queues.
-  settings.beginGroup("queues");
+  settings.beginGroup("Queues");
   foreach(Queue *queue, m_queues) {
     settings.beginGroup(queue->name());
     queue->writeSettings(settings);
@@ -189,62 +187,6 @@ void MainWindow::newConnection()
   m_connection = new Connection(clientSocket, this);
   connect(m_connection, SIGNAL(jobSubmitted(QString,QString,QString,QString)),
           this, SLOT(submitJob(QString,QString,QString,QString)));
-/*
-  QByteArray block;
-  QDataStream out(&block, QIODevice::WriteOnly);
-  out.setVersion(QDataStream::Qt_4_7);
-  out << static_cast<quint16>(0);
-  out << QString("Hello from the server...");
-
-  QList<QString> list;
-  list << "GAMESS" << "MOPAC";
-
-  out << list;
-
-  out.device()->seek(0);
-  out << static_cast<quint16>(block.size() - sizeof(quint16));
-
-  qDebug() << "size:" << block.size() << sizeof(quint16) << "message:" << block;
-
-  clientSocket->write(block);
-  clientSocket->flush();
-  clientSocket->disconnectFromServer();
-
-  // Experimental QProcess for ssh
-  qDebug() << "Calling SSH...";
-  TerminalProcess ssh;
-  QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
-  QProcessEnvironment sshEnv;
-  if (env.contains("DISPLAY"))
-    sshEnv.insert("DISPLAY", env.value("DISPLAY"));
-  if (env.contains("EDITOR"))
-    sshEnv.insert("EDITOR", env.value("EDITOR"));
-  if (env.contains("SSH_AUTH_SOCK"))
-    sshEnv.insert("SSH_AUTH_SOCK", env.value("SSH_AUTH_SOCK"));
-  sshEnv.insert("SSH_ASKPASS", "/usr/bin/pinentry-qt4");
-  ssh.setProcessEnvironment(sshEnv);
-  ssh.setProcessChannelMode(QProcess::MergedChannels);
-  //ssh.start("env");
-  ssh.start("ssh", QStringList() << "unobtanium");// << "ls");
-  if (!ssh.waitForStarted()) {
-    qDebug() << "Failed to start SSH...";
-    return;
-  }
-  ssh.waitForReadyRead();
-  ssh.write("ls ~/\n");
-  ssh.waitForBytesWritten();
-  ssh.waitForReadyRead();
-  QByteArray res = ssh.readAll();
-  qDebug() << "ls:" << res;
-  ssh.write("env\nexit\n");
-  ssh.closeWriteChannel();
-  if (!ssh.waitForFinished()) {
-    ssh.close();
-    qDebug() << "Failed to exit.";
-  }
-  QByteArray result = ssh.readAll();
-  qDebug() << "Output:" << result;
-*/
 }
 
 void MainWindow::socketReadyRead()
@@ -320,50 +262,6 @@ void MainWindow::submitJob(const QString &queue, const QString &program,
 
 void MainWindow::moveFile()
 {
-/*  qDebug() << "Calling SSH...";
-  TerminalProcess ssh;
-  QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
-  QProcessEnvironment sshEnv;
-  if (env.contains("DISPLAY"))
-    sshEnv.insert("DISPLAY", env.value("DISPLAY"));
-  if (env.contains("EDITOR"))
-    sshEnv.insert("EDITOR", env.value("EDITOR"));
-  if (env.contains("SSH_AUTH_SOCK"))
-    sshEnv.insert("SSH_AUTH_SOCK", env.value("SSH_AUTH_SOCK"));
-  sshEnv.insert("SSH_ASKPASS", "/usr/bin/pinentry-qt4");
-  ssh.setProcessEnvironment(sshEnv);
-  ssh.setProcessChannelMode(QProcess::MergedChannels);
-  //ssh.start("env");
-  ssh.start("scp", QStringList() << "MoleQueue.cbp"
-            << "unobtanium:");// << "ls");
-  if (!ssh.waitForStarted()) {
-    qDebug() << "Failed to start SSH...";
-    return;
-  }
-  ssh.closeWriteChannel();
-  if (!ssh.waitForFinished()) {
-    ssh.close();
-    qDebug() << "Failed to exit.";
-  }
-  QByteArray result = ssh.readAll();
-  qDebug() << "scp output:" << result << "Return code:" << ssh.exitCode();
-
-  SshCommand command(this);
-  command.setHostName("unobtanium");
-  QString out;
-  int exitCode = -1;
-  bool success = command.execute("ls -la", out, exitCode);
-
-  success = command.copyTo("MoleQueue.cbp", "MoleQueue666.cbp");
-  success = command.copyDirTo("bin", "MoleQueueBin");
-
-  // Now try copying some files over here!
-  success = command.copyFrom("test.py", "test.py");
-  success = command.copyDirFrom("src/cml-reader", "cml-reader"); */
-}
-
-void MainWindow::createIconGroupBox()
-{
 }
 
 void MainWindow::createMessageGroupBox()
@@ -375,42 +273,26 @@ void MainWindow::createMessageGroupBox()
 
 void MainWindow::createActions()
 {
-  m_minimizeAction = new QAction(tr("Mi&nimize"), this);
-  connect(m_minimizeAction, SIGNAL(triggered()), this, SLOT(hide()));
-
-  m_maximizeAction = new QAction(tr("Ma&ximize"), this);
-  connect(m_maximizeAction, SIGNAL(triggered()), this, SLOT(showMaximized()));
-
-  m_restoreAction = new QAction(tr("&Restore"), this);
-  connect(m_restoreAction, SIGNAL(triggered()), this, SLOT(showNormal()));
-
-  m_quitAction = new QAction(tr("&Quit"), this);
-  connect(m_quitAction, SIGNAL(triggered()), qApp, SLOT(quit()));
+  connect(m_ui->actionMinimize, SIGNAL(triggered()), this, SLOT(hide()));
+  connect(m_ui->actionMaximize, SIGNAL(triggered()), this, SLOT(showMaximized()));
+  connect(m_ui->actionRestore, SIGNAL(triggered()), this, SLOT(showNormal()));
 }
 
 void MainWindow::createMainMenu()
 {
-  QMenu *file = new QMenu(tr("&File"), m_ui->menubar);
-  QAction *test = new QAction(tr("&Test"), this);
-  connect(test, SIGNAL(triggered()), this, SLOT(showMessage()));
-  file->addAction(test);
-
-  QAction *move = new QAction(tr("&Move"), this);
-  connect(move, SIGNAL(triggered()), this, SLOT(moveFile()));
-  file->addAction(move);
-
-  file->addAction(m_quitAction);
-  m_ui->menubar->addMenu(file);
+  connect(m_ui->actionTest, SIGNAL(triggered()), this, SLOT(showMessage()));
+  connect(m_ui->actionMove, SIGNAL(triggered()), this, SLOT(moveFile()));
+  connect(m_ui->actionQuit, SIGNAL(triggered()), qApp, SLOT(quit()));
 }
 
 void MainWindow::createTrayIcon()
 {
   m_trayIconMenu = new QMenu(this);
-  m_trayIconMenu->addAction(m_minimizeAction);
-  m_trayIconMenu->addAction(m_maximizeAction);
-  m_trayIconMenu->addAction(m_restoreAction);
+  m_trayIconMenu->addAction(m_ui->actionMinimize);
+  m_trayIconMenu->addAction(m_ui->actionMaximize);
+  m_trayIconMenu->addAction(m_ui->actionRestore);
   m_trayIconMenu->addSeparator();
-  m_trayIconMenu->addAction(m_quitAction);
+  m_trayIconMenu->addAction(m_ui->actionQuit);
 
   m_trayIcon = new QSystemTrayIcon(this);
   m_trayIcon->setContextMenu(m_trayIconMenu);
@@ -426,20 +308,13 @@ void MainWindow::createTrayIcon()
 
 void MainWindow::createQueues()
 {
-//  m_queues.push_back(new QueueLocal);
-//  m_queues.push_back(new QueueRemote);
-
-//  Queue *queue = m_queues[0];
-//  Program gamess = queue->program("GAMESS");
-//  gamess.setInputFile("/home/marcus/build/gamess/methane/methane.inp");
-//  queue->submit(gamess);
 }
 
 void MainWindow::createJobModel()
 {
   m_jobModel = new ProgramItemModel(this);
 
-  m_queues.push_back(new QueueLocal(this));
+  m_queues.append(new QueueLocal(this));
   m_jobModel->addQueue(m_queues.back());
 
   m_ui->jobView->setModel(m_jobModel);
@@ -464,7 +339,7 @@ void MainWindow::createJobModel()
 //  queue->submit(newJob);
 
   // Now set up the remote queue
-  m_queues.push_back(new QueueSGE(this));
+  m_queues.append(new QueueSGE(this));
   queue = m_queues.back();
   m_jobModel->addQueue(m_queues.back());
   Program remJob = queue->program("GAMESS");
