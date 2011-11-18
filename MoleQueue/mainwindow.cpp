@@ -25,6 +25,8 @@
 #include "QueueLocal.h"
 #include "QueueRemote.h"
 #include "QueueSGE.h"
+#include "queuemanager.h"
+#include "queuemanagerdialog.h"
 
 #include <QtCore/QProcess>
 #include <QtCore/QProcessEnvironment>
@@ -45,6 +47,8 @@ MainWindow::MainWindow()
     m_connection(0)
 {
   m_ui->setupUi(this);
+
+  m_queueManager = new QueueManager(this);
 
   createActions();
   createMainMenu();
@@ -122,7 +126,7 @@ void MainWindow::readSettings()
 
   // Process the queues.
   settings.beginGroup("Queues");
-  foreach(Queue *queue, m_queues) {
+  foreach(Queue *queue, m_queueManager->queues()) {
     settings.beginGroup(queue->name());
     queue->readSettings(settings);
     settings.endGroup();
@@ -138,7 +142,7 @@ void MainWindow::writeSettings()
 
   // Process the queues.
   settings.beginGroup("Queues");
-  foreach(Queue *queue, m_queues) {
+  foreach(Queue *queue, m_queueManager->queues()) {
     settings.beginGroup(queue->name());
     queue->writeSettings(settings);
     settings.endGroup();
@@ -246,9 +250,9 @@ void MainWindow::submitJob(const QString &queue, const QString &program,
 {
   Queue *q = 0;
   if (queue == "local")
-    q = m_queues[0];
+    q = m_queueManager->queues()[0];
   else if (queue == "remote")
-    q = m_queues[1];
+    q = m_queueManager->queues()[1];
   Program job = q->program(program);
   job.setTitle(title);
   QString inputFile = title;
@@ -258,6 +262,12 @@ void MainWindow::submitJob(const QString &queue, const QString &program,
   q->submit(job);
   qDebug() << "Mainwindow submitting job" << queue << program << title
            << inputFile << "\n\n" << input;
+}
+
+void MainWindow::showQueueManager()
+{
+  QueueManagerDialog dialog(m_queueManager, this);
+  dialog.exec();
 }
 
 void MainWindow::moveFile()
@@ -282,6 +292,7 @@ void MainWindow::createMainMenu()
 {
   connect(m_ui->actionTest, SIGNAL(triggered()), this, SLOT(showMessage()));
   connect(m_ui->actionMove, SIGNAL(triggered()), this, SLOT(moveFile()));
+  connect(m_ui->actionQueueManager, SIGNAL(triggered()), this, SLOT(showQueueManager()));
   connect(m_ui->actionQuit, SIGNAL(triggered()), qApp, SLOT(quit()));
 }
 
@@ -314,8 +325,8 @@ void MainWindow::createJobModel()
 {
   m_jobModel = new ProgramItemModel(this);
 
-  m_queues.append(new QueueLocal(this));
-  m_jobModel->addQueue(m_queues.back());
+  m_queueManager->addQueue(new QueueLocal(this));
+  m_jobModel->addQueue(m_queueManager->queues().back());
 
   m_ui->jobView->setModel(m_jobModel);
   m_ui->jobView->setAlternatingRowColors(true);
@@ -325,7 +336,7 @@ void MainWindow::createJobModel()
   m_ui->jobView->header()->setResizeMode(0, QHeaderView::Stretch);
   //m_ui->jobView->header()->setResizeMode(0, QHeaderView::Stretch);
 
-  Queue *queue = m_queues.back();
+  Queue *queue = m_queueManager->queues().back();
   Program newJob = queue->program("sleep");
   newJob.setTitle("Test job...");
   newJob.setReplacement("time", "5");
@@ -339,9 +350,9 @@ void MainWindow::createJobModel()
 //  queue->submit(newJob);
 
   // Now set up the remote queue
-  m_queues.append(new QueueSGE(this));
-  queue = m_queues.back();
-  m_jobModel->addQueue(m_queues.back());
+  m_queueManager->addQueue(new QueueSGE(this));
+  queue = m_queueManager->queues().back();
+  m_jobModel->addQueue(queue);
   Program remJob = queue->program("GAMESS");
   remJob.setTitle("benzene-gms");
   remJob.setReplacement("time", "5");

@@ -35,6 +35,7 @@
     </property>
     <addaction name="actionTest"/>
     <addaction name="actionMove"/>
+    <addaction name="actionQueueManager"/>
     <addaction name="actionQuit"/>
    </widget>
    <addaction name="fileMenu"/>
@@ -71,6 +72,11 @@
   <action name="actionRestore">
    <property name="text">
     <string>&amp;Restore</string>
+   </property>
+  </action>
+  <action name="actionQueueManager">
+   <property name="text">
+    <string>Queue &amp;Manager</string>
    </property>
   </action>
  </widget>

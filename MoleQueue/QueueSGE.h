@@ -39,6 +39,8 @@ public:
   explicit QueueSGE(QObject *parent = 0);
   ~QueueSGE();
 
+  QString typeName() const { return "Remote - SGE"; }
+
 public slots:
   /**
    * Submit a new job to the queue.

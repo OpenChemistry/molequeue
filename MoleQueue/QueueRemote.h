@@ -37,6 +37,8 @@ public:
   explicit QueueRemote(QObject *parent = 0);
   ~QueueRemote();
 
+  QString typeName() const { return "Remote"; }
+
 public slots:
   /**
    * Submit a new job to the queue.

@@ -4,6 +4,7 @@ include(${QT_USE_FILE})
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 set(mq_srcs
+  addqueuedialog.cpp
   Connection.cpp
   mainwindow.cpp
   program.cpp
@@ -12,6 +13,8 @@ set(mq_srcs
   queue.cpp
   QueueLocal.cpp
   QueueRemote.cpp
+  queuemanager.cpp
+  queuemanagerdialog.cpp
   QueueSGE.cpp
   QueueItemModel.cpp
   sshcommand.cpp
@@ -19,6 +22,7 @@ set(mq_srcs
   terminalprocess.cpp)
 
 set(mq_moc
+  addqueuedialog.h
   Connection.h
   mainwindow.h
   ProgramItemModel.h
@@ -26,6 +30,8 @@ set(mq_moc
   queue.h
   QueueLocal.h
   QueueRemote.h
+  queuemanager.h
+  queuemanagerdialog.h
   QueueSGE.h
   QueueItemModel.h
   sshcommand.h
@@ -33,7 +39,10 @@ set(mq_moc
   terminalprocess.h)
 
 qt4_wrap_cpp(moc_srcs ${mq_moc})
-qt4_wrap_ui(ui_srcs mainwindow.ui)
+qt4_wrap_ui(ui_srcs
+  addqueuedialog.ui
+  mainwindow.ui
+  queuemanagerdialog.ui)
 qt4_add_resources(rcc_srcs queuetray.qrc)
 
 add_library(molequeue_static STATIC

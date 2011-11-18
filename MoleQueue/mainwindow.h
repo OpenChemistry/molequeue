@@ -35,6 +35,7 @@ class Queue;
 class Program;
 class ProgramItemModel;
 class Connection;
+class QueueManager;
 
 class MainWindow : public QMainWindow
 {
@@ -67,6 +68,7 @@ private slots:
   void socketError(QLocalSocket::LocalSocketError socketError);
   void socketConnected();
   void removeServer();
+  void showQueueManager();
 
   /** Move file to appropriate place for execution. */
   void moveFile();
@@ -94,7 +96,7 @@ private:
 
   bool m_removeServer;
 
-  QList<Queue *> m_queues;
+  QueueManager *m_queueManager;
 
   QList<Program *> m_jobs;
   ProgramItemModel *m_jobModel;

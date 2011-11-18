@@ -57,6 +57,11 @@ public:
   QString name() const { return m_name; }
 
   /**
+   * Returns the type of the queue as a string.
+   */
+  virtual QString typeName() const { return "Unknown"; }
+
+  /**
    * Read settings for the queue, done early on at startup.
    */
   virtual void readSettings(const QSettings &settings);

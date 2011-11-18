@@ -34,6 +34,8 @@ public:
   explicit QueueLocal(QObject *parent = 0);
   ~QueueLocal();
 
+  QString typeName() const { return "Local"; }
+
   /**
    * Read settings for the queue, done early on at startup.
    */
