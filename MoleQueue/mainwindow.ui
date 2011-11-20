@@ -16,7 +16,17 @@
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
-     <widget class="MoleQueue::ProgramTableView" name="jobView"/>
+     <widget class="MoleQueue::ProgramTableView" name="jobView">
+      <property name="alternatingRowColors">
+       <bool>true</bool>
+      </property>
+      <property name="rootIsDecorated">
+       <bool>false</bool>
+      </property>
+      <attribute name="headerStretchLastSection">
+       <bool>false</bool>
+      </attribute>
+     </widget>
     </item>
    </layout>
   </widget>

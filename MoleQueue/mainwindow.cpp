@@ -345,12 +345,7 @@ void MainWindow::createJobModel()
   }
 
   m_ui->jobView->setModel(m_jobModel);
-  m_ui->jobView->setAlternatingRowColors(true);
-  m_ui->jobView->setSelectionBehavior(QAbstractItemView::SelectRows);
-  m_ui->jobView->setRootIsDecorated(false);
-  m_ui->jobView->header()->setStretchLastSection(false);
   m_ui->jobView->header()->setResizeMode(0, QHeaderView::Stretch);
-  //m_ui->jobView->header()->setResizeMode(0, QHeaderView::Stretch);
 }
 
 } // End namespace
