@@ -54,9 +54,8 @@ MainWindow::MainWindow()
   createMainMenu();
   createTrayIcon();
   createQueues();
-  createJobModel();
-
   readSettings();
+  createJobModel();
 
   m_trayIcon->show();
 
@@ -124,11 +123,21 @@ void MainWindow::readSettings()
   m_localDir = settings.value("localDir",
                               QDir::homePath() + "/.molequeue/local").toString();
 
+  // read names of queues
+  QStringList queueNames = settings.value("queues").toStringList();
+
   // Process the queues.
   settings.beginGroup("Queues");
-  foreach(Queue *queue, m_queueManager->queues()) {
-    settings.beginGroup(queue->name());
-    queue->readSettings(settings);
+  foreach(const QString &queueName, queueNames){
+    settings.beginGroup(queueName);
+    QString type = settings.value("type").toString();
+
+    Queue *queue = m_queueManager->createQueue(type);
+    if(queue){
+      queue->setName(queueName);
+      queue->readSettings(settings);
+      m_queueManager->addQueue(queue);
+    }
     settings.endGroup();
   }
   settings.endGroup();
@@ -141,13 +150,19 @@ void MainWindow::writeSettings()
   settings.setValue("localDir", m_localDir);
 
   // Process the queues.
+  QStringList queueNames;
   settings.beginGroup("Queues");
   foreach(Queue *queue, m_queueManager->queues()) {
     settings.beginGroup(queue->name());
+    settings.setValue("type", queue->typeName());
     queue->writeSettings(settings);
     settings.endGroup();
+    queueNames.append(queue->name());
   }
   settings.endGroup();
+
+  // write name of each queue
+  settings.setValue("queues", queueNames);
 }
 
 void MainWindow::setIcon(int index)
@@ -325,8 +340,9 @@ void MainWindow::createJobModel()
 {
   m_jobModel = new ProgramItemModel(this);
 
-  m_queueManager->addQueue(new QueueLocal(this));
-  m_jobModel->addQueue(m_queueManager->queues().back());
+  foreach(Queue *queue, m_queueManager->queues()){
+    m_jobModel->addQueue(queue);
+  }
 
   m_ui->jobView->setModel(m_jobModel);
   m_ui->jobView->setAlternatingRowColors(true);
@@ -335,29 +351,6 @@ void MainWindow::createJobModel()
   m_ui->jobView->header()->setStretchLastSection(false);
   m_ui->jobView->header()->setResizeMode(0, QHeaderView::Stretch);
   //m_ui->jobView->header()->setResizeMode(0, QHeaderView::Stretch);
-
-  Queue *queue = m_queueManager->queues().back();
-  Program newJob = queue->program("sleep");
-  newJob.setTitle("Test job...");
-  newJob.setReplacement("time", "5");
-//  queue->submit(newJob);
-
-  newJob.setTitle("Test job longer...");
-  newJob.setReplacement("time", "8");
-//  queue->submit(newJob);
-  newJob.setTitle("Test job longest...");
-  newJob.setReplacement("time", "12");
-//  queue->submit(newJob);
-
-  // Now set up the remote queue
-  m_queueManager->addQueue(new QueueSGE(this));
-  queue = m_queueManager->queues().back();
-  m_jobModel->addQueue(queue);
-  Program remJob = queue->program("GAMESS");
-  remJob.setTitle("benzene-gms");
-  remJob.setReplacement("time", "5");
-  remJob.setInputFile("benzene.inp");
-  //queue->submit(remJob);
 }
 
 } // End namespace
