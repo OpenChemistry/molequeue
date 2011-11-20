@@ -1,5 +1,8 @@
 include_directories(..)
 
+find_package(Qt4 COMPONENTS QtCore QtGui QtNetwork QtTest)
+include(${QT_USE_FILE})
+
 set(MyTests
   program
   queue

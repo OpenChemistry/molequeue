@@ -1,30 +1,13 @@
 
-#include <iostream>
+#include <QtTest>
 
 #include <MoleQueue/program.h>
 #include <MoleQueue/queue.h>
 
-using std::cout;
-using std::cerr;
-using std::endl;
-
-namespace {
-
-template<typename A, typename B>
-void checkResult(const A& result, const B& expected, bool &error)
-{
-  if (result != expected) {
-    cerr << "Error, expected result " << expected << ", got " << result << endl;
-    error = true;
-  }
-}
-
-}
-
 int queue(int argc, char *argv[])
 {
   bool error = false;
-  cout << "Testing the queue class..." << endl;
+  qDebug() << "Testing the queue class...";
 
   MoleQueue::Program gamess;
   gamess.setName("GAMESS");
@@ -40,25 +23,25 @@ int queue(int argc, char *argv[])
   MoleQueue::Queue queue;
   if (!queue.addProgram(gamess)) {
     error = true;
-    cout << "Error adding the gamess program to the queue." << endl;
+    qDebug() << "Error adding the gamess program to the queue.";
   }
   if (!queue.addProgram(gaussian)) {
     error = true;
-    cout << "Error adding the gaussian program to the queue." << endl;
+    qDebug() << "Error adding the gaussian program to the queue.";
   }
   QStringList programs = queue.programs();
-  cout << "Programs in queue: " << programs.join(" ").toStdString() << endl;
+  qDebug() << "Programs in queue: " << programs.join(" ");
 
   if (!queue.removeProgram("GAMESS")) {
     error = true;
-    cout << "Error removing the GAMESS program from the queue." << endl;
+    qDebug() << "Error removing the GAMESS program from the queue.";
   }
 
   foreach (const QString &name, programs)
-    cout << name.toStdString() << endl;
+    qDebug() << name;
 
   programs = queue.programs();
-  cout << "Programs in queue: " << programs.join(" ").toStdString() << endl;
+  qDebug() << "Programs in queue: " << programs.join(" ");
 
   return error ? 1 : 0;
 }
