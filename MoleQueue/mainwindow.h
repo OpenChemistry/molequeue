@@ -78,7 +78,6 @@ private:
   void createActions();
   void createMainMenu();
   void createTrayIcon();
-  void createQueues();
   void createJobModel();
 
   /** Our MainWindow GUI. */

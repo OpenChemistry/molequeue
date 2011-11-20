@@ -53,7 +53,6 @@ MainWindow::MainWindow()
   createActions();
   createMainMenu();
   createTrayIcon();
-  createQueues();
   readSettings();
   createJobModel();
 
@@ -330,10 +329,6 @@ void MainWindow::createTrayIcon()
     m_trayIcon->setToolTip("Queue manager...");
   else
     m_trayIcon->setToolTip("Queue manager (no message support)...");
-}
-
-void MainWindow::createQueues()
-{
 }
 
 void MainWindow::createJobModel()
