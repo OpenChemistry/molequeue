@@ -54,6 +54,7 @@ QueueManagerDialog::QueueManagerDialog(QueueManager *queueManager, QWidget *pare
   connect(queueManager, SIGNAL(queueRemoved(const MoleQueue::Queue*)), this, SLOT(queueRemoved(const MoleQueue::Queue*)));
   connect(ui->queueTable, SIGNAL(itemDoubleClicked(QTableWidgetItem*)), this, SLOT(itemDoubleClicked(QTableWidgetItem*)));
   connect(ui->addQueueButton, SIGNAL(clicked()), this, SLOT(addQueue()));
+  connect(ui->removeQueueButton, SIGNAL(clicked()), this, SLOT(removeQueue()));
   connect(ui->closeButton, SIGNAL(clicked()), this, SLOT(close()));
 }
 
@@ -70,6 +71,9 @@ void QueueManagerDialog::addQueue()
 
 void QueueManagerDialog::removeQueue()
 {
+  int row = ui->queueTable->currentRow();
+  Queue *queue = m_queueManager->queues()[row];
+  m_queueManager->removeQueue(queue);
 }
 
 void QueueManagerDialog::queueAdded(const MoleQueue::Queue *queue)
