@@ -24,25 +24,46 @@ namespace MoleQueue {
 class Queue;
 class Program;
 
+/**
+ * Class to represent an execution of a Program.
+ */
 class Job : public QObject
 {
   Q_OBJECT
 
 public:
+  /** Creates a new job. */
   explicit Job(const Program *program);
+
+  /* Destroys the job object. */
   ~Job();
 
+  /** Set the name of the job to \p name. */
   void setName(const QString &name);
+
+  /** Returns the name of the job. */
   QString name() const;
+
+  /** Sets the title of the job to \p title. */
   void setTitle(const QString &title);
+
+  /** Returns the title for the job. */
   QString title() const;
 
+  /** Returns the program that the job is a type of. */
   const Program* program() const;
+
+  /** Returns the queue that the job is a member of. */
   const Queue* queue() const;
 
 private:
+  /** The name of the job. */
   QString m_name;
+
+  /** The title of the job. */
   QString m_title;
+
+  /** The program that the job is a type of. */
   const Program* m_program;
 };
 
