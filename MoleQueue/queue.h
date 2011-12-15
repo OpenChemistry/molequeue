@@ -72,6 +72,12 @@ public:
   virtual void writeSettings(QSettings &settings) const;
 
   /**
+   * Returns a widget that can be used to configure the settings for the
+   * queue.
+   */
+  virtual QWidget* settingsWidget() const;
+
+  /**
    * Add a new program to the queue. Program names must be unique in each
    * queue, as they are used to specify which program will be used.
    * @param program The program to be added to the queue.

@@ -31,6 +31,13 @@ QueueSettingsDialog::QueueSettingsDialog(Queue *queue, QWidget *parent)
   ui->nameLineEdit->setText(queue->name());
   ui->typeNameLabel->setText(queue->typeName());
 
+  // add queue settings widget
+  QWidget *settingsWidget = queue->settingsWidget();
+  if (settingsWidget) {
+    settingsWidget->setParent(ui->settingsFrame);
+    ui->settingsLayout->addWidget(settingsWidget);
+  }
+
   // populate programs table
   int row = 0;
   ui->programsTable->setRowCount(queue->programs().size());

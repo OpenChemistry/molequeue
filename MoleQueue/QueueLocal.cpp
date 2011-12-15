@@ -26,6 +26,10 @@
 #include <QtCore/QSettings>
 #include <QtCore/QThread>
 
+#include <QtGui/QWidget>
+#include <QtGui/QFormLayout>
+#include <QtGui/QLineEdit>
+
 #include <QtCore/QDebug>
 
 namespace MoleQueue {
@@ -45,12 +49,30 @@ void QueueLocal::readSettings(const QSettings &settings)
 {
   Queue::readSettings(settings);
   m_cores = settings.value("cores", -1).toInt();
+
+  // use all cores if no value set
+  if(m_cores == -1){
+    m_cores = QThread::idealThreadCount();
+  }
 }
 
 void QueueLocal::writeSettings(QSettings &settings) const
 {
   Queue::writeSettings(settings);
   settings.setValue("cores", m_cores);
+}
+
+QWidget* QueueLocal::settingsWidget() const
+{
+  QWidget *widget = new QWidget;
+
+  QFormLayout *layout = new QFormLayout;
+  QLineEdit *lineEdit = new QLineEdit(widget);
+  lineEdit->setText(QString::number(m_cores));
+  layout->addRow("Number of Cores: ", lineEdit);
+  widget->setLayout(layout);
+
+  return widget;
 }
 
 bool QueueLocal::submit(const Program &job)

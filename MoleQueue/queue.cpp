@@ -40,6 +40,11 @@ void Queue::writeSettings(QSettings &settings) const
   settings.setValue("jobIndexOffset", m_jobIndexOffset + m_jobs.size());
 }
 
+QWidget* Queue::settingsWidget() const
+{
+  return 0;
+}
+
 bool Queue::addProgram(const Program &program, bool replace)
 {
   // Check for duplicates, unless we are replacing, and return false if found.

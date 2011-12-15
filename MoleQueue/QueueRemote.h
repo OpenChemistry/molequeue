@@ -39,6 +39,8 @@ public:
 
   QString typeName() const { return "Remote"; }
 
+  QWidget *settingsWidget() const;
+
 public slots:
   /**
    * Submit a new job to the queue.

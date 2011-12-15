@@ -46,6 +46,12 @@ public:
    */
   virtual void writeSettings(QSettings &settings) const;
 
+  /**
+   * Returns a widget that can be used to configure the settings for the
+   * queue.
+   */
+  QWidget* settingsWidget() const;
+
 public slots:
   /**
    * Submit a new job to the queue.

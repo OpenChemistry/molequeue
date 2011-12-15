@@ -23,6 +23,8 @@
 #include <QtCore/QTimer>
 #include <QtCore/QDebug>
 
+#include <QtGui>
+
 namespace MoleQueue {
 
 QueueRemote::QueueRemote(QObject *parent) :
@@ -37,6 +39,20 @@ QueueRemote::~QueueRemote()
   delete m_ssh;
   if (m_timer)
     m_timer->deleteLater();
+}
+
+QWidget* QueueRemote::settingsWidget() const
+{
+  QWidget *widget = new QWidget;
+  QFormLayout *layout = new QFormLayout;
+  layout->addRow("Host name: ", new QLineEdit(widget));
+  layout->addRow("Port: ", new QLineEdit(widget));
+  layout->addRow("User name: ", new QLineEdit(widget));
+  layout->addRow("SSH Certificate", new QLineEdit(widget));
+  layout->addRow("Local Directory: ", new QLineEdit(widget));
+  layout->addRow("Remote Directory: ", new QLineEdit(widget));
+  widget->setLayout(layout);
+  return widget;
 }
 
 bool QueueRemote::submit(const Program &job)
