@@ -16,6 +16,8 @@
 
 #include "QueueLocal.h"
 
+#include "job.h"
+
 #include <QtCore/QProcess>
 #include <QtCore/QProcessEnvironment>
 
@@ -75,11 +77,11 @@ QWidget* QueueLocal::settingsWidget() const
   return widget;
 }
 
-bool QueueLocal::submit(const Program &job)
+bool QueueLocal::submit(Job *job)
 {
   m_jobs.push_back(job);
-  m_jobs.back().setStatus(Program::QUEUED);
-  emit(jobAdded(&m_jobs.back()));
+  job->setStatus(Job::QUEUED);
+  emit(jobAdded(job));
   if (m_currentJob == m_jobs.size() - 1)
     runProgram(m_jobs.size() - 1);
   return true;
@@ -91,7 +93,7 @@ void QueueLocal::jobStarted()
   if (sender) {
     qDebug() << "The job was successfully started:" << sender->property("JOB_ID");
     int id = sender->property("JOB_ID").toInt();
-    m_jobs[id].setStatus(Program::RUNNING);
+    m_jobs[id]->setStatus(Job::RUNNING);
     emit(jobStateChanged(0));
   }
 }
@@ -102,7 +104,7 @@ void QueueLocal::jobFinished()
   if (sender) {
     qDebug() << "The job was successfully finished:" << sender->property("JOB_ID");
     int id = sender->property("JOB_ID").toInt();
-    m_jobs[id].setStatus(Program::COMPLETE);
+    m_jobs[id]->setStatus(Job::COMPLETE);
     emit(jobStateChanged(0));
     // Submit the next job if there is one
     ++m_currentJob;
@@ -123,7 +125,7 @@ void QueueLocal::jobFinished(int exitCode, QProcess::ExitStatus exitStatus)
 
   qDebug() << "The job was successfully finished:" << sender->property("JOB_ID");
   int id = sender->property("JOB_ID").toInt();
-  m_jobs[id].setStatus(Program::COMPLETE);
+  m_jobs[id]->setStatus(Job::COMPLETE);
   emit(jobStateChanged(0));
   // Submit the next job if there is one
   ++m_currentJob;
@@ -138,23 +140,25 @@ void QueueLocal::processStateChanged(QProcess::ProcessState newState)
 
 void QueueLocal::setupPrograms()
 {
-  Program gamess;
-  gamess.setName("GAMESS");
-  gamess.setRunDirect(true);
-  gamess.setReplacement("input", "myInput.inp");
-  gamess.setReplacement("ncpus", QString::number(cores()));
-  gamess.setRunTemplate("/home/marcus/build/gamess/rungms $$input$$ 2010 $$ncpus$$");
-  gamess.setWorkingDirectory("/home/marcus/local/gamess");
-  gamess.setQueue(this);
+  Program *gamess = new Program;
+  gamess->setName("GAMESS");
+  gamess->setTitle("gamess");
+  gamess->setRunDirect(true);
+//  gamess.setReplacement("input", "myInput.inp");
+//  gamess.setReplacement("ncpus", QString::number(cores()));
+//  gamess.setRunTemplate("/home/marcus/build/gamess/rungms $$input$$ 2010 $$ncpus$$");
+//  gamess.setWorkingDirectory("/home/marcus/local/gamess");
+  gamess->setQueue(this);
   m_programs["GAMESS"] = gamess;
 
-  Program sleep;
-  sleep.setName("sleep");
-  sleep.setRunDirect(true);
-  sleep.setReplacement("time", "10");
-  sleep.setRunTemplate("sleep $$time$$");
-  sleep.setWorkingDirectory("/home/marcus/local");
-  sleep.setQueue(this);
+  Program *sleep = new Program;
+  sleep->setName("sleep");
+  sleep->setTitle("sleep");
+  sleep->setRunDirect(true);
+//  sleep.setReplacement("time", "10");
+  sleep->setRunTemplate("sleep $$time$$");
+//  sleep.setWorkingDirectory("/home/marcus/local");
+  sleep->setQueue(this);
   m_programs["sleep"] = sleep;
 }
 
@@ -169,45 +173,51 @@ void QueueLocal::runProgram(int jobId)
             this, SLOT(processStateChanged(QProcess::ProcessState)));
   }
 
-  Program &job = m_jobs[jobId];
-  job.setWorkingDirectory(job.workingDirectory() + "/"
-                          + QString::number(jobId + m_jobIndexOffset));
-  QDir dir;
-  dir.mkpath(job.workingDirectory());
-  if (!job.input().isEmpty()) {
-    QFile inputFile(job.workingDirectory() + "/" + job.inputFile());
-    inputFile.open(QFile::WriteOnly);
-    inputFile.write(job.input().toLocal8Bit());
-    inputFile.close();
-  }
-  else {
-    QFile input(job.inputFile());
-    QFileInfo info(input);
-    if (info.exists()) {
-      input.copy(job.workingDirectory() + "/" + info.baseName() + ".inp");
-      qDebug() << "Moving file" << job.inputFile() << "->"
-               << job.workingDirectory() + "/" + info.baseName() + ".inp";
+  Job *job = m_jobs[jobId];
+
+  if(!job->workingDirectory().isEmpty()){
+    job->setWorkingDirectory(job->workingDirectory() + "/"
+                            + QString::number(jobId + m_jobIndexOffset));
+
+    QDir dir;
+    dir.mkpath(job->workingDirectory());
+
+    if (!job->input().isEmpty()) {
+      QFile inputFile(job->workingDirectory() + "/" + job->inputFile());
+      inputFile.open(QFile::WriteOnly);
+      inputFile.write(job->input().toLocal8Bit());
+      inputFile.close();
     }
     else {
-      qDebug() << "Error - file not found.";
+      QFile input(job->inputFile());
+      QFileInfo info(input);
+      if (info.exists()) {
+        input.copy(job->workingDirectory() + "/" + info.baseName() + ".inp");
+        qDebug() << "Moving file" << job->inputFile() << "->"
+                 << job->workingDirectory() + "/" + info.baseName() + ".inp";
+      }
+      else {
+        qDebug() << "Error - file not found.";
+      }
+    }
+
+    QFileInfo info(job->workingDirectory() + "/" + job->inputFile());
+    job->setReplacement("input", info.baseName());
+    m_process->setProperty("JOB_ID", jobId);
+
+    qDebug() << "Job:" << jobId << job->workingDirectory()
+             << job->expandedRunTemplate();
+
+    m_process->setWorkingDirectory(job->workingDirectory());
+    if (job->name() == "GAMESS") {
+      m_process->setStandardOutputFile(job->workingDirectory() + "/" +
+                                       info.baseName() + ".gamout");
+      job->setOutputFile(job->workingDirectory() + "/" +
+                         info.baseName() + ".gamout");
     }
   }
-  QFileInfo info(job.workingDirectory() + "/" + job.inputFile());
-  job.setReplacement("input", info.baseName());
-  m_process->setProperty("JOB_ID", jobId);
 
-  qDebug() << "Job:" << jobId << job.workingDirectory()
-           << job.expandedRunTemplate();
-
-  m_process->setWorkingDirectory(job.workingDirectory());
-  if (job.name() == "GAMESS") {
-    m_process->setStandardOutputFile(job.workingDirectory() + "/" +
-                                     info.baseName() + ".gamout");
-    job.setOutputFile(job.workingDirectory() + "/" +
-                      info.baseName() + ".gamout");
-  }
-
-  m_process->start(job.expandedRunTemplate());
+  m_process->start(job->expandedRunTemplate());
 
 //  if (!m_process->waitForStarted()) {
 //      qDebug() << "Failed to start GAMESS..." << m_process->errorString();

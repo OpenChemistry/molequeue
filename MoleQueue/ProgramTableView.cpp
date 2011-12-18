@@ -16,7 +16,7 @@
 
 #include "ProgramTableView.h"
 
-#include "program.h"
+#include "job.h"
 
 #include <QtGui/QMenu>
 #include <QtGui/QContextMenuEvent>
@@ -34,19 +34,19 @@ void ProgramTableView::contextMenuEvent(QContextMenuEvent *e)
 {
   QModelIndex index = indexAt(e->pos());
   if (index.isValid()) {
-    Program *job = static_cast<Program *>(index.internalPointer());
+    Job *job = static_cast<Job *>(index.internalPointer());
     QMenu *menu = new QMenu(this);
 
     qDebug() << "job status:" << job->status();
 
-    if (job->status() == Program::COMPLETE) {
+    if (job->status() == Job::COMPLETE) {
       QAction *action = menu->addAction("&Open in Avogadro");
       action->setData(QVariant(job->outputFile()));
       connect(action, SIGNAL(triggered()), this, SLOT(openInAvogadro()));
       action = menu->addAction("&Store in database");
       action = menu->addAction("&Remove");
     }
-    else if (job->status() == Program::RUNNING) {
+    else if (job->status() == Job::RUNNING) {
       QAction *action = menu->addAction("&Kill");
     }
     else {

@@ -23,15 +23,15 @@
 
 namespace MoleQueue {
 
-class Program;
+class Job;
 class Queue;
 
-class ProgramItemModel : public QAbstractItemModel
+class JobItemModel : public QAbstractItemModel
 {
   Q_OBJECT
 
 public:
-  explicit ProgramItemModel(QObject *parent = 0);
+  explicit JobItemModel(QObject *parent = 0);
 
   /** Add a Queue to the model. */
   void addQueue(Queue *queue);
@@ -54,12 +54,12 @@ public:
   void clear();
 
 private:
-  QList<Program *> m_jobList;
+  QList<Job *> m_jobList;
   QList< QPointer<Queue> > m_queues;
 
 public slots:
-  void add(Program *program);
-  void remove(Program *program);
+  void add(Job *job);
+  void remove(Job *job);
 
   void queuesChanged();
 };

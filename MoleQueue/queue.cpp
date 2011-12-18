@@ -45,19 +45,19 @@ QWidget* Queue::settingsWidget() const
   return 0;
 }
 
-bool Queue::addProgram(const Program &program, bool replace)
+bool Queue::addProgram(Program *program, bool replace)
 {
   // Check for duplicates, unless we are replacing, and return false if found.
-  if (!replace && m_programs.contains(program.name()))
+  if (!replace && m_programs.contains(program->name()))
     return false;
 
-  m_programs[program.name()] = program;
+  m_programs[program->name()] = program;
   return true;
 }
 
-bool Queue::removeProgram(const Program &program)
+bool Queue::removeProgram(Program* program)
 {
-  return removeProgram(program.name());
+  return removeProgram(program->name());
 }
 
 bool Queue::removeProgram(const QString &name)
@@ -65,12 +65,9 @@ bool Queue::removeProgram(const QString &name)
   return m_programs.remove(name) >= 1 ? true : false;
 }
 
-Program Queue::program(const QString &name)
+Program* Queue::program(const QString &name)
 {
-  if (m_programs.contains(name))
-    return m_programs[name];
-  else
-    return Program(); // FIXME: Set as invalid if required.
+  return m_programs.value(name, 0);
 }
 
 void Queue::clearPrograms()
@@ -81,13 +78,15 @@ void Queue::clearPrograms()
 QStringList Queue::programs() const
 {
   QStringList programs;
-  foreach(const Program &prog, m_programs)
-    programs << prog.name();
+  foreach(const Program *program, m_programs)
+    programs << program->name();
   return programs;
 }
 
-bool Queue::submit(const Program &)
+bool Queue::submit(Job *job)
 {
+  Q_UNUSED(job);
+
   return false;
 }
 

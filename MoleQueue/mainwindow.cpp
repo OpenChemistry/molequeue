@@ -17,6 +17,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
+#include "job.h"
 #include "terminalprocess.h"
 #include "sshcommand.h"
 #include "ProgramItemModel.h"
@@ -174,9 +175,20 @@ void MainWindow::iconActivated(QSystemTrayIcon::ActivationReason reason)
 
 void MainWindow::showMessage()
 {
-  m_trayIcon->showMessage("Info",
-                          "System tray resident queue manager initialized.",
-                          QSystemTrayIcon::MessageIcon(0), 5000);
+  Queue *queue = m_queueManager->queues()[0];
+  qDebug() << "queue name: " << queue->name();
+  Program *program = queue->program("sleep");
+  qDebug() << "program name: " << program->name();
+  qDebug() << "program run template: " << program->runTemplate();
+
+  Job *job = program->createJob();
+  job->setReplacement("time", "3");
+
+  queue->submit(job);
+
+//  m_trayIcon->showMessage("Info",
+//                          "System tray resident queue manager initialized.",
+//                          QSystemTrayIcon::MessageIcon(0), 5000);
 }
 
 void MainWindow::messageClicked()
@@ -267,12 +279,12 @@ void MainWindow::submitJob(const QString &queue, const QString &program,
     q = m_queueManager->queues()[0];
   else if (queue == "remote")
     q = m_queueManager->queues()[1];
-  Program job = q->program(program);
-  job.setTitle(title);
+  Job *job = q->program(program)->createJob();
+  job->setTitle(title);
   QString inputFile = title;
   inputFile.replace(" ", "_");
-  job.setInputFile(inputFile + ".inp");
-  job.setInput(input);
+  job->setInputFile(inputFile + ".inp");
+  job->setInput(input);
   q->submit(job);
   qDebug() << "Mainwindow submitting job" << queue << program << title
            << inputFile << "\n\n" << input;
@@ -333,7 +345,7 @@ void MainWindow::createTrayIcon()
 
 void MainWindow::createJobModel()
 {
-  m_jobModel = new ProgramItemModel(this);
+  m_jobModel = new JobItemModel(this);
 
   foreach(Queue *queue, m_queueManager->queues()){
     m_jobModel->addQueue(queue);

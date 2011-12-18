@@ -16,6 +16,7 @@
 
 #include "program.h"
 
+#include "job.h"
 #include "queue.h"
 
 #include <QtCore/QDebug>
@@ -23,8 +24,10 @@
 
 namespace MoleQueue {
 
-Program::Program(Queue *queue) : m_runDirect(true), m_delimiter("$$"),
-  m_status(UNDEFINED), m_queue(queue)
+Program::Program(Queue *queue) :
+  m_runDirect(true),
+  m_delimiter("$$"),
+  m_queue(queue)
 {
 }
 
@@ -37,47 +40,19 @@ Program::Program(const Program &other)
   m_runDirect = other.m_runDirect;
   m_runTemplate = other.m_runTemplate;
   m_delimiter = other.m_delimiter;
-  m_replacements = other.m_replacements;
-  m_workingDirectory = other.m_workingDirectory;
-  m_inputFile = other.m_inputFile;
-  m_input = other.m_input;
-  m_outputFile = other.m_outputFile;
   m_queue = other.m_queue;
   m_title = other.m_title;
   m_name = other.m_name;
 }
 
-QString Program::expandedRunTemplate() const
+Job* Program::createJob() const
 {
-  QString expanded(m_runTemplate);
-  foreach(const QString &key, m_replacements.keys()) {
-    expanded = expanded.replace(m_delimiter + key + m_delimiter,
-                                m_replacements[key]);
-  }
+  Job *job = new Job(this);
 
-  return expanded;
-}
+  job->setName(m_name);
+  job->setTitle(m_title);
 
-QString Program::replacement(const QString &keyword) const
-{
-  if (m_replacements.contains(keyword))
-    return m_replacements[keyword];
-  else
-    return QString();
-}
-
-void Program::setReplacement(const QString &keyword, const QString &value)
-{
-  m_replacements[keyword] = value;
-}
-
-QString Program::replacementList() const
-{
-  QString list;
-  foreach(const QString &key, m_replacements.keys()) {
-    list = "Keyword: " + key + " = " + m_replacements[key] + "\n";
-  }
-  return list;
+  return job;
 }
 
 QString Program::queueName() const
@@ -86,46 +61,6 @@ QString Program::queueName() const
     return m_queue->name();
   else
     return "None";
-}
-
-void Program::setWorkingDirectory(const QString &dir)
-{
-  m_workingDirectory = dir;
-  setReplacement("workingDirectory", dir);
-}
-
-void Program::setInputFile(const QString &file)
-{
-  m_inputFile = file;
-  QFileInfo info(file);
-  setReplacement("input", info.baseName());
-}
-
-void Program::setOutputFile(const QString &file)
-{
-  m_outputFile = file;
-  QFileInfo info(file);
-  setReplacement("output", info.baseName());
-}
-
-QString Program::statusString() const
-{
-  switch (m_status) {
-  case UNDEFINED:
-    return "Undefined";
-  case QUEUED:
-    return "Queued (L)";
-  case REMOTEQUEUED:
-    return "Queued (R)";
-  case RUNNING:
-    return "Running";
-  case COMPLETE:
-    return "Completed";
-  case FAILED:
-    return "Failed";
-  default:
-    return "Undefined";
-  }
 }
 
 } // End namespace

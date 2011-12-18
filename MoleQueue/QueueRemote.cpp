@@ -16,6 +16,7 @@
 
 #include "QueueRemote.h"
 
+#include "job.h"
 #include "program.h"
 #include "terminalprocess.h"
 #include "sshcommand.h"
@@ -55,11 +56,11 @@ QWidget* QueueRemote::settingsWidget() const
   return widget;
 }
 
-bool QueueRemote::submit(const Program &job)
+bool QueueRemote::submit(Job *job)
 {
   m_jobs.push_back(job);
-  m_jobs.back().setStatus(Program::QUEUED);
-  emit(jobAdded(&m_jobs.back()));
+  job->setStatus(Job::QUEUED);
+  emit(jobAdded(job));
   submitJob(m_jobs.size() - 1);
   return true;
 }
@@ -81,24 +82,24 @@ void QueueRemote::pollRemote()
 
 void QueueRemote::setupPrograms()
 {
-  Program gamess;
-  gamess.setName("GAMESS");
-  gamess.setRunDirect(true);
-  gamess.setReplacement("input", "myInput.inp");
-  gamess.setReplacement("ncpus", "2");
-  gamess.setRunTemplate(
+  Program *gamess = new Program;
+  gamess->setName("GAMESS");
+  gamess->setRunDirect(true);
+//  gamess->setReplacement("input", "myInput.inp");
+//  gamess->setReplacement("ncpus", "2");
+  gamess->setRunTemplate(
         "/home/marcus/build/gamess/rungms $$input$$ 2010 $$ncpus$$ >& $$input$$.log");
-  gamess.setWorkingDirectory("/home/marcus/remote/gamess");
-  gamess.setQueue(this);
+//  gamess->setWorkingDirectory("/home/marcus/remote/gamess");
+  gamess->setQueue(this);
   m_programs["GAMESS"] = gamess;
 
-  Program sleep;
-  sleep.setName("sleep");
-  sleep.setRunDirect(true);
-  sleep.setReplacement("time", "10");
-  sleep.setRunTemplate("sleep $$time$$");
-  sleep.setWorkingDirectory("/home/marcus/local");
-  sleep.setQueue(this);
+  Program *sleep = new Program;
+  sleep->setName("sleep");
+  sleep->setRunDirect(true);
+//  sleep->setReplacement("time", "10");
+  sleep->setRunTemplate("sleep $$time$$");
+//  sleep->setWorkingDirectory("/home/marcus/local");
+  sleep->setQueue(this);
   m_programs["sleep"] = sleep;
 }
 
@@ -111,26 +112,26 @@ void QueueRemote::setupProcess()
 
 void QueueRemote::submitJob(int jobId)
 {
-  Program &job = m_jobs[jobId];
+  Job *job = m_jobs[jobId];
 
-  qDebug() << "Job (R):" << jobId << job.workingDirectory()
-           << job.expandedRunTemplate();
+  qDebug() << "Job (R):" << jobId << job->workingDirectory()
+           << job->expandedRunTemplate();
 
   // This is the remote working directory...
-  job.setWorkingDirectory(job.workingDirectory() + "/"
+  job->setWorkingDirectory(job->workingDirectory() + "/"
                           + QString::number(jobId + m_jobIndexOffset));
-  QString command = "cd " + job.workingDirectory() + " && "
-      + job.expandedRunTemplate() + " &";
+  QString command = "cd " + job->workingDirectory() + " && "
+      + job->expandedRunTemplate() + " &";
   qDebug() << "Running command:" << command;
 
   QString output;
   int exitCode;
 
-  if (!job.inputFile().isEmpty()) {
-    qDebug() << "Input file:" << job.inputFile();
-    m_ssh->execute("mkdir -p " + job.workingDirectory(), output, exitCode);
+  if (!job->inputFile().isEmpty()) {
+    qDebug() << "Input file:" << job->inputFile();
+    m_ssh->execute("mkdir -p " + job->workingDirectory(), output, exitCode);
     qDebug() << "mkdir:" << output << exitCode;
-    m_ssh->copyTo(job.inputFile(), job.workingDirectory());
+    m_ssh->copyTo(job->inputFile(), job->workingDirectory());
   }
   else {
     qDebug() << "No input file.";

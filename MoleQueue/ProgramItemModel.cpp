@@ -16,33 +16,33 @@
 
 #include "ProgramItemModel.h"
 
-#include "program.h"
+#include "job.h"
 #include "queue.h"
 
 namespace MoleQueue {
 
-ProgramItemModel::ProgramItemModel(QObject *parent)
+JobItemModel::JobItemModel(QObject *parent)
   : QAbstractItemModel(parent)
 {
 }
 
-void ProgramItemModel::addQueue(Queue *queue)
+void JobItemModel::addQueue(Queue *queue)
 {
   if (m_queues.contains(queue))
     return;
   else {
     m_queues.push_back(queue);
-    connect(queue, SIGNAL(jobAdded(Program*)), this, SLOT(add(Program*)));
-    connect(queue, SIGNAL(jobStateChanged(Program*)), this, SLOT(queuesChanged()));
+    connect(queue, SIGNAL(jobAdded(Job*)), this, SLOT(add(Job*)));
+    connect(queue, SIGNAL(jobStateChanged(Job*)), this, SLOT(queuesChanged()));
   }
 }
 
-QModelIndex ProgramItemModel::parent(const QModelIndex &) const
+QModelIndex JobItemModel::parent(const QModelIndex &) const
 {
   return QModelIndex();
 }
 
-int ProgramItemModel::rowCount(const QModelIndex &parent) const
+int JobItemModel::rowCount(const QModelIndex &parent) const
 {
   if (!parent.isValid())
     return m_jobList.size();
@@ -50,12 +50,12 @@ int ProgramItemModel::rowCount(const QModelIndex &parent) const
     return 0;
 }
 
-int ProgramItemModel::columnCount(const QModelIndex &parent) const
+int JobItemModel::columnCount(const QModelIndex &parent) const
 {
   return 4;
 }
 
-QVariant ProgramItemModel::headerData(int section, Qt::Orientation orientation,
+QVariant JobItemModel::headerData(int section, Qt::Orientation orientation,
                                       int role) const
 {
   if (orientation == Qt::Horizontal && role == Qt::DisplayRole) {
@@ -73,12 +73,12 @@ QVariant ProgramItemModel::headerData(int section, Qt::Orientation orientation,
   }
 }
 
-QVariant ProgramItemModel::data(const QModelIndex &index, int role) const
+QVariant JobItemModel::data(const QModelIndex &index, int role) const
 {
   if (!index.isValid() || index.column() > 3)
     return QVariant();
 
-  Program *job = static_cast<Program *>(index.internalPointer());
+  Job *job = static_cast<Job *>(index.internalPointer());
   if (job) {
     if (role == Qt::DisplayRole) {
       switch (index.column()) {
@@ -87,7 +87,7 @@ QVariant ProgramItemModel::data(const QModelIndex &index, int role) const
       case 1:
         return QVariant(job->name());
       case 2:
-        return QVariant(job->queueName());
+        return QVariant(job->program()->queueName());
       case 3:
         return QVariant(job->statusString());
       default:
@@ -98,13 +98,13 @@ QVariant ProgramItemModel::data(const QModelIndex &index, int role) const
   return QVariant();
 }
 
-bool ProgramItemModel::setData(const QModelIndex &index, const QVariant &value,
+bool JobItemModel::setData(const QModelIndex &index, const QVariant &value,
                              int role)
 {
   return false;
 }
 
-Qt::ItemFlags ProgramItemModel::flags(const QModelIndex &index) const
+Qt::ItemFlags JobItemModel::flags(const QModelIndex &index) const
 {
   if (index.column() == 0)
     return Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsUserCheckable;
@@ -112,7 +112,7 @@ Qt::ItemFlags ProgramItemModel::flags(const QModelIndex &index) const
     return Qt::ItemIsSelectable | Qt::ItemIsEnabled;
 }
 
-QModelIndex ProgramItemModel::index(int row, int column,
+QModelIndex JobItemModel::index(int row, int column,
                                     const QModelIndex &parent) const
 {
   if (row >= 0 && row < m_jobList.size())
@@ -121,11 +121,11 @@ QModelIndex ProgramItemModel::index(int row, int column,
     return QModelIndex();
 }
 
-void ProgramItemModel::clear()
+void JobItemModel::clear()
 {
 }
 
-void ProgramItemModel::add(Program *job)
+void JobItemModel::add(Job *job)
 {
   int row = m_jobList.size();
   beginInsertRows(QModelIndex(), row, row);
@@ -133,11 +133,11 @@ void ProgramItemModel::add(Program *job)
   endInsertRows();
 }
 
-void ProgramItemModel::remove(Program *job)
+void JobItemModel::remove(Job *job)
 {
 }
 
-void ProgramItemModel::queuesChanged()
+void JobItemModel::queuesChanged()
 {
   this->reset();
 }

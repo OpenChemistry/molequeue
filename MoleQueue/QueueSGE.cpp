@@ -16,6 +16,7 @@
 
 #include "QueueSGE.h"
 
+#include "job.h"
 #include "program.h"
 #include "terminalprocess.h"
 #include "sshcommand.h"
@@ -41,28 +42,28 @@ QueueSGE::~QueueSGE()
     m_timer->deleteLater();
 }
 
-bool QueueSGE::submit(const Program &job)
+bool QueueSGE::submit(Job *job)
 {
   m_jobs.push_back(job);
-  m_jobs.back().setStatus(Program::QUEUED);
-  emit(jobAdded(&m_jobs.back()));
+  job->setStatus(Job::QUEUED);
+  emit(jobAdded(job));
   submitJob(m_jobs.size() - 1);
   return true;
 }
 
-void QueueSGE::jobStarted(Program *job)
+void QueueSGE::jobStarted(Job *job)
 {
 
 }
 
-void QueueSGE::jobFinished(Program *job)
+void QueueSGE::jobFinished(Job *job)
 {
-  job->setStatus(Program::COMPLETE);
+  job->setStatus(Job::COMPLETE);
   emit(jobStateChanged(job));
   // Now retrieve our output files, and put them in the local queue store
   int i = 0;
   for (i = 0; i < m_jobs.size(); ++i)
-    if (&m_jobs[i] == job)
+    if (m_jobs[i] == job)
       break;
   QString localDir = m_localDir + "/" + QString::number(i + m_jobIndexOffset);
   m_ssh->copyDirFrom(job->workingDirectory(), localDir);
@@ -79,17 +80,17 @@ void QueueSGE::pollRemote()
   QStringList lines = output.split("\n", QString::SkipEmptyParts);
   // Copy the map of active jobs, update the status of each. If any are left,
   // they probably finished - check they did and retrieve the results file(s).
-  QMap<QString, Program *> jobs = m_remoteJobs;
+  QMap<QString, Job *> jobs = m_remoteJobs;
   foreach(const QString &line, lines) {
     if (line.contains("job-ID") || line.contains("-----------"))
       continue;
     QString jobId = line.mid(0, 7).trimmed();
     QString state = line.mid(40, 5).trimmed();
-    Program::Status status = Program::UNDEFINED;
+    Job::Status status = Job::UNDEFINED;
     if (state == "qw")
-      status = Program::REMOTEQUEUED;
+      status = Job::REMOTEQUEUED;
     else if (state == "r")
-      status = Program::RUNNING;
+      status = Job::RUNNING;
     if (jobs.contains(jobId)) {
       // Found the job, update its status and remove it from our temporary map
       if (jobs[jobId]->status() != status) {
@@ -115,23 +116,23 @@ void QueueSGE::pollRemote()
 
 void QueueSGE::setupPrograms()
 {
-  Program gamess;
-  gamess.setName("GAMESS");
-  gamess.setRunDirect(true);
-  gamess.setReplacement("input", "myInput.inp");
-  gamess.setReplacement("ncpus", "2");
-  gamess.setRunTemplate("/usr/local/bin/gms_sge.sh $$input$$.inp $$workingDirectory$$");
-  gamess.setWorkingDirectory("/nfs/Users/mhanwell/tests/gamess");
-  gamess.setQueue(this);
+  Program *gamess = new Program;
+  gamess->setName("GAMESS");
+  gamess->setRunDirect(true);
+//  gamess->setReplacement("input", "myInput.inp");
+//  gamess->setReplacement("ncpus", "2");
+  gamess->setRunTemplate("/usr/local/bin/gms_sge.sh $$input$$.inp $$workingDirectory$$");
+//  gamess->setWorkingDirectory("/nfs/Users/mhanwell/tests/gamess");
+  gamess->setQueue(this);
   m_programs["GAMESS"] = gamess;
 
-  Program sleep;
-  sleep.setName("sleep");
-  sleep.setRunDirect(true);
-  sleep.setReplacement("time", "10");
-  sleep.setRunTemplate("sleep $$time$$");
-  sleep.setWorkingDirectory("/home/marcus/local");
-  sleep.setQueue(this);
+  Program *sleep = new Program;
+  sleep->setName("sleep");
+  sleep->setRunDirect(true);
+//  sleep->setReplacement("time", "10");
+  sleep->setRunTemplate("sleep $$time$$");
+//  sleep->setWorkingDirectory("/home/marcus/local");
+  sleep->setQueue(this);
   m_programs["sleep"] = sleep;
 }
 
@@ -146,30 +147,30 @@ void QueueSGE::setupProcess()
 
 void QueueSGE::submitJob(int jobId)
 {
-  Program &job = m_jobs[jobId];
+  Job *job = m_jobs[jobId];
 
-  qDebug() << "Job (R):" << jobId << job.workingDirectory()
-           << job.expandedRunTemplate();
+  qDebug() << "Job (R):" << jobId << job->workingDirectory()
+           << job->expandedRunTemplate();
 
   // This is the remote working directory
-  job.setWorkingDirectory(job.workingDirectory() + "/"
+  job->setWorkingDirectory(job->workingDirectory() + "/"
                           + QString::number(jobId + m_jobIndexOffset));
 
   QString localDir = m_localDir + "/" + QString::number(jobId + m_jobIndexOffset);
-  if (!job.input().isEmpty()) {
+  if (!job->input().isEmpty()) {
     QDir dir;
     dir.mkpath(localDir);
-    QFile inputFile(localDir + "/" + job.inputFile());
+    QFile inputFile(localDir + "/" + job->inputFile());
     inputFile.open(QFile::WriteOnly);
-    inputFile.write(job.input().toLocal8Bit());
+    inputFile.write(job->input().toLocal8Bit());
     inputFile.close();
   }
   else {
-    QFile input(job.inputFile());
+    QFile input(job->inputFile());
     QFileInfo info(input);
     if (info.exists()) {
       input.copy(localDir + "/" + info.baseName() + ".inp");
-      qDebug() << "Moving file" << job.inputFile() << "->"
+      qDebug() << "Moving file" << job->inputFile() << "->"
                << localDir + "/" + info.baseName() + ".inp";
     }
     else {
@@ -177,19 +178,19 @@ void QueueSGE::submitJob(int jobId)
     }
   }
 
-  QString command = "source /etc/profile && qsub -N \"" + job.title() + "\" "
-      + job.expandedRunTemplate();
+  QString command = "source /etc/profile && qsub -N \"" + job->title() + "\" "
+      + job->expandedRunTemplate();
   qDebug() << "Running command:" << command;
 
   QString output;
   int exitCode;
 
-  if (!job.inputFile().isEmpty()) {
-    qDebug() << "Input file:" << job.inputFile();
-    m_ssh->execute("mkdir -p " + job.workingDirectory(), output, exitCode);
+  if (!job->inputFile().isEmpty()) {
+    qDebug() << "Input file:" << job->inputFile();
+    m_ssh->execute("mkdir -p " + job->workingDirectory(), output, exitCode);
     qDebug() << "mkdir:" << output << exitCode;
-    m_ssh->copyTo(localDir + "/" + job.inputFile(),
-                  job.workingDirectory());
+    m_ssh->copyTo(localDir + "/" + job->inputFile(),
+                  job->workingDirectory());
   }
   else {
     qDebug() << "No input file.";
@@ -198,15 +199,15 @@ void QueueSGE::submitJob(int jobId)
   QStringList parts = output.split(" ", QString::SkipEmptyParts);
   // Check if the job was submitted successfully
   if (parts.size() > 3 && parts[0] == "Your" && parts[1] == "job") {
-    job.setTitle(job.title() + " (jobId: " + parts[2] + ")");
-    job.setStatus(Program::REMOTEQUEUED);
-    m_remoteJobs[parts[2]] = &job;
+    job->setTitle(job->title() + " (jobId: " + parts[2] + ")");
+    job->setStatus(Job::REMOTEQUEUED);
+    m_remoteJobs[parts[2]] = job;
     if (!m_timer->isActive())
       m_timer->start(m_interval * 1000);
   }
   else
-    job.setStatus(Program::FAILED);
-  emit(jobStateChanged(&job));
+    job->setStatus(Job::FAILED);
+  emit(jobStateChanged(job));
   qDebug() << "Run gamess:" << output << exitCode;
 }
 

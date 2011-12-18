@@ -58,7 +58,7 @@ public slots:
    * \param job The Program object to submit to the queue.
    * \return True on successful addition to the queue.
    */
-  virtual bool submit(const Program &job);
+  virtual bool submit(Job *job);
 
 protected slots:
   /** Job started successfully. */

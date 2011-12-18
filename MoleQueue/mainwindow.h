@@ -33,7 +33,7 @@ namespace MoleQueue {
 
 class Queue;
 class Program;
-class ProgramItemModel;
+class JobItemModel;
 class Connection;
 class QueueManager;
 
@@ -97,8 +97,7 @@ private:
 
   QueueManager *m_queueManager;
 
-  QList<Program *> m_jobs;
-  ProgramItemModel *m_jobModel;
+  JobItemModel *m_jobModel;
 
   Connection *m_connection;
 

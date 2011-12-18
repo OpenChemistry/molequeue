@@ -28,6 +28,8 @@ class QSettings;
 
 namespace MoleQueue {
 
+class Job;
+
 /**
  * Abstract queue, generally want QueueLocal, or QueueRemote derived classes
  * as they will provide the facilities required. The queue instances
@@ -85,7 +87,7 @@ public:
    * same name in this queue.
    * @return True on success, false on failure.
    */
-  bool addProgram(const Program &program, bool replace = false);
+  bool addProgram(Program *program, bool replace = false);
 
   /**
    * Attempt to remove a program from the queue. The program name is used
@@ -93,7 +95,7 @@ public:
    * @param program The program to be removed from the queue.
    * @return True on success, false on failure.
    */
-  bool removeProgram(const Program &program);
+  bool removeProgram(Program *program);
 
   /**
    * Attempt to remove a program from the queue. The program name is used
@@ -106,10 +108,10 @@ public:
   /**
    * Retrieve the program object associated with the supplied name.
    * @param name The name of the program.
-   * @return The Program object, and invalid object can be returned if the
+   * @return The Program object, a null pointer is returned if the
    * requested program is not in this queue.
    */
-  Program program(const QString &name);
+  Program* program(const QString &name);
 
   /**
    * Clear all programs, useful if you would like ot reset a Queue.
@@ -123,9 +125,9 @@ public:
   QStringList programs() const;
 
 signals:
-  void jobAdded(Program *job);
-  void jobStateChanged(Program *job);
-  void jobRemoved(Program *job);
+  void jobAdded(Job *job);
+  void jobStateChanged(Job *job);
+  void jobRemoved(Job *job);
 
 public slots:
   /**
@@ -133,12 +135,12 @@ public slots:
    * \param job The Program object to submit to the queue.
    * \return True on successful addition to the queue.
    */
-  virtual bool submit(const Program &job);
+  virtual bool submit(Job *job);
 
 protected:
   QString m_name;
-  QMap<QString, Program> m_programs;
-  QList<Program> m_jobs;
+  QMap<QString, Program *> m_programs;
+  QList<Job *> m_jobs;
 
   /** This stores the long running job number, largely used as a directory for
    * storage or staged files. This is often an offset applied to the locally
