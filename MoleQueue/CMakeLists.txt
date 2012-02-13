@@ -56,5 +56,7 @@ add_library(molequeue_static STATIC
 
 add_executable(molequeue MACOSX_BUNDLE main.cpp ${rcc_srcs})
 target_link_libraries(molequeue molequeue_static ${QT_LIBRARIES})
+install(TARGETS molequeue
+  DESTINATION bin)
 
 add_subdirectory(testing)
