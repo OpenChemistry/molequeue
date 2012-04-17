@@ -26,6 +26,7 @@ QueueItemModel::QueueItemModel(QList<Queue *> *queueList, QObject *parent)
 
 QModelIndex QueueItemModel::parent(const QModelIndex &index) const
 {
+  return QModelIndex();
 }
 
 int QueueItemModel::rowCount(const QModelIndex &parent) const
@@ -43,20 +44,24 @@ int QueueItemModel::columnCount(const QModelIndex &parent) const
 
 QVariant QueueItemModel::data(const QModelIndex &index, int role) const
 {
+  return QVariant();
 }
 
 bool QueueItemModel::setData(const QModelIndex &index, const QVariant &value,
                              int role)
 {
+  return false;
 }
 
 Qt::ItemFlags QueueItemModel::flags(const QModelIndex &index) const
 {
+  return Qt::ItemFlags();
 }
 
 QModelIndex QueueItemModel::index(int row, int column,
                                   const QModelIndex &parent) const
 {
+  return QModelIndex();
 }
 
 void QueueItemModel::clear()
