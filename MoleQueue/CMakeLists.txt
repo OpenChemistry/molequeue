@@ -59,4 +59,9 @@ target_link_libraries(molequeue molequeue_static ${QT_LIBRARIES})
 install(TARGETS molequeue
   DESTINATION bin)
 
+if((APPLE OR WIN32) AND NOT ${CMAKE_VERSION} VERSION_LESS 2.8.8)
+  include(DeployQt4)
+  install_qt4_executable(bin/molequeue.app)
+endif()
+
 add_subdirectory(testing)
