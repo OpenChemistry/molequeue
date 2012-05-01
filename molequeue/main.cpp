@@ -18,7 +18,7 @@
 #include <QtGui/QSystemTrayIcon>
 #include <QtGui/QMessageBox>
 
-#include "mainwindow.h"
+#include "ui/mainwindow.h"
 
 int main(int argc, char *argv[])
 {

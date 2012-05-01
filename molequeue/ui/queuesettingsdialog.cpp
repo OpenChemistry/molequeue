@@ -17,7 +17,7 @@
 #include "queuesettingsdialog.h"
 #include "ui_queuesettingsdialog.h"
 
-#include "queue.h"
+#include "../queue.h"
 
 namespace MoleQueue {
 

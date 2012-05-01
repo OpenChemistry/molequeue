@@ -14,8 +14,8 @@
 
 ******************************************************************************/
 
-#ifndef Connection_H
-#define Connection_H
+#ifndef CONNECTION_H
+#define CONNECTION_H
 
 #include <QtCore/QObject>
 #include <QtCore/QMap>

@@ -14,12 +14,12 @@
 
 ******************************************************************************/
 
-#include "QueueRemote.h"
+#include "remote.h"
 
-#include "job.h"
-#include "program.h"
-#include "terminalprocess.h"
-#include "sshcommand.h"
+#include "../job.h"
+#include "../program.h"
+#include "../terminalprocess.h"
+#include "../sshcommand.h"
 
 #include <QtCore/QTimer>
 #include <QtCore/QDebug>

@@ -14,8 +14,8 @@
 
 ******************************************************************************/
 
-#ifndef ProgramTableView_H
-#define ProgramTableView_H
+#ifndef PROGRAMTABLEVIEW_H
+#define PROGRAMTABLEVIEW_H
 
 #include <QtGui/QTreeView>
 

@@ -14,9 +14,9 @@
 
 ******************************************************************************/
 
-#include "QueueLocal.h"
+#include "local.h"
 
-#include "job.h"
+#include "../job.h"
 
 #include <QtCore/QProcess>
 #include <QtCore/QProcessEnvironment>

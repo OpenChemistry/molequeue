@@ -28,4 +28,4 @@ endif()
 
 # This is necessary for tests, includes etc.
 include_directories("${MoleQueue_SOURCE_DIR}")
-add_subdirectory(MoleQueue)
+add_subdirectory(molequeue)

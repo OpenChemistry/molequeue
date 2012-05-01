@@ -14,7 +14,7 @@
 
 ******************************************************************************/
 
-#include "Connection.h"
+#include "connection.h"
 
 #include <QtCore/QDataStream>
 #include <QtCore/QString>

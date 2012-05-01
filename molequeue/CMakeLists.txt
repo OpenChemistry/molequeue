@@ -4,50 +4,52 @@ include(${QT_USE_FILE})
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 set(mq_srcs
-  addqueuedialog.cpp
-  Connection.cpp
+  connection.cpp
   job.cpp
-  mainwindow.cpp
   program.cpp
-  ProgramItemModel.cpp
-  ProgramTableView.cpp
+  programitemmodel.cpp
+  programtableview.cpp
   queue.cpp
-  QueueLocal.cpp
-  QueueRemote.cpp
   queuemanager.cpp
-  queuemanagerdialog.cpp
-  queuesettingsdialog.cpp
-  QueueSGE.cpp
-  QueueItemModel.cpp
+  queueitemmodel.cpp
   sshcommand.cpp
   sshconnection.cpp
-  terminalprocess.cpp)
+  terminalprocess.cpp
+  queues/local.cpp
+  queues/remote.cpp
+  queues/sge.cpp
+  ui/addqueuedialog.cpp
+  ui/mainwindow.cpp
+  ui/queuemanagerdialog.cpp
+  ui/queuesettingsdialog.cpp
+)
 
 set(mq_moc
-  addqueuedialog.h
-  Connection.h
+  connection.h
   job.h
-  mainwindow.h
-  ProgramItemModel.h
-  ProgramTableView.h
+  programitemmodel.h
+  programtableview.h
   queue.h
-  QueueLocal.h
-  QueueRemote.h
   queuemanager.h
-  queuemanagerdialog.h
-  queuesettingsdialog.h
-  QueueSGE.h
-  QueueItemModel.h
+  queueitemmodel.h
   sshcommand.h
   sshconnection.h
-  terminalprocess.h)
+  terminalprocess.h
+  queues/local.h
+  queues/remote.h
+  queues/sge.h
+  ui/addqueuedialog.h
+  ui/mainwindow.h
+  ui/queuemanagerdialog.h
+  ui/queuesettingsdialog.h
+)
 
 qt4_wrap_cpp(moc_srcs ${mq_moc})
 qt4_wrap_ui(ui_srcs
-  addqueuedialog.ui
-  mainwindow.ui
-  queuemanagerdialog.ui
-  queuesettingsdialog.ui
+  ui/addqueuedialog.ui
+  ui/mainwindow.ui
+  ui/queuemanagerdialog.ui
+  ui/queuesettingsdialog.ui
 )
 qt4_add_resources(rcc_srcs queuetray.qrc)
 
