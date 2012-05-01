@@ -30,7 +30,7 @@
 
 #include <QtGui/QWidget>
 #include <QtGui/QFormLayout>
-#include <QtGui/QLineEdit>
+#include <QtGui/QSpinBox>
 
 #include <QtCore/QDebug>
 
@@ -69,9 +69,10 @@ QWidget* QueueLocal::settingsWidget() const
   QWidget *widget = new QWidget;
 
   QFormLayout *layout = new QFormLayout;
-  QLineEdit *lineEdit = new QLineEdit(widget);
-  lineEdit->setText(QString::number(m_cores));
-  layout->addRow("Number of Cores: ", lineEdit);
+  QSpinBox *coresSpinBox = new QSpinBox(widget);
+  coresSpinBox->setValue(m_cores);
+  coresSpinBox->setMinimum(0);
+  layout->addRow("Number of Cores: ", coresSpinBox);
   widget->setLayout(layout);
 
   return widget;

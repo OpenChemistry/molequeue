@@ -40,9 +40,11 @@ public:
 private slots:
   void addQueue();
   void removeQueue();
+  void configureQueue();
   void queueAdded(const MoleQueue::Queue *queue);
   void queueRemoved(const MoleQueue::Queue *queue);
   void itemDoubleClicked(QTableWidgetItem *item);
+  void showSettingsDialog(Queue *queue);
 
 private:
   Ui::QueueManagerDialog *ui;
