@@ -14,7 +14,7 @@
 
 ******************************************************************************/
 
-#include "QueueItemModel.h"
+#include "queueitemmodel.h"
 
 namespace MoleQueue {
 

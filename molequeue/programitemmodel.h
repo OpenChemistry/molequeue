@@ -14,8 +14,8 @@
 
 ******************************************************************************/
 
-#ifndef ProgramItemModel_H
-#define ProgramItemModel_H
+#ifndef PROGRAMITEMMODEL_H
+#define PROGRAMITEMMODEL_H
 
 #include <QtCore/QModelIndex>
 #include <QtCore/QList>
