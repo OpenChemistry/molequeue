@@ -20,10 +20,10 @@
 #include <QTableWidget>
 #include <QTableWidgetItem>
 
-#include "queue.h"
+#include "../queue.h"
 #include "mainwindow.h"
 #include "addqueuedialog.h"
-#include "queuemanager.h"
+#include "../queuemanager.h"
 #include "queuesettingsdialog.h"
 
 namespace MoleQueue {

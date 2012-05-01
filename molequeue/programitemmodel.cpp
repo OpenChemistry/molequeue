@@ -14,7 +14,7 @@
 
 ******************************************************************************/
 
-#include "ProgramItemModel.h"
+#include "programitemmodel.h"
 
 #include "job.h"
 #include "queue.h"

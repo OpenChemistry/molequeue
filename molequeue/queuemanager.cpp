@@ -16,9 +16,9 @@
 
 #include "queuemanager.h"
 
-#include "QueueLocal.h"
-#include "QueueRemote.h"
-#include "QueueSGE.h"
+#include "queues/local.h"
+#include "queues/remote.h"
+#include "queues/sge.h"
 
 namespace MoleQueue {
 

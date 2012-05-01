@@ -14,12 +14,12 @@
 
 ******************************************************************************/
 
-#include "QueueSGE.h"
+#include "sge.h"
 
-#include "job.h"
-#include "program.h"
-#include "terminalprocess.h"
-#include "sshcommand.h"
+#include "../job.h"
+#include "../program.h"
+#include "../terminalprocess.h"
+#include "../sshcommand.h"
 
 #include <QtCore/QDir>
 #include <QtCore/QTimer>

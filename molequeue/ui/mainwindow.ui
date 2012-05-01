@@ -94,7 +94,7 @@
   <customwidget>
    <class>MoleQueue::ProgramTableView</class>
    <extends>QTreeView</extends>
-   <header location="global">MoleQueue/ProgramTableView.h</header>
+   <header location="global">src/programtableview.h</header>
   </customwidget>
  </customwidgets>
  <resources/>
