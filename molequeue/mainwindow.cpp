@@ -20,7 +20,7 @@
 #include "job.h"
 #include "terminalprocess.h"
 #include "sshcommand.h"
-#include "programitemmodel.h"
+#include "jobitemmodel.h"
 #include "program.h"
 #include "connection.h"
 #include "queues/local.h"

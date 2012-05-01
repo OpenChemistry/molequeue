@@ -6,9 +6,9 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR})
 set(mq_srcs
   connection.cpp
   job.cpp
+  jobitemmodel.cpp
+  jobtreeview.cpp
   program.cpp
-  programitemmodel.cpp
-  programtableview.cpp
   queue.cpp
   queuemanager.cpp
   queueitemmodel.cpp
@@ -27,8 +27,8 @@ set(mq_srcs
 set(mq_moc
   connection.h
   job.h
-  programitemmodel.h
-  programtableview.h
+  jobitemmodel.h
+  jobtreeview.h
   queue.h
   queuemanager.h
   queueitemmodel.h

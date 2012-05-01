@@ -22,12 +22,12 @@
 namespace MoleQueue
 {
 
-class ProgramTableView : public QTreeView
+class JobTreeView : public QTreeView
 {
   Q_OBJECT
 
 public:
-  ProgramTableView(QWidget *parent = 0);
+  JobTreeView(QWidget *parent = 0);
 
   /** Custom context menu for this view. */
   void contextMenuEvent(QContextMenuEvent *e);
