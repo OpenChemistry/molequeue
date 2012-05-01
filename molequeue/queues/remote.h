@@ -14,12 +14,10 @@
 
 ******************************************************************************/
 
-#ifndef QueueSGE_H
-#define QueueSGE_H
+#ifndef QUEUEREMOTE_H
+#define QUEUEREMOTE_H
 
-#include "queue.h"
-
-#include <QtCore/QMap>
+#include "../queue.h"
 
 class QTimer;
 
@@ -32,14 +30,16 @@ class SshCommand;
  * Remote queue.
  */
 
-class QueueSGE : public Queue
+class QueueRemote : public Queue
 {
   Q_OBJECT
 public:
-  explicit QueueSGE(QObject *parent = 0);
-  ~QueueSGE();
+  explicit QueueRemote(QObject *parent = 0);
+  ~QueueRemote();
 
-  QString typeName() const { return "Remote - SGE"; }
+  QString typeName() const { return "Remote"; }
+
+  QWidget *settingsWidget() const;
 
 public slots:
   /**
@@ -51,10 +51,10 @@ public slots:
 
 protected slots:
   /** Job started successfully. */
-  virtual void jobStarted(Job *job);
+  virtual void jobStarted();
 
   /** Job completed successfully. */
-  virtual void jobFinished(Job *job);
+  virtual void jobFinished();
 
   /** Slot for polling remote jobs that are currently active. */
   virtual void pollRemote();
@@ -81,16 +81,10 @@ protected:
   /** A timer for polling the remote host if jobs are active. **/
   QTimer *m_timer;
 
-  /** The interval, in seconds, to poll the remote host. Default is 10 seconds. **/
+  /** The interval, in seconds, to poll the remote host. **/
   int m_interval;
-
-  /** A map of all active remote jobs, associated with their unique remote id. **/
-  QMap<QString, Job *> m_remoteJobs;
-
-  /** The local directory used to stage files, and retrieve them. **/
-  QString m_localDir;
 };
 
 } // End namespace
 
-#endif // QueueSGE_H
+#endif // QUEUEREMOTE_H

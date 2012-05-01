@@ -14,7 +14,7 @@
 
 ******************************************************************************/
 
-#include "ProgramTableView.h"
+#include "programtableview.h"
 
 #include "job.h"
 

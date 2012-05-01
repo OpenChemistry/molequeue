@@ -17,7 +17,7 @@
 #ifndef QUEUELOCAL_H
 #define QUEUELOCAL_H
 
-#include "queue.h"
+#include "../queue.h"
 
 #include <QtCore/QProcess>
 

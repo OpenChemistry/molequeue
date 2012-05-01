@@ -1,8 +1,8 @@
 
 #include <QtTest>
 
-#include <MoleQueue/program.h>
-#include <MoleQueue/queue.h>
+#include "program.h"
+#include "queue.h"
 
 int queue(int argc, char *argv[])
 {
