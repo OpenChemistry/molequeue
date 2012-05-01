@@ -28,7 +28,8 @@
 
 namespace MoleQueue {
 
-QueueManagerDialog::QueueManagerDialog(QueueManager *queueManager, QWidget *parent)
+QueueManagerDialog::QueueManagerDialog(QueueManager *queueManager,
+                                       QWidget *parent)
   : QDialog(parent),
     ui(new Ui::QueueManagerDialog),
     m_queueManager(queueManager)
@@ -50,11 +51,16 @@ QueueManagerDialog::QueueManagerDialog(QueueManager *queueManager, QWidget *pare
   }
 
   // connect slots
-  connect(queueManager, SIGNAL(queueAdded(const MoleQueue::Queue*)), this, SLOT(queueAdded(const MoleQueue::Queue*)));
-  connect(queueManager, SIGNAL(queueRemoved(const MoleQueue::Queue*)), this, SLOT(queueRemoved(const MoleQueue::Queue*)));
-  connect(ui->queueTable, SIGNAL(itemDoubleClicked(QTableWidgetItem*)), this, SLOT(itemDoubleClicked(QTableWidgetItem*)));
+  connect(queueManager, SIGNAL(queueAdded(const MoleQueue::Queue*)),
+          this, SLOT(queueAdded(const MoleQueue::Queue*)));
+  connect(queueManager, SIGNAL(queueRemoved(const MoleQueue::Queue*)),
+          this, SLOT(queueRemoved(const MoleQueue::Queue*)));
+  connect(ui->queueTable, SIGNAL(itemDoubleClicked(QTableWidgetItem*)),
+          this, SLOT(itemDoubleClicked(QTableWidgetItem*)));
   connect(ui->addQueueButton, SIGNAL(clicked()), this, SLOT(addQueue()));
   connect(ui->removeQueueButton, SIGNAL(clicked()), this, SLOT(removeQueue()));
+  connect(ui->configureQueueButton, SIGNAL(clicked()),
+          this, SLOT(configureQueue()));
   connect(ui->closeButton, SIGNAL(clicked()), this, SLOT(close()));
 }
 
@@ -74,6 +80,13 @@ void QueueManagerDialog::removeQueue()
   int row = ui->queueTable->currentRow();
   Queue *queue = m_queueManager->queues()[row];
   m_queueManager->removeQueue(queue);
+}
+
+void QueueManagerDialog::configureQueue()
+{
+  int row = ui->queueTable->currentRow();
+  Queue *queue = m_queueManager->queues()[row];
+  this->showSettingsDialog(queue);
 }
 
 void QueueManagerDialog::queueAdded(const MoleQueue::Queue *queue)
@@ -101,7 +114,11 @@ void QueueManagerDialog::itemDoubleClicked(QTableWidgetItem *item)
 {
   int row = item->row();
   Queue *queue = m_queueManager->queues()[row];
+  this->showSettingsDialog(queue);
+}
 
+void QueueManagerDialog::showSettingsDialog(Queue *queue)
+{
   QueueSettingsDialog dialog(queue, this);
   dialog.exec();
 }

@@ -63,15 +63,31 @@
      </item>
      <item>
       <widget class="QPushButton" name="addQueueButton">
+       <property name="toolTip">
+        <string>Add a new queue.</string>
+       </property>
        <property name="text">
-        <string>Add Queue</string>
+        <string>&amp;Add</string>
        </property>
       </widget>
      </item>
      <item>
       <widget class="QPushButton" name="removeQueueButton">
+       <property name="toolTip">
+        <string>Remove the selected queue.</string>
+       </property>
        <property name="text">
-        <string>Remove Queue</string>
+        <string>&amp;Remove</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="configureQueueButton">
+       <property name="toolTip">
+        <string>Configure and add programs to the selected queue.</string>
+       </property>
+       <property name="text">
+        <string>&amp;Configure</string>
        </property>
       </widget>
      </item>
