@@ -14,7 +14,7 @@
 
 ******************************************************************************/
 
-#include "programtableview.h"
+#include "jobtreeview.h"
 
 #include "job.h"
 
@@ -26,11 +26,11 @@
 namespace MoleQueue
 {
 
-ProgramTableView::ProgramTableView(QWidget *parent) : QTreeView(parent)
+JobTreeView::JobTreeView(QWidget *parent) : QTreeView(parent)
 {
 }
 
-void ProgramTableView::contextMenuEvent(QContextMenuEvent *e)
+void JobTreeView::contextMenuEvent(QContextMenuEvent *e)
 {
   QModelIndex index = indexAt(e->pos());
   if (index.isValid()) {
@@ -57,7 +57,7 @@ void ProgramTableView::contextMenuEvent(QContextMenuEvent *e)
   }
 }
 
-void ProgramTableView::openInAvogadro()
+void JobTreeView::openInAvogadro()
 {
   QAction *action = static_cast<QAction*>(sender());
   if (action) {
