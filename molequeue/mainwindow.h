@@ -59,22 +59,11 @@ private slots:
   void submitJob(const QString &queue, const QString &program,
                  const QString &fileName, const QString &input);
 
-  void setIcon(int index);
-  void iconActivated(QSystemTrayIcon::ActivationReason reason);
-  void showMessage();
-  void messageClicked();
   void newConnection();
-  void socketReadyRead();
-  void socketError(QLocalSocket::LocalSocketError theSocketError);
-  void socketConnected();
   void removeServer();
   void showQueueManager();
 
-  /** Move file to appropriate place for execution. */
-  void moveFile();
-
 private:
-  void createMessageGroupBox();
   void createActions();
   void createMainMenu();
   void createTrayIcon();

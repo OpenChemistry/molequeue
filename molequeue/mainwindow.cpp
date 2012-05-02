@@ -44,8 +44,17 @@ namespace MoleQueue {
 
 MainWindow::MainWindow()
   : m_ui(new Ui::MainWindow),
+    m_minimizeAction(NULL),
+    m_maximizeAction(NULL),
+    m_restoreAction(NULL),
+    m_icon(NULL),
+    m_trayIcon(NULL),
+    m_trayIconMenu(NULL),
+    m_server(NULL),
     m_removeServer(false),
-    m_connection(0)
+    m_queueManager(NULL),
+    m_jobModel(NULL),
+    m_connection(NULL)
 {
   m_ui->setupUi(this);
 
@@ -57,28 +66,20 @@ MainWindow::MainWindow()
   readSettings();
   createJobModel();
 
-  m_trayIcon->show();
-
   // Start up our local socket server
   m_server = new QLocalServer(this);
   if (!m_server->listen("MoleQueue")) {
+    // Already running -- display error message and exit.
     QMessageBox::critical(this, tr("MoleQueue Server"),
-                                tr("Unable to start the server: %1.")
+                                tr("Unable to start the server: %1.\n"
+                                   "Exiting.")
                                   .arg(m_server->errorString()));
-    //m_server->removeServer("MoleQueue");
     m_server->close();
     m_removeServer = true;
+    this->removeServer();
+    QTimer::singleShot(0, qApp, SLOT(quit()));
+    this->close();
 
-    qDebug() << "Creating a client connection...";
-    // Create a test connection to the other server.
-    QLocalSocket *socket = new QLocalSocket(this);
-    socket->connectToServer("MoleQueue");
-    connect(socket, SIGNAL(readyRead()), this, SLOT(socketReadyRead()));
-    connect(socket, SIGNAL(error(QLocalSocket::LocalSocketError)),
-            this, SLOT(socketError(QLocalSocket::LocalSocketError)));
-    connect(socket, SIGNAL(connected()), this, SLOT(socketConnected()));
-
-    QTimer::singleShot(1000, this, SLOT(removeServer()));
     return;
   }
   else {
@@ -86,6 +87,8 @@ MainWindow::MainWindow()
              << m_server->fullServerName();
     connect(m_server, SIGNAL(newConnection()), this, SLOT(newConnection()));
   }
+
+  m_trayIcon->show();
 }
 
 MainWindow::~MainWindow()
@@ -119,9 +122,10 @@ void MainWindow::closeEvent(QCloseEvent *theEvent)
 void MainWindow::readSettings()
 {
   QSettings settings;
-  m_tmpDir = settings.value("tmpDir", QDir::tempPath() + "/MoleQueue").toString();
-  m_localDir = settings.value("localDir",
-                              QDir::homePath() + "/.molequeue/local").toString();
+  m_tmpDir = settings.value(
+        "tmpDir", QDir::tempPath() + "/MoleQueue").toString();
+  m_localDir = settings.value(
+        "localDir", QDir::homePath() + "/.molequeue/local").toString();
 
   // read names of queues
   QStringList queueNames = settings.value("queues").toStringList();
@@ -165,40 +169,6 @@ void MainWindow::writeSettings()
   settings.setValue("queues", queueNames);
 }
 
-void MainWindow::setIcon(int /*index*/)
-{
-}
-
-void MainWindow::iconActivated(QSystemTrayIcon::ActivationReason /*reason*/)
-{
-}
-
-void MainWindow::showMessage()
-{
-  Queue *queue = m_queueManager->queues()[0];
-  qDebug() << "queue name: " << queue->name();
-  Program *program = queue->program("sleep");
-  qDebug() << "program name: " << program->name();
-  qDebug() << "program run template: " << program->runTemplate();
-
-  Job *job = program->createJob();
-  job->setReplacement("time", "3");
-
-  queue->submit(job);
-
-//  m_trayIcon->showMessage("Info",
-//                          "System tray resident queue manager initialized.",
-//                          QSystemTrayIcon::MessageIcon(0), 5000);
-}
-
-void MainWindow::messageClicked()
-{
-  QMessageBox::information(0, tr("Systray"),
-                           tr("Sorry, I already gave what help I could.\n"
-                              "Maybe you should try asking a human?"));
-  createMessageGroupBox();
-}
-
 void MainWindow::newConnection()
 {
   m_trayIcon->showMessage("Info",
@@ -217,47 +187,6 @@ void MainWindow::newConnection()
   m_connection = new Connection(clientSocket, this);
   connect(m_connection, SIGNAL(jobSubmitted(QString,QString,QString,QString)),
           this, SLOT(submitJob(QString,QString,QString,QString)));
-}
-
-void MainWindow::socketReadyRead()
-{
-  m_trayIcon->showMessage("Info",
-                          tr("Client connected to us!"),
-                          QSystemTrayIcon::MessageIcon(0), 5000);
-  qDebug() << "Ready to read...";
-  m_removeServer = false;
-}
-
-void MainWindow::socketError(QLocalSocket::LocalSocketError theSocketError)
-{
-  switch (theSocketError) {
-  case QLocalSocket::ServerNotFoundError:
-    QMessageBox::information(this, tr("MoleQueue Client"),
-                             tr("The pipe was not found. Please check the "
-                                "local pipe name."));
-    break;
-  case QLocalSocket::ConnectionRefusedError:
-    QMessageBox::information(this, tr("MoleQueue Client"),
-                             tr("The connection was refused by the server. "
-                                "Make sure the MoleQueue server is running, "
-                                "and check that the local pipe name "
-                                "is correct."));
-    break;
-  case QLocalSocket::PeerClosedError:
-    break;
-  default:
-    QMessageBox::information(this, tr("MoleQueue Client"),
-                             tr("The following error occurred: ."));
-                             //.arg(socket->errorString()));
-  }
-
-  qDebug() << "Hit the soccket error!";
-}
-
-void MainWindow::socketConnected()
-{
-  qDebug() << "Socket connected...";
-  m_removeServer = false;
 }
 
 void MainWindow::removeServer()
@@ -296,17 +225,6 @@ void MainWindow::showQueueManager()
   dialog.exec();
 }
 
-void MainWindow::moveFile()
-{
-}
-
-void MainWindow::createMessageGroupBox()
-{
-  m_trayIcon->showMessage("Info",
-                          "System tray resident queue manager initialized.",
-                          QSystemTrayIcon::MessageIcon(0), 15000);
-}
-
 void MainWindow::createActions()
 {
   connect(m_ui->actionMinimize, SIGNAL(triggered()), this, SLOT(hide()));
@@ -316,8 +234,6 @@ void MainWindow::createActions()
 
 void MainWindow::createMainMenu()
 {
-  connect(m_ui->actionTest, SIGNAL(triggered()), this, SLOT(showMessage()));
-  connect(m_ui->actionMove, SIGNAL(triggered()), this, SLOT(moveFile()));
   connect(m_ui->actionQueueManager, SIGNAL(triggered()), this, SLOT(showQueueManager()));
   connect(m_ui->actionQuit, SIGNAL(triggered()), qApp, SLOT(quit()));
 }
