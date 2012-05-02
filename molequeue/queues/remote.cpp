@@ -28,8 +28,8 @@
 
 namespace MoleQueue {
 
-QueueRemote::QueueRemote(QObject *parent) :
-  Queue("Remote", parent), m_ssh(0), m_timer(0), m_interval(10)
+QueueRemote::QueueRemote(QObject *parentObject) :
+  Queue("Remote", parentObject), m_ssh(0), m_timer(0), m_interval(10)
 {
   setupPrograms();
   setupProcess();

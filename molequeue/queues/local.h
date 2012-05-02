@@ -31,7 +31,7 @@ class QueueLocal : public Queue
 {
   Q_OBJECT
 public:
-  explicit QueueLocal(QObject *parent = 0);
+  explicit QueueLocal(QObject *parentObject = 0);
   ~QueueLocal();
 
   QString typeName() const { return "Local"; }

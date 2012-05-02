@@ -34,7 +34,7 @@ class QueueManagerDialog : public QDialog
   Q_OBJECT
 
 public:
-  explicit QueueManagerDialog(QueueManager *manager, QWidget *parent = 0);
+  explicit QueueManagerDialog(QueueManager *manager, QWidget *parentObject = 0);
   ~QueueManagerDialog();
 
 private slots:

@@ -103,7 +103,7 @@ void MainWindow::setVisible(bool visible)
   QMainWindow::setVisible(visible);
 }
 
-void MainWindow::closeEvent(QCloseEvent *event)
+void MainWindow::closeEvent(QCloseEvent *theEvent)
 {
   if (m_trayIcon->isVisible()) {
     QMessageBox::information(this, tr("Systray"),
@@ -112,7 +112,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
                                 "choose <b>Quit</b> in the context menu "
                                 "of the system tray entry."));
     hide();
-    event->ignore();
+    theEvent->ignore();
   }
 }
 
@@ -165,11 +165,11 @@ void MainWindow::writeSettings()
   settings.setValue("queues", queueNames);
 }
 
-void MainWindow::setIcon(int index)
+void MainWindow::setIcon(int /*index*/)
 {
 }
 
-void MainWindow::iconActivated(QSystemTrayIcon::ActivationReason reason)
+void MainWindow::iconActivated(QSystemTrayIcon::ActivationReason /*reason*/)
 {
 }
 
@@ -228,9 +228,9 @@ void MainWindow::socketReadyRead()
   m_removeServer = false;
 }
 
-void MainWindow::socketError(QLocalSocket::LocalSocketError socketError)
+void MainWindow::socketError(QLocalSocket::LocalSocketError theSocketError)
 {
-  switch (socketError) {
+  switch (theSocketError) {
   case QLocalSocket::ServerNotFoundError:
     QMessageBox::information(this, tr("MoleQueue Client"),
                              tr("The pipe was not found. Please check the "

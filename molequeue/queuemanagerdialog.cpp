@@ -29,8 +29,8 @@
 namespace MoleQueue {
 
 QueueManagerDialog::QueueManagerDialog(QueueManager *queueManager,
-                                       QWidget *parent)
-  : QDialog(parent),
+                                       QWidget *parentObject)
+  : QDialog(parentObject),
     ui(new Ui::QueueManagerDialog),
     m_queueManager(queueManager)
 {

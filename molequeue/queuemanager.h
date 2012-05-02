@@ -28,7 +28,7 @@ class QueueManager : public QObject
   Q_OBJECT
 
 public:
-  explicit QueueManager(QObject *parent = 0);
+  explicit QueueManager(QObject *parentObject = 0);
   ~QueueManager();
 
   void addQueue(Queue *queue);

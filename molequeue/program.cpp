@@ -24,10 +24,10 @@
 
 namespace MoleQueue {
 
-Program::Program(Queue *queue) :
+Program::Program(Queue *parentQueue) :
   m_runDirect(true),
   m_delimiter("$$"),
-  m_queue(queue)
+  m_queue(parentQueue)
 {
 }
 

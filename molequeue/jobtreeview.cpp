@@ -26,7 +26,7 @@
 namespace MoleQueue
 {
 
-JobTreeView::JobTreeView(QWidget *parent) : QTreeView(parent)
+JobTreeView::JobTreeView(QWidget *theParent) : QTreeView(theParent)
 {
 }
 
@@ -48,10 +48,12 @@ void JobTreeView::contextMenuEvent(QContextMenuEvent *e)
     }
     else if (job->status() == Job::RUNNING) {
       QAction *action = menu->addAction("&Kill");
+      Q_UNUSED(action);
     }
     else {
       QAction *action = menu->addAction("&Hold");
       action = menu->addAction("&Cancel");
+      Q_UNUSED(action);
     }
     menu->exec(QCursor::pos());
   }

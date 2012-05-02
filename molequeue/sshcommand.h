@@ -35,7 +35,7 @@ class SshCommand : public SshConnection
   Q_OBJECT
 
 public:
-  SshCommand(QObject *parent = 0);
+  SshCommand(QObject *parentObject = 0);
   ~SshCommand();
 
   /** \return The SSH command that will be run. */

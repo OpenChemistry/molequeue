@@ -36,7 +36,7 @@ class QueueSGE : public Queue
 {
   Q_OBJECT
 public:
-  explicit QueueSGE(QObject *parent = 0);
+  explicit QueueSGE(QObject *parentObject = 0);
   ~QueueSGE();
 
   QString typeName() const { return "Remote - SGE"; }

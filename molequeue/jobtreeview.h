@@ -27,7 +27,7 @@ class JobTreeView : public QTreeView
   Q_OBJECT
 
 public:
-  JobTreeView(QWidget *parent = 0);
+  JobTreeView(QWidget *theParent = 0);
 
   /** Custom context menu for this view. */
   void contextMenuEvent(QContextMenuEvent *e);

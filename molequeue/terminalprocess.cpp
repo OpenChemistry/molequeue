@@ -22,7 +22,8 @@
 
 namespace MoleQueue {
 
-TerminalProcess::TerminalProcess(QObject *parent) : QProcess(parent)
+TerminalProcess::TerminalProcess(QObject *parentObject) :
+  QProcess(parentObject)
 {
 }
 

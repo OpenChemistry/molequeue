@@ -22,8 +22,8 @@
 
 namespace MoleQueue {
 
-QueueManager::QueueManager(QObject *parent)
-  : QObject(parent)
+QueueManager::QueueManager(QObject *parentObject)
+  : QObject(parentObject)
 {
 }
 

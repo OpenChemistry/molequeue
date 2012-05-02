@@ -18,7 +18,7 @@
 
 namespace MoleQueue {
 
-SshConnection::SshConnection(QObject *parent) : QObject(parent),
+SshConnection::SshConnection(QObject *parentObject) : QObject(parentObject),
   m_persistent(false), m_portNumber(-1)
 {
 }

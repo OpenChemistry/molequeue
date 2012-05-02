@@ -47,19 +47,19 @@ public:
   };
 
   /** Creates a new job. */
-  explicit Job(const Program *program);
+  explicit Job(const Program *prog);
 
   /* Destroys the job object. */
   ~Job();
 
   /** Set the name of the job to \p name. */
-  void setName(const QString &name);
+  void setName(const QString &newName);
 
   /** Returns the name of the job. */
   QString name() const;
 
   /** Sets the title of the job to \p title. */
-  void setTitle(const QString &title);
+  void setTitle(const QString &newTitle);
 
   /** Returns the title for the job. */
   QString title() const;
@@ -67,7 +67,7 @@ public:
   /**
    * Set the current status of the job.
    */
-  void setStatus(Status status) { m_status = status; }
+  void setStatus(Status newStatus) { m_status = newStatus; }
 
   /**
    * Get the current status of the job.
@@ -114,7 +114,7 @@ public:
    * preference to the inputFile, and will be written to disk.
    * \param file The input file path.
    */
-  void setInput(const QString &input) { m_input = input; }
+  void setInput(const QString &newInput) { m_input = newInput; }
 
   /**
    * \return The full path of the output file that was produced. This is used
