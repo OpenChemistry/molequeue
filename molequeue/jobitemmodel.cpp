@@ -67,6 +67,8 @@ QVariant JobItemModel::headerData(int section, Qt::Orientation orientation,
       return QVariant("Queue");
     else if (section == 3)
       return QVariant("Status");
+    else
+      return QVariant();
   }
   else {
     return QVariant();
