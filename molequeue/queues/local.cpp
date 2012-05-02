@@ -36,8 +36,8 @@
 
 namespace MoleQueue {
 
-QueueLocal::QueueLocal(QObject *parent) :
-  Queue("Local", parent), m_process(0), m_currentJob(0), m_cores(-1)
+QueueLocal::QueueLocal(QObject *parentObject) :
+  Queue("Local", parentObject), m_process(0), m_currentJob(0), m_cores(-1)
 {
   setupPrograms();
 }
@@ -90,10 +90,11 @@ bool QueueLocal::submit(Job *job)
 
 void QueueLocal::jobStarted()
 {
-  QObject *sender = QObject::sender();
-  if (sender) {
-    qDebug() << "The job was successfully started:" << sender->property("JOB_ID");
-    int id = sender->property("JOB_ID").toInt();
+  QObject *theSender = QObject::sender();
+  if (theSender) {
+    qDebug() << "The job was successfully started:"
+             << theSender->property("JOB_ID");
+    int id = theSender->property("JOB_ID").toInt();
     m_jobs[id]->setStatus(Job::RUNNING);
     emit(jobStateChanged(0));
   }
@@ -101,10 +102,11 @@ void QueueLocal::jobStarted()
 
 void QueueLocal::jobFinished()
 {
-  QObject *sender = QObject::sender();
-  if (sender) {
-    qDebug() << "The job was successfully finished:" << sender->property("JOB_ID");
-    int id = sender->property("JOB_ID").toInt();
+  QObject *theSender = QObject::sender();
+  if (theSender) {
+    qDebug() << "The job was successfully finished:"
+             << theSender->property("JOB_ID");
+    int id = theSender->property("JOB_ID").toInt();
     m_jobs[id]->setStatus(Job::COMPLETE);
     emit(jobStateChanged(0));
     // Submit the next job if there is one
@@ -120,12 +122,13 @@ void QueueLocal::jobFinished(int exitCode, QProcess::ExitStatus exitStatus)
   qDebug() << "Program output:" << result;
   qDebug() << "Return code:" << exitCode << exitStatus;
 
-  QObject *sender = QObject::sender();
-  if (!sender)
+  QObject *theSender = QObject::sender();
+  if (!theSender)
     return;
 
-  qDebug() << "The job was successfully finished:" << sender->property("JOB_ID");
-  int id = sender->property("JOB_ID").toInt();
+  qDebug() << "The job was successfully finished:"
+           << theSender->property("JOB_ID");
+  int id = theSender->property("JOB_ID").toInt();
   m_jobs[id]->setStatus(Job::COMPLETE);
   emit(jobStateChanged(0));
   // Submit the next job if there is one

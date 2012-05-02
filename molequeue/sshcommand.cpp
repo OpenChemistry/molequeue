@@ -22,7 +22,7 @@
 
 namespace MoleQueue {
 
-SshCommand::SshCommand(QObject *parent) : SshConnection(parent),
+SshCommand::SshCommand(QObject *parentObject) : SshConnection(parentObject),
   m_sshCommand("ssh"),
   m_scpCommand("scp"),
   m_process(0)

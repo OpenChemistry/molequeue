@@ -31,25 +31,25 @@ class JobItemModel : public QAbstractItemModel
   Q_OBJECT
 
 public:
-  explicit JobItemModel(QObject *parent = 0);
+  explicit JobItemModel(QObject *parentObject = 0);
 
   /** Add a Queue to the model. */
   void addQueue(Queue *queue);
 
   QModelIndex parent(const QModelIndex & index) const;
-  int rowCount(const QModelIndex & parent = QModelIndex()) const;
-  int columnCount(const QModelIndex & parent = QModelIndex()) const;
+  int rowCount(const QModelIndex & modelIndex = QModelIndex()) const;
+  int columnCount(const QModelIndex & modelIndex = QModelIndex()) const;
 
   QVariant headerData(int section, Qt::Orientation orientation,
                       int role = Qt::DisplayRole) const;
 
-  QVariant data(const QModelIndex & index, int role = Qt::DisplayRole) const;
-  bool setData(const QModelIndex & index, const QVariant & value,
+  QVariant data(const QModelIndex & modelIndex, int role = Qt::DisplayRole) const;
+  bool setData(const QModelIndex & modelIndex, const QVariant & value,
                int role = Qt::EditRole);
-  Qt::ItemFlags flags(const QModelIndex & index) const;
+  Qt::ItemFlags flags(const QModelIndex & modelIndex) const;
 
   QModelIndex index(int row, int column,
-                    const QModelIndex & parent = QModelIndex()) const;
+                    const QModelIndex & modelIndex = QModelIndex()) const;
 
   void clear();
 

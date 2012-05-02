@@ -32,7 +32,7 @@ class QueueSettingsDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit QueueSettingsDialog(Queue *queue, QWidget *parent = 0);
+    explicit QueueSettingsDialog(Queue *queue, QWidget *parentObject = 0);
     ~QueueSettingsDialog();
 
 private:

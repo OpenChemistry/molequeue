@@ -32,7 +32,7 @@ class AddQueueDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit AddQueueDialog(QueueManager *queueManager, QWidget *parent = 0);
+    explicit AddQueueDialog(QueueManager *queueManager, QWidget *parentObject = 0);
     ~AddQueueDialog();
 
 private slots:

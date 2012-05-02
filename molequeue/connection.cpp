@@ -23,8 +23,8 @@
 
 namespace MoleQueue {
 
-Connection::Connection(QLocalSocket *socket, QObject *parent) : QObject(parent),
-  m_socket(socket), m_blockSize(0), m_state(IDLE)
+Connection::Connection(QLocalSocket *socket, QObject *newParent)
+  : QObject(newParent), m_socket(socket), m_blockSize(0), m_state(IDLE)
 {
   if (m_socket) {
     connect(m_socket, SIGNAL(readyRead()), this, SLOT(newDataReady()));
@@ -52,32 +52,37 @@ void Connection::newDataReady()
 
   // If idle, we expect to receive a command as a QString
   switch (m_state) {
-    case IDLE: {
-      QString command;
-      in >> command;
-      qDebug() << "IDLE:" << command;
-      if (command == "Submit") {
-        m_state = INPUT_FILE;
-        sendMessage("Submit: ready");
-      }
-      m_blockSize = 0;
-      break;
+  case IDLE: {
+    QString command;
+    in >> command;
+    qDebug() << "IDLE:" << command;
+    if (command == "Submit") {
+      m_state = INPUT_FILE;
+      sendMessage("Submit: ready");
     }
-    case INPUT_FILE: {
-      // Receive the input file, submit it to the correct queue.
-      // We expect a string with the queue name, a second string with the
-      // input file name and then a third string with the input file.
-      QString strings[4];
-      in >> strings[0] >> strings[1] >> strings[2] >> strings[3];
-      qDebug() << strings[0];
-      qDebug() << strings[1];
-      qDebug() << strings[2];
-      qDebug() << strings[3];
-      emit(jobSubmitted(strings[0], strings[1], strings[2], strings[3]));
-      m_blockSize = 0;
-      m_state = IDLE;
-    }
-
+    m_blockSize = 0;
+    break;
+  }
+  case INPUT_FILE: {
+    // Receive the input file, submit it to the correct queue.
+    // We expect a string with the queue name, a second string with the
+    // input file name and then a third string with the input file.
+    QString strings[4];
+    in >> strings[0] >> strings[1] >> strings[2] >> strings[3];
+    qDebug() << strings[0];
+    qDebug() << strings[1];
+    qDebug() << strings[2];
+    qDebug() << strings[3];
+    emit(jobSubmitted(strings[0], strings[1], strings[2], strings[3]));
+    m_blockSize = 0;
+    m_state = IDLE;
+    break;
+  }
+  case OUTPUT_FILE:
+  case ERROR:
+  default:
+    qDebug() << Q_FUNC_INFO << "Unhandled socket state:" << m_state;
+    break;
   }
 
   m_blockSize = 0;

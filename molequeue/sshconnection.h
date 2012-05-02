@@ -26,7 +26,7 @@ class SshConnection : public QObject
   Q_OBJECT
 
 public:
-  SshConnection(QObject *parent = 0);
+  SshConnection(QObject *parentObject = 0);
   ~SshConnection();
 
   /** \return If the SSH connection is set as persistent or not. */
@@ -60,23 +60,26 @@ public slots:
   /**
    * Set the user name to use for the connection.
    */
-  void setUserName(const QString &userName) { m_userName = userName; }
+  void setUserName(const QString &newUserName) { m_userName = newUserName; }
 
   /**
    * Set the host name to use for the connection.
    */
-  void setHostName(const QString &hostName) { m_hostName = hostName; }
+  void setHostName(const QString &newHostName) { m_hostName = newHostName; }
 
   /**
    * Set the identity file to use for the connection. This is the path to the
    * private key to be used when establishing the connection.
    */
-  void setIdentityFile(const QString &identityFile) { m_identityFile = identityFile; }
+  void setIdentityFile(const QString &newIdentityFile)
+  {
+    m_identityFile = newIdentityFile;
+  }
 
   /**
    * Set the host name to use for the connection.
    */
-  void setPortNumber(int portNumber) { m_portNumber = portNumber; }
+  void setPortNumber(int newPortNumber) { m_portNumber = newPortNumber; }
 
   /**
    * Execute the supplied command on the remote host.

@@ -40,7 +40,7 @@ class Program
 {
 
 public:
-  explicit Program(Queue *queue = 0);
+  explicit Program(Queue *parentQueue = 0);
   ~Program();
 
   /** Copy constructor. */
@@ -52,7 +52,7 @@ public:
    * MolPro etc are used by GUIs such as Avogadro with its input generator
    * dialogs to match up input files to programs.
    */
-  void setName(const QString &name) { m_name = name; }
+  void setName(const QString &newName) { m_name = newName; }
 
   /** Get the name of the program. Often used by GUIs etc. */
   QString name() const { return m_name; }
@@ -66,7 +66,7 @@ public:
    * Set the title of the job. This is the title that will show up in job list
    * in the GUI
    */
-  void setTitle(const QString &title) { m_title = title; }
+  void setTitle(const QString &newTitle) { m_title = newTitle; }
 
   /** Get the name of the program. Often used by GUIs etc. */
   QString title() const { return m_title; }
@@ -93,7 +93,10 @@ public:
    * version that has at a minimum the standard replacement for the input file,
    * $$inputFile$$, and optionally the number of cores, $$nCPU$$.
    */
-  void setRunTemplate(const QString &runTemplate) { m_runTemplate = runTemplate; }
+  void setRunTemplate(const QString &newRunTemplate)
+  {
+    m_runTemplate = newRunTemplate;
+  }
 
   /**
    * \return The keyword delimiter, defaults to $$. Should be at either side
@@ -106,12 +109,15 @@ public:
    * keywords.
    * \param delimiter The delimiter to use.
    */
-  void setDelimiter(const QString &delimiter) { m_delimiter = delimiter; }
+  void setDelimiter(const QString &newDelimiter)
+  {
+    m_delimiter = newDelimiter;
+  }
 
   /**
    * Set the Queue that the Program belongs to, this is effectively the parent.
    */
-  void setQueue(Queue *queue) { m_queue = queue; }
+  void setQueue(Queue *newQueue) { m_queue = newQueue; }
 
   /**
    * Get the queue that the program belongs to.

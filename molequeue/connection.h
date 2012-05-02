@@ -52,7 +52,7 @@ public:
    * Set the name of the Connection. This should be unique, and will be used in
    * the GUI to refer to this Connection.
    */
-  virtual void setName(const QString &name) { m_name = name; }
+  virtual void setName(const QString &newName) { m_name = newName; }
 
   /** Get the name of the Connection. */
   QString name() const { return m_name; }

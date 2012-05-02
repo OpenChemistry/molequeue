@@ -27,8 +27,8 @@
 
 namespace MoleQueue {
 
-QueueSGE::QueueSGE(QObject *parent) :
-  Queue("Remote (SGE)", parent), m_ssh(0), m_timer(0), m_interval(60)
+QueueSGE::QueueSGE(QObject *parentObject) :
+  Queue("Remote (SGE)", parentObject), m_ssh(0), m_timer(0), m_interval(60)
 {
   setupPrograms();
   setupProcess();
@@ -51,7 +51,7 @@ bool QueueSGE::submit(Job *job)
   return true;
 }
 
-void QueueSGE::jobStarted(Job *job)
+void QueueSGE::jobStarted(Job */*job*/)
 {
 
 }

@@ -18,18 +18,19 @@
 
 namespace MoleQueue {
 
-QueueItemModel::QueueItemModel(QList<Queue *> *queueList, QObject *parent)
-  : QAbstractItemModel(parent)
+QueueItemModel::QueueItemModel(QList<Queue *> *queueList,
+                               QObject *parentObject)
+  : QAbstractItemModel(parentObject)
 {
   m_queueList = queueList;
 }
 
-QModelIndex QueueItemModel::parent(const QModelIndex &index) const
+QModelIndex QueueItemModel::parent(const QModelIndex &/*modelIndex*/) const
 {
   return QModelIndex();
 }
 
-int QueueItemModel::rowCount(const QModelIndex &parent) const
+int QueueItemModel::rowCount(const QModelIndex &/*modelIndex*/) const
 {
   if (m_queueList)
     return m_queueList->size();
@@ -37,29 +38,31 @@ int QueueItemModel::rowCount(const QModelIndex &parent) const
     return 0;
 }
 
-int QueueItemModel::columnCount(const QModelIndex &parent) const
+int QueueItemModel::columnCount(const QModelIndex &/*modelIndex*/) const
 {
   return 2;
 }
 
-QVariant QueueItemModel::data(const QModelIndex &index, int role) const
+QVariant QueueItemModel::data(const QModelIndex &/*modelIndex*/,
+                              int /*role*/) const
 {
   return QVariant();
 }
 
-bool QueueItemModel::setData(const QModelIndex &index, const QVariant &value,
-                             int role)
+bool QueueItemModel::setData(const QModelIndex &/*modelIndex*/,
+                             const QVariant &/*value*/,
+                             int /*role*/)
 {
   return false;
 }
 
-Qt::ItemFlags QueueItemModel::flags(const QModelIndex &index) const
+Qt::ItemFlags QueueItemModel::flags(const QModelIndex &/*modelIndex*/) const
 {
   return Qt::ItemFlags();
 }
 
-QModelIndex QueueItemModel::index(int row, int column,
-                                  const QModelIndex &parent) const
+QModelIndex QueueItemModel::index(int /*row*/, int /*column*/,
+                                  const QModelIndex &/*modelIndex*/) const
 {
   return QModelIndex();
 }
@@ -68,11 +71,11 @@ void QueueItemModel::clear()
 {
 }
 
-void QueueItemModel::add(Queue *queue)
+void QueueItemModel::add(Queue */*queue*/)
 {
 }
 
-void QueueItemModel::remove(Queue *queue)
+void QueueItemModel::remove(Queue */*queue*/)
 {
 }
 

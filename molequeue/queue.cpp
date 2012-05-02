@@ -20,8 +20,8 @@
 
 namespace MoleQueue {
 
-Queue::Queue(const QString &name, QObject *parent) :
-  QObject(parent), m_name(name), m_jobIndexOffset(0)
+Queue::Queue(const QString &queueName, QObject *parentObject) :
+  QObject(parentObject), m_name(queueName), m_jobIndexOffset(0)
 {
 }
 
@@ -45,29 +45,29 @@ QWidget* Queue::settingsWidget() const
   return 0;
 }
 
-bool Queue::addProgram(Program *program, bool replace)
+bool Queue::addProgram(Program *newProgram, bool replace)
 {
   // Check for duplicates, unless we are replacing, and return false if found.
-  if (!replace && m_programs.contains(program->name()))
+  if (!replace && m_programs.contains(newProgram->name()))
     return false;
 
-  m_programs[program->name()] = program;
+  m_programs[newProgram->name()] = newProgram;
   return true;
 }
 
-bool Queue::removeProgram(Program* program)
+bool Queue::removeProgram(Program* programToRemove)
 {
-  return removeProgram(program->name());
+  return removeProgram(programToRemove->name());
 }
 
-bool Queue::removeProgram(const QString &name)
+bool Queue::removeProgram(const QString &programName)
 {
-  return m_programs.remove(name) >= 1 ? true : false;
+  return m_programs.remove(programName) >= 1 ? true : false;
 }
 
-Program* Queue::program(const QString &name)
+Program* Queue::program(const QString &programName)
 {
-  return m_programs.value(name, 0);
+  return m_programs.value(programName, 0);
 }
 
 void Queue::clearPrograms()
@@ -77,10 +77,10 @@ void Queue::clearPrograms()
 
 QStringList Queue::programs() const
 {
-  QStringList programs;
-  foreach(const Program *program, m_programs)
-    programs << program->name();
-  return programs;
+  QStringList programList;
+  foreach(const Program *prog, m_programs)
+    programList << prog->name();
+  return programList;
 }
 
 bool Queue::submit(Job *job)

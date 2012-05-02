@@ -46,14 +46,14 @@ class Queue : public QObject
 {
   Q_OBJECT
 public:
-  explicit Queue(const QString &name = "Undefined", QObject *parent = 0);
+  explicit Queue(const QString &queueName = "Undefined", QObject *parentObject = 0);
   ~Queue();
 
   /**
    * Set the name of the queue. This should be unique, and will be used in the
    * GUI to refer to this queue.
    */
-  virtual void setName(const QString &name) { m_name = name; }
+  virtual void setName(const QString &newName) { m_name = newName; }
 
   /** Get the name of the queue. */
   QString name() const { return m_name; }
@@ -87,7 +87,7 @@ public:
    * same name in this queue.
    * @return True on success, false on failure.
    */
-  bool addProgram(Program *program, bool replace = false);
+  bool addProgram(Program *newProgram, bool replace = false);
 
   /**
    * Attempt to remove a program from the queue. The program name is used
@@ -95,7 +95,7 @@ public:
    * @param program The program to be removed from the queue.
    * @return True on success, false on failure.
    */
-  bool removeProgram(Program *program);
+  bool removeProgram(Program *programToRemove);
 
   /**
    * Attempt to remove a program from the queue. The program name is used
@@ -103,7 +103,7 @@ public:
    * @param name The name of the program to be removed from the queue.
    * @return True on success, false on failure.
    */
-  bool removeProgram(const QString &name);
+  bool removeProgram(const QString &programName);
 
   /**
    * Retrieve the program object associated with the supplied name.
@@ -111,7 +111,7 @@ public:
    * @return The Program object, a null pointer is returned if the
    * requested program is not in this queue.
    */
-  Program* program(const QString &name);
+  Program* program(const QString &programName);
 
   /**
    * Clear all programs, useful if you would like ot reset a Queue.

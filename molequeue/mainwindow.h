@@ -48,7 +48,7 @@ public:
   void setVisible(bool visible);
 
 protected:
-  void closeEvent(QCloseEvent *event);
+  void closeEvent(QCloseEvent *theEvent);
 
 public slots:
   void readSettings();
@@ -65,7 +65,7 @@ private slots:
   void messageClicked();
   void newConnection();
   void socketReadyRead();
-  void socketError(QLocalSocket::LocalSocketError socketError);
+  void socketError(QLocalSocket::LocalSocketError theSocketError);
   void socketConnected();
   void removeServer();
   void showQueueManager();

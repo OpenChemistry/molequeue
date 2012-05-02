@@ -34,7 +34,7 @@ class QueueRemote : public Queue
 {
   Q_OBJECT
 public:
-  explicit QueueRemote(QObject *parent = 0);
+  explicit QueueRemote(QObject *parentObject = 0);
   ~QueueRemote();
 
   QString typeName() const { return "Remote"; }

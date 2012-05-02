@@ -22,9 +22,9 @@
 
 namespace MoleQueue {
 
-Job::Job(const Program *program)
+Job::Job(const Program *prog)
   : QObject(),
-    m_program(program)
+    m_program(prog)
 {
 }
 
@@ -32,9 +32,9 @@ Job::~Job()
 {
 }
 
-void Job::setName(const QString &name)
+void Job::setName(const QString &newName)
 {
-  m_name = name;
+  m_name = newName;
 }
 
 QString Job::name() const
@@ -42,9 +42,9 @@ QString Job::name() const
   return m_name;
 }
 
-void Job::setTitle(const QString &title)
+void Job::setTitle(const QString &newTitle)
 {
-  m_title = title;
+  m_title = newTitle;
 }
 
 QString Job::title() const

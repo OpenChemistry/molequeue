@@ -21,8 +21,8 @@
 
 namespace MoleQueue {
 
-JobItemModel::JobItemModel(QObject *parent)
-  : QAbstractItemModel(parent)
+JobItemModel::JobItemModel(QObject *parentObject)
+  : QAbstractItemModel(parentObject)
 {
 }
 
@@ -42,15 +42,15 @@ QModelIndex JobItemModel::parent(const QModelIndex &) const
   return QModelIndex();
 }
 
-int JobItemModel::rowCount(const QModelIndex &parent) const
+int JobItemModel::rowCount(const QModelIndex &modelIndex) const
 {
-  if (!parent.isValid())
+  if (!modelIndex.isValid())
     return m_jobList.size();
   else
     return 0;
 }
 
-int JobItemModel::columnCount(const QModelIndex &parent) const
+int JobItemModel::columnCount(const QModelIndex &/*modelIndex*/) const
 {
   return 4;
 }
@@ -75,15 +75,15 @@ QVariant JobItemModel::headerData(int section, Qt::Orientation orientation,
   }
 }
 
-QVariant JobItemModel::data(const QModelIndex &index, int role) const
+QVariant JobItemModel::data(const QModelIndex &modelIndex, int role) const
 {
-  if (!index.isValid() || index.column() > 3)
+  if (!modelIndex.isValid() || modelIndex.column() > 3)
     return QVariant();
 
-  Job *job = static_cast<Job *>(index.internalPointer());
+  Job *job = static_cast<Job *>(modelIndex.internalPointer());
   if (job) {
     if (role == Qt::DisplayRole) {
-      switch (index.column()) {
+      switch (modelIndex.column()) {
       case 0:
         return QVariant(job->title());
       case 1:
@@ -100,22 +100,22 @@ QVariant JobItemModel::data(const QModelIndex &index, int role) const
   return QVariant();
 }
 
-bool JobItemModel::setData(const QModelIndex &index, const QVariant &value,
-                             int role)
+bool JobItemModel::setData(const QModelIndex &/*modelIndex*/,
+                           const QVariant &/*value*/, int /*role*/)
 {
   return false;
 }
 
-Qt::ItemFlags JobItemModel::flags(const QModelIndex &index) const
+Qt::ItemFlags JobItemModel::flags(const QModelIndex &modelIndex) const
 {
-  if (index.column() == 0)
+  if (modelIndex.column() == 0)
     return Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsUserCheckable;
   else
     return Qt::ItemIsSelectable | Qt::ItemIsEnabled;
 }
 
 QModelIndex JobItemModel::index(int row, int column,
-                                    const QModelIndex &parent) const
+                                const QModelIndex &/*modelIndex*/) const
 {
   if (row >= 0 && row < m_jobList.size())
     return createIndex(row, column, m_jobList[row]);
@@ -135,7 +135,7 @@ void JobItemModel::add(Job *job)
   endInsertRows();
 }
 
-void JobItemModel::remove(Job *job)
+void JobItemModel::remove(Job */*job*/)
 {
 }
 
