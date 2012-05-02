@@ -73,4 +73,6 @@ if((APPLE OR WIN32) AND NOT ${CMAKE_VERSION} VERSION_LESS 2.8.8)
   install_qt4_executable(bin/molequeue${sfx})
 endif()
 
-add_subdirectory(testing)
+if(ENABLE_TESTING)
+  add_subdirectory(testing)
+endif()
