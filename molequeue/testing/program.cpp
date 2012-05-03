@@ -3,7 +3,7 @@
 
 #include "program.h"
 
-int program(int argc, char *argv[])
+int program(int /*argc*/, char */*argv*/[])
 {
   bool error = false;
   qDebug() << "Testing the program class...";
