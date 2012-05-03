@@ -4,7 +4,7 @@
 #include "program.h"
 #include "queue.h"
 
-int queue(int argc, char *argv[])
+int queue(int /*argc*/, char */*argv*/[])
 {
   bool error = false;
   qDebug() << "Testing the queue class...";
