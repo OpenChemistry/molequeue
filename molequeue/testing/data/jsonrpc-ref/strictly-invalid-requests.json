@@ -1,0 +1,13 @@
+[
+   {
+      "id" : 23,
+      "method" : "listQueues",
+      "jsonrpc" : "2.0",
+      "extraKey" : 42
+   },
+   {
+      "id" : 23,
+      "method" : "listQueues",
+      "params" : [ 1, 2, 3 ]
+   }
+]

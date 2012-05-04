@@ -7,7 +7,10 @@ set(mq_srcs
   connection.cpp
   job.cpp
   jobitemmodel.cpp
+  jobrequest.cpp
   jobtreeview.cpp
+  jsonrpc.cpp
+  molequeueglobal.h
   program.cpp
   queue.cpp
   queuemanager.cpp
@@ -29,6 +32,7 @@ set(mq_moc
   job.h
   jobitemmodel.h
   jobtreeview.h
+  jsonrpc.h
   queue.h
   queuemanager.h
   queueitemmodel.h
@@ -52,6 +56,10 @@ qt4_wrap_ui(ui_srcs
   ui/queuesettingsdialog.ui
 )
 qt4_add_resources(rcc_srcs queuetray.qrc)
+
+# Pull in JsonCpp
+aux_source_directory(thirdparty/jsoncpp/ jsoncpp_srcs)
+set(mq_srcs ${mq_srcs} ${jsoncpp_srcs})
 
 add_library(molequeue_static STATIC
   ${mq_srcs} ${moc_srcs} ${ui_srcs})

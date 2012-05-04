@@ -3,9 +3,14 @@ include_directories(..)
 find_package(Qt4 COMPONENTS QtCore QtGui QtNetwork QtTest)
 include(${QT_USE_FILE})
 
+# Where to find test files
+add_definitions(-DTESTDATADIR="${CMAKE_SOURCE_DIR}/molequeue/testing/data/")
+
+
 set(MyTests
   program
   queue
+  jsonrpc
   )
 
 create_test_sourcelist(Tests MoleQueueTests.cxx ${MyTests})
