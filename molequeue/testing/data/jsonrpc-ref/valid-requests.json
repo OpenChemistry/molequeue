@@ -1,0 +1,19 @@
+[
+   {
+      "id" : 23,
+      "method" : "listQueues",
+      "jsonrpc" : "2.0"
+   },
+   {
+      "id" : 23,
+      "method" : "listQueues",
+      "params" : [ 1, 2, 3 ],
+      "jsonrpc" : "2.0"
+   },
+   {
+      "id" : 23,
+      "method" : "listQueues",
+      "params" : { "test" : 123, "object" : 456 },
+      "jsonrpc" : "2.0"
+   }
+]

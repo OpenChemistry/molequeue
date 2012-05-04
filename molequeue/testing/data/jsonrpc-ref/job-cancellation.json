@@ -1,0 +1,8 @@
+{
+   "id" : 15,
+   "jsonrpc" : "2.0",
+   "method" : "cancelJob",
+   "params" : {
+      "molequeue id" : 0
+   }
+}
