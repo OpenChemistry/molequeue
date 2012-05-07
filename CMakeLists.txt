@@ -24,3 +24,10 @@ option(BUILD_DOCUMENTATION "Build project documentation" OFF)
 if(BUILD_DOCUMENTATION)
   add_subdirectory(docs)
 endif()
+
+include(CPack)
+
+if(ENABLE_TESTING)
+  include(BuildPackageTest)
+  BuildPackageTest_Add("MoleQueue" "${CMAKE_CURRENT_BINARY_DIR}")
+endif()
