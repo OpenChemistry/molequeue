@@ -120,6 +120,27 @@ mqPacketType JsonRpc::generateErrorResponse(int errorCode,
   return ret;
 }
 
+mqPacketType JsonRpc::generateErrorResponse(int errorCode,
+                                            const QString &message,
+                                            const Json::Value &data,
+                                            mqIdType packetId)
+{
+  Json::Value packet = generateEmptyError(packetId);
+
+  packet["error"]["code"]    = errorCode;
+  packet["error"]["message"] = message.toStdString();
+  packet["error"]["data"]    = data;
+
+  Json::StyledWriter writer;
+  std::string ret_stdstr = writer.write(packet);
+  mqPacketType ret (ret_stdstr.c_str());
+
+  DEBUGOUT("generateErrorResponse")
+      "New error response generated:\n" << ret;
+
+  return ret;
+}
+
 mqPacketType JsonRpc::generateJobCancellation(const JobRequest &req,
                                               mqIdType packetId)
 {
@@ -231,10 +252,124 @@ JsonRpc::generateJobStateChangeNotification(mqIdType moleQueueJobId,
   return ret;
 }
 
-QVector<mqIdType> JsonRpc::interpretIncomingPacket(const mqPacketType &packet)
+void JsonRpc::interpretIncomingPacket(const mqPacketType &packet)
 {
-  // TODO
-  return QVector<mqIdType>();
+  // Read packet into a Json value
+  Json::Reader reader;
+  std::string packetString = packet.toStdString();
+  Json::Value root;
+  if (!reader.parse(packetString, root, false)) {
+    // TODO parse error
+  }
+
+  // Submit the root node for processing
+  this->interpretIncomingJsonRpc(root);
+}
+
+void JsonRpc::interpretIncomingJsonRpc(const Json::Value &data)
+{
+  // Handle batch requests recursively:
+  if (data.isArray()) {
+    for (Json::Value::const_iterator it = data.begin(), it_end = data.end();
+         it != it_end; ++it) {
+      this->interpretIncomingJsonRpc(*it);
+    }
+
+    return;
+  }
+
+  if (!data.isObject()) {
+    this->handleInvalidRequest(data);
+  }
+
+  PacketType   type   = this->guessPacketType(data);
+  PacketMethod method = this->guessPacketMethod(data);
+
+  switch (method) {
+  case IGNORE_METHOD:
+    DEBUGOUT("interpretIncomingJsonRpc") "Ignoring reply to other client.";
+    break;
+  default:
+  case INVALID_METHOD:
+    this->handleInvalidRequest(data);
+    break;
+  case LIST_QUEUES:
+  {
+    switch (type) {
+    default:
+    case INVALID_PACKET:
+    case NOTIFICATION_PACKET:
+      this->handleInvalidRequest();
+      break;
+    case REQUEST_PACKET:
+      this->handleListQueuesRequest(data);
+      break;
+    case RESULT_PACKET:
+      this->handleListQueuesResult(data);
+      break;
+    case ERROR_PACKET:
+      this->handleListQueuesError(data);
+      break;
+    }
+    break;
+  }
+  case SUBMIT_JOB:
+  {
+    switch (type) {
+    default:
+    case INVALID_PACKET:
+    case NOTIFICATION_PACKET:
+      this->handleInvalidRequest();
+      break;
+    case REQUEST_PACKET:
+      this->handleSubmitJobRequest(data);
+      break;
+    case RESULT_PACKET:
+      this->handleSubmitJobResult(data);
+      break;
+    case ERROR_PACKET:
+      this->handleSubmitJobError(data);
+      break;
+    }
+    break;
+  }
+  case CANCEL_JOB:
+  {
+    switch (type) {
+    default:
+    case INVALID_PACKET:
+    case NOTIFICATION_PACKET:
+      this->handleInvalidRequest();
+      break;
+    case REQUEST_PACKET:
+      this->handleCancelJobRequest(data);
+      break;
+    case RESULT_PACKET:
+      this->handleCancelJobResult(data);
+      break;
+    case ERROR_PACKET:
+      this->handleCancelJobError(data);
+      break;
+    }
+    break;
+  }
+  case JOB_STATE_CHANGED:
+  {
+    switch (type) {
+    default:
+    case INVALID_PACKET:
+    case REQUEST_PACKET:
+    case RESULT_PACKET:
+    case ERROR_PACKET:
+      this->handleInvalidRequest();
+      break;
+    case NOTIFICATION_PACKET:
+      this->handleJobStateChangedNotification(data);
+      break;
+    }
+    break;
+  }
+  }
 }
 
 bool JsonRpc::validateRequest(const mqPacketType &packet, bool strict)
@@ -609,6 +744,128 @@ Json::Value JsonRpc::generateEmptyNotification()
   ret["method"] = Json::nullValue;
 
   return ret;
+}
+
+JsonRpc::PacketType JsonRpc::guessPacketType(const Json::Value &root) const
+{
+  if (!root.isObject()) {
+    DEBUGOUT("guessPacketType") "Invalid packet: root node is not an Object.";
+    return INVALID_PACKET;
+  }
+
+  if (root["method"] != Json::nullValue) {
+    if (root["id"] != Json::nullValue)
+      return REQUEST_PACKET;
+    else
+      return NOTIFICATION_PACKET;
+  }
+  else if (root["result"] != Json::nullValue)
+    return RESULT_PACKET;
+  else if (root["error"] != Json::nullValue)
+    return ERROR_PACKET;
+  else {
+    DEBUGOUT("guessPacketType") "Invalid packet: No recognized keys."
+    return INVALID_PACKET;
+  }
+}
+
+JsonRpc::PacketMethod JsonRpc::guessPacketMethod(const Json::Value &root) const
+{
+  if (!root.isObject()) {
+    DEBUGOUT("guessPacketMethod") "Invalid packet: root node is not an Object.";
+    return INVALID_METHOD;
+  }
+
+  const Json::Value & methodValue = root["method"];
+
+  if (methodValue != Json::nullValue) {
+    if (!methodValue.isString()) {
+      DEBUGOUT("guessPacketMethod")
+          "Invalid packet: Contains non-string 'method' member.";
+      return INVALID_METHOD;
+    }
+
+    const char *methodCString = methodValue.asCString();
+
+    if (qstrcmp(methodCString, "listQueues") == 0)
+      return LIST_QUEUES;
+    else if (qstrcmp(methodCString, "submitJob") == 0)
+      return SUBMIT_JOB;
+    else if (qstrcmp(methodCString, "cancelJob") == 0)
+      return CANCEL_JOB;
+    else if (qstrcmp(methodCString, "jobStateChanged") == 0)
+      return JOB_STATE_CHANGED;
+
+    DEBUGOUT("guessPacketMethod") "Invalid packet: Contains unrecognized "
+        "'method' member:" << methodCString;
+    return INVALID_METHOD;
+  }
+
+  // No method present -- this is a reply. Determine if it's a reply to this
+  // client.
+  const Json::Value & idValue = root["id"];
+
+  if (idValue != Json::nullValue) {
+    // We will only submit unsigned integral ids
+    if (!idValue.isUInt())
+      return IGNORE_METHOD;
+
+    mqIdType packetId = static_cast<mqIdType>(idValue.asUInt());
+
+    if (m_pendingRequests.contains(packetId)) {
+      return m_pendingRequests[packetId];
+    }
+
+    // if the packetId isn't in the lookup table, it's not from us
+    return IGNORE_METHOD;
+  }
+
+  // No method or id present?
+  return INVALID_METHOD;
+}
+
+void JsonRpc::handleInvalidRequest(const Json::Value &root) const
+{
+}
+
+void JsonRpc::handleListQueuesRequest(const Json::Value &root) const
+{
+}
+
+void JsonRpc::handleListQueuesResult(const Json::Value &root) const
+{
+}
+
+void JsonRpc::handleListQueuesError(const Json::Value &root) const
+{
+}
+
+void JsonRpc::handleSubmitJobRequest(const Json::Value &root) const
+{
+}
+
+void JsonRpc::handleSubmitJobResult(const Json::Value &root) const
+{
+}
+
+void JsonRpc::handleSubmitJobError(const Json::Value &root) const
+{
+}
+
+void JsonRpc::handleCancelJobRequest(const Json::Value &root) const
+{
+}
+
+void JsonRpc::handleCancelJobResult(const Json::Value &root) const
+{
+}
+
+void JsonRpc::handleCancelJobError(const Json::Value &root) const
+{
+}
+
+void JsonRpc::handleJobStateChangedNotification(const Json::Value &root) const
+{
 }
 
 } // end namespace MoleQueue

@@ -95,6 +95,21 @@ public:
                                      mqIdType packetId);
 
   /**
+    * Generate a JSON-RPC response packet to notify of an error.
+    *
+    * @param errorCode Error code
+    * @param message Single sentence describing the error that occurred.
+    * @param data a Json::Value to be used as the error object's data member
+    * @param packetId The JSON-RPC id for the packet.
+    * @return A mqPacketType, ready to send to a QLocalSocket.
+    * @overload
+    */
+  mqPacketType generateErrorResponse(int errorCode,
+                                     const QString &message,
+                                     const Json::Value &data,
+                                     mqIdType packetId);
+
+  /**
     * Generate a JSON-RPC packet for requesting a job cancellation.
     *
     * @param req The JobRequest to cancel.
@@ -148,14 +163,25 @@ public:
                                                   JobState newState);
 
   /**
-    * Read a packet received and return a QVector containing the packetId(s).
+    * Read a newly received packet.
     * The packet(s) are split and interpreted, and signals are emitted
     * depending on the type of packets.
     *
     * @param data A packet containing a single or batch JSON-RPC transmission.
     * @return A QVector containing the packetIds of the data.
     */
-  QVector<mqIdType> interpretIncomingPacket(const mqPacketType &data);
+  void interpretIncomingPacket(const mqPacketType &data);
+
+  /**
+    * Process a JSON-RPC packet and return a QVector containing the packetId(s).
+    * The packet(s) are split and interpreted, and signals are emitted
+    * depending on the type of packets.
+    *
+    * @param data A JsonCpp value containing a single or batch JSON-RPC
+    * transmission.
+    * @return A QVector containing the packetIds of the data.
+    */
+  void interpretIncomingJsonRpc(const Json::Value &data);
 
   /**
     * @param strict If false, minor errors (e.g. extra keys) will result in a
@@ -304,6 +330,34 @@ protected:
   /// @param id JSON-RPC id
   static Json::Value generateEmptyNotification();
 
+  /// Enum describing the types of packets that the implementation is aware of.
+  enum PacketType {
+    INVALID_PACKET = -1,
+    REQUEST_PACKET,
+    RESULT_PACKET,
+    ERROR_PACKET,
+    NOTIFICATION_PACKET
+  };
+
+  /// Enum describing the known methods
+  enum PacketMethod {
+    INVALID_METHOD = -1,
+    LIST_QUEUES,
+    SUBMIT_JOB,
+    CANCEL_JOB,
+    JOB_STATE_CHANGED
+  };
+
+  /// @return The PacketType of the packet
+  PacketType guessPacketType(const Json::Value &root) const;
+
+  /// @return The PacketMethod of a request/notification
+  PacketMethod guessPacketMethod(const Json::Value &root) const;
+
+  /// Lookup hash for pending requests
+  QHash<mqIdType, PacketMethod> m_pendingRequests;
+
+  /// Toggles runtime debugging output
   bool m_debug;
 
 };
