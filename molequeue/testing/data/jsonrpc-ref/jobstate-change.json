@@ -2,8 +2,8 @@
    "jsonrpc" : "2.0",
    "method" : "jobStateChanged",
    "params" : {
-      "molequeue id" : 12,
-      "newState" : 7,
-      "oldState" : 6
+      "moleQueueJobId" : 12,
+      "newState" : "Finished",
+      "oldState" : "RunningRemote"
    }
 }

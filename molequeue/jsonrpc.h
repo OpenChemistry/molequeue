@@ -21,8 +21,11 @@
 
 #include "thirdparty/jsoncpp/json/json-forwards.h"
 
+#include <QtCore/QHash>
 #include <QtCore/QObject>
-#include <QtCore/QtContainerFwd> // forward declarations of templated containers
+#include <QtCore/QPair>
+#include <QtCore/QString>
+#include <QtCore/QStringList>
 
 class QDir;
 class QVariant;
@@ -56,6 +59,11 @@ public:
     * @param parentObject The parent of this instance.
     */
   explicit JsonRpc(QObject *parentObject = 0);
+
+  /**
+    * Destructor.
+    */
+  virtual ~JsonRpc();
 
   /**
     * Generate a JSON-RPC packet for the job submission request described by
@@ -93,6 +101,49 @@ public:
   mqPacketType generateErrorResponse(int errorCode,
                                      const QString &message,
                                      mqIdType packetId);
+
+  /**
+    * Generate a JSON-RPC response packet to notify of an error.
+    *
+    * @param errorCode Error code
+    * @param message Single sentence describing the error that occurred.
+    * @param data a Json::Value to be used as the error object's data member
+    * @param packetId The JSON-RPC id for the packet.
+    * @return A mqPacketType, ready to send to a QLocalSocket.
+    * @overload
+    */
+  mqPacketType generateErrorResponse(int errorCode,
+                                     const QString &message,
+                                     const Json::Value &data,
+                                     mqIdType packetId);
+
+  /**
+    * Generate a JSON-RPC response packet to notify of an error.
+    *
+    * @param errorCode Error code
+    * @param message Single sentence describing the error that occurred.
+    * @param packetId The JSON-RPC id for the packet.
+    * @return A mqPacketType, ready to send to a QLocalSocket.
+    * @overload
+    */
+  mqPacketType generateErrorResponse(int errorCode,
+                                     const QString &message,
+                                     const Json::Value &packetId);
+
+  /**
+    * Generate a JSON-RPC response packet to notify of an error.
+    *
+    * @param errorCode Error code
+    * @param message Single sentence describing the error that occurred.
+    * @param data a Json::Value to be used as the error object's data member
+    * @param packetId The JSON-RPC id for the packet.
+    * @return A mqPacketType, ready to send to a QLocalSocket.
+    * @overload
+    */
+  mqPacketType generateErrorResponse(int errorCode,
+                                     const QString &message,
+                                     const Json::Value &data,
+                                     const Json::Value &packetId);
 
   /**
     * Generate a JSON-RPC packet for requesting a job cancellation.
@@ -148,14 +199,25 @@ public:
                                                   JobState newState);
 
   /**
-    * Read a packet received and return a QVector containing the packetId(s).
+    * Read a newly received packet.
     * The packet(s) are split and interpreted, and signals are emitted
     * depending on the type of packets.
     *
     * @param data A packet containing a single or batch JSON-RPC transmission.
     * @return A QVector containing the packetIds of the data.
     */
-  QVector<mqIdType> interpretIncomingPacket(const mqPacketType &data);
+  void interpretIncomingPacket(const mqPacketType &data);
+
+  /**
+    * Process a JSON-RPC packet and return a QVector containing the packetId(s).
+    * The packet(s) are split and interpreted, and signals are emitted
+    * depending on the type of packets.
+    *
+    * @param data A JsonCpp value containing a single or batch JSON-RPC
+    * transmission.
+    * @return A QVector containing the packetIds of the data.
+    */
+  void interpretIncomingJsonRpc(const Json::Value &data);
 
   /**
     * @param strict If false, minor errors (e.g. extra keys) will result in a
@@ -204,12 +266,69 @@ public:
 signals:
 
   /**
+    * Emitted when a packet containing invalid JSON is received. The connected
+    * client or server must send an error -32700 "Parse error".
+    *
+    * @param packetId JSON value representing the packetId
+    * @param errorDataObject JSON object to be used as the data value in the
+    * error object.
+    */
+  void invalidPacketReceived(const Json::Value &packetId,
+                             const Json::Value &errorDataObject) const;
+
+  /**
+    * Emitted when an invalid JSON-RPC request is received. The connected
+    * client or server must send an error -32600 "Invalid request".
+    *
+    * @param packetId JSON value representing the packetId
+    * @param errorDataObject JSON object to be used as the data value in the
+    * error object.
+    */
+  void invalidRequestReceived(const Json::Value &packetId,
+                              const Json::Value &errorDataObject) const;
+
+  /**
+    * Emitted when a valid JSON-RPC request with an unknown method is received.
+    * The connected client or server must send an error -32601
+    * "Method not found".
+    *
+    * @param packetId JSON value representing the packetId
+    * @param errorDataObject JSON object to be used as the data value in the
+    * error object.
+    */
+  void unrecognizedRequestReceived(const Json::Value &packetId,
+                                   const Json::Value &errorDataObject) const;
+
+  /**
+    * Emitted when a valid JSON-RPC request with a known method and invalid
+    * parameters is received. The connected client or server must send an
+    * error -32602 "Invalid params".
+    *
+    * @param packetId JSON value representing the packetId
+    * @param errorDataObject JSON object to be used as the data value in the
+    * error object.
+    */
+  void invalidRequestParamsReceived(const Json::Value &packetId,
+                                    const Json::Value &errorDataObject) const;
+
+  /**
+    * Emitted when an internal JSON-RPC error occurs. The connected client or
+    * server must send an error -32603 "Internal error".
+    *
+    * @param packetId JSON value representing the packetId
+    * @param errorDataObject JSON object to be used as the data value in the
+    * error object.
+    */
+  void internalErrorOccurred(const Json::Value &packetId,
+                             const Json::Value &errorDataObject) const;
+
+  /**
     * Emitted when a request for a list of available Queues/Programs is
     * received.
     *
     * @param packetId The JSON-RPC id for the packet
     */
-  void queueListRequestReceived(mqIdType packetId);
+  void queueListRequestReceived(mqIdType packetId) const;
 
   /**
     * Emitted when a list of available Queues/Programs is received.
@@ -218,7 +337,7 @@ signals:
     * @param options List of Queues/Programs
     */
   void queueListReceived(mqIdType packetId,
-                         const QList<QPair<QString, QStringList> > &list);
+                         const QList<QPair<QString, QStringList> > &list) const;
 
   /**
     * Emitted when a request to submit a new job is received.
@@ -227,7 +346,7 @@ signals:
     * @param options Options for the job.
     */
   void jobSubmissionRequestReceived(mqIdType packetId,
-                                    const QHash<QString, QVariant> &options);
+                                    const QHash<QString, QVariant> &options) const;
 
   /**
     * Emitted when a response for a successful job submission is received.
@@ -241,7 +360,7 @@ signals:
     * stored.
     */
   void successfulSubmissionReceived(mqIdType packetId, mqIdType moleQueueId,
-                                    mqIdType jobId, const QDir &workingDir);
+                                    mqIdType jobId, const QDir &workingDir) const;
 
   /**
     * Emitted when a response for an unsuccessful job submission is received.
@@ -252,7 +371,7 @@ signals:
     */
   void failedSubmissionReceived(mqIdType packetId,
                                 JobSubmissionErrorCode errorCode,
-                                const QString &errorMessage);
+                                const QString &errorMessage) const;
 
   /**
     * Emitted when a request to cancel a job is received.
@@ -262,7 +381,7 @@ signals:
     * cancel.
     */
   void jobCancellationRequestReceived(mqIdType packetId,
-                                      mqIdType moleQueueId);
+                                      mqIdType moleQueueId) const;
 
   /**
     * Emitted when a confirmation of job cancellation is received.
@@ -271,7 +390,7 @@ signals:
     * @param moleQueueId The internal MoleQueue identifier for the canceled job.
     */
   void jobCancellationConfirmationReceived(mqIdType packetId,
-                                           mqIdType moleQueueId);
+                                           mqIdType moleQueueId) const;
 
   /**
     * Emitted when a notification that a job has changed state is received.
@@ -281,7 +400,7 @@ signals:
     * @param newState The new state of the job.
     */
   void jobStateChangeReceived(mqIdType moleQueueId,
-                              JobState oldState, JobState newState);
+                              JobState oldState, JobState newState) const;
 
 public slots:
   /// @param b If true, enable debugging output at runtime.
@@ -300,10 +419,108 @@ protected:
   /// Create and return a new JsonCpp JSON-RPC error response.
   /// @param id JSON-RPC id
   static Json::Value generateEmptyError(mqIdType id);
+  /// Create and return a new JsonCpp JSON-RPC error response.
+  /// @param id JSON-RPC id
+  static Json::Value generateEmptyError(const Json::Value &id);
   /// Create and return a new JsonCpp JSON-RPC notification.
   /// @param id JSON-RPC id
   static Json::Value generateEmptyNotification();
 
+  /// Enum describing the types of packets that the implementation is aware of.
+  enum PacketType {
+    INVALID_PACKET = -1,
+    REQUEST_PACKET,
+    RESULT_PACKET,
+    ERROR_PACKET,
+    NOTIFICATION_PACKET
+  };
+
+  /// Enum describing the known methods
+  enum PacketMethod {
+    /// Packet is a response to a request originating from a different client.
+    IGNORE_METHOD = -3,
+    UNRECOGNIZED_METHOD = -2,
+    INVALID_METHOD = -1,
+    LIST_QUEUES,
+    SUBMIT_JOB,
+    CANCEL_JOB,
+    JOB_STATE_CHANGED
+  };
+
+  /// @param root Input JSOC-RPC packet
+  /// @return The PacketType of the packet
+  PacketType guessPacketType(const Json::Value &root) const;
+
+  /// @param root Input JSOC-RPC packet
+  /// @return The PacketMethod of a request/notification
+  PacketMethod guessPacketMethod(const Json::Value &root) const;
+
+  /// Extract data and emit signal for unparsable JSON.
+  /// @param root Invalid request data
+  void handleUnparsablePacket(const mqPacketType &data) const;
+  /// Extract data and emit signal for a invalid request.
+  /// @param root Invalid request data
+  void handleInvalidRequest(const Json::Value &root) const;
+  /// Extract data and emit signal for a unrecognized request method.
+  /// @param root Invalid request data
+  void handleUnrecognizedRequest(const Json::Value &root) const;
+
+  /// Extract data and emit signal for a listQueues request.
+  /// @param root Root of request
+  void handleListQueuesRequest(const Json::Value &root) const;
+  /// Extract data and emit signal for a listQueues result.
+  /// @param root Root of request
+  void handleListQueuesResult(const Json::Value &root) const;
+  /// Extract data and emit signal for a listQueues error.
+  /// @param root Root of request
+  void handleListQueuesError(const Json::Value &root) const;
+
+  /// Extract data and emit signal for a submitJob request.
+  /// @param root Root of request
+  void handleSubmitJobRequest(const Json::Value &root) const;
+  /// Extract data and emit signal for a submitJob result.
+  /// @param root Root of request
+  void handleSubmitJobResult(const Json::Value &root) const;
+  /// Extract data and emit signal for a submitJob error.
+  /// @param root Root of request
+  void handleSubmitJobError(const Json::Value &root) const;
+
+  /// Extract data and emit signal for a cancelJob request.
+  /// @param root Root of request
+  void handleCancelJobRequest(const Json::Value &root) const;
+  /// Extract data and emit signal for a cancelJob result.
+  /// @param root Root of request
+  void handleCancelJobResult(const Json::Value &root) const;
+  /// Extract data and emit signal for a cancelJob error.
+  /// @param root Root of request
+  void handleCancelJobError(const Json::Value &root) const;
+
+  /// Extract data and emit signal for a jobStateChanged notification.
+  /// @param root Root of request
+  void handleJobStateChangedNotification(const Json::Value &root) const;
+
+  /**
+    * Record that a new request has been sent. This is necessary to identify the
+    * matching reply. Register the request prior to sending it. This is handled
+    * internally with a request is generated.
+    *
+    * @param packetId JSON-RPC 'id' value
+    * @param method PacketMethod value for request.
+    */
+  void registerRequest(mqIdType packetId, PacketMethod method);
+
+  /**
+    * Register that a reply has been received. This removes the request from the
+    * container of pending requests.
+    *
+    * @param packetId JSON-RPC 'id' value
+    */
+  void registerReply(mqIdType packetId);
+
+  /// Lookup hash for pending requests
+  QHash<mqIdType, PacketMethod> m_pendingRequests;
+
+  /// Toggles runtime debugging output
   bool m_debug;
 
 };
