@@ -32,6 +32,8 @@ typedef QByteArray mqPacketType;
   * Enumeration defining states that jobs are allowed to be in.
   */
 enum JobState {
+  /// Unknown status
+  Unknown = -1,
   /// Initial state of job, should never be entered.
   None = 0,
   /// Job has been accepted by the server and is being prepared (Writing input files, etc).
@@ -49,6 +51,66 @@ enum JobState {
   /// Job has completed.
   Finished
 };
+
+/**
+ * Convert a JobState value to a string.
+ *
+ * @param state JobState
+ * @return C string
+ */
+inline const char * jobStateToString(JobState state)
+{
+  switch (state)
+  {
+  case None:
+    return "None";
+  case Accepted:
+    return "Accepted";
+  case LocalQueued:
+    return "LocalQueued";
+  case Submitted:
+    return "Submitted";
+  case RemoteQueued:
+    return "RemoteQueued";
+  case RunningLocal:
+    return "RunningLocal";
+  case RunningRemote:
+    return "RunningRemote";
+  case Finished:
+    return "Finished";
+  default:
+  case Unknown:
+    return "Unknown";
+  }
+}
+
+/**
+ * Convert a string to a JobState value.
+ *
+ * @param state JobState string
+ * @return JobState
+ */
+inline JobState stringToJobState(const char *str)
+{
+  if (qstrcmp(str, "None") == 0)
+    return None;
+  else if (qstrcmp(str, "Accepted") == 0)
+    return Accepted;
+  else if (qstrcmp(str, "LocalQueued") == 0)
+    return LocalQueued;
+  else if (qstrcmp(str, "Submitted") == 0)
+    return Submitted;
+  else if (qstrcmp(str, "RemoteQueued") == 0)
+    return RemoteQueued;
+  else if (qstrcmp(str, "RunningLocal") == 0)
+    return RunningLocal;
+  else if (qstrcmp(str, "RunningRemote") == 0)
+    return RunningRemote;
+  else if (qstrcmp(str, "Finished") == 0)
+    return Finished;
+  else
+    return Unknown;
+}
 
 /**
   * Enumeration defining possible job submission error codes.
