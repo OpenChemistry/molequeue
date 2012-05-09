@@ -1,0 +1,14 @@
+{
+   "id" : 23,
+   "jsonrpc" : "2.0",
+   "result" : {
+      "Puny local queue" : [ "FastFocker", "GAMESS", "SpectroCrunch", "SpeedSlater", "sleep" ],
+      "Some big ol' cluster" : [
+         "Crystal Math",
+         "GAMESS",
+         "Nebulous Nucleus",
+         "Quantum Tater",
+         "sleep"
+      ]
+   }
+}

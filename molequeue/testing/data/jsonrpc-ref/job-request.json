@@ -1,0 +1,17 @@
+{
+   "id" : 14,
+   "jsonrpc" : "2.0",
+   "method" : "submitJob",
+   "params" : {
+      "cleanLocalWorkingDirectory" : false,
+      "cleanRemoteFiles" : false,
+      "description" : "spud slicer 28",
+      "hideFromQueue" : false,
+      "inputAsPath" : "/tmp/myjob/test.potato",
+      "outputDirectory" : "",
+      "popupOnStateChange" : true,
+      "program" : "Quantum Tater",
+      "queue" : "Some big ol' cluster",
+      "retrieveOutput" : true
+   }
+}

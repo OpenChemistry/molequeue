@@ -1,0 +1,12 @@
+[
+   {
+      "method" : "jobStateChanged",
+      "params" : [1,2,3]
+   },
+   {
+      "extraKey" : "",
+      "jsonrpc" : "2.0",
+      "method" : "jobStateChanged",
+      "params" : [1,2,3]
+   }
+]
