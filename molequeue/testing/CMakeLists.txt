@@ -1,4 +1,5 @@
-include_directories(..)
+include_directories(${CMAKE_SOURCE_DIR}/molequeue)
+include_directories(${CMAKE_BINARY_DIR}/molequeue/testing)
 
 find_package(Qt4 COMPONENTS QtCore QtGui QtNetwork QtTest)
 include(${QT_USE_FILE})
@@ -13,12 +14,16 @@ set(MyTests
   jsonrpc
   )
 
-create_test_sourcelist(Tests MoleQueueTests.cxx ${MyTests})
-
-add_executable(MoleQueueTests ${Tests})
-target_link_libraries(MoleQueueTests molequeue_static ${QT_LIBRARIES})
-
 foreach(test ${MyTests})
-  add_test(NAME molequeue-${test}
-    COMMAND MoleQueueTests ${test})
+  message(STATUS "Adding test:  ${test}")
+  set(test_SRC ${test}test.cpp)
+  set(test_MOC_CPP ${test}test.cpp)
+  qt4_wrap_cpp(test_MOC_SRC ${test_MOC_CPP})
+  add_custom_target(${test}testmoc ALL DEPENDS ${test_MOC_SRC})
+  add_executable(${test}test ${test_SRC})
+  add_dependencies(${test}test ${test}testmoc)
+  target_link_libraries(${test}test molequeue_static ${QT_LIBRARIES})
+
+  add_test(NAME molequeue-${test} COMMAND ${test}test)
+
 endforeach()
