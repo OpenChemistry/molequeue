@@ -28,3 +28,6 @@ int program(int /*argc*/, char */*argv*/[])
 
   return error ? 1 : 0;
 }
+
+// Work-around until this test is converted to a QtTest:
+int main(int argc, char *argv[]) {return program(argc, argv);}
