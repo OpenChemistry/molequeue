@@ -4,6 +4,7 @@ include(${QT_USE_FILE})
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 set(mq_srcs
+  abstractrpcinterface.cpp
   connection.cpp
   job.cpp
   jobitemmodel.cpp
@@ -28,6 +29,7 @@ set(mq_srcs
 )
 
 set(mq_moc
+  abstractrpcinterface.cpp
   connection.h
   job.h
   jobitemmodel.h
