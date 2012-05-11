@@ -41,6 +41,12 @@ JsonRpc::JsonRpc(QObject *parentObject)
   : QObject(parentObject),
     m_debug(false)
 {
+  qRegisterMetaType<QDir>("QDir");
+  qRegisterMetaType<Json::Value>("Json::Value");
+  qRegisterMetaType<IdType>("IdType");
+  qRegisterMetaType<JobState>("JobState");
+  qRegisterMetaType<QueueListType>("QueueListType");
+  qRegisterMetaType<JobSubmissionErrorCode>("JobSubmissionErrorCode");
 }
 
 JsonRpc::~JsonRpc()
@@ -417,7 +423,7 @@ void JsonRpc::interpretIncomingJsonRpc(const Json::Value &data)
     this->handleInvalidRequest(data);
   }
 
-  PacketForm   form   = this->guessPacketType(data);
+  PacketForm   form   = this->guessPacketForm(data);
   PacketMethod method = this->guessPacketMethod(data);
 
   // Validate detected type
@@ -923,7 +929,7 @@ Json::Value JsonRpc::generateEmptyNotification()
   return ret;
 }
 
-JsonRpc::PacketForm JsonRpc::guessPacketType(const Json::Value &root) const
+JsonRpc::PacketForm JsonRpc::guessPacketForm(const Json::Value &root) const
 {
   if (!root.isObject()) {
     DEBUGOUT("guessPacketType") "Invalid packet: root node is not an Object.";
@@ -983,10 +989,10 @@ JsonRpc::PacketMethod JsonRpc::guessPacketMethod(const Json::Value &root) const
 
   if (idValue != Json::nullValue) {
     // We will only submit unsigned integral ids
-    if (!idValue.isUInt())
+    if (!idValue.isIntegral())
       return IGNORE_METHOD;
 
-    IdType packetId = static_cast<IdType>(idValue.asUInt());
+    IdType packetId = static_cast<IdType>(idValue.asLargestUInt());
 
     if (m_pendingRequests.contains(packetId)) {
       return m_pendingRequests[packetId];
@@ -1024,7 +1030,7 @@ void JsonRpc::handleUnrecognizedRequest(const Json::Value &root) const
 
   errorData["receivedJson"] = root;
 
-  emit invalidRequestReceived(root["id"], errorData);
+  emit unrecognizedRequestReceived(root["id"], errorData);
 }
 
 void JsonRpc::handleListQueuesRequest(const Json::Value &root) const
@@ -1038,7 +1044,7 @@ void JsonRpc::handleListQueuesResult(const Json::Value &root) const
   const IdType id = static_cast<IdType>(root["id"].asLargestUInt());
 
   const Json::Value &resultObject = root["result"];
-  if (!resultObject.isArray()) {
+  if (!resultObject.isObject()) {
     Json::StyledWriter writer;
     const std::string requestString = writer.write(root);
     qWarning() << "Error: Queue list result is ill-formed:\n"
@@ -1058,7 +1064,7 @@ void JsonRpc::handleListQueuesResult(const Json::Value &root) const
     const QString queueName (it.memberName());
 
     // Extract program data
-    const Json::Value &programArray = (*it)["programs"];
+    const Json::Value &programArray = *it;
 
     // No programs, just add an empty list
     if (programArray.isNull())
@@ -1173,8 +1179,8 @@ void JsonRpc::handleSubmitJobResult(const Json::Value &root) const
   IdType jobId;
   QDir workingDirectory;
 
-  if (!resultObject["moleQueueId"].isUInt() ||
-      !resultObject["queueJobId"].isUInt() ||
+  if (!resultObject["moleQueueJobId"].isIntegral() ||
+      !resultObject["queueJobId"].isIntegral() ||
       !resultObject["workingDirectory"].isString()) {
     Json::StyledWriter writer;
     const std::string responseString = writer.write(root);
@@ -1184,7 +1190,7 @@ void JsonRpc::handleSubmitJobResult(const Json::Value &root) const
   }
 
   moleQueueId = static_cast<IdType>(
-        resultObject["moleQueueId"].asLargestUInt());
+        resultObject["moleQueueJobId"].asLargestUInt());
   jobId = static_cast<IdType>(resultObject["queueJobId"].asLargestUInt());
   workingDirectory = QDir(QString(
                             resultObject["workingDirectory"].asCString()));
@@ -1225,7 +1231,7 @@ void JsonRpc::handleCancelJobRequest(const Json::Value &root) const
   const Json::Value &paramsObject = root["params"];
 
   if (!paramsObject.isObject() ||
-      !paramsObject["moleQueueJobId"].isUInt()) {
+      !paramsObject["moleQueueJobId"].isIntegral()) {
     Json::StyledWriter writer;
     const std::string responseString = writer.write(root);
     qWarning() << "Job cancellation request is ill-formed:\n"
@@ -1247,7 +1253,7 @@ void JsonRpc::handleCancelJobResult(const Json::Value &root) const
 
   IdType moleQueueId;
 
-  if (!resultObject.isUInt()) {
+  if (!resultObject.isIntegral()) {
     Json::StyledWriter writer;
     const std::string responseString = writer.write(root);
     qWarning() << "Job cancellation result is ill-formed:\n"
@@ -1257,7 +1263,7 @@ void JsonRpc::handleCancelJobResult(const Json::Value &root) const
 
   moleQueueId = static_cast<IdType>(resultObject.asLargestUInt());
 
-  emit jobCancellationRequestReceived(id, moleQueueId);
+  emit jobCancellationConfirmationReceived(id, moleQueueId);
 }
 
 void JsonRpc::handleCancelJobError(const Json::Value &root) const
@@ -1275,7 +1281,7 @@ void JsonRpc::handleJobStateChangedNotification(const Json::Value &root) const
   JobState newState;
 
   if (!paramsObject.isObject() ||
-      !paramsObject["moleQueueJobId"].isUInt() ||
+      !paramsObject["moleQueueJobId"].isIntegral() ||
       !paramsObject["oldState"].isString() ||
       !paramsObject["newState"].isString() ){
     Json::StyledWriter writer;
