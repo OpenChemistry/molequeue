@@ -22,6 +22,7 @@
 #include <json/json-forwards.h>
 
 #include <QtCore/QHash>
+#include <QtCore/QMetaType>
 #include <QtCore/QObject>
 
 class QDir;
@@ -31,7 +32,6 @@ namespace MoleQueue
 {
 class JobRequest;
 class QueueManager;
-
 
 /**
  * @class JsonRpc jsonrpc.h <molequeue/jsonrpc.h>
@@ -445,7 +445,7 @@ protected:
 
   /// @param root Input JSOC-RPC packet
   /// @return The PacketType of the packet
-  PacketForm guessPacketType(const Json::Value &root) const;
+  PacketForm guessPacketForm(const Json::Value &root) const;
 
   /// @param root Input JSOC-RPC packet
   /// @return The PacketMethod of a request/notification
