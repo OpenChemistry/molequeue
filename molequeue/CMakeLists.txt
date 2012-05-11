@@ -5,6 +5,7 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 set(mq_srcs
   abstractrpcinterface.cpp
+  client.cpp
   connection.cpp
   job.cpp
   jobitemmodel.cpp
@@ -29,7 +30,8 @@ set(mq_srcs
 )
 
 set(mq_moc
-  abstractrpcinterface.cpp
+  abstractrpcinterface.h
+  client.h
   connection.h
   job.h
   jobitemmodel.h
