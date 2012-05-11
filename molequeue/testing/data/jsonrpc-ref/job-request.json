@@ -5,13 +5,19 @@
    "params" : {
       "cleanLocalWorkingDirectory" : false,
       "cleanRemoteFiles" : false,
+      "clientId" : 0,
       "description" : "spud slicer 28",
       "hideFromQueue" : false,
       "inputAsPath" : "/tmp/myjob/test.potato",
+      "inputAsString" : "This string will get ignored!",
+      "jobState" : 0,
+      "localWorkingDirectory" : "",
+      "molequeueId" : 0,
       "outputDirectory" : "",
       "popupOnStateChange" : true,
       "program" : "Quantum Tater",
       "queue" : "Some big ol' cluster",
+      "queueJobId" : 0,
       "retrieveOutput" : true
    }
 }
