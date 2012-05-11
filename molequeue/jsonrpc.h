@@ -23,9 +23,6 @@
 
 #include <QtCore/QHash>
 #include <QtCore/QObject>
-#include <QtCore/QPair>
-#include <QtCore/QString>
-#include <QtCore/QStringList>
 
 class QDir;
 class QVariant;
@@ -336,8 +333,7 @@ signals:
     * @param packetId The JSON-RPC id for the packet
     * @param options List of Queues/Programs
     */
-  void queueListReceived(mqIdType packetId,
-                         const QList<QPair<QString, QStringList> > &list) const;
+  void queueListReceived(mqIdType packetId, const mqQueueListType &list) const;
 
   /**
     * Emitted when a request to submit a new job is received.

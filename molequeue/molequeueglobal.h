@@ -18,6 +18,9 @@
 #define MOLEQUEUEGLOBAL_H
 
 #include <QtCore/QByteArray>
+#include <QtCore/QString>
+#include <QtCore/QStringList>
+#include <QtCore/QtContainerFwd>
 
 namespace MoleQueue
 {
@@ -27,6 +30,10 @@ typedef quint32 mqIdType;
 
 /// Type for RPC packets
 typedef QByteArray mqPacketType;
+
+/// Type for list queue/program names. Key is queue, value is list of supported
+/// programs
+typedef QList<QPair<QString, QStringList> > mqQueueListType;
 
 /**
   * Enumeration defining states that jobs are allowed to be in.
