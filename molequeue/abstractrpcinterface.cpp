@@ -24,6 +24,8 @@
 
 #include <QtNetwork/QLocalSocket>
 
+#include <QtGlobal>
+
 #define DEBUGOUT(title) \
   if (this->m_debug)    \
     qDebug() << QDateTime::currentDateTime().toString() \
@@ -41,9 +43,15 @@ AbstractRpcInterface::AbstractRpcInterface(QObject *parentObject) :
   m_socket(new QLocalSocket (this)),
   m_dataStream(new QDataStream (m_socket)),
   m_jsonrpc(new JsonRpc (this)),
+  m_packetCounter(0),
   m_debug(false)
 {
   m_dataStream->setVersion(QDataStream::Qt_4_7);
+
+  // Randomize the packet counter's starting value.
+  QTime time;
+  qsrand(time.msec());
+  m_packetCounter = static_cast<mqIdType>(qrand());
 
   connect(m_socket, SIGNAL(readyRead()), this, SLOT(readSocket()));
 
@@ -122,7 +130,7 @@ void AbstractRpcInterface::readPacket(const mqPacketType &packet)
   m_jsonrpc->interpretIncomingPacket(packet);
 }
 
-void AbstractRpcInterface::writePacket(const mqPacketType &packet)
+void AbstractRpcInterface::sendPacket(const mqPacketType &packet)
 {
   DEBUGOUT("writePacket") "Sending new packet. Size:" << packet.size();
   this->writePacketHeader(packet);
@@ -136,7 +144,7 @@ void AbstractRpcInterface::replyToInvalidPacket(
   DEBUGOUT("replyToInvalidPacket") "replying to an invalid packet.";
   mqPacketType packet = m_jsonrpc->generateErrorResponse(
         -32700, "Parse error", errorDataObject, packetId);
-  this->writePacket(packet);
+  this->sendPacket(packet);
 }
 
 void AbstractRpcInterface::replyToInvalidRequest(
@@ -145,7 +153,7 @@ void AbstractRpcInterface::replyToInvalidRequest(
   DEBUGOUT("replyToInvalidRequest") "replying to an invalid request.";
   mqPacketType packet = m_jsonrpc->generateErrorResponse(
         -32600, "Invalid request", errorDataObject, packetId);
-  this->writePacket(packet);
+  this->sendPacket(packet);
 }
 
 void AbstractRpcInterface::replyToUnrecognizedRequest(
@@ -154,7 +162,7 @@ void AbstractRpcInterface::replyToUnrecognizedRequest(
   DEBUGOUT("replyToUnrecognizedRequest") "replying to an unrecognized method.";
   mqPacketType packet = m_jsonrpc->generateErrorResponse(
         -32601, "Method not found", errorDataObject, packetId);
-  this->writePacket(packet);
+  this->sendPacket(packet);
 }
 
 void AbstractRpcInterface::replyToinvalidRequestParams(
@@ -163,7 +171,7 @@ void AbstractRpcInterface::replyToinvalidRequestParams(
   DEBUGOUT("replyToInvalidRequestParam") "replying to an ill-formed request.";
   mqPacketType packet = m_jsonrpc->generateErrorResponse(
         -32602, "Invalid params", errorDataObject, packetId);
-  this->writePacket(packet);
+  this->sendPacket(packet);
 }
 
 void AbstractRpcInterface::replyWithInternalError(
@@ -172,7 +180,12 @@ void AbstractRpcInterface::replyWithInternalError(
   DEBUGOUT("replyWithInternalError") "Notifying peer of internal error.";
   mqPacketType packet = m_jsonrpc->generateErrorResponse(
         -32603, "Internal error", errorDataObject, packetId);
-  this->writePacket(packet);
+  this->sendPacket(packet);
+}
+
+mqIdType AbstractRpcInterface::nextPacketId()
+{
+  return m_packetCounter++;
 }
 
 void AbstractRpcInterface::writePacketHeader(const mqPacketType &packet)

@@ -79,7 +79,7 @@ protected slots:
    *
    * @param packet The packet
    */
-  void writePacket(const mqPacketType &packet);
+  void sendPacket(const mqPacketType &packet);
 
   /**
    * Send a response indicating that an invalid packet (unparsable) has been
@@ -132,6 +132,11 @@ protected slots:
 protected:
 
   /**
+   * @return The next packet id.
+   */
+  mqIdType nextPacketId();
+
+  /**
    * Write a data header containing the packet size and protocol version to the
    * socket.
    *
@@ -172,6 +177,10 @@ protected:
 
   /// The internal JsonRpc object
   JsonRpc *m_jsonrpc;
+
+private:
+  /// Counter for packet requests
+  mqIdType m_packetCounter;
 
 public:
   /// @param d Enable runtime debugging if true.
