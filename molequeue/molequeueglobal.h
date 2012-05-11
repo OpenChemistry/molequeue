@@ -26,14 +26,14 @@ namespace MoleQueue
 {
 
 /// Type for various ids
-typedef quint32 mqIdType;
+typedef quint32 IdType;
 
 /// Type for RPC packets
-typedef QByteArray mqPacketType;
+typedef QByteArray PacketType;
 
 /// Type for list queue/program names. Key is queue, value is list of supported
 /// programs
-typedef QList<QPair<QString, QStringList> > mqQueueListType;
+typedef QList<QPair<QString, QStringList> > QueueListType;
 
 /**
   * Enumeration defining states that jobs are allowed to be in.

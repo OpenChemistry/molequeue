@@ -38,22 +38,22 @@ Client::Client(QObject *parentObject) :
   m_jobArray(new QVector<JobRequest>()),
   m_submittedLUT(new PacketLookupTable ())
 {
-  connect(m_jsonrpc, SIGNAL(queueListReceived(mqIdType,mqQueueListType)),
-          this, SLOT(queueListReceived(mqIdType,mqQueueListType)));
+  connect(m_jsonrpc, SIGNAL(queueListReceived(IdType,QueueListType)),
+          this, SLOT(queueListReceived(IdType,QueueListType)));
   connect(m_jsonrpc,
-          SIGNAL(successfulSubmissionReceived(mqIdType,mqIdType,mqIdType,QDir)),
+          SIGNAL(successfulSubmissionReceived(IdType,IdType,IdType,QDir)),
           this,
-          SLOT(successfulSubmissionReceived(mqIdType,mqIdType,mqIdType,QDir)));
+          SLOT(successfulSubmissionReceived(IdType,IdType,IdType,QDir)));
   connect(m_jsonrpc,
-          SIGNAL(failedSubmissionReceived(mqIdType,JobSubmissionErrorCode,QString)),
+          SIGNAL(failedSubmissionReceived(IdType,JobSubmissionErrorCode,QString)),
           this,
-          SLOT(failedSubmissionReceived(mqIdType,JobSubmissionErrorCode,QString)));
+          SLOT(failedSubmissionReceived(IdType,JobSubmissionErrorCode,QString)));
   connect(m_jsonrpc,
-          SIGNAL(jobCancellationConfirmationReceived(mqIdType,mqIdType)),
+          SIGNAL(jobCancellationConfirmationReceived(IdType,IdType)),
           this,
-          SLOT(jobCancellationConfirmationReceived(mqIdType,mqIdType)));
-  connect(m_jsonrpc, SIGNAL(jobStateChangeReceived(mqIdType,JobState,JobState)),
-          this, SLOT(jobStateChangeReceived(mqIdType,JobState,JobState)));
+          SLOT(jobCancellationConfirmationReceived(IdType,IdType)));
+  connect(m_jsonrpc, SIGNAL(jobStateChangeReceived(IdType,JobState,JobState)),
+          this, SLOT(jobStateChangeReceived(IdType,JobState,JobState)));
 }
 
 Client::~Client()
@@ -73,36 +73,36 @@ JobRequest &Client::newJobRequest()
   return newJob;
 }
 
-mqQueueListType Client::queueList() const
+QueueListType Client::queueList() const
 {
   return m_queueList;
 }
 
 void Client::submitJobRequest(const JobRequest &req)
 {
-  const mqIdType id = this->nextPacketId();
-  const mqPacketType packet = m_jsonrpc->generateJobRequest(req, id);
+  const IdType id = this->nextPacketId();
+  const PacketType packet = m_jsonrpc->generateJobRequest(req, id);
   m_submittedLUT->insert(id, req.clientId());
   this->sendPacket(packet);
 }
 
 void Client::cancelJobRequest(const JobRequest &req)
 {
-  const mqIdType id = this->nextPacketId();
-  const mqPacketType packet = m_jsonrpc->generateJobCancellation(req, id);
+  const IdType id = this->nextPacketId();
+  const PacketType packet = m_jsonrpc->generateJobCancellation(req, id);
   m_canceledLUT->insert(id, req.clientId());
   this->sendPacket(packet);
 }
 
-void Client::queueListReceived(mqIdType, const mqQueueListType &list)
+void Client::queueListReceived(IdType, const QueueListType &list)
 {
   m_queueList = list;
   emit queueListUpdated(m_queueList);
 }
 
-void Client::successfulSubmissionReceived(mqIdType packetId,
-                                          mqIdType moleQueueId,
-                                          mqIdType queueJobId,
+void Client::successfulSubmissionReceived(IdType packetId,
+                                          IdType moleQueueId,
+                                          IdType queueJobId,
                                           const QDir &workingDir)
 {
   if (!m_submittedLUT->contains(packetId)) {
@@ -111,7 +111,7 @@ void Client::successfulSubmissionReceived(mqIdType packetId,
     return;
   }
 
-  const mqIdType clientId = m_submittedLUT->take(packetId);
+  const IdType clientId = m_submittedLUT->take(packetId);
   JobRequest *req = this->jobRequestByClientId(clientId);
   if (req == NULL) {
     qWarning() << "Client received a successful job submission response for a "
@@ -125,7 +125,7 @@ void Client::successfulSubmissionReceived(mqIdType packetId,
   emit jobSubmitted(*req, true, QString());
 }
 
-void Client::failedSubmissionReceived(mqIdType packetId,
+void Client::failedSubmissionReceived(IdType packetId,
                                       JobSubmissionErrorCode errorCode,
                                       const QString &errorMessage)
 {
@@ -135,7 +135,7 @@ void Client::failedSubmissionReceived(mqIdType packetId,
     return;
   }
 
-  const mqIdType clientId = m_submittedLUT->take(packetId);
+  const IdType clientId = m_submittedLUT->take(packetId);
   JobRequest *req = this->jobRequestByClientId(clientId);
   if (req == NULL) {
     qWarning() << "Client received a failed job submission response for a "
@@ -150,8 +150,8 @@ void Client::failedSubmissionReceived(mqIdType packetId,
   emit jobSubmitted(*req, false, errorMessage);
 }
 
-void Client::jobCancellationConfirmationReceived(mqIdType packetId,
-                                                 mqIdType moleQueueId)
+void Client::jobCancellationConfirmationReceived(IdType packetId,
+                                                 IdType moleQueueId)
 {
   if (!m_submittedLUT->contains(packetId)) {
     qWarning() << "Client received a submission confirmation with an "
@@ -159,7 +159,7 @@ void Client::jobCancellationConfirmationReceived(mqIdType packetId,
     return;
   }
 
-  const mqIdType clientId = m_submittedLUT->take(packetId);
+  const IdType clientId = m_submittedLUT->take(packetId);
   JobRequest *req = this->jobRequestByClientId(clientId);
   if (req == NULL) {
     qWarning() << "Client received a successful job cancellation response for a "
@@ -175,7 +175,7 @@ void Client::jobCancellationConfirmationReceived(mqIdType packetId,
   emit jobCanceled(*req, true, QString());
 }
 
-void Client::jobStateChangeReceived(mqIdType moleQueueId,
+void Client::jobStateChangeReceived(IdType moleQueueId,
                                     JobState oldState, JobState newState)
 {
   JobRequest *req = this->jobRequestByMoleQueueId(moleQueueId);
@@ -192,30 +192,30 @@ void Client::jobStateChangeReceived(mqIdType moleQueueId,
 
 void Client::requestQueueListUpdate()
 {
-  mqPacketType packet = m_jsonrpc->generateQueueListRequest(
+  PacketType packet = m_jsonrpc->generateQueueListRequest(
         this->nextPacketId());
   this->sendPacket(packet);
 }
 
-JobRequest * Client::jobRequestByClientId(mqIdType clientId)
+JobRequest * Client::jobRequestByClientId(IdType clientId)
 {
-  if (clientId < 1 || clientId > static_cast<mqIdType>(m_jobArray->size())) {
+  if (clientId < 1 || clientId > static_cast<IdType>(m_jobArray->size())) {
     qWarning() << "Request for JobRequest with invalid clientId:" << clientId;
     return NULL;
   }
   return &((*m_jobArray)[clientId - 1]);
 }
 
-const JobRequest * Client::jobRequestByClientId(mqIdType clientId) const
+const JobRequest * Client::jobRequestByClientId(IdType clientId) const
 {
-  if (clientId < 1 || clientId > static_cast<mqIdType>(m_jobArray->size())) {
+  if (clientId < 1 || clientId > static_cast<IdType>(m_jobArray->size())) {
     qWarning() << "Request for JobRequest with invalid clientId:" << clientId;
     return NULL;
   }
   return &((*m_jobArray)[clientId - 1]);
 }
 
-JobRequest *Client::jobRequestByMoleQueueId(mqIdType moleQueueId)
+JobRequest *Client::jobRequestByMoleQueueId(IdType moleQueueId)
 {
   for (QVector<JobRequest>::const_iterator it = m_jobArray->constBegin(),
        it_end = m_jobArray->constEnd(); it != it_end; ++it) {
@@ -230,7 +230,7 @@ JobRequest *Client::jobRequestByMoleQueueId(mqIdType moleQueueId)
   return NULL;
 }
 
-const JobRequest *Client::jobRequestByMoleQueueId(mqIdType moleQueueId) const
+const JobRequest *Client::jobRequestByMoleQueueId(IdType moleQueueId) const
 {
   for (QVector<JobRequest>::const_iterator it = m_jobArray->constBegin(),
        it_end = m_jobArray->constEnd(); it != it_end; ++it) {

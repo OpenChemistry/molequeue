@@ -66,10 +66,10 @@ public:
    * @return List of key/value pairs; key is queue name, list is of
    * supported programs.
    */
-  mqQueueListType queueList() const;
+  QueueListType queueList() const;
 
   /// Used for internal lookup structures
-  typedef QMap<mqIdType, mqIdType> PacketLookupTable;
+  typedef QMap<IdType, IdType> PacketLookupTable;
 
 signals:
 
@@ -79,7 +79,7 @@ signals:
    * @param list List of key/value pairs; key is queue name, list is of
    * supported programs.
    */
-  void queueListUpdated(const mqQueueListType &list) const;
+  void queueListUpdated(const QueueListType &list) const;
 
   /**
    * Emitted when a job submission reply is received.
@@ -139,7 +139,7 @@ protected slots:
    * Called when the JsonRpc instance handles a listQueues response.
    * @param list List of supported Queues/Programs
    */
-  void queueListReceived(mqIdType, const mqQueueListType &list);
+  void queueListReceived(IdType, const QueueListType &list);
 
   /**
    * Called when the JsonRpc instance handles a successful submitJob response.
@@ -148,8 +148,8 @@ protected slots:
    * @param queueJobId Queue-specific job identifier
    * @param workingDir Local working directory for temporary files.
    */
-  void successfulSubmissionReceived(mqIdType, mqIdType moleQueueId,
-                                    mqIdType queueJobId,
+  void successfulSubmissionReceived(IdType, IdType moleQueueId,
+                                    IdType queueJobId,
                                     const QDir &workingDir);
 
   /**
@@ -158,7 +158,7 @@ protected slots:
    * @param errorCode Indication of why the job failed.
    * @param errorMessage Descriptive string detail the failure.
    */
-  void failedSubmissionReceived(mqIdType, JobSubmissionErrorCode errorCode,
+  void failedSubmissionReceived(IdType, JobSubmissionErrorCode errorCode,
                                 const QString &errorMessage);
 
   /**
@@ -166,8 +166,8 @@ protected slots:
    *
    * @param moleQueueId Unique MoleQueue identifier for the job.
    */
-  void jobCancellationConfirmationReceived(mqIdType,
-                                           mqIdType moleQueueId);
+  void jobCancellationConfirmationReceived(IdType,
+                                           IdType moleQueueId);
 
   /**
    * Called when the JsonRpc instance handles a job state change notification.
@@ -176,7 +176,7 @@ protected slots:
    * @param oldState Previous state of job.
    * @param newState New state of job.
    */
-  void jobStateChangeReceived(mqIdType moleQueueId,
+  void jobStateChangeReceived(IdType moleQueueId,
                               JobState oldState, JobState newState);
 
 protected:
@@ -187,7 +187,7 @@ protected:
    * @param clientId Client id of JobRequest
    * @return Requested JobRequest
    */
-  JobRequest * jobRequestByClientId(mqIdType clientId);
+  JobRequest * jobRequestByClientId(IdType clientId);
 
   /**
    * Get the job request referenced by the indicated client id.
@@ -195,7 +195,7 @@ protected:
    * @param clientId Client id of JobRequest
    * @return Requested JobRequest
    */
-  const JobRequest * jobRequestByClientId(mqIdType clientId) const;
+  const JobRequest * jobRequestByClientId(IdType clientId) const;
 
   /**
    * Get the job request referenced by the indicated MoleQueue id.
@@ -203,7 +203,7 @@ protected:
    * @param moleQueueId MoleQueue id of JobRequest
    * @return Requested JobRequest
    */
-  JobRequest * jobRequestByMoleQueueId(mqIdType moleQueueId);
+  JobRequest * jobRequestByMoleQueueId(IdType moleQueueId);
 
   /**
    * Get the job request referenced by the indicated MoleQueue id.
@@ -211,7 +211,7 @@ protected:
    * @param moleQueueId MoleQueue id of JobRequest
    * @return Requested JobRequest
    */
-  const JobRequest * jobRequestByMoleQueueId(mqIdType moleQueueId) const;
+  const JobRequest * jobRequestByMoleQueueId(IdType moleQueueId) const;
 
   /// List of all owned job requests
   QVector<JobRequest> *m_jobArray;
@@ -223,7 +223,7 @@ protected:
   PacketLookupTable *m_canceledLUT;
 
   /// Cached list of queues/programs
-  mqQueueListType m_queueList;
+  QueueListType m_queueList;
 };
 
 } // end namespace MoleQueue

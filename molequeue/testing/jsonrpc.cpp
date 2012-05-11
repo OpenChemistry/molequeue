@@ -28,7 +28,7 @@
 
 using namespace MoleQueue;
 
-mqPacketType readReferenceString(const QString &filename);
+PacketType readReferenceString(const QString &filename);
 void printNode(const Json::Value &);
 
 int jsonrpc(int /*argc*/, char */*argv*/[])
@@ -38,8 +38,8 @@ int jsonrpc(int /*argc*/, char */*argv*/[])
   // Create testing objects
   JsonRpc rpc;
 //  rpc.setDebug(true);
-  mqPacketType packet;
-  mqPacketType refPacket;
+  PacketType packet;
+  PacketType refPacket;
 
   JobRequest req (NULL);
   req.setQueue("Some big ol' cluster");
@@ -392,7 +392,7 @@ int jsonrpc(int /*argc*/, char */*argv*/[])
   return error ? 1 : 0;
 }
 
-mqPacketType readReferenceString(const QString &filename)
+PacketType readReferenceString(const QString &filename)
 {
   QString realFilename = TESTDATADIR + filename;
   QFile refFile (realFilename);
@@ -400,7 +400,7 @@ mqPacketType readReferenceString(const QString &filename)
     qDebug() << "Cannot access reference file" << realFilename;
     return "";
   }
-  mqPacketType contents = refFile.readAll();
+  PacketType contents = refFile.readAll();
   refFile.close();
   return contents;
 }

@@ -56,7 +56,7 @@ signals:
    *
    * @param packet The packet
    */
-  void newPacketReady(const mqPacketType &packet);
+  void newPacketReady(const PacketType &packet);
 
 public slots:
 
@@ -72,14 +72,14 @@ protected slots:
    *
    * @param packet The packet
    */
-  void readPacket(const mqPacketType &packet);
+  void readPacket(const PacketType &packet);
 
   /**
    * Write a packet to the local socket.
    *
    * @param packet The packet
    */
-  void sendPacket(const mqPacketType &packet);
+  void sendPacket(const PacketType &packet);
 
   /**
    * Send a response indicating that an invalid packet (unparsable) has been
@@ -134,7 +134,7 @@ protected:
   /**
    * @return The next packet id.
    */
-  mqIdType nextPacketId();
+  IdType nextPacketId();
 
   /**
    * Write a data header containing the packet size and protocol version to the
@@ -142,7 +142,7 @@ protected:
    *
    * @param packet The packet
    */
-  void writePacketHeader(const mqPacketType &packet);
+  void writePacketHeader(const PacketType &packet);
 
   /**
    * @return Whether or not the socket header is complete and ready to read.
@@ -167,7 +167,7 @@ protected:
   qint64 m_currentPacketSize;
 
   /// The packet currently being read
-  mqPacketType m_currentPacket;
+  PacketType m_currentPacket;
 
   /// The local socket used for interprocess communication
   QLocalSocket *m_socket;
@@ -180,7 +180,7 @@ protected:
 
 private:
   /// Counter for packet requests
-  mqIdType m_packetCounter;
+  IdType m_packetCounter;
 
 public:
   /// @param d Enable runtime debugging if true.

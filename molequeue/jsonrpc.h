@@ -68,9 +68,9 @@ public:
     *
     * @param req The JobRequest of interest.
     * @param packetId The JSON-RPC id for the request.
-    * @return A mqPacketType, ready to send to a QLocalSocket.
+    * @return A PacketType, ready to send to a QLocalSocket.
     */
-  mqPacketType generateJobRequest(const JobRequest &req, mqIdType packetId);
+  PacketType generateJobRequest(const JobRequest &req, IdType packetId);
 
   /**
     * Generate a JSON-RPC packet to confirm a successful job submission.
@@ -80,12 +80,12 @@ public:
     * @param workingDir Local working directory where files are stored during
     * job execution
     * @param packetId The JSON-RPC id for the request.
-    * @return A mqPacketType, ready to send to a QLocalSocket.
+    * @return A PacketType, ready to send to a QLocalSocket.
     */
-  mqPacketType generateJobSubmissionConfirmation(mqIdType moleQueueJobId,
-                                                 mqIdType queueJobId,
+  PacketType generateJobSubmissionConfirmation(IdType moleQueueJobId,
+                                                 IdType queueJobId,
                                                  const QString &workingDir,
-                                                 mqIdType packetId);
+                                                 IdType packetId);
 
   /**
     * Generate a JSON-RPC response packet to notify of an error.
@@ -93,11 +93,11 @@ public:
     * @param errorCode Error code
     * @param message Single sentence describing the error that occurred.
     * @param packetId The JSON-RPC id for the packet.
-    * @return A mqPacketType, ready to send to a QLocalSocket.
+    * @return A PacketType, ready to send to a QLocalSocket.
     */
-  mqPacketType generateErrorResponse(int errorCode,
+  PacketType generateErrorResponse(int errorCode,
                                      const QString &message,
-                                     mqIdType packetId);
+                                     IdType packetId);
 
   /**
     * Generate a JSON-RPC response packet to notify of an error.
@@ -106,13 +106,13 @@ public:
     * @param message Single sentence describing the error that occurred.
     * @param data a Json::Value to be used as the error object's data member
     * @param packetId The JSON-RPC id for the packet.
-    * @return A mqPacketType, ready to send to a QLocalSocket.
+    * @return A PacketType, ready to send to a QLocalSocket.
     * @overload
     */
-  mqPacketType generateErrorResponse(int errorCode,
+  PacketType generateErrorResponse(int errorCode,
                                      const QString &message,
                                      const Json::Value &data,
-                                     mqIdType packetId);
+                                     IdType packetId);
 
   /**
     * Generate a JSON-RPC response packet to notify of an error.
@@ -120,10 +120,10 @@ public:
     * @param errorCode Error code
     * @param message Single sentence describing the error that occurred.
     * @param packetId The JSON-RPC id for the packet.
-    * @return A mqPacketType, ready to send to a QLocalSocket.
+    * @return A PacketType, ready to send to a QLocalSocket.
     * @overload
     */
-  mqPacketType generateErrorResponse(int errorCode,
+  PacketType generateErrorResponse(int errorCode,
                                      const QString &message,
                                      const Json::Value &packetId);
 
@@ -134,10 +134,10 @@ public:
     * @param message Single sentence describing the error that occurred.
     * @param data a Json::Value to be used as the error object's data member
     * @param packetId The JSON-RPC id for the packet.
-    * @return A mqPacketType, ready to send to a QLocalSocket.
+    * @return A PacketType, ready to send to a QLocalSocket.
     * @overload
     */
-  mqPacketType generateErrorResponse(int errorCode,
+  PacketType generateErrorResponse(int errorCode,
                                      const QString &message,
                                      const Json::Value &data,
                                      const Json::Value &packetId);
@@ -147,29 +147,29 @@ public:
     *
     * @param req The JobRequest to cancel.
     * @param packetId The JSON-RPC id for the request.
-    * @return A mqPacketType, ready to send to a QLocalSocket.
+    * @return A PacketType, ready to send to a QLocalSocket.
     */
-  mqPacketType generateJobCancellation(const JobRequest &req,
-                                       mqIdType packetId);
+  PacketType generateJobCancellation(const JobRequest &req,
+                                       IdType packetId);
 
   /**
     * Generate a JSON-RPC packet confirming a job cancellation.
     *
     * @param moleQueueId MoleQueue internal identifer for the canceled job.
     * @param packetId The JSON-RPC id for the request.
-    * @return A mqPacketType, ready to send to a QLocalSocket.
+    * @return A PacketType, ready to send to a QLocalSocket.
     */
-  mqPacketType generateJobCancellationConfirmation(mqIdType moleQueueId,
-                                                   mqIdType packetId);
+  PacketType generateJobCancellationConfirmation(IdType moleQueueId,
+                                                   IdType packetId);
 
   /**
     * Generate a JSON-RPC packet for requesting a list of available Queues and
     * Programs.
     *
     * @param packetId The JSON-RPC id for the request.
-    * @return A mqPacketType, ready to send to a QLocalSocket.
+    * @return A PacketType, ready to send to a QLocalSocket.
     */
-  mqPacketType generateQueueListRequest(mqIdType packetId);
+  PacketType generateQueueListRequest(IdType packetId);
 
   /**
     * Generate a JSON-RPC packet to request a listing of all available Queues
@@ -177,10 +177,10 @@ public:
     *
     * @param qmanager The QueueManager to send.
     * @param packetId The JSON-RPC id for the request.
-    * @return A mqPacketType, ready to send to a QLocalSocket.
+    * @return A PacketType, ready to send to a QLocalSocket.
     */
-  mqPacketType generateQueueList(const QueueManager *qmanager,
-                                 mqIdType packetId);
+  PacketType generateQueueList(const QueueManager *qmanager,
+                                 IdType packetId);
 
   /**
     * Generate a JSON-RPC packet to notify listeners that a job has changed
@@ -189,9 +189,9 @@ public:
     * @param moleQueueJobId Internal MoleQueue job id of job.
     * @param oldState Old state of the job.
     * @param newState New state of the job.
-    * @return A mqPacketType, ready to send to a QLocalSocket.
+    * @return A PacketType, ready to send to a QLocalSocket.
     */
-  mqPacketType generateJobStateChangeNotification(mqIdType moleQueueJobId,
+  PacketType generateJobStateChangeNotification(IdType moleQueueJobId,
                                                   JobState oldState,
                                                   JobState newState);
 
@@ -203,7 +203,7 @@ public:
     * @param data A packet containing a single or batch JSON-RPC transmission.
     * @return A QVector containing the packetIds of the data.
     */
-  void interpretIncomingPacket(const mqPacketType &data);
+  void interpretIncomingPacket(const PacketType &data);
 
   /**
     * Process a JSON-RPC packet and return a QVector containing the packetId(s).
@@ -221,7 +221,7 @@ public:
     * warning, but will not cause the function to return false.
     * @return True if the input JSON snippet is a valid JSON-RPC 2.0 request.
     */
-  bool validateRequest(const mqPacketType &, bool strict = false);
+  bool validateRequest(const PacketType &, bool strict = false);
 
   /**
     * @param strict If false, minor errors (e.g. extra keys) will result in a
@@ -235,7 +235,7 @@ public:
     * warning, but will not cause the function to return false.
     * @return True if the input JSON snippet is a valid JSON-RPC 2.0 response.
     */
-  bool validateResponse(const mqPacketType &, bool strict = false);
+  bool validateResponse(const PacketType &, bool strict = false);
 
   /**
     * @param strict If false, minor errors (e.g. extra keys) will result in a
@@ -250,7 +250,7 @@ public:
     * @return True if the input JSON snippet is a valid JSON-RPC 2.0
     * notification.
     */
-  bool validateNotification(const mqPacketType &, bool strict = false);
+  bool validateNotification(const PacketType &, bool strict = false);
 
   /**
     * @param strict If false, minor errors (e.g. extra keys) will result in a
@@ -325,7 +325,7 @@ signals:
     *
     * @param packetId The JSON-RPC id for the packet
     */
-  void queueListRequestReceived(mqIdType packetId) const;
+  void queueListRequestReceived(IdType packetId) const;
 
   /**
     * Emitted when a list of available Queues/Programs is received.
@@ -333,7 +333,7 @@ signals:
     * @param packetId The JSON-RPC id for the packet
     * @param options List of Queues/Programs
     */
-  void queueListReceived(mqIdType packetId, const mqQueueListType &list) const;
+  void queueListReceived(IdType packetId, const QueueListType &list) const;
 
   /**
     * Emitted when a request to submit a new job is received.
@@ -341,7 +341,7 @@ signals:
     * @param packetId The JSON-RPC id for the packet
     * @param options Options for the job.
     */
-  void jobSubmissionRequestReceived(mqIdType packetId,
+  void jobSubmissionRequestReceived(IdType packetId,
                                     const QHash<QString, QVariant> &options) const;
 
   /**
@@ -355,8 +355,8 @@ signals:
     * @param workingDir The local directory where the temporary files will be
     * stored.
     */
-  void successfulSubmissionReceived(mqIdType packetId, mqIdType moleQueueId,
-                                    mqIdType jobId, const QDir &workingDir) const;
+  void successfulSubmissionReceived(IdType packetId, IdType moleQueueId,
+                                    IdType jobId, const QDir &workingDir) const;
 
   /**
     * Emitted when a response for an unsuccessful job submission is received.
@@ -365,7 +365,7 @@ signals:
     * @param errorCode Error code categorizing the error.
     * @param errorMessage Descriptive string identifying the error.
     */
-  void failedSubmissionReceived(mqIdType packetId,
+  void failedSubmissionReceived(IdType packetId,
                                 JobSubmissionErrorCode errorCode,
                                 const QString &errorMessage) const;
 
@@ -376,8 +376,8 @@ signals:
     * @param moleQueueId The internal MoleQueue identifier for the job to
     * cancel.
     */
-  void jobCancellationRequestReceived(mqIdType packetId,
-                                      mqIdType moleQueueId) const;
+  void jobCancellationRequestReceived(IdType packetId,
+                                      IdType moleQueueId) const;
 
   /**
     * Emitted when a confirmation of job cancellation is received.
@@ -385,8 +385,8 @@ signals:
     * @param packetId The JSON-RPC id for the packet
     * @param moleQueueId The internal MoleQueue identifier for the canceled job.
     */
-  void jobCancellationConfirmationReceived(mqIdType packetId,
-                                           mqIdType moleQueueId) const;
+  void jobCancellationConfirmationReceived(IdType packetId,
+                                           IdType moleQueueId) const;
 
   /**
     * Emitted when a notification that a job has changed state is received.
@@ -395,7 +395,7 @@ signals:
     * @param oldState The original state of the job
     * @param newState The new state of the job.
     */
-  void jobStateChangeReceived(mqIdType moleQueueId,
+  void jobStateChangeReceived(IdType moleQueueId,
                               JobState oldState, JobState newState) const;
 
 public slots:
@@ -408,13 +408,13 @@ public slots:
 protected:
   /// Create and return a new JsonCpp JSON-RPC request.
   /// @param id JSON-RPC id
-  static Json::Value generateEmptyRequest(mqIdType id);
+  static Json::Value generateEmptyRequest(IdType id);
   /// Create and return a new JsonCpp JSON-RPC response.
   /// @param id JSON-RPC id
-  static Json::Value generateEmptyResponse(mqIdType id);
+  static Json::Value generateEmptyResponse(IdType id);
   /// Create and return a new JsonCpp JSON-RPC error response.
   /// @param id JSON-RPC id
-  static Json::Value generateEmptyError(mqIdType id);
+  static Json::Value generateEmptyError(IdType id);
   /// Create and return a new JsonCpp JSON-RPC error response.
   /// @param id JSON-RPC id
   static Json::Value generateEmptyError(const Json::Value &id);
@@ -423,7 +423,7 @@ protected:
   static Json::Value generateEmptyNotification();
 
   /// Enum describing the types of packets that the implementation is aware of.
-  enum PacketType {
+  enum PacketForm {
     INVALID_PACKET = -1,
     REQUEST_PACKET,
     RESULT_PACKET,
@@ -445,7 +445,7 @@ protected:
 
   /// @param root Input JSOC-RPC packet
   /// @return The PacketType of the packet
-  PacketType guessPacketType(const Json::Value &root) const;
+  PacketForm guessPacketType(const Json::Value &root) const;
 
   /// @param root Input JSOC-RPC packet
   /// @return The PacketMethod of a request/notification
@@ -453,7 +453,7 @@ protected:
 
   /// Extract data and emit signal for unparsable JSON.
   /// @param root Invalid request data
-  void handleUnparsablePacket(const mqPacketType &data) const;
+  void handleUnparsablePacket(const PacketType &data) const;
   /// Extract data and emit signal for a invalid request.
   /// @param root Invalid request data
   void handleInvalidRequest(const Json::Value &root) const;
@@ -503,7 +503,7 @@ protected:
     * @param packetId JSON-RPC 'id' value
     * @param method PacketMethod value for request.
     */
-  void registerRequest(mqIdType packetId, PacketMethod method);
+  void registerRequest(IdType packetId, PacketMethod method);
 
   /**
     * Register that a reply has been received. This removes the request from the
@@ -511,10 +511,10 @@ protected:
     *
     * @param packetId JSON-RPC 'id' value
     */
-  void registerReply(mqIdType packetId);
+  void registerReply(IdType packetId);
 
   /// Lookup hash for pending requests
-  QHash<mqIdType, PacketMethod> m_pendingRequests;
+  QHash<IdType, PacketMethod> m_pendingRequests;
 
   /// Toggles runtime debugging output
   bool m_debug;

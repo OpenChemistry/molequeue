@@ -136,13 +136,13 @@ public:
   bool popupOnStateChange() const {return m_popupOnStateChange;}
 
   /// @return Internal MoleQueue identifier
-  mqIdType moleQueueId() const {return m_molequeueId;}
+  IdType moleQueueId() const {return m_molequeueId;}
 
   /// @return Queue Job ID
-  mqIdType queueJobId() const {return m_queueJobId;}
+  IdType queueJobId() const {return m_queueJobId;}
 
   /// @return Internal client identifier
-  mqIdType clientId() const {return m_clientId;}
+  IdType clientId() const {return m_clientId;}
 
   /// @return The JobRequest's internal state as a QVariantHash
   QVariantHash hash() const;
@@ -163,13 +163,13 @@ protected:
   }
 
   /// @param id Internal MoleQueue identifier
-  void setMolequeueId(mqIdType id) {m_molequeueId = id;}
+  void setMolequeueId(IdType id) {m_molequeueId = id;}
 
   /// @param id Queue Job ID
-  void setQueueJobId(mqIdType id) {m_queueJobId = id;}
+  void setQueueJobId(IdType id) {m_queueJobId = id;}
 
   /// @param id Client ID
-  void setClientId(mqIdType id) {m_clientId = id;}
+  void setClientId(IdType id) {m_clientId = id;}
 
   /// MoleQueueClient parent
   Client *m_client;
@@ -203,11 +203,11 @@ protected:
   /// the MoleQueue system tray icon. Default: true
   bool m_popupOnStateChange;
   /// Internal MoleQueue identifier
-  mqIdType m_molequeueId;
+  IdType m_molequeueId;
   /// Queue Job ID
-  mqIdType m_queueJobId;
+  IdType m_queueJobId;
   /// Internal identifier used by Client
-  mqIdType m_clientId;
+  IdType m_clientId;
 };
 
 } // end namespace MoleQueue

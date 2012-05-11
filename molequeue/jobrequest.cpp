@@ -95,11 +95,11 @@ void JobRequest::setFromHash(const QVariantHash &state)
       state.value("cleanLocalWorkingDirectory", false).toBool();
   m_hideFromQueue = state.value("hideFromQueue", false).toBool();
   m_popupOnStateChange = state.value("popupOnStateChange", true).toBool();
-  m_molequeueId = static_cast<mqIdType>(
+  m_molequeueId = static_cast<IdType>(
         state.value("molequeueId", 0).toUInt());
-  m_queueJobId = static_cast<mqIdType>(
+  m_queueJobId = static_cast<IdType>(
         state.value("queueJobId", 0).toUInt());
-  m_queueJobId = static_cast<mqIdType>(
+  m_queueJobId = static_cast<IdType>(
         state.value("clientId", 0).toUInt());
 }
 

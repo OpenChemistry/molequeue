@@ -51,7 +51,7 @@ AbstractRpcInterface::AbstractRpcInterface(QObject *parentObject) :
   // Randomize the packet counter's starting value.
   QTime time;
   qsrand(time.msec());
-  m_packetCounter = static_cast<mqIdType>(qrand());
+  m_packetCounter = static_cast<IdType>(qrand());
 
   connect(m_socket, SIGNAL(readyRead()), this, SLOT(readSocket()));
 
@@ -102,7 +102,7 @@ void AbstractRpcInterface::readSocket()
                                         << "bytes read," << bytesNeeded
                                         << "bytes needed";
 
-  mqPacketType block;
+  PacketType block;
   if (bytesNeeded > bytesAvailable) {
     // Just read what's there
     m_dataStream->readRawData(block.data(), static_cast<int>(bytesAvailable));
@@ -124,13 +124,13 @@ void AbstractRpcInterface::readSocket()
   }
 }
 
-void AbstractRpcInterface::readPacket(const mqPacketType &packet)
+void AbstractRpcInterface::readPacket(const PacketType &packet)
 {
   DEBUGOUT("readPacket") "Interpreting new packet.";
   m_jsonrpc->interpretIncomingPacket(packet);
 }
 
-void AbstractRpcInterface::sendPacket(const mqPacketType &packet)
+void AbstractRpcInterface::sendPacket(const PacketType &packet)
 {
   DEBUGOUT("writePacket") "Sending new packet. Size:" << packet.size();
   this->writePacketHeader(packet);
@@ -142,7 +142,7 @@ void AbstractRpcInterface::replyToInvalidPacket(
     const Json::Value &packetId, const Json::Value &errorDataObject)
 {
   DEBUGOUT("replyToInvalidPacket") "replying to an invalid packet.";
-  mqPacketType packet = m_jsonrpc->generateErrorResponse(
+  PacketType packet = m_jsonrpc->generateErrorResponse(
         -32700, "Parse error", errorDataObject, packetId);
   this->sendPacket(packet);
 }
@@ -151,7 +151,7 @@ void AbstractRpcInterface::replyToInvalidRequest(
     const Json::Value &packetId, const Json::Value &errorDataObject)
 {
   DEBUGOUT("replyToInvalidRequest") "replying to an invalid request.";
-  mqPacketType packet = m_jsonrpc->generateErrorResponse(
+  PacketType packet = m_jsonrpc->generateErrorResponse(
         -32600, "Invalid request", errorDataObject, packetId);
   this->sendPacket(packet);
 }
@@ -160,7 +160,7 @@ void AbstractRpcInterface::replyToUnrecognizedRequest(
     const Json::Value &packetId, const Json::Value &errorDataObject)
 {
   DEBUGOUT("replyToUnrecognizedRequest") "replying to an unrecognized method.";
-  mqPacketType packet = m_jsonrpc->generateErrorResponse(
+  PacketType packet = m_jsonrpc->generateErrorResponse(
         -32601, "Method not found", errorDataObject, packetId);
   this->sendPacket(packet);
 }
@@ -169,7 +169,7 @@ void AbstractRpcInterface::replyToinvalidRequestParams(
     const Json::Value &packetId, const Json::Value &errorDataObject)
 {
   DEBUGOUT("replyToInvalidRequestParam") "replying to an ill-formed request.";
-  mqPacketType packet = m_jsonrpc->generateErrorResponse(
+  PacketType packet = m_jsonrpc->generateErrorResponse(
         -32602, "Invalid params", errorDataObject, packetId);
   this->sendPacket(packet);
 }
@@ -178,17 +178,17 @@ void AbstractRpcInterface::replyWithInternalError(
     const Json::Value &packetId, const Json::Value &errorDataObject)
 {
   DEBUGOUT("replyWithInternalError") "Notifying peer of internal error.";
-  mqPacketType packet = m_jsonrpc->generateErrorResponse(
+  PacketType packet = m_jsonrpc->generateErrorResponse(
         -32603, "Internal error", errorDataObject, packetId);
   this->sendPacket(packet);
 }
 
-mqIdType AbstractRpcInterface::nextPacketId()
+IdType AbstractRpcInterface::nextPacketId()
 {
   return m_packetCounter++;
 }
 
-void AbstractRpcInterface::writePacketHeader(const mqPacketType &packet)
+void AbstractRpcInterface::writePacketHeader(const PacketType &packet)
 {
   DEBUGOUT("writePacketHeader") "Writing packet header."
       << "Version:" << m_headerVersion
