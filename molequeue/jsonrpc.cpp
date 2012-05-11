@@ -64,26 +64,101 @@ mqPacketType JsonRpc::generateJobRequest(const JobRequest &req,
   packet["method"] = "submitJob";
 
   Json::Value paramsObject (Json::objectValue);
-  paramsObject["queue"]               = req.queue().toStdString();
-  paramsObject["program"]             = req.program().toStdString();
-  paramsObject["description"]         = req.description().toStdString();
-  paramsObject["cleanRemoteFiles"]    = req.cleanRemoteFiles();
-  paramsObject["retrieveOutput"]      = req.retrieveOutput();
-  paramsObject["outputDirectory"]     = req.outputDirectory().toStdString();
-  paramsObject["cleanLocalWorkingDirectory"] = req.cleanLocalWorkingDirectory();
-  paramsObject["hideFromQueue"]       = req.hideFromQueue();
-  paramsObject["popupOnStateChange"]  = req.popupOnStateChange();
-  if (req.inputAsPath().isEmpty())
-    paramsObject["inputAsString"]     = req.inputAsString().toStdString();
-  else
-    paramsObject["inputAsPath"]       = req.inputAsPath().toStdString();
+
+  const QVariantHash reqHash = req.hash();
+
+  for (QVariantHash::const_iterator it = reqHash.constBegin(),
+       it_end = reqHash.constBegin(); it != it_end; ++it) {
+    Json::Value val;
+    switch (it.value().type()) {
+    case QVariant::Bool:
+      val = it.value().toBool();
+      break;
+    case QVariant::Int:
+      val = it.value().toInt();
+      break;
+    case QVariant::LongLong:
+      val = it.value().toLongLong();
+      break;
+    case QVariant::UInt:
+      val = it.value().toUInt();
+      break;
+    case QVariant::ULongLong:
+      val = it.value().toULongLong();
+      break;
+    case QVariant::Double:
+      val = it.value().toDouble();
+      break;
+    case QVariant::String: {
+      const std::string str = it.value().toString().toStdString();
+      val = str;
+      break;
+    }
+    case QVariant::ByteArray:
+      val = it.value().toByteArray().constData();
+      break;
+    default:
+    case QVariant::Invalid:
+    case QVariant::Map:
+    case QVariant::List:
+    case QVariant::Char:
+    case QVariant::StringList:
+    case QVariant::BitArray:
+    case QVariant::Date:
+    case QVariant::Time:
+    case QVariant::DateTime:
+    case QVariant::Url:
+    case QVariant::Locale:
+    case QVariant::Rect:
+    case QVariant::RectF:
+    case QVariant::Size:
+    case QVariant::SizeF:
+    case QVariant::Line:
+    case QVariant::LineF:
+    case QVariant::Point:
+    case QVariant::PointF:
+    case QVariant::RegExp:
+    case QVariant::Hash:
+    case QVariant::EasingCurve:
+    case QVariant::Font:
+    case QVariant::Pixmap:
+    case QVariant::Brush:
+    case QVariant::Color:
+    case QVariant::Palette:
+    case QVariant::Icon:
+    case QVariant::Image:
+    case QVariant::Polygon:
+    case QVariant::Region:
+    case QVariant::Bitmap:
+    case QVariant::Cursor:
+    case QVariant::SizePolicy:
+    case QVariant::KeySequence:
+    case QVariant::Pen:
+    case QVariant::TextLength:
+    case QVariant::TextFormat:
+    case QVariant::Matrix:
+    case QVariant::Transform:
+    case QVariant::Matrix4x4:
+    case QVariant::Vector2D:
+    case QVariant::Vector3D:
+    case QVariant::Vector4D:
+    case QVariant::Quaternion:
+    case QVariant::UserType:
+    case QVariant::LastType:
+      DEBUGOUT("generateJobRequest") "Unhandled type in hash:"
+          << it.value().type();
+      continue;
+    } // end switch
+
+    const std::string name = it.key().toStdString();
+    paramsObject[name] = val;
+  } // end for
 
   packet["params"] = paramsObject;
 
   Json::StyledWriter writer;
   std::string ret_stdstr = writer.write(packet);
   mqPacketType ret (ret_stdstr.c_str());
-
 
   DEBUGOUT("generateJobRequest") "New job request:\n" << ret;
 
@@ -205,7 +280,7 @@ mqPacketType JsonRpc::generateJobCancellation(const JobRequest &req,
   packet["method"] = "cancelJob";
 
   Json::Value paramsObject (Json::objectValue);
-  paramsObject["moleQueueJobId"] = req.molequeueId();
+  paramsObject["moleQueueJobId"] = req.moleQueueId();
 
   packet["params"] = paramsObject;
 
