@@ -1047,7 +1047,7 @@ void JsonRpc::handleListQueuesResult(const Json::Value &root) const
   }
 
   // Populate queue list:
-  QList<QPair<QString, QStringList> > queueList;
+  mqQueueListType queueList;
 #if QT_VERSION >= QT_VERSION_CHECK(4,7,0)
   queueList.reserve(resultObject.size());
 #endif
