@@ -22,7 +22,7 @@
 #include "queue.h"
 #include "queuemanager.h"
 
-#include "thirdparty/jsoncpp/json/json.h"
+#include <json/json.h>
 
 #include <QtCore/QDateTime>
 #include <QtCore/QDebug>

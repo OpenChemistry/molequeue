@@ -19,7 +19,7 @@
 
 #include "molequeueglobal.h"
 
-#include "thirdparty/jsoncpp/json/json-forwards.h"
+#include <json/json-forwards.h>
 
 #include <QtCore/QHash>
 #include <QtCore/QObject>
