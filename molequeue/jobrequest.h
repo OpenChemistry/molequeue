@@ -20,10 +20,11 @@
 #include "molequeueglobal.h"
 
 #include <QtCore/QString>
+#include <QtCore/QVariantHash>
 
 namespace MoleQueue
 {
-class MoleQueueClient;
+class Client;
 class JobRequestTester;
 
 /**
@@ -39,7 +40,7 @@ public:
     *
     * @param parent MoleQueueClient parent.
     */
-  JobRequest(MoleQueueClient *parent);
+  JobRequest(Client *parent = NULL);
 
   /**
     * Constructor. Can only be called from MoleQueueClient.
@@ -59,6 +60,12 @@ public:
 
   /// @return Name of program to run.
   QString program() const {return m_program;}
+
+  /// @param state Status of job
+  void setJobState(JobState state) {m_jobState = state;}
+
+  /// @return Status of job
+  JobState jobState() const {return m_jobState;}
 
   /// @param newDesc Description of job
   void setDescription(const QString &newDesc) {m_description = newDesc;}
@@ -129,13 +136,23 @@ public:
   bool popupOnStateChange() const {return m_popupOnStateChange;}
 
   /// @return Internal MoleQueue identifier
-  mqIdType molequeueId() const {return m_molequeueId;}
+  IdType moleQueueId() const {return m_molequeueId;}
 
   /// @return Queue Job ID
-  mqIdType queueJobId() const {return m_queueJobId;}
+  IdType queueJobId() const {return m_queueJobId;}
 
-  /// Only MoleQueueClients can modify some properties
-  friend class MoleQueueClient;
+  /// @return Internal client identifier
+  IdType clientId() const {return m_clientId;}
+
+  /// @return The JobRequest's internal state as a QVariantHash
+  QVariantHash hash() const;
+
+  /// Update the JobRequest's internal state from a QVariantHash
+  /// @param hash The Job
+  void setFromHash(const QVariantHash &state);
+
+  /// Only Clients can modify some properties
+  friend class Client;
 
 protected:
   /// @param path Temporary working directory where files are stored during job
@@ -146,17 +163,22 @@ protected:
   }
 
   /// @param id Internal MoleQueue identifier
-  void setMolequeueId(mqIdType id) {m_molequeueId = id;}
+  void setMolequeueId(IdType id) {m_molequeueId = id;}
 
   /// @param id Queue Job ID
-  void setQueueJobId(mqIdType id) {m_queueJobId = id;}
+  void setQueueJobId(IdType id) {m_queueJobId = id;}
+
+  /// @param id Client ID
+  void setClientId(IdType id) {m_clientId = id;}
 
   /// MoleQueueClient parent
-  MoleQueueClient *m_client;
+  Client *m_client;
   /// Name of queue to use
   QString m_queue;
   /// Name of program to run
   QString m_program;
+  /// Current state of job
+  JobState m_jobState;
   /// Description of job
   QString m_description;
   /// String containing path to input file.
@@ -181,9 +203,11 @@ protected:
   /// the MoleQueue system tray icon. Default: true
   bool m_popupOnStateChange;
   /// Internal MoleQueue identifier
-  mqIdType m_molequeueId;
+  IdType m_molequeueId;
   /// Queue Job ID
-  mqIdType m_queueJobId;
+  IdType m_queueJobId;
+  /// Internal identifier used by Client
+  IdType m_clientId;
 };
 
 } // end namespace MoleQueue

@@ -1,9 +1,16 @@
 find_package(Qt4 COMPONENTS QtCore QtGui QtNetwork)
 
 include(${QT_USE_FILE})
-include_directories(${CMAKE_CURRENT_BINARY_DIR})
+
+set(JSONCPP_SOURCE_DIR "${MoleQueue_SOURCE_DIR}/thirdparty/jsoncpp/")
+
+include_directories(${CMAKE_CURRENT_BINARY_DIR}
+  ${JSONCPP_SOURCE_DIR}
+)
 
 set(mq_srcs
+  abstractrpcinterface.cpp
+  client.cpp
   connection.cpp
   job.cpp
   jobitemmodel.cpp
@@ -28,6 +35,8 @@ set(mq_srcs
 )
 
 set(mq_moc
+  abstractrpcinterface.h
+  client.h
   connection.h
   job.h
   jobitemmodel.h
@@ -58,7 +67,7 @@ qt4_wrap_ui(ui_srcs
 qt4_add_resources(rcc_srcs queuetray.qrc)
 
 # Pull in JsonCpp
-aux_source_directory(thirdparty/jsoncpp/ jsoncpp_srcs)
+aux_source_directory(${JSONCPP_SOURCE_DIR} jsoncpp_srcs)
 set(mq_srcs ${mq_srcs} ${jsoncpp_srcs})
 
 add_library(molequeue_static STATIC
