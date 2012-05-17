@@ -49,8 +49,7 @@ AbstractRpcInterface::AbstractRpcInterface(QObject *parentObject) :
   m_dataStream->setVersion(QDataStream::Qt_4_7);
 
   // Randomize the packet counter's starting value.
-  QTime time;
-  qsrand(time.msec());
+  qsrand(QDateTime::currentMSecsSinceEpoch());
   m_packetCounter = static_cast<IdType>(qrand());
 
   connect(m_socket, SIGNAL(readyRead()), this, SLOT(readSocket()));

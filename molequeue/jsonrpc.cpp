@@ -56,7 +56,7 @@ JsonRpc::~JsonRpc()
     for (QHash<IdType, PacketMethod>::const_iterator
          it     = m_pendingRequests.constBegin(),
          it_end = m_pendingRequests.constEnd(); it != it_end; ++it) {
-      DEBUGOUT("!JsonRpc") "    PacketId:" << it.key() << "Request Method:"
+      DEBUGOUT("~JsonRpc") "    PacketId:" << it.key() << "Request Method:"
                                            << it.value();
     }
   }
@@ -1070,9 +1070,10 @@ void JsonRpc::handleListQueuesResult(const Json::Value &root) const
     const Json::Value &programArray = *it;
 
     // No programs, just add an empty list
-    if (programArray.isNull())
+    if (programArray.isNull()) {
       queueList.append(QPair<QString, QStringList>(queueName, QStringList()));
       continue;
+    }
 
     // Not an array? Add an empty list
     if (!programArray.isArray()) {
