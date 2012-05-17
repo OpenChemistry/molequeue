@@ -36,8 +36,11 @@ namespace MoleQueue
 Client::Client(QObject *parentObject) :
   AbstractRpcInterface(parentObject),
   m_jobArray(new QVector<JobRequest>()),
-  m_submittedLUT(new PacketLookupTable ())
+  m_submittedLUT(new PacketLookupTable ()),
+  m_canceledLUT(new PacketLookupTable ())
 {
+  qRegisterMetaType<JobRequest>("JobRequest");
+
   connect(m_jsonrpc, SIGNAL(queueListReceived(IdType,QueueListType)),
           this, SLOT(queueListReceived(IdType,QueueListType)));
   connect(m_jsonrpc,
@@ -63,6 +66,9 @@ Client::~Client()
 
   delete m_submittedLUT;
   m_submittedLUT = NULL;
+
+  delete m_canceledLUT;
+  m_canceledLUT = NULL;
 }
 
 JobRequest &Client::newJobRequest()
@@ -153,13 +159,13 @@ void Client::failedSubmissionReceived(IdType packetId,
 void Client::jobCancellationConfirmationReceived(IdType packetId,
                                                  IdType moleQueueId)
 {
-  if (!m_submittedLUT->contains(packetId)) {
+  if (!m_canceledLUT->contains(packetId)) {
     qWarning() << "Client received a submission confirmation with an "
                   "unrecognized packet id.";
     return;
   }
 
-  const IdType clientId = m_submittedLUT->take(packetId);
+  const IdType clientId = m_canceledLUT->take(packetId);
   JobRequest *req = this->jobRequestByClientId(clientId);
   if (req == NULL) {
     qWarning() << "Client received a successful job cancellation response for a "

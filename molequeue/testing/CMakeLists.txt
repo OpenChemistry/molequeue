@@ -10,6 +10,7 @@ add_definitions(-DTESTDATADIR="${CMAKE_SOURCE_DIR}/molequeue/testing/data/")
 
 set(MyTests
   abstractrpcinterface
+  client
   jsonrpc
   program
   queue
