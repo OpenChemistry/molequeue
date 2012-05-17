@@ -49,8 +49,8 @@ JobRequest::JobRequest(const MoleQueue::JobRequest &other)
     m_hideFromQueue(other.m_hideFromQueue),
     m_popupOnStateChange(other.m_popupOnStateChange),
     m_molequeueId(other.m_molequeueId),
-    m_queueJobId(m_queueJobId),
-    m_clientId(m_clientId)
+    m_queueJobId(other.m_queueJobId),
+    m_clientId(other.m_clientId)
 {
 }
 

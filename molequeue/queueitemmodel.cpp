@@ -71,11 +71,11 @@ void QueueItemModel::clear()
 {
 }
 
-void QueueItemModel::add(Queue */*queue*/)
+void QueueItemModel::add(Queue * /*queue*/)
 {
 }
 
-void QueueItemModel::remove(Queue */*queue*/)
+void QueueItemModel::remove(Queue * /*queue*/)
 {
 }
 
