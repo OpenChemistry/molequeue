@@ -51,7 +51,7 @@ bool QueueSGE::submit(Job *job)
   return true;
 }
 
-void QueueSGE::jobStarted(Job */*job*/)
+void QueueSGE::jobStarted(Job * /*job*/)
 {
 
 }

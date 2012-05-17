@@ -135,7 +135,7 @@ void JobItemModel::add(Job *job)
   endInsertRows();
 }
 
-void JobItemModel::remove(Job */*job*/)
+void JobItemModel::remove(Job * /*job*/)
 {
 }
 

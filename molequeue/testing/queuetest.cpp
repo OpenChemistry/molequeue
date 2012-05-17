@@ -94,6 +94,9 @@ void QueueTest::runTest()
   qDebug() << "Programs in queue: " << programs.join(" ");
 
   QVERIFY(error == false);
+
+  delete gamess;
+  delete gaussian;
 }
 
 QTEST_MAIN(QueueTest)
