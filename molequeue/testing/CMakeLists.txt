@@ -9,9 +9,10 @@ add_definitions(-DTESTDATADIR="${CMAKE_SOURCE_DIR}/molequeue/testing/data/")
 
 
 set(MyTests
+  abstractrpcinterface
+  jsonrpc
   program
   queue
-  jsonrpc
   )
 
 foreach(test ${MyTests})

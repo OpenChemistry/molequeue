@@ -401,6 +401,7 @@ void JsonRpc::interpretIncomingPacket(const PacketType &packet)
   if (!reader.parse(packet.constData(), packet.constData() + packet.size(),
                     root, false)) {
     this->handleUnparsablePacket(packet);
+    return;
   }
 
   // Submit the root node for processing
@@ -421,6 +422,7 @@ void JsonRpc::interpretIncomingJsonRpc(const Json::Value &data)
 
   if (!data.isObject()) {
     this->handleInvalidRequest(data);
+    return;
   }
 
   PacketForm   form   = this->guessPacketForm(data);
@@ -1019,9 +1021,10 @@ void JsonRpc::handleInvalidRequest(const Json::Value &root) const
 {
   Json::Value errorData (Json::objectValue);
 
-  errorData["receivedJson"] = root;
+  errorData["receivedJson"] = Json::Value(root);
 
-  emit invalidRequestReceived(root["id"], errorData);
+  emit invalidRequestReceived((root.isObject()) ? root["id"] : Json::nullValue,
+                              errorData);
 }
 
 void JsonRpc::handleUnrecognizedRequest(const Json::Value &root) const
