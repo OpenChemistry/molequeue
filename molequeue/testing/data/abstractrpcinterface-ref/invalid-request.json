@@ -1,0 +1,11 @@
+{
+   "error" : {
+      "code" : -32600,
+      "data" : {
+         "receivedJson" : 1
+      },
+      "message" : "Invalid request"
+   },
+   "id" : null,
+   "jsonrpc" : "2.0"
+}

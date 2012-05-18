@@ -37,7 +37,7 @@ namespace MoleQueue
 AbstractRpcInterface::AbstractRpcInterface(QObject *parentObject) :
   QObject(parentObject),
   m_headerVersion(1),
-  m_headerSize(sizeof(qint64) + sizeof(quint32)),
+  m_headerSize(sizeof(quint32) + sizeof(quint32)),
   m_currentPacketSize(0),
   m_currentPacket(),
   m_socket(new QLocalSocket (this)),
@@ -49,8 +49,7 @@ AbstractRpcInterface::AbstractRpcInterface(QObject *parentObject) :
   m_dataStream->setVersion(QDataStream::Qt_4_7);
 
   // Randomize the packet counter's starting value.
-  QTime time;
-  qsrand(time.msec());
+  qsrand(QDateTime::currentMSecsSinceEpoch());
   m_packetCounter = static_cast<IdType>(qrand());
 
   connect(m_socket, SIGNAL(readyRead()), this, SLOT(readSocket()));
@@ -65,10 +64,17 @@ AbstractRpcInterface::AbstractRpcInterface(QObject *parentObject) :
           this, SLOT(replyToinvalidRequestParams(Json::Value,Json::Value)));
   connect(m_jsonrpc, SIGNAL(internalErrorOccurred(Json::Value,Json::Value)),
           this, SLOT(replyWithInternalError(Json::Value,Json::Value)));
+
+  connect(this, SIGNAL(newPacketReady(PacketType)),
+          this, SLOT(readPacket(PacketType)));
+
+  m_socket->connectToServer("MoleQueue");
+  qDebug() << "Connected to" << m_socket->serverName();
 }
 
 AbstractRpcInterface::~AbstractRpcInterface()
 {
+  m_socket->abort();
   delete m_socket;
   m_socket = NULL;
 
@@ -93,24 +99,8 @@ void AbstractRpcInterface::readSocket()
       return;
   }
 
-  // Check if the entire packet is available
-  const qint64 bytesAvailable = m_socket->bytesAvailable();
-  const qint64 bytesRead = static_cast<qint64>(m_currentPacket.size());
-  const qint64 bytesNeeded = m_currentPacketSize - bytesRead;
-
-  DEBUGOUT("readSocket") bytesAvailable << "bytes available," << bytesRead
-                                        << "bytes read," << bytesNeeded
-                                        << "bytes needed";
-
   PacketType block;
-  if (bytesNeeded > bytesAvailable) {
-    // Just read what's there
-    m_dataStream->readRawData(block.data(), static_cast<int>(bytesAvailable));
-  }
-  else {
-    // Read enough to finish the current packet
-    m_dataStream->readRawData(block.data(), static_cast<int>(bytesNeeded));
-  }
+  (*m_dataStream) >> block;
 
   // Add this block to the packet which is in progress
   m_currentPacket.append(block);
@@ -122,6 +112,11 @@ void AbstractRpcInterface::readSocket()
     m_currentPacket.clear();
     m_currentPacketSize = 0;
   }
+  else {
+    DEBUGOUT("readSocket") "Packet incomplete. Waiting for more data..."
+        << "current size:" << m_currentPacket.size() << "bytes of"
+        << m_currentPacketSize;
+  }
 }
 
 void AbstractRpcInterface::readPacket(const PacketType &packet)
@@ -132,10 +127,11 @@ void AbstractRpcInterface::readPacket(const PacketType &packet)
 
 void AbstractRpcInterface::sendPacket(const PacketType &packet)
 {
-  DEBUGOUT("writePacket") "Sending new packet. Size:" << packet.size();
+  DEBUGOUT("sendPacket") "Sending new packet. Size:" << packet.size();
   this->writePacketHeader(packet);
   m_dataStream->writeBytes(packet.constData(),
                            static_cast<unsigned int>(packet.size()));
+  m_socket->flush();
 }
 
 void AbstractRpcInterface::replyToInvalidPacket(
@@ -206,14 +202,14 @@ bool AbstractRpcInterface::canReadPacketHeader()
   return (m_socket->bytesAvailable() >= m_headerSize);
 }
 
-qint64 AbstractRpcInterface::readPacketHeader()
+quint32 AbstractRpcInterface::readPacketHeader()
 {
   Q_ASSERT_X(m_socket->bytesAvailable() >= m_headerSize, Q_FUNC_INFO,
              "Not enough data available to read header! This should not "
              "happen.");
 
   quint32 headerVersion;
-  qint64 packetSize;
+  quint32 packetSize;
 
   (*m_dataStream) >> headerVersion;
 

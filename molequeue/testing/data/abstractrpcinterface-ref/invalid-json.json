@@ -1,0 +1,11 @@
+{
+   "error" : {
+      "code" : -32700,
+      "data" : {
+         "receivedPacket" : "{ 42 \"I'm malformed JSON! ]"
+      },
+      "message" : "Parse error"
+   },
+   "id" : null,
+   "jsonrpc" : "2.0"
+}

@@ -18,9 +18,11 @@
 #define MOLEQUEUEGLOBAL_H
 
 #include <QtCore/QByteArray>
+#include <QtCore/QList>
+#include <QtCore/QMetaType>
+#include <QtCore/QPair>
 #include <QtCore/QString>
 #include <QtCore/QStringList>
-#include <QtCore/QtContainerFwd>
 
 namespace MoleQueue
 {
@@ -128,5 +130,11 @@ enum JobSubmissionErrorCode {
 };
 
 } // end namespace MoleQueue
+
+Q_DECLARE_METATYPE(MoleQueue::IdType)
+Q_DECLARE_METATYPE(MoleQueue::PacketType)
+Q_DECLARE_METATYPE(MoleQueue::QueueListType)
+Q_DECLARE_METATYPE(MoleQueue::JobState)
+Q_DECLARE_METATYPE(MoleQueue::JobSubmissionErrorCode)
 
 #endif // MOLEQUEUEGLOBAL_H

@@ -1,0 +1,15 @@
+{
+   "error" : {
+      "code" : -32601,
+      "data" : {
+         "receivedJson" : {
+            "id" : 0,
+            "jsonrpc" : "2.0",
+            "method" : "notARealMethod"
+         }
+      },
+      "message" : "Method not found"
+   },
+   "id" : 0,
+   "jsonrpc" : "2.0"
+}

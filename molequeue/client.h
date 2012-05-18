@@ -71,6 +71,9 @@ public:
   /// Used for internal lookup structures
   typedef QMap<IdType, IdType> PacketLookupTable;
 
+  /// Used for unit testing
+  friend class ClientTest;
+
 signals:
 
   /**

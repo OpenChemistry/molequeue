@@ -43,7 +43,7 @@ public:
    *
    * @param parentObject The parent object
    */
-  explicit AbstractRpcInterface(QObject *parentObject = 0);
+  explicit AbstractRpcInterface(QObject *parentObject = NULL);
 
   /**
    * Destructor.
@@ -155,7 +155,7 @@ protected:
    *
    * @return The size of incoming packet in bytes.
    */
-  qint64 readPacketHeader();
+  quint32 readPacketHeader();
 
   /// Current version of the packet header
   quint32 m_headerVersion;
@@ -164,7 +164,7 @@ protected:
   const quint32 m_headerSize;
 
   /// The size of the currently read packet
-  qint64 m_currentPacketSize;
+  quint32 m_currentPacketSize;
 
   /// The packet currently being read
   PacketType m_currentPacket;
