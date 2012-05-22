@@ -99,7 +99,7 @@ void JobRequest::setFromHash(const QVariantHash &state)
         state.value("molequeueId", 0).toUInt());
   m_queueJobId = static_cast<IdType>(
         state.value("queueJobId", 0).toUInt());
-  m_queueJobId = static_cast<IdType>(
+  m_clientId = static_cast<IdType>(
         state.value("clientId", 0).toUInt());
 }
 
