@@ -19,6 +19,8 @@
 #include "jobrequest.h"
 #include "jsonrpc.h"
 
+#include <QtNetwork/QLocalSocket>
+
 #include <QtCore/QDateTime>
 #include <QtCore/QDebug>
 #include <QtCore/QDir>
@@ -40,6 +42,10 @@ Client::Client(QObject *parentObject) :
   m_canceledLUT(new PacketLookupTable ())
 {
   qRegisterMetaType<JobRequest>("JobRequest");
+
+  QLocalSocket *socket = new QLocalSocket ();
+  socket->connectToServer("MoleQueue");
+  this->setSocket(socket);
 
   connect(m_jsonrpc, SIGNAL(queueListReceived(IdType,QueueListType)),
           this, SLOT(queueListReceived(IdType,QueueListType)));

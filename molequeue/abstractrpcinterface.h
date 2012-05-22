@@ -22,6 +22,8 @@
 #include "molequeueglobal.h"
 #include "thirdparty/jsoncpp/json/json-forwards.h"
 
+class AbstractRpcInterfaceTest;
+
 class QDataStream;
 class QLocalSocket;
 
@@ -50,6 +52,8 @@ public:
    */
   virtual ~AbstractRpcInterface();
 
+  friend class ::AbstractRpcInterfaceTest;
+
 signals:
   /**
    * Emitted when a complete packet has been read from the socket.
@@ -61,6 +65,12 @@ signals:
 public slots:
 
 protected slots:
+
+  /**
+   * Sets this AbstractRpcInterface to use the passed socket.
+   * @param socket The QLocalSocket to use
+   */
+  void setSocket(QLocalSocket *socket);
 
   /**
    * Read data from the local socket until a complete packet has been obtained.
