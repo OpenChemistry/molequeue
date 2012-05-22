@@ -1,0 +1,9 @@
+{
+   "jsonrpc" : "2.0",
+   "method" : "jobStateChanged",
+   "params" : {
+      "moleQueueJobId" : 15,
+      "newState" : "Finished",
+      "oldState" : "RunningLocal"
+   }
+}

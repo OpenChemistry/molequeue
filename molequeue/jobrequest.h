@@ -23,6 +23,8 @@
 #include <QtCore/QString>
 #include <QtCore/QVariantHash>
 
+class ServerConnectionTest;
+
 namespace MoleQueue
 {
 class Client;
@@ -153,6 +155,9 @@ public:
 
   /// Only Clients can modify some properties
   friend class Client;
+
+  /// Used for unit testing
+  friend class ::ServerConnectionTest;
 
 protected:
   /// @param path Temporary working directory where files are stored during job
