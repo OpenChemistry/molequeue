@@ -19,13 +19,13 @@
 
 #include "molequeueglobal.h"
 
+#include <QtCore/QMetaType>
 #include <QtCore/QString>
 #include <QtCore/QVariantHash>
 
 namespace MoleQueue
 {
 class Client;
-class JobRequestTester;
 
 /**
  * @class JobRequest jobrequest.h <molequeue/jobrequest.h>
@@ -211,5 +211,7 @@ protected:
 };
 
 } // end namespace MoleQueue
+
+Q_DECLARE_METATYPE(MoleQueue::JobRequest)
 
 #endif // JOBREQUEST_H
