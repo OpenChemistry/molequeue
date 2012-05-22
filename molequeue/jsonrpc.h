@@ -21,9 +21,9 @@
 
 #include <json/json-forwards.h>
 
-#include <QtCore/QHash>
 #include <QtCore/QMetaType>
 #include <QtCore/QObject>
+#include <QtCore/QVariantHash>
 
 class QDir;
 class QVariant;
@@ -342,7 +342,7 @@ signals:
     * @param options Options for the job.
     */
   void jobSubmissionRequestReceived(IdType packetId,
-                                    const QHash<QString, QVariant> &options) const;
+                                    const QVariantHash &options) const;
 
   /**
     * Emitted when a response for a successful job submission is received.
