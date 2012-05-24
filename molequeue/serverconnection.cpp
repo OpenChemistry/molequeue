@@ -19,8 +19,10 @@
 #include "jobrequest.h"
 #include "jsonrpc.h"
 
-#include <QtNetwork/QLocalSocket>
+#include <QtCore/QDateTime>
 #include <QtCore/QMap>
+
+#include <QtNetwork/QLocalSocket>
 
 #define DEBUGOUT(title) \
   if (this->m_debug)    \
@@ -35,7 +37,8 @@ ServerConnection::ServerConnection(Server *parentServer,
   : m_server(parentServer),
     m_listQueuesLUT(new QList<IdType> ()),
     m_submissionLUT(new PacketLookupTable ()),
-    m_cancellationLUT(new PacketLookupTable ())
+    m_cancellationLUT(new PacketLookupTable ()),
+    m_holdRequests(true)
 {
   qRegisterMetaType<JobRequest>("JobRequest");
   qRegisterMetaType<QueueListType>("QueueListType");
@@ -159,6 +162,26 @@ void ServerConnection::jobCancellationRequestReceived(IdType packetId,
 {
   m_cancellationLUT->insert(moleQueueId, packetId);
   emit jobCancellationRequested(moleQueueId);
+}
+
+void ServerConnection::startProcessing()
+{
+  m_holdRequests = false;
+  DEBUGOUT("startProcessing") "Started handling requests.";
+  while (m_socket->bytesAvailable() != 0) {
+    DEBUGOUT("startProcessing") "Flushing request backlog...";
+    this->readSocket();
+  }
+}
+
+void ServerConnection::readSocket()
+{
+  if (m_holdRequests) {
+    DEBUGOUT("readSocket") "Skipping socket read; requests are currently held.";
+    return;
+  }
+
+  this->AbstractRpcInterface::readSocket();
 }
 
 } // end namespace MoleQueue
