@@ -153,6 +153,7 @@ void ServerConnectionTest::initTestCase()
   QLocalSocket *serverSocket = new QLocalSocket ();
   serverSocket->connectToServer("MoleQueue");
   m_serverConnection = new MoleQueue::ServerConnection(NULL, serverSocket);
+  m_serverConnection->startProcessing();
   // Let the event loop run a bit to handle the connections
   qApp->processEvents(QEventLoop::AllEvents, 1000);
 }
