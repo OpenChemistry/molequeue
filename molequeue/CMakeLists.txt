@@ -1,4 +1,4 @@
-find_package(Qt4 COMPONENTS QtCore QtGui QtNetwork)
+find_package(Qt4 4.8.0 COMPONENTS QtCore QtGui QtNetwork)
 
 include(${QT_USE_FILE})
 
