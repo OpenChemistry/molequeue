@@ -18,12 +18,15 @@
 #define MAINWINDOW_H
 
 #include <QtGui/QMainWindow>
+
+#include "molequeueglobal.h"
+
 #include <QtGui/QSystemTrayIcon>
+
 #include <QtNetwork/QLocalSocket>
 
 class QAction;
 class QIcon;
-class QLocalServer;
 
 namespace Ui {
 class MainWindow;
@@ -31,11 +34,14 @@ class MainWindow;
 
 namespace MoleQueue {
 
-class Queue;
-class Program;
-class JobItemModel;
 class Connection;
+class JobItemModel;
+class JobRequest;
+class Program;
+class Queue;
 class QueueManager;
+class Server;
+class ServerConnection;
 
 class MainWindow : public QMainWindow
 {
@@ -47,23 +53,23 @@ public:
 
   void setVisible(bool visible);
 
-protected:
-  void closeEvent(QCloseEvent *theEvent);
-
 public slots:
   void readSettings();
   void writeSettings();
 
-private slots:
-  /** Receive new job submissions, send them to the appropriate queue. */
-  void submitJob(const QString &queue, const QString &program,
-                 const QString &fileName, const QString &input);
-
-  void newConnection();
-  void removeServer();
+protected slots:
   void showQueueManager();
+  void handleServerError(QAbstractSocket::SocketError, const QString &);
+  void newConnection(ServerConnection *conn);
 
-private:
+  // ServerConnection handlers
+  void queueListRequested();
+  void jobSubmissionRequested(const JobRequest &req);
+  void jobCancellationRequested(IdType moleQueueId);
+
+protected:
+  void closeEvent(QCloseEvent *theEvent);
+
   void createActions();
   void createMainMenu();
   void createTrayIcon();
@@ -80,15 +86,11 @@ private:
   QSystemTrayIcon *m_trayIcon;
   QMenu *m_trayIconMenu;
 
-  QLocalServer *m_server;
-
-  bool m_removeServer;
+  Server *m_server;
 
   QueueManager *m_queueManager;
 
   JobItemModel *m_jobModel;
-
-  Connection *m_connection;
 
   QString m_tmpDir;
   QString m_localDir;
