@@ -19,13 +19,15 @@
 
 #include "molequeueglobal.h"
 
+#include <QtCore/QMetaType>
 #include <QtCore/QString>
 #include <QtCore/QVariantHash>
+
+class ServerConnectionTest;
 
 namespace MoleQueue
 {
 class Client;
-class JobRequestTester;
 
 /**
  * @class JobRequest jobrequest.h <molequeue/jobrequest.h>
@@ -154,6 +156,9 @@ public:
   /// Only Clients can modify some properties
   friend class Client;
 
+  /// Used for unit testing
+  friend class ::ServerConnectionTest;
+
 protected:
   /// @param path Temporary working directory where files are stored during job
   /// execution.
@@ -211,5 +216,7 @@ protected:
 };
 
 } // end namespace MoleQueue
+
+Q_DECLARE_METATYPE(MoleQueue::JobRequest)
 
 #endif // JOBREQUEST_H

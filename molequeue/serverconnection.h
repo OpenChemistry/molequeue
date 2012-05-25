@@ -1,0 +1,157 @@
+/******************************************************************************
+
+  This source file is part of the MoleQueue project.
+
+  Copyright 2012 Kitware, Inc.
+
+  This source code is released under the New BSD License, (the "License").
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+
+******************************************************************************/
+
+#ifndef SERVERCONNECTION_H
+#define SERVERCONNECTION_H
+
+#include "abstractrpcinterface.h"
+
+#include "molequeueglobal.h"
+
+#include <QtCore/QVariantHash>
+
+class ServerConnectionTest;
+
+class QLocalSocket;
+
+namespace MoleQueue
+{
+class JobRequest;
+class QueueManager;
+class Server;
+
+class ServerConnection : public AbstractRpcInterface
+{
+  Q_OBJECT
+public:
+
+  /**
+   * Constructor.
+   *
+   * @param parentObject parent
+   */
+  explicit ServerConnection(Server *parentServer, QLocalSocket *theSocket);
+
+  /**
+   * Destructor.
+   */
+  virtual ~ServerConnection();
+
+  /// Used for internal lookup structures
+  typedef QMap<IdType, IdType> PacketLookupTable;
+
+  /// Used for unit testing
+  friend class ::ServerConnectionTest;
+
+signals:
+
+  /**
+   * Emitted when the client sents a request for the available queues
+   * and programs.
+   */
+  void queueListRequested();
+
+  /**
+   * Emitted when the client sends a request for a new job submission.
+   * @param req The JobRequest
+   */
+  void jobSubmissionRequested(const JobRequest &req);
+
+  /**
+   * Emitted when the client sends a request to cancel a submitted job.
+   * @param moleQueueId MoleQueue identifier
+   */
+  void jobCancellationRequested(IdType moleQueueId);
+
+public slots:
+
+  /**
+   * Sends the @a list to the connected client.
+   * @param manager The QueueManager
+   */
+  void sendQueueList(QueueManager *manager);
+
+  /**
+   * Sends a reply to the client informing them that the job submission was
+   * successful.
+   * @param req The JobRequest
+   */
+  void sendSuccessfulSubmissionResponse(const JobRequest &req);
+
+  /**
+   * Sends a reply to the client informing them that the job submission failed.
+   * @param req The JobRequest
+   * @param ec Error code
+   * @param errorMessage Descriptive string
+   */
+  void sendFailedSubmissionResponse(const JobRequest &req,
+                                    JobSubmissionErrorCode ec,
+                                    const QString &errorMessage);
+
+  /**
+   * Sends a reply to the client informing them that the job cancellation was
+   * successful.
+   * @param req The JobRequest
+   */
+  void sendSuccessfulCancellationResponse(const JobRequest &req);
+
+  /**
+   * Sends a notification to the connected client informing them that a job
+   * has changed status.
+   * @param req
+   * @param oldState
+   * @param newState
+   */
+  void sendJobStateChangeNotification(const JobRequest &req,
+                                      JobState oldState, JobState newState);
+
+protected slots:
+
+  /**
+   * Called when the JsonRpc instance handles a listQueues request.
+   */
+  void queueListRequestReceived(IdType);
+
+  /**
+   * Called when the JsonRpc instance handles a submitJob request.
+   * @param options Option hash (see JobRequest::hash())
+   */
+  void jobSubmissionRequestReceived(IdType, const QVariantHash &options);
+
+  /**
+   * Called when the JsonRpc instance handles a cancelJob request.
+   * @param moleQueueId The MoleQueue identifier of the job to cancel.
+   */
+  void jobCancellationRequestReceived(IdType, IdType moleQueueId);
+
+protected:
+  /// The parent server instance
+  Server *m_server;
+
+  /// Tracks queue list requests
+  QList<IdType> *m_listQueuesLUT;
+
+  /// Tracks job submission requests: clientId --> packetId
+  PacketLookupTable *m_submissionLUT;
+
+  /// Tracks job cancellation requests: moleQueueId --> packetId
+  PacketLookupTable *m_cancellationLUT;
+
+};
+
+} // end namespace MoleQueue
+
+#endif // SERVERCONNECTION_H

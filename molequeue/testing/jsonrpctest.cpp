@@ -593,7 +593,7 @@ void JsonRpcTest::interpretIncomingPacket_listQueuesError()
 void JsonRpcTest::interpretIncomingPacket_submitJobRequest()
 {
   QSignalSpy spy (&m_rpc, SIGNAL(
-                    jobSubmissionRequestReceived(IdType,QHash<QString,QVariant>)));
+                    jobSubmissionRequestReceived(IdType,QVariantHash)));
   m_packet = readReferenceString("jsonrpc-ref/job-request.json");
   m_rpc.interpretIncomingPacket(m_packet);
 

@@ -40,8 +40,8 @@ AbstractRpcInterface::AbstractRpcInterface(QObject *parentObject) :
   m_headerSize(sizeof(quint32) + sizeof(quint32)),
   m_currentPacketSize(0),
   m_currentPacket(),
-  m_socket(new QLocalSocket (this)),
-  m_dataStream(new QDataStream (m_socket)),
+  m_socket(NULL),
+  m_dataStream(new QDataStream ()),
   m_jsonrpc(new JsonRpc (this)),
   m_packetCounter(0),
   m_debug(false)
@@ -51,8 +51,6 @@ AbstractRpcInterface::AbstractRpcInterface(QObject *parentObject) :
   // Randomize the packet counter's starting value.
   qsrand(QDateTime::currentMSecsSinceEpoch());
   m_packetCounter = static_cast<IdType>(qrand());
-
-  connect(m_socket, SIGNAL(readyRead()), this, SLOT(readSocket()));
 
   connect(m_jsonrpc, SIGNAL(invalidPacketReceived(Json::Value,Json::Value)),
           this, SLOT(replyToInvalidPacket(Json::Value,Json::Value)));
@@ -67,14 +65,12 @@ AbstractRpcInterface::AbstractRpcInterface(QObject *parentObject) :
 
   connect(this, SIGNAL(newPacketReady(PacketType)),
           this, SLOT(readPacket(PacketType)));
-
-  m_socket->connectToServer("MoleQueue");
-  qDebug() << "Connected to" << m_socket->serverName();
 }
 
 AbstractRpcInterface::~AbstractRpcInterface()
 {
-  m_socket->abort();
+  if (m_socket)
+    m_socket->abort();
   delete m_socket;
   m_socket = NULL;
 
@@ -83,6 +79,24 @@ AbstractRpcInterface::~AbstractRpcInterface()
 
   delete m_jsonrpc;
   m_jsonrpc = NULL;
+}
+
+void AbstractRpcInterface::setSocket(QLocalSocket *socket)
+{
+  if (m_socket != NULL) {
+    m_socket->abort();
+    m_socket->deleteLater();
+  }
+  if (socket != NULL) {
+    connect(socket, SIGNAL(readyRead()),
+            this, SLOT(readSocket()));
+  }
+  m_dataStream->setDevice(socket);
+  m_socket = socket;
+
+  qDebug() << "Connected to" << ((m_socket == NULL)
+                                 ? QString("Nothing!")
+                                 : m_socket->serverName());
 }
 
 void AbstractRpcInterface::readSocket()

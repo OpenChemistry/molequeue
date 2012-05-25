@@ -14,6 +14,7 @@ set(MyTests
   jsonrpc
   program
   queue
+  serverconnection
   )
 
 foreach(test ${MyTests})

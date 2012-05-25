@@ -142,6 +142,9 @@ void AbstractRpcInterfaceTest::initTestCase()
 {
   m_server = new TestServer(&m_packet);
   m_rpc = new MoleQueue::AbstractRpcInterface();
+  QLocalSocket *socket = new QLocalSocket;
+  socket->connectToServer("MoleQueue");
+  m_rpc->setSocket(socket);
   // Let the event loop run a bit to handle the connections
   qApp->processEvents(QEventLoop::AllEvents, 1000);
 }
