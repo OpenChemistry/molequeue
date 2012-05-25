@@ -18,14 +18,12 @@
 
 #include "jobrequest.h"
 #include "molequeueglobal.h"
-#include "program.h"
-#include "queue.h"
-#include "queuemanager.h"
 
 #include <json/json.h>
 
 #include <QtCore/QDateTime>
 #include <QtCore/QDebug>
+#include <QtCore/QDir>
 #include <QtCore/QHash>
 #include <QtCore/QPair>
 #include <QtCore/QVariantHash>
@@ -335,21 +333,20 @@ PacketType JsonRpc::generateQueueListRequest(IdType packetId)
   return ret;
 }
 
-PacketType JsonRpc::generateQueueList(const QueueManager *qmanager,
-                                        IdType packetId)
+PacketType JsonRpc::generateQueueList(const QueueListType &queueList,
+                                      IdType packetId)
 {
-  if (!qmanager) {
-    qDebug() << Q_FUNC_INFO << "called with a NULL QueueManager?";
-    return PacketType();
-  }
   Json::Value packet = generateEmptyResponse(packetId);
 
   Json::Value resultObject (Json::objectValue);
-  foreach (const Queue *queue, qmanager->queues()) {
-    const std::string queueName = queue->name().toStdString();
+  // Workaround for preprocessor -- it's interpreting the template arg delimeter
+  // as the macro arg delimiter
+  typedef QPair<QString, QStringList> QueueListPairType;
+  foreach (const QueueListPairType pair, queueList) {
+    const std::string queueName = pair.first.toStdString();
 
     Json::Value programArray (Json::arrayValue);
-    foreach (const QString prog, queue->programs()) {
+    foreach (const QString prog, pair.second) {
       const std::string progName = prog.toStdString();
       programArray.append(progName);
     }

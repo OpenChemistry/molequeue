@@ -19,6 +19,7 @@
 
 #include "abstractrpcinterface.h"
 
+#include "jobrequest.h"
 #include "molequeueglobal.h"
 
 #include <QtCore/QtContainerFwd>
@@ -53,12 +54,6 @@ public:
    * Destructor.
    */
   virtual ~Client();
-
-  /**
-   * Create a new JobRequest through this client and return a reference to it.
-   * @return The new JobRequest
-   */
-  JobRequest & newJobRequest();
 
   /**
    * Retreive the most recent list of Queues and Programs.
@@ -118,6 +113,14 @@ signals:
 public slots:
 
   /**
+   * Connect to the server.
+   *
+   * @param serverName Name of the socket to connect through. Typically
+   * "MoleQueue" -- do not change this unless you know what you are doing.
+   */
+  void connectToServer(const QString &serverName = "MoleQueue");
+
+  /**
    * Request a list of Queues and Programs from the server.
    * @sa queueListUpdated()
    * @sa queueList()
@@ -128,7 +131,7 @@ public slots:
    * Submit the job request to the connected server.
    * @param req The JobRequest
    */
-  void submitJobRequest(const JobRequest &req);
+  void submitJobRequest(JobRequest &req);
 
   /**
    * Cancel a previously submitted job request.

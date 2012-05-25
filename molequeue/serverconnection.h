@@ -83,9 +83,10 @@ public slots:
 
   /**
    * Sends the @a list to the connected client.
-   * @param manager The QueueManager
+   * @param manager The QueueManager List
+   * @sa QueueManager::toQueueList()
    */
-  void sendQueueList(QueueManager *manager);
+  void sendQueueList(const QueueListType &queueList);
 
   /**
    * Sends a reply to the client informing them that the job submission was

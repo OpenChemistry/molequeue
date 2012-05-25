@@ -54,7 +54,7 @@ ServerConnection::~ServerConnection()
 {
 }
 
-void ServerConnection::sendQueueList(QueueManager *manager)
+void ServerConnection::sendQueueList(const QueueListType &queueList)
 {
   if (m_listQueuesLUT.isEmpty()) {
     qWarning() << Q_FUNC_INFO << "Refusing to send listQueues reply -- no "
@@ -63,7 +63,7 @@ void ServerConnection::sendQueueList(QueueManager *manager)
   }
 
   IdType packetId = m_listQueuesLUT.takeFirst();
-  PacketType packet = m_jsonrpc->generateQueueList(manager, packetId);
+  PacketType packet = m_jsonrpc->generateQueueList(queueList, packetId);
   this->sendPacket(packet);
 }
 

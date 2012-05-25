@@ -16,7 +16,6 @@
 
 #include "client.h"
 
-#include "jobrequest.h"
 #include "jsonrpc.h"
 
 #include <QtNetwork/QLocalSocket>
@@ -44,7 +43,6 @@ Client::Client(QObject *parentObject) :
   qRegisterMetaType<JobRequest>("JobRequest");
 
   QLocalSocket *socket = new QLocalSocket ();
-  socket->connectToServer("MoleQueue");
   this->setSocket(socket);
 
   connect(m_jsonrpc, SIGNAL(queueListReceived(IdType,QueueListType)),
@@ -77,21 +75,17 @@ Client::~Client()
   m_canceledLUT = NULL;
 }
 
-JobRequest &Client::newJobRequest()
-{
-  m_jobArray->push_back(JobRequest (this));
-  JobRequest &newJob = m_jobArray->back();
-  newJob.setClientId(m_jobArray->size());
-  return newJob;
-}
-
 QueueListType Client::queueList() const
 {
   return m_queueList;
 }
 
-void Client::submitJobRequest(const JobRequest &req)
+void Client::submitJobRequest(JobRequest &req)
 {
+  IdType clientId = m_jobArray->size() + 1;
+  req.setClientId(clientId);
+  m_jobArray->push_back(req);
+
   const IdType id = this->nextPacketId();
   const PacketType packet = m_jsonrpc->generateJobRequest(req, id);
   m_submittedLUT->insert(id, req.clientId());
@@ -200,6 +194,36 @@ void Client::jobStateChangeReceived(IdType moleQueueId,
   req->setJobState(newState);
 
   emit jobStateChanged(*req, oldState, newState);
+}
+
+void Client::connectToServer(const QString &serverName)
+{
+  if (m_socket == NULL) {
+    qWarning() << Q_FUNC_INFO << "Cannot connect to server at" << serverName
+               << ", socket is not set.";
+    return;
+  }
+
+  if (m_socket->isOpen()) {
+    if (m_socket->serverName() == serverName) {
+      DEBUGOUT("connectToServer") "Socket already connected to" << serverName;
+      return;
+    }
+    else {
+      DEBUGOUT("connectToServer") "Disconnecting from server"
+          << m_socket->serverName();
+      m_socket->disconnectFromServer();
+    }
+  }
+  if (serverName.isEmpty()) {
+    DEBUGOUT("connectToServer") "No server specified. Not attempting connection.";
+    return;
+  }
+  else {
+    m_socket->connectToServer(serverName);
+    DEBUGOUT("connectToServer") "Client connected to server"
+        << m_socket->serverName();
+  }
 }
 
 void Client::requestQueueListUpdate()

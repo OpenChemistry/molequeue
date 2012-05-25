@@ -179,8 +179,8 @@ public:
     * @param packetId The JSON-RPC id for the request.
     * @return A PacketType, ready to send to a QLocalSocket.
     */
-  PacketType generateQueueList(const QueueManager *qmanager,
-                                 IdType packetId);
+  PacketType generateQueueList(const QueueListType &queueList,
+                               IdType packetId);
 
   /**
     * Generate a JSON-RPC packet to notify listeners that a job has changed

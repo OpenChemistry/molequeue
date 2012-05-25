@@ -493,7 +493,7 @@ void JsonRpcTest::generateQueueListRequest()
 
 void JsonRpcTest::generateQueueList()
 {
-  m_packet = m_rpc.generateQueueList(&m_qmanager, 23);
+  m_packet = m_rpc.generateQueueList(m_qmanager.toQueueList(), 23);
   if (!m_rpc.validateResponse(m_packet, true)) {
     qDebug() << "Queue list response packet failed validation!";
     m_error = true;
