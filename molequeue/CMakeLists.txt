@@ -60,8 +60,8 @@ set(mq_moc
   queuemanagerdialog.h
   queuesettingsdialog.h
 )
-
 qt4_wrap_cpp(moc_srcs ${mq_moc})
+
 qt4_wrap_ui(ui_srcs
   ui/addqueuedialog.ui
   ui/mainwindow.ui
@@ -102,3 +102,33 @@ endif()
 if(ENABLE_TESTING)
   add_subdirectory(testing)
 endif()
+
+# Client library
+set(mqclient_srcs
+  abstractrpcinterface.cpp
+  client.cpp
+  jobrequest.cpp
+  jsonrpc.cpp
+  molequeueglobal.h
+  ${jsoncpp_srcs}
+)
+
+set(mqclient_moc
+  abstractrpcinterface.h
+  client.h
+  jsonrpc.h
+)
+
+#TODO need to install these
+set(mqclient_headers
+  abstractrpcinterface.h
+  client.h
+  jobrequest.h
+  molequeueglobal.h
+  ${JSONCPP_SOURCE_DIR}/json/json-forwards.h
+)
+
+qt4_wrap_cpp(mqclient_moc_srcs ${mqclient_moc})
+add_library(molequeueclient SHARED ${mqclient_srcs} ${mqclient_moc_srcs})
+target_link_libraries(molequeueclient ${QT_LIBRARIES})
+install(TARGETS molequeueclient DESTINATION lib)
