@@ -85,11 +85,15 @@ void AbstractRpcInterface::setSocket(QLocalSocket *socket)
 {
   if (m_socket != NULL) {
     m_socket->abort();
+    m_socket->disconnect(this);
+    this->disconnect(m_socket);
     m_socket->deleteLater();
   }
   if (socket != NULL) {
     connect(socket, SIGNAL(readyRead()),
             this, SLOT(readSocket()));
+    connect(socket, SIGNAL(disconnected()),
+            this, SLOT(socketDisconnected()));
   }
   m_dataStream->setDevice(socket);
   m_socket = socket;
@@ -146,6 +150,11 @@ void AbstractRpcInterface::sendPacket(const PacketType &packet)
   m_dataStream->writeBytes(packet.constData(),
                            static_cast<unsigned int>(packet.size()));
   m_socket->flush();
+}
+
+void AbstractRpcInterface::socketDisconnected()
+{
+  emit disconnected();
 }
 
 void AbstractRpcInterface::replyToInvalidPacket(

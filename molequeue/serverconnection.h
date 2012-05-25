@@ -53,6 +53,9 @@ public:
   /// Used for internal lookup structures
   typedef QMap<IdType, IdType> PacketLookupTable;
 
+  /// The Server parent can work on some internal methods
+  friend class MoleQueue::Server;
+
   /// Used for unit testing
   friend class ::ServerConnectionTest;
 
@@ -137,18 +140,35 @@ protected slots:
    */
   void jobCancellationRequestReceived(IdType, IdType moleQueueId);
 
+  /**
+   * Start handling incoming request. This should be called by the parent server
+   * after connections are in place. This function will enable request
+   * processing and then flush any pending requests.
+   */
+  void startProcessing();
+
+  /**
+   * Reimplemented from AbstractRpcInterface to respect m_holdRequests.
+   */
+  void readSocket();
+
 protected:
   /// The parent server instance
   Server *m_server;
 
   /// Tracks queue list requests
-  QList<IdType> *m_listQueuesLUT;
+  QList<IdType> m_listQueuesLUT;
 
   /// Tracks job submission requests: clientId --> packetId
-  PacketLookupTable *m_submissionLUT;
+  PacketLookupTable m_submissionLUT;
 
   /// Tracks job cancellation requests: moleQueueId --> packetId
-  PacketLookupTable *m_cancellationLUT;
+  PacketLookupTable m_cancellationLUT;
+
+  /// If true, do not read incoming packets from the socket. This is to let
+  /// the parent server create connections prior to processing requests.
+  /// @sa startProcessing
+  bool m_holdRequests;
 
 };
 

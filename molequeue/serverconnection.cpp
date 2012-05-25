@@ -19,8 +19,10 @@
 #include "jobrequest.h"
 #include "jsonrpc.h"
 
-#include <QtNetwork/QLocalSocket>
+#include <QtCore/QDateTime>
 #include <QtCore/QMap>
+
+#include <QtNetwork/QLocalSocket>
 
 #define DEBUGOUT(title) \
   if (this->m_debug)    \
@@ -33,9 +35,7 @@ namespace MoleQueue
 ServerConnection::ServerConnection(Server *parentServer,
                                    QLocalSocket *theSocket)
   : m_server(parentServer),
-    m_listQueuesLUT(new QList<IdType> ()),
-    m_submissionLUT(new PacketLookupTable ()),
-    m_cancellationLUT(new PacketLookupTable ())
+    m_holdRequests(true)
 {
   qRegisterMetaType<JobRequest>("JobRequest");
   qRegisterMetaType<QueueListType>("QueueListType");
@@ -52,25 +52,17 @@ ServerConnection::ServerConnection(Server *parentServer,
 
 ServerConnection::~ServerConnection()
 {
-  delete m_listQueuesLUT;
-  m_listQueuesLUT = NULL;
-
-  delete m_submissionLUT;
-  m_submissionLUT = NULL;
-
-  delete m_cancellationLUT;
-  m_cancellationLUT = NULL;
 }
 
 void ServerConnection::sendQueueList(QueueManager *manager)
 {
-  if (m_listQueuesLUT->isEmpty()) {
+  if (m_listQueuesLUT.isEmpty()) {
     qWarning() << Q_FUNC_INFO << "Refusing to send listQueues reply -- no "
                   "pending requests.";
     return;
   }
 
-  IdType packetId = m_listQueuesLUT->takeFirst();
+  IdType packetId = m_listQueuesLUT.takeFirst();
   PacketType packet = m_jsonrpc->generateQueueList(manager, packetId);
   this->sendPacket(packet);
 }
@@ -79,13 +71,13 @@ void ServerConnection::sendSuccessfulSubmissionResponse(const JobRequest &req)
 {
   // Lookup the moleQueueId in the hash so that we can send the correct packetId
   const IdType clientId = req.clientId();
-  if (!m_submissionLUT->contains(clientId)) {
+  if (!m_submissionLUT.contains(clientId)) {
     qWarning() << "Refusing to confirm job submission; unrecognized client id:"
                << clientId;
     return;
   }
 
-  const IdType packetId = m_submissionLUT->take(clientId);
+  const IdType packetId = m_submissionLUT.take(clientId);
   PacketType packet =  m_jsonrpc->generateJobSubmissionConfirmation(
         req.moleQueueId(), req.queueJobId(), req.localWorkingDirectory(),
         packetId);
@@ -98,13 +90,13 @@ void ServerConnection::sendFailedSubmissionResponse(const JobRequest &req,
 {
   // Lookup the moleQueueId in the hash so that we can send the correct packetId
   const IdType clientId = req.clientId();
-  if (!m_submissionLUT->contains(clientId)) {
+  if (!m_submissionLUT.contains(clientId)) {
     qWarning() << "Refusing to send job failure; unrecognized client id:"
                << clientId;
     return;
   }
 
-  const IdType packetId = m_submissionLUT->take(clientId);
+  const IdType packetId = m_submissionLUT.take(clientId);
 
   PacketType packet =  m_jsonrpc->generateErrorResponse(static_cast<int>(ec),
                                                         errorMessage,
@@ -116,13 +108,13 @@ void ServerConnection::sendSuccessfulCancellationResponse(const JobRequest &req)
 {
   // Lookup the moleQueueId in the hash so that we can send the correct packetId
   const IdType moleQueueId = req.moleQueueId();
-  if (!m_cancellationLUT->contains(moleQueueId)) {
+  if (!m_cancellationLUT.contains(moleQueueId)) {
     qWarning() << "Refusing to confirm job cancellation; unrecognized id:"
                << moleQueueId;
     return;
   }
 
-  const IdType packetId = m_cancellationLUT->take(moleQueueId);
+  const IdType packetId = m_cancellationLUT.take(moleQueueId);
   PacketType packet =  m_jsonrpc->generateJobCancellationConfirmation(
         req.moleQueueId(), packetId);
   this->sendPacket(packet);
@@ -139,7 +131,7 @@ void ServerConnection::sendJobStateChangeNotification(const JobRequest &req,
 
 void ServerConnection::queueListRequestReceived(IdType packetId)
 {
-  m_listQueuesLUT->push_back(packetId);
+  m_listQueuesLUT.push_back(packetId);
   emit queueListRequested();
 }
 
@@ -149,7 +141,7 @@ void ServerConnection::jobSubmissionRequestReceived(IdType packetId,
   JobRequest req;
   req.setFromHash(options);
 
-  m_submissionLUT->insert(req.clientId(), packetId);
+  m_submissionLUT.insert(req.clientId(), packetId);
 
   emit jobSubmissionRequested(req);
 }
@@ -157,8 +149,28 @@ void ServerConnection::jobSubmissionRequestReceived(IdType packetId,
 void ServerConnection::jobCancellationRequestReceived(IdType packetId,
                                                       IdType moleQueueId)
 {
-  m_cancellationLUT->insert(moleQueueId, packetId);
+  m_cancellationLUT.insert(moleQueueId, packetId);
   emit jobCancellationRequested(moleQueueId);
+}
+
+void ServerConnection::startProcessing()
+{
+  m_holdRequests = false;
+  DEBUGOUT("startProcessing") "Started handling requests.";
+  while (m_socket->bytesAvailable() != 0) {
+    DEBUGOUT("startProcessing") "Flushing request backlog...";
+    this->readSocket();
+  }
+}
+
+void ServerConnection::readSocket()
+{
+  if (m_holdRequests) {
+    DEBUGOUT("readSocket") "Skipping socket read; requests are currently held.";
+    return;
+  }
+
+  this->AbstractRpcInterface::readSocket();
 }
 
 } // end namespace MoleQueue

@@ -1,4 +1,4 @@
-find_package(Qt4 COMPONENTS QtCore QtGui QtNetwork)
+find_package(Qt4 4.8.0 COMPONENTS QtCore QtGui QtNetwork)
 
 include(${QT_USE_FILE})
 
@@ -22,6 +22,7 @@ set(mq_srcs
   queue.cpp
   queuemanager.cpp
   queueitemmodel.cpp
+  server.cpp
   serverconnection.cpp
   sshcommand.cpp
   sshconnection.cpp
@@ -46,6 +47,7 @@ set(mq_moc
   queue.h
   queuemanager.h
   queueitemmodel.h
+  server.h
   serverconnection.h
   sshcommand.h
   sshconnection.h

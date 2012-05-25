@@ -62,6 +62,11 @@ signals:
    */
   void newPacketReady(const PacketType &packet);
 
+  /**
+   * Emitted when the socket is disconnected.
+   */
+  void disconnected();
+
 public slots:
 
 protected slots:
@@ -70,12 +75,12 @@ protected slots:
    * Sets this AbstractRpcInterface to use the passed socket.
    * @param socket The QLocalSocket to use
    */
-  void setSocket(QLocalSocket *socket);
+  virtual void setSocket(QLocalSocket *socket);
 
   /**
    * Read data from the local socket until a complete packet has been obtained.
    */
-  void readSocket();
+  virtual void readSocket();
 
   /**
    * Interpret a newly received packet.
@@ -90,6 +95,12 @@ protected slots:
    * @param packet The packet
    */
   void sendPacket(const PacketType &packet);
+
+  /**
+   * Called when a local socket disconnects. This emits the disconnected()
+   * signal.
+   */
+  void socketDisconnected();
 
   /**
    * Send a response indicating that an invalid packet (unparsable) has been
