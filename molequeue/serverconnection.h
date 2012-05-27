@@ -71,7 +71,7 @@ signals:
    * Emitted when the client sends a request for a new job submission.
    * @param req The Job
    */
-  void jobSubmissionRequested(const Job &req);
+  void jobSubmissionRequested(const Job *req);
 
   /**
    * Emitted when the client sends a request to cancel a submitted job.
@@ -93,7 +93,7 @@ public slots:
    * successful.
    * @param req The Job
    */
-  void sendSuccessfulSubmissionResponse(const Job &req);
+  void sendSuccessfulSubmissionResponse(const Job *req);
 
   /**
    * Sends a reply to the client informing them that the job submission failed.
@@ -101,7 +101,7 @@ public slots:
    * @param ec Error code
    * @param errorMessage Descriptive string
    */
-  void sendFailedSubmissionResponse(const Job &req,
+  void sendFailedSubmissionResponse(const Job *req,
                                     JobSubmissionErrorCode ec,
                                     const QString &errorMessage);
 
@@ -110,7 +110,7 @@ public slots:
    * successful.
    * @param req The Job
    */
-  void sendSuccessfulCancellationResponse(const Job &req);
+  void sendSuccessfulCancellationResponse(const Job *req);
 
   /**
    * Sends a notification to the connected client informing them that a job
@@ -119,7 +119,7 @@ public slots:
    * @param oldState
    * @param newState
    */
-  void sendJobStateChangeNotification(const Job &req,
+  void sendJobStateChangeNotification(const Job *req,
                                       JobState oldState, JobState newState);
 
 protected slots:
@@ -160,7 +160,7 @@ protected:
   /// Tracks queue list requests
   QList<IdType> m_listQueuesLUT;
 
-  /// Tracks job submission requests: clientId --> packetId
+  /// Tracks job submission requests: moleQueueId --> packetId
   PacketLookupTable m_submissionLUT;
 
   /// Tracks job cancellation requests: moleQueueId --> packetId

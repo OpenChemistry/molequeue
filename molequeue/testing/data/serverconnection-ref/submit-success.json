@@ -2,7 +2,7 @@
    "id" : 92,
    "jsonrpc" : "2.0",
    "result" : {
-      "moleQueueJobId" : 23,
+      "moleQueueJobId" : 1,
       "queueJobId" : 1439932,
       "workingDirectory" : "/tmp/some/path"
    }

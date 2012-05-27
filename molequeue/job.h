@@ -23,11 +23,15 @@
 #include <QtCore/QString>
 #include <QtCore/QVariantHash>
 
+class JobManagerTest;
+class JsonRpcTest;
 class ServerConnectionTest;
 
 namespace MoleQueue
 {
 class Client;
+class JobManager;
+class Server;
 
 /**
  * @class Job job.h <molequeue/job.h>
@@ -37,19 +41,6 @@ class Client;
 class Job
 {
 public:
-  /**
-    * Constructor. Can only be called from MoleQueueClient.
-    *
-    * @param parent MoleQueueClient parent.
-    */
-  Job(Client *parent = NULL);
-
-  /**
-    * Constructor. Can only be called from MoleQueueClient.
-    *
-    * @param parent MoleQueueClient parent.
-    */
-  Job(const Job &other);
 
   /// @param newQueue name of the queue.
   void setQueue(const QString &newQueue) {m_queue = newQueue;}
@@ -153,10 +144,11 @@ public:
   /// @param hash The Job
   void setFromHash(const QVariantHash &state);
 
-  /// Only Clients can modify some properties
-  friend class Client;
-
-  /// Used for unit testing
+  friend class MoleQueue::Client;
+  friend class MoleQueue::JobManager;
+  friend class MoleQueue::Server;
+  friend class ::JobManagerTest;
+  friend class ::JsonRpcTest;
   friend class ::ServerConnectionTest;
 
 protected:
@@ -176,8 +168,6 @@ protected:
   /// @param id Client ID
   void setClientId(IdType id) {m_clientId = id;}
 
-  /// MoleQueueClient parent
-  Client *m_client;
   /// Name of queue to use
   QString m_queue;
   /// Name of program to run
@@ -213,10 +203,23 @@ protected:
   IdType m_queueJobId;
   /// Internal identifier used by Client
   IdType m_clientId;
+
+  /**
+    * Hidden constructor.
+    * @sa JobManager::newJob
+    */
+  Job();
+
+  /**
+    * Hidden constructor.
+    * @sa JobManager::newJob
+    */
+  Job(const Job &);
 };
 
 } // end namespace MoleQueue
 
-Q_DECLARE_METATYPE(MoleQueue::Job)
+Q_DECLARE_METATYPE(MoleQueue::Job*)
+Q_DECLARE_METATYPE(const MoleQueue::Job*)
 
 #endif // JOB_H

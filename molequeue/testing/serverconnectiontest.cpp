@@ -19,10 +19,12 @@
 #include "serverconnection.h"
 
 #include "job.h"
+#include "jobmanager.h"
 #include "molequeueglobal.h"
 #include "program.h"
 #include "queue.h"
 #include "queuemanager.h"
+#include "server.h"
 
 #include <QtGui/QApplication>
 
@@ -104,7 +106,8 @@ class ServerConnectionTest : public QObject
   Q_OBJECT
 
 private:
-  TestServer *m_server;
+  TestServer *m_testServer;
+  MoleQueue::Server *m_server;
   MoleQueue::ServerConnection *m_serverConnection;
   MoleQueue::PacketType m_packet;
 
@@ -149,10 +152,12 @@ MoleQueue::PacketType ServerConnectionTest::readReferenceString(const QString &f
 
 void ServerConnectionTest::initTestCase()
 {
-  m_server = new TestServer(&m_packet);
+  m_testServer = new TestServer(&m_packet);
+
+  m_server = new MoleQueue::Server ();
   QLocalSocket *serverSocket = new QLocalSocket ();
   serverSocket->connectToServer("MoleQueue");
-  m_serverConnection = new MoleQueue::ServerConnection(NULL, serverSocket);
+  m_serverConnection = new MoleQueue::ServerConnection(m_server, serverSocket);
   m_serverConnection->startProcessing();
   // Let the event loop run a bit to handle the connections
   qApp->processEvents(QEventLoop::AllEvents, 1000);
@@ -160,6 +165,7 @@ void ServerConnectionTest::initTestCase()
 
 void ServerConnectionTest::cleanupTestCase()
 {
+  delete m_testServer;
   delete m_server;
   delete m_serverConnection;
 }
@@ -232,7 +238,7 @@ void ServerConnectionTest::testSendSuccessfulSubmissionResponse()
   MoleQueue::Job req;
 
   req.setLocalWorkingDirectory("/tmp/some/path");
-  req.setMolequeueId(23);
+  req.setMolequeueId(1);
   req.setClientId(2);
   req.setQueueJobId(1439932);
 
@@ -240,7 +246,7 @@ void ServerConnectionTest::testSendSuccessfulSubmissionResponse()
   m_serverConnection->jobSubmissionRequestReceived(92, req.hash());
 
   // Send the reply
-  m_serverConnection->sendSuccessfulSubmissionResponse(req);
+  m_serverConnection->sendSuccessfulSubmissionResponse(&req);
 
   while (m_packet.size() == 0) {
     qApp->processEvents(QEventLoop::AllEvents, 100);
@@ -259,8 +265,13 @@ void ServerConnectionTest::testSendFailedSubmissionResponse()
   // Fake the request
   m_serverConnection->jobSubmissionRequestReceived(92, req.hash());
 
+  // Get the molequeue id of the submitted job
+  MoleQueue::IdType mqId =
+      m_serverConnection->m_server->jobManager()->jobs().last()->moleQueueId();
+  req.setMolequeueId(mqId);
+
   // Send the reply
-  m_serverConnection->sendFailedSubmissionResponse(req, MoleQueue::Success,
+  m_serverConnection->sendFailedSubmissionResponse(&req, MoleQueue::Success,
                                                    "Not a real error!");
 
   while (m_packet.size() == 0) {
@@ -282,7 +293,7 @@ void ServerConnectionTest::testSendSuccessfulCancellationResponse()
   m_serverConnection->jobCancellationRequestReceived(93, req.moleQueueId());
 
   // Send the reply
-  m_serverConnection->sendSuccessfulCancellationResponse(req);
+  m_serverConnection->sendSuccessfulCancellationResponse(&req);
 
   while (m_packet.size() == 0) {
     qApp->processEvents(QEventLoop::AllEvents, 100);
@@ -300,7 +311,7 @@ void ServerConnectionTest::testJobStateChangeNotification()
   req.setMolequeueId(15);
 
   m_serverConnection->sendJobStateChangeNotification(
-        req, MoleQueue::RunningLocal, MoleQueue::Finished);
+        &req, MoleQueue::RunningLocal, MoleQueue::Finished);
 
 
   while (m_packet.size() == 0) {
@@ -320,7 +331,7 @@ void ServerConnectionTest::testQueueListRequested()
   MoleQueue::PacketType response =
       this->readReferenceString("serverconnection-ref/queue-list-request.json");
 
-  m_server->sendPacket(response);
+  m_testServer->sendPacket(response);
 
   qApp->processEvents(QEventLoop::AllEvents, 1000);
   QCOMPARE(spy.count(), 1);
@@ -329,19 +340,19 @@ void ServerConnectionTest::testQueueListRequested()
 void ServerConnectionTest::testJobSubmissionRequested()
 {
   QSignalSpy spy (m_serverConnection,
-                  SIGNAL(jobSubmissionRequested(Job)));
+                  SIGNAL(jobSubmissionRequested(const Job*)));
 
   MoleQueue::PacketType response =
       this->readReferenceString("serverconnection-ref/job-request.json");
 
-  m_server->sendPacket(response);
+  m_testServer->sendPacket(response);
 
   qApp->processEvents(QEventLoop::AllEvents, 1000);
   QCOMPARE(spy.count(), 1);
   QCOMPARE(spy.first().size(), 1);
 
-  MoleQueue::Job req = spy.first().first().value<MoleQueue::Job>();
-  QCOMPARE(req.description(), QString("spud slicer 28"));
+  const MoleQueue::Job *req = spy.first().first().value<const MoleQueue::Job*>();
+  QCOMPARE(req->description(), QString("spud slicer 28"));
 }
 
 void ServerConnectionTest::testJobCancellationRequested()
@@ -352,7 +363,7 @@ void ServerConnectionTest::testJobCancellationRequested()
   MoleQueue::PacketType response =
       this->readReferenceString("serverconnection-ref/job-cancellation.json");
 
-  m_server->sendPacket(response);
+  m_testServer->sendPacket(response);
 
   qApp->processEvents(QEventLoop::AllEvents, 1000);
   QCOMPARE(spy.count(), 1);

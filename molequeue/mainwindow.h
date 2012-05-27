@@ -63,7 +63,7 @@ protected slots:
 
   // ServerConnection handlers
   void queueListRequested();
-  void jobSubmissionRequested(const Job &req);
+  void jobSubmissionRequested(const Job *req);
   void jobCancellationRequested(IdType moleQueueId);
 
 protected:
