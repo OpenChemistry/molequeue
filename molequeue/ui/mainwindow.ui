@@ -16,7 +16,7 @@
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
-     <widget class="MoleQueue::JobTreeView" name="jobView">
+     <widget class="QTreeView" name="jobView">
       <property name="alternatingRowColors">
        <bool>true</bool>
       </property>
@@ -78,13 +78,6 @@
    </property>
   </action>
  </widget>
- <customwidgets>
-  <customwidget>
-   <class>MoleQueue::JobTreeView</class>
-   <extends>QTreeView</extends>
-   <header location="global">molequeue/jobtreeview.h</header>
-  </customwidget>
- </customwidgets>
  <resources/>
  <connections/>
 </ui>

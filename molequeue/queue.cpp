@@ -83,7 +83,7 @@ QStringList Queue::programs() const
   return programList;
 }
 
-bool Queue::submit(Job *job)
+bool Queue::submit(JobRequest *job)
 {
   Q_UNUSED(job);
 

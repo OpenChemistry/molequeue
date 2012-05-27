@@ -28,7 +28,7 @@ class QSettings;
 
 namespace MoleQueue {
 
-class Job;
+class JobRequest;
 
 /**
  * Abstract queue, generally want QueueLocal, or QueueRemote derived classes
@@ -125,9 +125,9 @@ public:
   QStringList programs() const;
 
 signals:
-  void jobAdded(Job *job);
-  void jobStateChanged(Job *job);
-  void jobRemoved(Job *job);
+  void jobAdded(JobRequest *job);
+  void jobStateChanged(JobRequest *job);
+  void jobRemoved(JobRequest *job);
 
 public slots:
   /**
@@ -135,12 +135,12 @@ public slots:
    * \param job The Program object to submit to the queue.
    * \return True on successful addition to the queue.
    */
-  virtual bool submit(Job *job);
+  virtual bool submit(JobRequest *job);
 
 protected:
   QString m_name;
   QMap<QString, Program *> m_programs;
-  QList<Job *> m_jobs;
+  QList<JobRequest *> m_jobs;
 
   /** This stores the long running job number, largely used as a directory for
    * storage or staged files. This is often an offset applied to the locally

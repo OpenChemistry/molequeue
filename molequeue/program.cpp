@@ -16,7 +16,6 @@
 
 #include "program.h"
 
-#include "job.h"
 #include "queue.h"
 
 #include <QtCore/QDebug>
@@ -43,16 +42,6 @@ Program::Program(const Program &other)
   m_queue = other.m_queue;
   m_title = other.m_title;
   m_name = other.m_name;
-}
-
-Job* Program::createJob() const
-{
-  Job *job = new Job(this);
-
-  job->setName(m_name);
-  job->setTitle(m_title);
-
-  return job;
 }
 
 QString Program::queueName() const

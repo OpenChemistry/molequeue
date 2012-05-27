@@ -35,7 +35,6 @@ class MainWindow;
 namespace MoleQueue {
 
 class Connection;
-class JobItemModel;
 class JobRequest;
 class Program;
 class Queue;
@@ -89,8 +88,6 @@ protected:
   Server *m_server;
 
   QueueManager *m_queueManager;
-
-  JobItemModel *m_jobModel;
 
   QString m_tmpDir;
   QString m_localDir;
