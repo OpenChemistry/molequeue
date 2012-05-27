@@ -16,7 +16,7 @@
 
 #include "sge.h"
 
-#include "../jobrequest.h"
+#include "../job.h"
 #include "../program.h"
 #include "../terminalprocess.h"
 #include "../sshcommand.h"
@@ -42,7 +42,7 @@ QueueSGE::~QueueSGE()
     m_timer->deleteLater();
 }
 
-bool QueueSGE::submit(JobRequest *job)
+bool QueueSGE::submit(Job *job)
 {
   m_jobs.push_back(job);
   job->setJobState(MoleQueue::LocalQueued);
@@ -51,12 +51,12 @@ bool QueueSGE::submit(JobRequest *job)
   return true;
 }
 
-void QueueSGE::jobStarted(JobRequest * /*job*/)
+void QueueSGE::jobStarted(Job * /*job*/)
 {
 
 }
 
-void QueueSGE::jobFinished(JobRequest *job)
+void QueueSGE::jobFinished(Job *job)
 {
   job->setJobState(MoleQueue::Finished);
   emit(jobStateChanged(job));
@@ -150,7 +150,7 @@ void QueueSGE::setupProcess()
 
 void QueueSGE::submitJob(int jobId)
 {
-  JobRequest *job = m_jobs[jobId];
+  Job *job = m_jobs[jobId];
   Q_UNUSED(job);
   /// @todo This will need to be rewritten:
   /*

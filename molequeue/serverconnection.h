@@ -29,7 +29,7 @@ class QLocalSocket;
 
 namespace MoleQueue
 {
-class JobRequest;
+class Job;
 class QueueManager;
 class Server;
 
@@ -69,9 +69,9 @@ signals:
 
   /**
    * Emitted when the client sends a request for a new job submission.
-   * @param req The JobRequest
+   * @param req The Job
    */
-  void jobSubmissionRequested(const JobRequest &req);
+  void jobSubmissionRequested(const Job &req);
 
   /**
    * Emitted when the client sends a request to cancel a submitted job.
@@ -91,26 +91,26 @@ public slots:
   /**
    * Sends a reply to the client informing them that the job submission was
    * successful.
-   * @param req The JobRequest
+   * @param req The Job
    */
-  void sendSuccessfulSubmissionResponse(const JobRequest &req);
+  void sendSuccessfulSubmissionResponse(const Job &req);
 
   /**
    * Sends a reply to the client informing them that the job submission failed.
-   * @param req The JobRequest
+   * @param req The Job
    * @param ec Error code
    * @param errorMessage Descriptive string
    */
-  void sendFailedSubmissionResponse(const JobRequest &req,
+  void sendFailedSubmissionResponse(const Job &req,
                                     JobSubmissionErrorCode ec,
                                     const QString &errorMessage);
 
   /**
    * Sends a reply to the client informing them that the job cancellation was
    * successful.
-   * @param req The JobRequest
+   * @param req The Job
    */
-  void sendSuccessfulCancellationResponse(const JobRequest &req);
+  void sendSuccessfulCancellationResponse(const Job &req);
 
   /**
    * Sends a notification to the connected client informing them that a job
@@ -119,7 +119,7 @@ public slots:
    * @param oldState
    * @param newState
    */
-  void sendJobStateChangeNotification(const JobRequest &req,
+  void sendJobStateChangeNotification(const Job &req,
                                       JobState oldState, JobState newState);
 
 protected slots:
@@ -131,7 +131,7 @@ protected slots:
 
   /**
    * Called when the JsonRpc instance handles a submitJob request.
-   * @param options Option hash (see JobRequest::hash())
+   * @param options Option hash (see Job::hash())
    */
   void jobSubmissionRequestReceived(IdType, const QVariantHash &options);
 

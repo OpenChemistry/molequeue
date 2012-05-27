@@ -16,7 +16,7 @@
 
 #include "jsonrpc.h"
 
-#include "jobrequest.h"
+#include "job.h"
 #include "program.h"
 #include "queue.h"
 #include "queuemanager.h"
@@ -369,7 +369,7 @@ void JsonRpcTest::validateNotification()
 
 void JsonRpcTest::generateJobRequest()
 {
-  JobRequest req (NULL);
+  Job req (NULL);
   req.setQueue("Some big ol' cluster");
   req.setProgram("Quantum Tater");
   req.setDescription("spud slicer 28");
@@ -432,7 +432,7 @@ void JsonRpcTest::generateErrorResponse()
 
 void JsonRpcTest::generateJobCancellation()
 {
-  JobRequest req (NULL);
+  Job req (NULL);
   req.setQueue("Some big ol' cluster");
   req.setProgram("Quantum Tater");
   req.setDescription("spud slicer 28");
@@ -620,7 +620,7 @@ void JsonRpcTest::interpretIncomingPacket_submitJobError()
   m_packet = m_rpc.generateErrorResponse(None, "Not a real error!",
                                          Json::nullValue, 15);
   // Register the packet id with this method for JsonRpc:
-  m_rpc.generateJobRequest(JobRequest (NULL), 15);
+  m_rpc.generateJobRequest(Job (NULL), 15);
   m_rpc.interpretIncomingPacket(m_packet);
 
   QCOMPARE(spy.count(), 1);
@@ -641,7 +641,7 @@ void JsonRpcTest::interpretIncomingPacket_cancelJobResult()
   QSignalSpy spy (&m_rpc, SIGNAL(
                     jobCancellationConfirmationReceived(IdType,IdType)));
   // Register the packet id with this method for JsonRpc:
-  m_rpc.generateJobCancellation(JobRequest (NULL),15);
+  m_rpc.generateJobCancellation(Job (NULL),15);
   m_packet = readReferenceString("jsonrpc-ref/job-cancellation-confirm.json");
   m_rpc.interpretIncomingPacket(m_packet);
 

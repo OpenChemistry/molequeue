@@ -35,7 +35,7 @@ class MainWindow;
 namespace MoleQueue {
 
 class Connection;
-class JobRequest;
+class Job;
 class Program;
 class Queue;
 class QueueManager;
@@ -63,7 +63,7 @@ protected slots:
 
   // ServerConnection handlers
   void queueListRequested();
-  void jobSubmissionRequested(const JobRequest &req);
+  void jobSubmissionRequested(const Job &req);
   void jobCancellationRequested(IdType moleQueueId);
 
 protected:

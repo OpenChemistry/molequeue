@@ -18,7 +18,7 @@
 #include "ui_mainwindow.h"
 
 #include "connection.h"
-#include "jobrequest.h"
+#include "job.h"
 #include "program.h"
 #include "queuemanager.h"
 #include "queuemanagerdialog.h"
@@ -182,8 +182,8 @@ void MainWindow::handleServerError(QAbstractSocket::SocketError err,
 void MainWindow::newConnection(ServerConnection *conn)
 {
   connect(conn, SIGNAL(queueListRequested()), this, SLOT(queueListRequested()));
-  connect(conn, SIGNAL(jobSubmissionRequested(JobRequest)),
-          this, SLOT(jobSubmissionRequested(JobRequest)));
+  connect(conn, SIGNAL(jobSubmissionRequested(Job)),
+          this, SLOT(jobSubmissionRequested(Job)));
   connect(conn, SIGNAL(jobCancellationRequested(IdType)),
           this, SLOT(jobCancellationRequested(IdType)));
 }
@@ -200,7 +200,7 @@ void MainWindow::queueListRequested()
   conn->sendQueueList(m_queueManager->toQueueList());
 }
 
-void MainWindow::jobSubmissionRequested(const JobRequest &req)
+void MainWindow::jobSubmissionRequested(const Job &req)
 {
   ServerConnection *conn = qobject_cast<ServerConnection*>(this->sender());
   if (conn == NULL) {
@@ -228,7 +228,7 @@ void MainWindow::jobCancellationRequested(IdType moleQueueId)
   qDebug() << "Job cancellation requested: MoleQueueId:" << moleQueueId;
 
   /// @todo actually handle the cancellation
-  JobRequest req;
+  Job req;
   //  req.setMolequeueId(moleQueueId); // needs to be done from within the
                                        // JobManager
   conn->sendSuccessfulCancellationResponse(req);

@@ -14,8 +14,8 @@
 
 ******************************************************************************/
 
-#ifndef JOBREQUEST_H
-#define JOBREQUEST_H
+#ifndef JOB_H
+#define JOB_H
 
 #include "molequeueglobal.h"
 
@@ -30,11 +30,11 @@ namespace MoleQueue
 class Client;
 
 /**
- * @class JobRequest jobrequest.h <molequeue/jobrequest.h>
+ * @class Job job.h <molequeue/job.h>
  * @brief Container for client-side job request details
  * @author David C. Lonie
  */
-class JobRequest
+class Job
 {
 public:
   /**
@@ -42,14 +42,14 @@ public:
     *
     * @param parent MoleQueueClient parent.
     */
-  JobRequest(Client *parent = NULL);
+  Job(Client *parent = NULL);
 
   /**
     * Constructor. Can only be called from MoleQueueClient.
     *
     * @param parent MoleQueueClient parent.
     */
-  JobRequest(const JobRequest &other);
+  Job(const Job &other);
 
   /// @param newQueue name of the queue.
   void setQueue(const QString &newQueue) {m_queue = newQueue;}
@@ -146,10 +146,10 @@ public:
   /// @return Internal client identifier
   IdType clientId() const {return m_clientId;}
 
-  /// @return The JobRequest's internal state as a QVariantHash
+  /// @return The Job's internal state as a QVariantHash
   QVariantHash hash() const;
 
-  /// Update the JobRequest's internal state from a QVariantHash
+  /// Update the Job's internal state from a QVariantHash
   /// @param hash The Job
   void setFromHash(const QVariantHash &state);
 
@@ -217,6 +217,6 @@ protected:
 
 } // end namespace MoleQueue
 
-Q_DECLARE_METATYPE(MoleQueue::JobRequest)
+Q_DECLARE_METATYPE(MoleQueue::Job)
 
-#endif // JOBREQUEST_H
+#endif // JOB_H

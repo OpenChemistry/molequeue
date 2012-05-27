@@ -14,12 +14,12 @@
 
 ******************************************************************************/
 
-#include "jobrequest.h"
+#include "job.h"
 
 namespace MoleQueue
 {
 
-JobRequest::JobRequest(MoleQueue::Client *parent)
+Job::Job(MoleQueue::Client *parent)
   : m_client(parent),
     m_jobState(MoleQueue::None),
     m_cleanRemoteFiles(false),
@@ -33,7 +33,7 @@ JobRequest::JobRequest(MoleQueue::Client *parent)
 {
 }
 
-JobRequest::JobRequest(const MoleQueue::JobRequest &other)
+Job::Job(const MoleQueue::Job &other)
   : m_client(other.m_client),
     m_queue(other.m_queue),
     m_program(other.m_program),
@@ -54,7 +54,7 @@ JobRequest::JobRequest(const MoleQueue::JobRequest &other)
 {
 }
 
-QVariantHash JobRequest::hash() const
+QVariantHash Job::hash() const
 {
   QVariantHash state;
 
@@ -78,7 +78,7 @@ QVariantHash JobRequest::hash() const
   return state;
 }
 
-void JobRequest::setFromHash(const QVariantHash &state)
+void Job::setFromHash(const QVariantHash &state)
 {
   m_queue = state.value("queue", "").toString();
   m_program = state.value("program", "").toString();

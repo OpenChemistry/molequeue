@@ -16,7 +16,7 @@
 
 #include "serverconnection.h"
 
-#include "jobrequest.h"
+#include "job.h"
 #include "jsonrpc.h"
 
 #include <QtCore/QDateTime>
@@ -37,7 +37,7 @@ ServerConnection::ServerConnection(Server *parentServer,
   : m_server(parentServer),
     m_holdRequests(true)
 {
-  qRegisterMetaType<JobRequest>("JobRequest");
+  qRegisterMetaType<Job>("Job");
   qRegisterMetaType<QueueListType>("QueueListType");
 
   this->setSocket(theSocket);
@@ -67,7 +67,7 @@ void ServerConnection::sendQueueList(const QueueListType &queueList)
   this->sendPacket(packet);
 }
 
-void ServerConnection::sendSuccessfulSubmissionResponse(const JobRequest &req)
+void ServerConnection::sendSuccessfulSubmissionResponse(const Job &req)
 {
   // Lookup the moleQueueId in the hash so that we can send the correct packetId
   const IdType clientId = req.clientId();
@@ -84,7 +84,7 @@ void ServerConnection::sendSuccessfulSubmissionResponse(const JobRequest &req)
   this->sendPacket(packet);
 }
 
-void ServerConnection::sendFailedSubmissionResponse(const JobRequest &req,
+void ServerConnection::sendFailedSubmissionResponse(const Job &req,
                                                     JobSubmissionErrorCode ec,
                                                     const QString &errorMessage)
 {
@@ -104,7 +104,7 @@ void ServerConnection::sendFailedSubmissionResponse(const JobRequest &req,
   this->sendPacket(packet);
 }
 
-void ServerConnection::sendSuccessfulCancellationResponse(const JobRequest &req)
+void ServerConnection::sendSuccessfulCancellationResponse(const Job &req)
 {
   // Lookup the moleQueueId in the hash so that we can send the correct packetId
   const IdType moleQueueId = req.moleQueueId();
@@ -120,7 +120,7 @@ void ServerConnection::sendSuccessfulCancellationResponse(const JobRequest &req)
   this->sendPacket(packet);
 }
 
-void ServerConnection::sendJobStateChangeNotification(const JobRequest &req,
+void ServerConnection::sendJobStateChangeNotification(const Job &req,
                                                       JobState oldState,
                                                       JobState newState)
 {
@@ -138,7 +138,7 @@ void ServerConnection::queueListRequestReceived(IdType packetId)
 void ServerConnection::jobSubmissionRequestReceived(IdType packetId,
                                                     const QVariantHash &options)
 {
-  JobRequest req;
+  Job req;
   req.setFromHash(options);
 
   m_submissionLUT.insert(req.clientId(), packetId);
