@@ -29,6 +29,7 @@ class QDir;
 namespace MoleQueue
 {
 class Job;
+class JobManager;
 
 /**
  * @class Client client.h <molequeue/client.h>
@@ -86,7 +87,7 @@ signals:
    * @param errorMessage String describing the error occurred. Empty if @a
    * success is true.
    */
-  void jobSubmitted(const Job & req, bool success,
+  void jobSubmitted(const Job *req, bool success,
                     const QString &errorMessage) const;
 
   /**
@@ -96,7 +97,7 @@ signals:
   * @param errorMessage String describing the error occurred. Empty if @a
   * success is true.
    */
-  void jobCanceled(const Job & req, bool success,
+  void jobCanceled(const Job *req, bool success,
                    const QString &errorMessage) const;
 
   /**
@@ -107,7 +108,7 @@ signals:
    * @param oldState The previous state of the job.
    * @param newState The new state of the job.
    */
-  void jobStateChanged(const Job &req,
+  void jobStateChanged(const Job *req,
                        JobState oldState, JobState newState);
 
 public slots:
@@ -128,18 +129,29 @@ public slots:
   void requestQueueListUpdate();
 
   /**
+   * @return A new Job object to fill with data and submit.
+   */
+  Job * newJobRequest();
+
+  /**
    * Submit the job request to the connected server.
    * @param req The Job
    */
-  void submitJobRequest(Job &req);
+  void submitJobRequest(const Job *req);
 
   /**
    * Cancel a previously submitted job.
    * @param req The Job
    */
-  void cancelJob(const Job &req);
+  void cancelJob(const Job *req);
 
 protected slots:
+
+  /**
+   * Set the client Id of a job before it is added to the manager.
+   * @param job The new Job.
+   */
+  void jobAboutToBeAdded(Job *job);
 
   /**
    * Called when the JsonRpc instance handles a listQueues response.
@@ -187,40 +199,8 @@ protected slots:
 
 protected:
 
-  /**
-   * Get the job request referenced by the indicated client id.
-   *
-   * @param clientId Client id of Job
-   * @return Requested Job
-   */
-  Job * jobByClientId(IdType clientId);
-
-  /**
-   * Get the job request referenced by the indicated client id.
-   *
-   * @param clientId Client id of Job
-   * @return Requested Job
-   */
-  const Job * jobByClientId(IdType clientId) const;
-
-  /**
-   * Get the job request referenced by the indicated MoleQueue id.
-   *
-   * @param moleQueueId MoleQueue id of Job
-   * @return Requested Job
-   */
-  Job * jobByMoleQueueId(IdType moleQueueId);
-
-  /**
-   * Get the job request referenced by the indicated MoleQueue id.
-   *
-   * @param moleQueueId MoleQueue id of Job
-   * @return Requested Job
-   */
-  const Job * jobByMoleQueueId(IdType moleQueueId) const;
-
-  /// List of all submitted jobs
-  QVector<Job> *m_jobArray;
+  /// JobManager for this client.
+  JobManager *m_jobManager;
 
   /// Map of submitted jobs pending reply. Key is packet id, value is client id.
   PacketLookupTable *m_submittedLUT;
