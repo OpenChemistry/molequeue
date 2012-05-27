@@ -21,7 +21,9 @@
 
 #include <QtCore/QProcess>
 
-namespace MoleQueue {
+namespace MoleQueue
+{
+class JobRequest;
 
 /**
  * Queue for jobs to run locally.
@@ -58,7 +60,7 @@ public slots:
    * \param job The Program object to submit to the queue.
    * \return True on successful addition to the queue.
    */
-  virtual bool submit(Job *job);
+  virtual bool submit(JobRequest *job);
 
 protected slots:
   /** Job started successfully. */

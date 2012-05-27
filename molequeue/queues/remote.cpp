@@ -16,7 +16,7 @@
 
 #include "remote.h"
 
-#include "../job.h"
+#include "../jobrequest.h"
 #include "../program.h"
 #include "../terminalprocess.h"
 #include "../sshcommand.h"
@@ -56,10 +56,10 @@ QWidget* QueueRemote::settingsWidget() const
   return widget;
 }
 
-bool QueueRemote::submit(Job *job)
+bool QueueRemote::submit(JobRequest *job)
 {
   m_jobs.push_back(job);
-  job->setStatus(Job::QUEUED);
+  job->setJobState(MoleQueue::RemoteQueued);
   emit(jobAdded(job));
   submitJob(m_jobs.size() - 1);
   return true;
@@ -112,6 +112,9 @@ void QueueRemote::setupProcess()
 
 void QueueRemote::submitJob(int jobId)
 {
+  Q_UNUSED(jobId);
+  /// @todo This will need to be rewritten
+  /*
   Job *job = m_jobs[jobId];
 
   qDebug() << "Job (R):" << jobId << job->workingDirectory()
@@ -140,6 +143,7 @@ void QueueRemote::submitJob(int jobId)
   qDebug() << "Run gamess:" << output << exitCode;
   m_ssh->execute("echo $!", output, exitCode);
   qDebug() << "PID:" << output << exitCode;
+  */
 }
 
 } // End namespace

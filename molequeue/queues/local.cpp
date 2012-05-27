@@ -16,7 +16,7 @@
 
 #include "local.h"
 
-#include "../job.h"
+#include "../jobrequest.h"
 
 #include <QtCore/QProcess>
 #include <QtCore/QProcessEnvironment>
@@ -78,10 +78,10 @@ QWidget* QueueLocal::settingsWidget() const
   return widget;
 }
 
-bool QueueLocal::submit(Job *job)
+bool QueueLocal::submit(JobRequest *job)
 {
   m_jobs.push_back(job);
-  job->setStatus(Job::QUEUED);
+  job->setJobState(MoleQueue::Accepted);
   emit(jobAdded(job));
   if (m_currentJob == m_jobs.size() - 1)
     runProgram(m_jobs.size() - 1);
@@ -95,7 +95,7 @@ void QueueLocal::jobStarted()
     qDebug() << "The job was successfully started:"
              << theSender->property("JOB_ID");
     int id = theSender->property("JOB_ID").toInt();
-    m_jobs[id]->setStatus(Job::RUNNING);
+    m_jobs[id]->setJobState(MoleQueue::RunningLocal);
     emit(jobStateChanged(0));
   }
 }
@@ -107,7 +107,7 @@ void QueueLocal::jobFinished()
     qDebug() << "The job was successfully finished:"
              << theSender->property("JOB_ID");
     int id = theSender->property("JOB_ID").toInt();
-    m_jobs[id]->setStatus(Job::COMPLETE);
+    m_jobs[id]->setJobState(MoleQueue::Finished);
     emit(jobStateChanged(0));
     // Submit the next job if there is one
     ++m_currentJob;
@@ -129,7 +129,7 @@ void QueueLocal::jobFinished(int exitCode, QProcess::ExitStatus exitStatus)
   qDebug() << "The job was successfully finished:"
            << theSender->property("JOB_ID");
   int id = theSender->property("JOB_ID").toInt();
-  m_jobs[id]->setStatus(Job::COMPLETE);
+  m_jobs[id]->setJobState(MoleQueue::Finished);
   emit(jobStateChanged(0));
   // Submit the next job if there is one
   ++m_currentJob;
@@ -168,6 +168,7 @@ void QueueLocal::setupPrograms()
 
 void QueueLocal::runProgram(int jobId)
 {
+  Q_UNUSED(jobId);
   if (!m_process) {
     m_process = new QProcess(this);
     connect(m_process, SIGNAL(started()), this, SLOT(jobStarted()));
@@ -177,6 +178,8 @@ void QueueLocal::runProgram(int jobId)
             this, SLOT(processStateChanged(QProcess::ProcessState)));
   }
 
+  /// @todo this will need to be rewritten to use JobRequests
+  /*
   Job *job = m_jobs[jobId];
 
   if(!job->workingDirectory().isEmpty()){
@@ -222,6 +225,7 @@ void QueueLocal::runProgram(int jobId)
   }
 
   m_process->start(job->expandedRunTemplate());
+  */
 
 //  if (!m_process->waitForStarted()) {
 //      qDebug() << "Failed to start GAMESS..." << m_process->errorString();

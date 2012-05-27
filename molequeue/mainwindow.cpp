@@ -18,9 +18,7 @@
 #include "ui_mainwindow.h"
 
 #include "connection.h"
-#include "job.h"
 #include "jobrequest.h"
-#include "jobitemmodel.h"
 #include "program.h"
 #include "queuemanager.h"
 #include "queuemanagerdialog.h"
@@ -54,8 +52,7 @@ MainWindow::MainWindow()
     m_trayIcon(NULL),
     m_trayIconMenu(NULL),
     m_server(new Server (this)),
-    m_queueManager(new QueueManager (this)),
-    m_jobModel(NULL)
+    m_queueManager(new QueueManager (this))
 {
   m_ui->setupUi(this);
 
@@ -288,6 +285,8 @@ void MainWindow::createTrayIcon()
 
 void MainWindow::createJobModel()
 {
+  /// @todo This will need to be rewritten:
+  /*
   m_jobModel = new JobItemModel(this);
 
   foreach(Queue *queue, m_queueManager->queues()){
@@ -296,6 +295,7 @@ void MainWindow::createJobModel()
 
   m_ui->jobView->setModel(m_jobModel);
   m_ui->jobView->header()->setResizeMode(0, QHeaderView::Stretch);
+  */
 }
 
 } // End namespace

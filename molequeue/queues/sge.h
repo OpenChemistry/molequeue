@@ -47,14 +47,14 @@ public slots:
    * \param job The Program object to submit to the queue.
    * \return True on successful addition to the queue.
    */
-  virtual bool submit(Job *job);
+  virtual bool submit(JobRequest *job);
 
 protected slots:
   /** Job started successfully. */
-  virtual void jobStarted(Job *job);
+  virtual void jobStarted(JobRequest *job);
 
   /** Job completed successfully. */
-  virtual void jobFinished(Job *job);
+  virtual void jobFinished(JobRequest *job);
 
   /** Slot for polling remote jobs that are currently active. */
   virtual void pollRemote();
@@ -85,7 +85,7 @@ protected:
   int m_interval;
 
   /** A map of all active remote jobs, associated with their unique remote id. **/
-  QMap<QString, Job *> m_remoteJobs;
+  QMap<QString, JobRequest *> m_remoteJobs;
 
   /** The local directory used to stage files, and retrieve them. **/
   QString m_localDir;
