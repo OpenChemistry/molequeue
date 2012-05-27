@@ -29,6 +29,8 @@ class QLocalServer;
 
 namespace MoleQueue
 {
+class Job;
+class JobManager;
 class ServerConnection;
 
 /**
@@ -53,6 +55,16 @@ public:
    * Destructor.
    */
   virtual ~Server();
+
+  /**
+   * @return A pointer to the Server JobManager.
+   */
+  JobManager *jobManager() {return m_jobManager;}
+
+  /**
+   * @return A pointer to the Server JobManager.
+   */
+  const JobManager *jobManager() const {return m_jobManager;}
 
   /// Used for unit testing
   friend class ::ServerTest;
@@ -99,6 +111,12 @@ public slots:
 protected slots:
 
   /**
+   * Set the MoleQueue Id of a job before it is added to the manager.
+   * @param job The new Job.
+   */
+  void jobAboutToBeAdded(Job *job);
+
+  /**
    * Called when the internal socket server has a new connection ready.
    */
   void newConnectionAvailable();
@@ -115,6 +133,9 @@ protected:
 
   /// The internal local socket server
   QLocalServer *m_server;
+
+  /// The JobManager for this server.
+  JobManager *m_jobManager;
 
   /// Used to change the socket name for unit testing.
   bool m_isTesting;

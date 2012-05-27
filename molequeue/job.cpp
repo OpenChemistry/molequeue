@@ -19,9 +19,8 @@
 namespace MoleQueue
 {
 
-Job::Job(MoleQueue::Client *parent)
-  : m_client(parent),
-    m_jobState(MoleQueue::None),
+Job::Job()
+  : m_jobState(MoleQueue::None),
     m_cleanRemoteFiles(false),
     m_retrieveOutput(true),
     m_cleanLocalWorkingDirectory(false),
@@ -34,8 +33,7 @@ Job::Job(MoleQueue::Client *parent)
 }
 
 Job::Job(const MoleQueue::Job &other)
-  : m_client(other.m_client),
-    m_queue(other.m_queue),
+  : m_queue(other.m_queue),
     m_program(other.m_program),
     m_jobState(other.m_jobState),
     m_description(other.m_description),

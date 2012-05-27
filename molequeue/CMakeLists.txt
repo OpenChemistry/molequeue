@@ -13,6 +13,7 @@ set(mq_srcs
   client.cpp
   connection.cpp
   job.cpp
+  jobmanager.cpp
   jsonrpc.cpp
   molequeueglobal.h
   program.cpp
@@ -37,6 +38,7 @@ set(mq_moc
   abstractrpcinterface.h
   client.h
   connection.h
+  jobmanager.h
   jsonrpc.h
   queue.h
   queuemanager.h
@@ -102,6 +104,7 @@ set(mqclient_srcs
   abstractrpcinterface.cpp
   client.cpp
   job.cpp
+  jobmanager.cpp
   jsonrpc.cpp
   molequeueglobal.h
   ${jsoncpp_srcs}
@@ -110,6 +113,7 @@ set(mqclient_srcs
 set(mqclient_moc
   abstractrpcinterface.h
   client.h
+  jobmanager.h
   jsonrpc.h
 )
 
