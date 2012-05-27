@@ -30,7 +30,7 @@ class QVariant;
 
 namespace MoleQueue
 {
-class JobRequest;
+class Job;
 class QueueManager;
 
 /**
@@ -66,11 +66,11 @@ public:
     * Generate a JSON-RPC packet for the job submission request described by
     * @a req.
     *
-    * @param req The JobRequest of interest.
+    * @param req The Job of interest.
     * @param packetId The JSON-RPC id for the request.
     * @return A PacketType, ready to send to a QLocalSocket.
     */
-  PacketType generateJobRequest(const JobRequest &req, IdType packetId);
+  PacketType generateJobRequest(const Job &req, IdType packetId);
 
   /**
     * Generate a JSON-RPC packet to confirm a successful job submission.
@@ -145,11 +145,11 @@ public:
   /**
     * Generate a JSON-RPC packet for requesting a job cancellation.
     *
-    * @param req The JobRequest to cancel.
+    * @param req The Job to cancel.
     * @param packetId The JSON-RPC id for the request.
     * @return A PacketType, ready to send to a QLocalSocket.
     */
-  PacketType generateJobCancellation(const JobRequest &req,
+  PacketType generateJobCancellation(const Job &req,
                                        IdType packetId);
 
   /**

@@ -16,7 +16,7 @@
 
 #include "local.h"
 
-#include "../jobrequest.h"
+#include "../job.h"
 
 #include <QtCore/QProcess>
 #include <QtCore/QProcessEnvironment>
@@ -78,7 +78,7 @@ QWidget* QueueLocal::settingsWidget() const
   return widget;
 }
 
-bool QueueLocal::submit(JobRequest *job)
+bool QueueLocal::submit(Job *job)
 {
   m_jobs.push_back(job);
   job->setJobState(MoleQueue::Accepted);
@@ -178,7 +178,7 @@ void QueueLocal::runProgram(int jobId)
             this, SLOT(processStateChanged(QProcess::ProcessState)));
   }
 
-  /// @todo this will need to be rewritten to use JobRequests
+  /// @todo this will need to be rewritten to use the new Job class
   /*
   Job *job = m_jobs[jobId];
 

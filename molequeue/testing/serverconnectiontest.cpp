@@ -18,7 +18,7 @@
 
 #include "serverconnection.h"
 
-#include "jobrequest.h"
+#include "job.h"
 #include "molequeueglobal.h"
 #include "program.h"
 #include "queue.h"
@@ -229,7 +229,7 @@ void ServerConnectionTest::testSendQueueList()
 
 void ServerConnectionTest::testSendSuccessfulSubmissionResponse()
 {
-  MoleQueue::JobRequest req;
+  MoleQueue::Job req;
 
   req.setLocalWorkingDirectory("/tmp/some/path");
   req.setMolequeueId(23);
@@ -254,7 +254,7 @@ void ServerConnectionTest::testSendSuccessfulSubmissionResponse()
 
 void ServerConnectionTest::testSendFailedSubmissionResponse()
 {
-  MoleQueue::JobRequest req;
+  MoleQueue::Job req;
 
   // Fake the request
   m_serverConnection->jobSubmissionRequestReceived(92, req.hash());
@@ -275,7 +275,7 @@ void ServerConnectionTest::testSendFailedSubmissionResponse()
 
 void ServerConnectionTest::testSendSuccessfulCancellationResponse()
 {
-  MoleQueue::JobRequest req;
+  MoleQueue::Job req;
   req.setMolequeueId(21);
 
   // Fake the request
@@ -296,7 +296,7 @@ void ServerConnectionTest::testSendSuccessfulCancellationResponse()
 
 void ServerConnectionTest::testJobStateChangeNotification()
 {
-  MoleQueue::JobRequest req;
+  MoleQueue::Job req;
   req.setMolequeueId(15);
 
   m_serverConnection->sendJobStateChangeNotification(
@@ -329,7 +329,7 @@ void ServerConnectionTest::testQueueListRequested()
 void ServerConnectionTest::testJobSubmissionRequested()
 {
   QSignalSpy spy (m_serverConnection,
-                  SIGNAL(jobSubmissionRequested(JobRequest)));
+                  SIGNAL(jobSubmissionRequested(Job)));
 
   MoleQueue::PacketType response =
       this->readReferenceString("serverconnection-ref/job-request.json");
@@ -340,7 +340,7 @@ void ServerConnectionTest::testJobSubmissionRequested()
   QCOMPARE(spy.count(), 1);
   QCOMPARE(spy.first().size(), 1);
 
-  MoleQueue::JobRequest req = spy.first().first().value<MoleQueue::JobRequest>();
+  MoleQueue::Job req = spy.first().first().value<MoleQueue::Job>();
   QCOMPARE(req.description(), QString("spud slicer 28"));
 }
 

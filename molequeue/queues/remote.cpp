@@ -16,7 +16,7 @@
 
 #include "remote.h"
 
-#include "../jobrequest.h"
+#include "../job.h"
 #include "../program.h"
 #include "../terminalprocess.h"
 #include "../sshcommand.h"
@@ -56,7 +56,7 @@ QWidget* QueueRemote::settingsWidget() const
   return widget;
 }
 
-bool QueueRemote::submit(JobRequest *job)
+bool QueueRemote::submit(Job *job)
 {
   m_jobs.push_back(job);
   job->setJobState(MoleQueue::RemoteQueued);
