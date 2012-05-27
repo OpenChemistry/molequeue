@@ -62,7 +62,7 @@ public:
 signals:
 
   /**
-   * Emitted when the client sents a request for the available queues
+   * Emitted when the client sends a request for the available queues
    * and programs.
    */
   void queueListRequested();
