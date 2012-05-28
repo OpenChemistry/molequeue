@@ -110,9 +110,20 @@ void MainWindow::readSettings()
   settings.beginGroup("Queues");
   foreach(const QString &queueName, queueNames){
     settings.beginGroup(queueName);
-    QString type = settings.value("type").toString();
+    QString queueType = settings.value("type").toString();
 
-    Queue *queue = m_queueManager->createQueue(type);
+    /// @todo Need a QueueFactory or similar to simplify this...
+    Queue *queue = NULL;
+    if (queueType == tr("Local")) {
+      queue = new QueueLocal (m_queueManager);
+    }
+    else if (queueType == tr("Remote")) {
+      queue = new QueueRemote (m_queueManager);
+    }
+    else if (queueType == tr("Remote - SGE")) {
+      queue = new QueueSGE (m_queueManager);
+    }
+
     if(queue){
       queue->setName(queueName);
       queue->readSettings(settings);
