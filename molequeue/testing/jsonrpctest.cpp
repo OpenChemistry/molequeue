@@ -20,6 +20,8 @@
 #include "program.h"
 #include "queue.h"
 #include "queuemanager.h"
+#include "queues/local.h"
+#include "queues/sge.h"
 
 #include <json/json.h>
 
@@ -111,7 +113,7 @@ void JsonRpcTest::initTestCase()
 {
 //  m_rpc.setDebug(true);
 
-  Queue *queueTmp = m_qmanager.createQueue("Remote - SGE");
+  Queue *queueTmp = new QueueSGE(&m_qmanager);
   m_qmanager.addQueue(queueTmp);
   queueTmp->setName("Some big ol' cluster");
   Program *progTmp = new Program (NULL);
@@ -123,7 +125,7 @@ void JsonRpcTest::initTestCase()
   progTmp = new Program (*progTmp);
   progTmp->setName("Nebulous Nucleus");
   queueTmp->addProgram(progTmp);
-  queueTmp = m_qmanager.createQueue("Local");
+  queueTmp = new QueueLocal(&m_qmanager);
   m_qmanager.addQueue(queueTmp);
   queueTmp->setName("Puny local queue");
   progTmp = new Program (NULL);
@@ -147,8 +149,6 @@ void JsonRpcTest::cleanupTestCase()
       delete (*it)->program(prog);
     }
   }
-
-  qDeleteAll(m_qmanager.queues());
 }
 
 void JsonRpcTest::init()
