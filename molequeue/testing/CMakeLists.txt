@@ -15,6 +15,7 @@ set(MyTests
   jsonrpc
   program
   queue
+  queuemanager
   server
   serverconnection
   )

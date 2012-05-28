@@ -24,6 +24,8 @@
 #include "program.h"
 #include "queue.h"
 #include "queuemanager.h"
+#include "queues/local.h"
+#include "queues/sge.h"
 #include "server.h"
 
 #include <QtGui/QApplication>
@@ -183,7 +185,7 @@ void ServerConnectionTest::testSendQueueList()
 {
   // Create phony queue
   MoleQueue::QueueManager qmanager;
-  MoleQueue::Queue *queueTmp = qmanager.createQueue("Remote - SGE");
+  MoleQueue::Queue *queueTmp = new MoleQueue::QueueSGE (&qmanager);
   qmanager.addQueue(queueTmp);
   queueTmp->setName("Some big ol' cluster");
   MoleQueue::Program *progTmp = new MoleQueue::Program (NULL);
@@ -195,7 +197,7 @@ void ServerConnectionTest::testSendQueueList()
   progTmp = new MoleQueue::Program (*progTmp);
   progTmp->setName("Nebulous Nucleus");
   queueTmp->addProgram(progTmp);
-  queueTmp = qmanager.createQueue("Local");
+  queueTmp = new MoleQueue::QueueLocal (&qmanager);
   qmanager.addQueue(queueTmp);
   queueTmp->setName("Puny local queue");
   progTmp = new MoleQueue::Program (NULL);
@@ -225,7 +227,6 @@ void ServerConnectionTest::testSendQueueList()
       delete (*it)->program(prog);
     }
   }
-  qDeleteAll(qmanager.queues());
 
   MoleQueue::PacketType refPacket =
       this->readReferenceString("serverconnection-ref/queue-list.json");
