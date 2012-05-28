@@ -19,6 +19,7 @@
 
 #include "connection.h"
 #include "job.h"
+#include "jobitemmodel.h"
 #include "jobmanager.h"
 #include "program.h"
 #include "queuemanager.h"
@@ -40,6 +41,7 @@
 
 #include <QtGui/QCloseEvent>
 #include <QtGui/QInputDialog>
+#include <QtGui/QHeaderView>
 #include <QtGui/QMessageBox>
 
 namespace MoleQueue {
@@ -53,6 +55,7 @@ MainWindow::MainWindow()
     m_trayIcon(NULL),
     m_trayIconMenu(NULL),
     m_server(new Server (this)),
+    m_jobItemModel(new JobItemModel (m_server->jobManager(), this)),
     m_queueManager(new QueueManager (this))
 {
   m_ui->setupUi(this);
@@ -212,6 +215,8 @@ void MainWindow::jobSubmissionRequested(const Job *req)
 
   qDebug() << "Job submission requested:\n" << req->hash();
 
+
+
   /// @todo Actually handle the submission
 
   conn->sendSuccessfulSubmissionResponse(req);
@@ -285,17 +290,8 @@ void MainWindow::createTrayIcon()
 
 void MainWindow::createJobModel()
 {
-  /// @todo This will need to be rewritten:
-  /*
-  m_jobModel = new JobItemModel(this);
-
-  foreach(Queue *queue, m_queueManager->queues()){
-    m_jobModel->addQueue(queue);
-  }
-
-  m_ui->jobView->setModel(m_jobModel);
-  m_ui->jobView->header()->setResizeMode(0, QHeaderView::Stretch);
-  */
+  m_ui->jobView->setModel(m_jobItemModel);
+  m_ui->jobView->horizontalHeader()->setResizeMode(0, QHeaderView::Stretch);
 }
 
 } // End namespace

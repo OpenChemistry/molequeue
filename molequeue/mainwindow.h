@@ -36,6 +36,7 @@ namespace MoleQueue {
 
 class Connection;
 class Job;
+class JobItemModel;
 class Program;
 class Queue;
 class QueueManager;
@@ -86,6 +87,7 @@ protected:
   QMenu *m_trayIconMenu;
 
   Server *m_server;
+  JobItemModel *m_jobItemModel;
 
   QueueManager *m_queueManager;
 

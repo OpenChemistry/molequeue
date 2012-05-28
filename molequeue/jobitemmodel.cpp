@@ -2,7 +2,7 @@
 
   This source file is part of the MoleQueue project.
 
-  Copyright 2011 Kitware, Inc.
+  Copyright 2012 Kitware, Inc.
 
   This source code is released under the New BSD License, (the "License").
 
@@ -17,93 +17,74 @@
 #include "jobitemmodel.h"
 
 #include "job.h"
-#include "queue.h"
+#include "jobmanager.h"
 
 namespace MoleQueue {
 
-JobItemModel::JobItemModel(QObject *parentObject)
-  : QAbstractItemModel(parentObject)
+JobItemModel::JobItemModel(JobManager *jobManager, QObject *parentObject)
+  : QAbstractItemModel(parentObject), m_jobManager(jobManager)
 {
-}
-
-void JobItemModel::addQueue(Queue *queue)
-{
-  if (m_queues.contains(queue))
-    return;
-  else {
-    m_queues.push_back(queue);
-    connect(queue, SIGNAL(jobAdded(Job*)), this, SLOT(add(Job*)));
-    connect(queue, SIGNAL(jobStateChanged(Job*)), this, SLOT(queuesChanged()));
-  }
-}
-
-QModelIndex JobItemModel::parent(const QModelIndex &) const
-{
-  return QModelIndex();
+  connect(m_jobManager, SIGNAL(jobAdded(const Job*)),
+          this, SIGNAL(layoutChanged()));
 }
 
 int JobItemModel::rowCount(const QModelIndex &modelIndex) const
 {
   if (!modelIndex.isValid())
-    return m_jobList.size();
+    return m_jobManager->count();
   else
     return 0;
 }
 
-int JobItemModel::columnCount(const QModelIndex &/*modelIndex*/) const
+int JobItemModel::columnCount(const QModelIndex &) const
 {
-  return 4;
+  return COLUMN_COUNT;
 }
 
 QVariant JobItemModel::headerData(int section, Qt::Orientation orientation,
-                                      int role) const
+                                  int role) const
 {
   if (orientation == Qt::Horizontal && role == Qt::DisplayRole) {
-    if (section == 0)
+    switch (section) {
+    case JOB_TITLE:
       return QVariant("Job Title");
-    else if (section == 1)
-      return QVariant("Program");
-    else if (section == 2)
+    case QUEUE_NAME:
       return QVariant("Queue");
-    else if (section == 3)
+    case PROGRAM_NAME:
+      return QVariant("Program");
+    case JOB_STATE:
       return QVariant("Status");
-    else
+    default:
       return QVariant();
+    }
   }
-  else {
-    return QVariant();
-  }
+
+  return QVariant();
 }
 
 QVariant JobItemModel::data(const QModelIndex &modelIndex, int role) const
 {
-  if (!modelIndex.isValid() || modelIndex.column() > 3)
+  if (!modelIndex.isValid() || modelIndex.column() + 1 > COLUMN_COUNT)
     return QVariant();
 
-  Job *job = static_cast<Job *>(modelIndex.internalPointer());
+  const Job *job = m_jobManager->jobAt(modelIndex.row());
   if (job) {
     if (role == Qt::DisplayRole) {
       switch (modelIndex.column()) {
-      case 0:
-        return QVariant(job->title());
-      case 1:
-        return QVariant(job->name());
-      case 2:
-        return QVariant(job->program()->queueName());
-      case 3:
-        return QVariant(job->statusString());
+      case JOB_TITLE:
+        return QVariant(job->description());
+      case QUEUE_NAME:
+        return QVariant(job->queue());
+      case PROGRAM_NAME:
+        return QVariant(job->program());
+      case JOB_STATE:
+        return MoleQueue::jobStateToString(job->jobState());
       default:
         return QVariant();
       }
     }
   }
   return QVariant();
-}
-
-bool JobItemModel::setData(const QModelIndex &/*modelIndex*/,
-                           const QVariant &/*value*/, int /*role*/)
-{
-  return false;
 }
 
 Qt::ItemFlags JobItemModel::flags(const QModelIndex &modelIndex) const
@@ -117,31 +98,10 @@ Qt::ItemFlags JobItemModel::flags(const QModelIndex &modelIndex) const
 QModelIndex JobItemModel::index(int row, int column,
                                 const QModelIndex &/*modelIndex*/) const
 {
-  if (row >= 0 && row < m_jobList.size())
-    return createIndex(row, column, m_jobList[row]);
+  if (row >= 0 && row < m_jobManager->count())
+    return this->createIndex(row, column);
   else
     return QModelIndex();
-}
-
-void JobItemModel::clear()
-{
-}
-
-void JobItemModel::add(Job *job)
-{
-  int row = m_jobList.size();
-  beginInsertRows(QModelIndex(), row, row);
-  m_jobList.push_back(job);
-  endInsertRows();
-}
-
-void JobItemModel::remove(Job * /*job*/)
-{
-}
-
-void JobItemModel::queuesChanged()
-{
-  this->reset();
 }
 
 } // End of namespace
