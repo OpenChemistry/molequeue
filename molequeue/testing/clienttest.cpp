@@ -271,8 +271,6 @@ void ClientTest::testQueueListReceived()
   const MoleQueue::QueueListType clientList = m_client->queueList();
   QCOMPARE(signalList, clientList);
   QCOMPARE(signalList.size(), 2);
-  QCOMPARE(signalList[0].second.size(), 5);
-  QCOMPARE(signalList[1].second.size(), 5);
 }
 
 void ClientTest::testSuccessfulSubmissionReceived()

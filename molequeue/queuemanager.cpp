@@ -80,16 +80,17 @@ QStringList QueueManager::queueTypes() const
 QueueListType QueueManager::toQueueList() const
 {
   QueueListType queueList;
-  QPair<QString, QStringList> pair;
+  QString queueName;
+  QStringList programList;
   foreach(const Queue *queue, m_queues) {
-    pair.first = queue->name();
-    pair.second.clear();
+    queueName = queue->name();
 
-    foreach(const QString prog, queue->programs()) {
-      pair.second << prog;
+    programList.clear();
+    foreach(const QString progName, queue->programs()) {
+      programList << progName;
     }
 
-    queueList << pair;
+    queueList.insert(queueName, programList);
   }
 
   return queueList;

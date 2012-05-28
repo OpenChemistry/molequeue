@@ -339,18 +339,14 @@ PacketType JsonRpc::generateQueueList(const QueueListType &queueList,
   Json::Value packet = generateEmptyResponse(packetId);
 
   Json::Value resultObject (Json::objectValue);
-  // Workaround for preprocessor -- it's interpreting the template arg delimeter
-  // as the macro arg delimiter
-  typedef QPair<QString, QStringList> QueueListPairType;
-  foreach (const QueueListPairType pair, queueList) {
-    const std::string queueName = pair.first.toStdString();
+  foreach (const QString queueName, queueList.keys()) {
 
     Json::Value programArray (Json::arrayValue);
-    foreach (const QString prog, pair.second) {
+    foreach (const QString prog, queueList[queueName]) {
       const std::string progName = prog.toStdString();
       programArray.append(progName);
     }
-    resultObject[queueName] = programArray;
+    resultObject[queueName.toStdString()] = programArray;
   }
 
   packet["result"] = resultObject;
@@ -1054,9 +1050,7 @@ void JsonRpc::handleListQueuesResult(const Json::Value &root) const
 
   // Populate queue list:
   QueueListType queueList;
-#if QT_VERSION >= QT_VERSION_CHECK(4,7,0)
   queueList.reserve(resultObject.size());
-#endif
 
   // Iterate through queues
   for (Json::Value::const_iterator it = resultObject.begin(),
@@ -1068,7 +1062,7 @@ void JsonRpc::handleListQueuesResult(const Json::Value &root) const
 
     // No programs, just add an empty list
     if (programArray.isNull()) {
-      queueList.append(QPair<QString, QStringList>(queueName, QStringList()));
+      queueList.insert(queueName, QStringList());
       continue;
     }
 
@@ -1079,7 +1073,7 @@ void JsonRpc::handleListQueuesResult(const Json::Value &root) const
       qWarning() << "Error: List of programs for" << queueName
                  << "is ill-formed:\n"
                  << programsString.c_str();
-      queueList.append(QPair<QString, QStringList>(queueName, QStringList()));
+      queueList.insert(queueName, QStringList());
       continue;
     }
 
@@ -1094,7 +1088,7 @@ void JsonRpc::handleListQueuesResult(const Json::Value &root) const
         programList << (*pit).asCString();
     }
 
-    queueList << QPair<QString, QStringList>(queueName, programList);
+    queueList.insert(queueName, programList);
   }
 
 
