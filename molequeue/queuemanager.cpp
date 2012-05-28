@@ -2,7 +2,7 @@
 
   This source file is part of the MoleQueue project.
 
-  Copyright 2011 Kitware, Inc.
+  Copyright 2012 Kitware, Inc.
 
   This source code is released under the New BSD License, (the "License").
 
@@ -16,65 +16,55 @@
 
 #include "queuemanager.h"
 
-#include "queues/local.h"
-#include "queues/remote.h"
-#include "queues/sge.h"
+#include "queue.h"
 
 namespace MoleQueue {
 
 QueueManager::QueueManager(QObject *parentObject)
   : QObject(parentObject)
 {
+  qRegisterMetaType<Queue*>("Queue*");
+  qRegisterMetaType<const Queue*>("const Queue*");
 }
 
 QueueManager::~QueueManager()
 {
+  QList<Queue*> queueList = m_queues.values();
+  m_queues.clear();
+  qDeleteAll(queueList);
 }
 
-void QueueManager::addQueue(Queue *queue)
+bool QueueManager::addQueue(Queue *queue)
 {
-  m_queues.append(queue);
+  if (m_queues.contains(queue->name()))
+    return false;
 
-  emit queueAdded(queue);
+  m_queues.insert(queue->name(), queue);
+
+  emit queueAdded(queue->name(), queue);
+  return true;
 }
 
-void QueueManager::addQueue(const QString &type)
+bool QueueManager::removeQueue(const Queue *queue)
 {
-  Queue *queue = createQueue(type);
+  if (!m_queues.contains(queue->name()))
+    return false;
 
-  if(queue){
-    addQueue(queue);
-  }
+  Queue *mutableQueue = m_queues.take(queue->name());
+
+  emit queueRemoved(queue->name(), mutableQueue);
+  return true;
 }
 
-void QueueManager::removeQueue(Queue *queue)
+bool QueueManager::removeQueue(const QString &name)
 {
-  m_queues.removeAll(queue);
+  if (!m_queues.contains(name))
+    return false;
 
-  emit queueRemoved(queue);
-}
+  Queue *queue = m_queues.take(name);
 
-Queue* QueueManager::createQueue(const QString &type)
-{
-  if(type == "Local")
-    return new QueueLocal(this);
-  else if(type == "Remote")
-    return new QueueRemote(this);
-  else if(type == "Remote - SGE")
-    return new QueueSGE(this);
-  else
-    return 0;
-}
-
-QStringList QueueManager::queueTypes() const
-{
-  QStringList types;
-
-  types.append("Local");
-  types.append("Remote");
-  types.append("Remote - SGE");
-
-  return types;
+  emit queueRemoved(name, queue);
+  return true;
 }
 
 QueueListType QueueManager::toQueueList() const
