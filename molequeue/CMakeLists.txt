@@ -13,7 +13,9 @@ set(mq_srcs
   client.cpp
   connection.cpp
   job.cpp
+  jobitemmodel.cpp
   jobmanager.cpp
+  jobview.cpp
   jsonrpc.cpp
   molequeueglobal.h
   program.cpp
@@ -38,7 +40,9 @@ set(mq_moc
   abstractrpcinterface.h
   client.h
   connection.h
+  jobitemmodel.h
   jobmanager.h
+  jobview.h
   jsonrpc.h
   queue.h
   queuemanager.h

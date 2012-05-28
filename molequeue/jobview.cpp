@@ -14,52 +14,43 @@
 
 ******************************************************************************/
 
-#include "jobtreeview.h"
+#include "jobview.h"
 
 #include "job.h"
 
 #include <QtGui/QMenu>
 #include <QtGui/QContextMenuEvent>
+
 #include <QtCore/QProcess>
 #include <QtCore/QDebug>
 
 namespace MoleQueue
 {
 
-JobTreeView::JobTreeView(QWidget *theParent) : QTreeView(theParent)
+JobView::JobView(QWidget *theParent) : QTableView(theParent)
 {
 }
 
-void JobTreeView::contextMenuEvent(QContextMenuEvent *e)
+void JobView::contextMenuEvent(QContextMenuEvent *e)
 {
+  Q_UNUSED(e);
+  /*
   QModelIndex index = indexAt(e->pos());
   if (index.isValid()) {
     Job *job = static_cast<Job *>(index.internalPointer());
     QMenu *menu = new QMenu(this);
 
-    qDebug() << "job status:" << job->status();
-
-    if (job->status() == Job::COMPLETE) {
+    if (job->jobState() == MoleQueue::Finished) {
       QAction *action = menu->addAction("&Open in Avogadro");
       action->setData(QVariant(job->outputFile()));
       connect(action, SIGNAL(triggered()), this, SLOT(openInAvogadro()));
-      action = menu->addAction("&Store in database");
-      action = menu->addAction("&Remove");
-    }
-    else if (job->status() == Job::RUNNING) {
-      QAction *action = menu->addAction("&Kill");
-      Q_UNUSED(action);
-    }
-    else {
-      QAction *action = menu->addAction("&Hold");
-      action = menu->addAction("&Cancel");
-      Q_UNUSED(action);
     }
     menu->exec(QCursor::pos());
   }
+  */
 }
 
-void JobTreeView::openInAvogadro()
+void JobView::openInAvogadro()
 {
   QAction *action = static_cast<QAction*>(sender());
   if (action) {

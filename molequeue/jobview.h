@@ -14,20 +14,20 @@
 
 ******************************************************************************/
 
-#ifndef PROGRAMTABLEVIEW_H
-#define PROGRAMTABLEVIEW_H
+#ifndef JOBVIEW_H
+#define JOBVIEW_H
 
-#include <QtGui/QTreeView>
+#include <QtGui/QTableView>
 
 namespace MoleQueue
 {
 
-class JobTreeView : public QTreeView
+class JobView : public QTableView
 {
   Q_OBJECT
 
 public:
-  JobTreeView(QWidget *theParent = 0);
+  JobView(QWidget *theParent = 0);
 
   /** Custom context menu for this view. */
   void contextMenuEvent(QContextMenuEvent *e);
