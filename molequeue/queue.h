@@ -19,6 +19,7 @@
 
 #include <QtCore/QObject>
 #include <QtCore/QMap>
+#include <QtCore/QMetaType>
 #include <QtCore/QList>
 #include <QtCore/QStringList>
 
@@ -157,5 +158,8 @@ protected:
 };
 
 } // End namespace
+
+Q_DECLARE_METATYPE(MoleQueue::Queue*)
+Q_DECLARE_METATYPE(const MoleQueue::Queue*)
 
 #endif // QUEUE_H
