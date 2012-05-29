@@ -68,10 +68,8 @@ MainWindow::MainWindow()
   connect(m_server, SIGNAL(connectionError(QAbstractSocket::SocketError,QString)),
           this, SLOT(handleServerError(QAbstractSocket::SocketError, QString)));
 
-  // Must be a direct connection to ensure that connections are made before the
-  // socket starts processing and announcing requests.
   connect(m_server, SIGNAL(newConnection(ServerConnection*)),
-          this, SLOT(newConnection(ServerConnection*)), Qt::DirectConnection);
+          this, SLOT(newConnection(ServerConnection*)));
 
   m_server->setDebug(true);
   m_server->start();
@@ -169,7 +167,7 @@ void MainWindow::handleServerError(QAbstractSocket::SocketError err,
     // Terminate
     if (!ok || index == 1) {
       this->hide();
-      exit(0);
+      qApp->exit(0);
     }
     // Take over connection
     else {
