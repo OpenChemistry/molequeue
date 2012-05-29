@@ -2,7 +2,7 @@
 
   This source file is part of the MoleQueue project.
 
-  Copyright 2011 Kitware, Inc.
+  Copyright 2012 Kitware, Inc.
 
   This source code is released under the New BSD License, (the "License").
 
@@ -23,8 +23,10 @@
 #include <QtCore/QMetaType>
 #include <QtCore/QString>
 
-namespace MoleQueue {
+class QSettings;
 
+namespace MoleQueue
+{
 class Queue;
 
 /**
@@ -43,102 +45,120 @@ class Program : public QObject
   Q_OBJECT
 public:
   explicit Program(Queue *parentQueue = 0);
+  Program(const Program &other);
   ~Program();
 
-  /** Copy constructor. */
-  Program(const Program &other);
+  /// Enum used for various common styles of execution syntax
+  enum LaunchSyntax {
+    /// Use custom launch script
+    CUSTOM = 0,
+    /// Only run the executable, e.g. "vasp"
+    PLAIN,
+    /// Single argument is the name of the input file with extension, e.g.
+    /// "mopac job.mop"
+    INPUT_ARG,
+    /// Single argument is the name of the input file without extension, e.g.
+    /// "mopac job"
+    INPUT_ARG_NO_EXT,
+    /// Redirect input file to stdin and stdout to output file, e.g.
+    /// "gulp < job.gin > job.got"
+    REDIRECT,
+    /// Input as argument, redirect stdout to output file, e.g.
+    /// "gamess job.inp > job.out"
+    INPUT_ARG_OUTPUT_REDIRECT,
+
+    /// Use to get total number of syntax types.
+    SYNTAX_COUNT
+  };
+
+  /// @return The Queue that this Program belongs to.
+  Queue * queue() { return m_queue; }
+  /// @return The Queue that this Program belongs to.
+  const Queue * queue() const { return m_queue; }
+
+  /// @return The name of the Queue that this Program belongs to.
+  QString queueName() const;
+
+  /// @param settings QSettings object to write state to.
+  void readSettings(QSettings &settings);
+  /// @param settings QSettings object to read state from.
+  void writeSettings(QSettings &settings) const;
 
   /**
-   * Set the name of the program. This is the name that will often show up in
+   * Set the name of the program. This is the name that will show up in
    * the GUI, and many common names such as GAMESS, GAMESS-UK, Gaussian,
    * MolPro etc are used by GUIs such as Avogadro with its input generator
    * dialogs to match up input files to programs.
+   * @param newName Name to use in GUIs
    */
   void setName(const QString &newName) { m_name = newName; }
 
-  /** Get the name of the program. Often used by GUIs etc. */
+  /// @return The name of the program. Often used by GUIs etc.
   QString name() const { return m_name; }
 
-  /**
-   * Will the program be run directly, or via an execution script?
-   * Note that many queuing systems require that a job specification be
-   * written, but local jobs might avoid this step for some codes.
-   */
-  bool isRunDirect() const { return m_runDirect; }
+  void setExecutable(const QString &str) {m_executable = str;}
+  QString executable() const {return m_executable;}
 
-  /** Set whether the program should be run directly, or via a shell script. */
-  void setRunDirect(bool isDirect) { m_runDirect = isDirect; }
+  void setUseExecutablePath(bool b) {m_useExecutablePath = b;}
+  bool useExecutablePath() const {return m_useExecutablePath;}
 
-  /**
-   * The unexpanded template for running the code. This should be a generic
-   * version that has at a minimum the standard replacement for the input file,
-   * $$inputFile$$, and optionally the number of cores, $$nCPU$$.
-   */
-  QString runTemplate() const { return m_runTemplate; }
+  void setExecutablePath(const QString &str) {m_executablePath = str;}
+  QString executablePath() const {return m_executablePath;}
 
-  /**
-   * Set the run template for the program. This should be a generic
-   * version that has at a minimum the standard replacement for the input file,
-   * $$inputFile$$, and optionally the number of cores, $$nCPU$$.
-   */
-  void setRunTemplate(const QString &newRunTemplate)
+  /// Arguments for executable -- do not include input file!
+  void setArguments(const QString &str) {m_arguments = str;}
+  QString arguments() const {return m_arguments;}
+
+  void setInputFilename(const QString &str) {m_inputFilename = str;}
+  QString inputFilename() const {return m_inputFilename;}
+
+  void setOutputFilename(const QString &str) {m_outputFilename = str;}
+  QString outputFilename() const {return m_outputFilename;}
+
+  void setLaunchSyntax(LaunchSyntax s)
   {
-    m_runTemplate = newRunTemplate;
+    if (s >= SYNTAX_COUNT)
+      return;
+    m_launchSyntax = s;
   }
+  LaunchSyntax launchSyntax() const {return m_launchSyntax;}
 
-  /**
-   * \return The keyword delimiter, defaults to $$. Should be at either side
-   * of all keywords.
-   */
-  QString delimiter() const { return m_delimiter; }
-
-  /**
-   * Set the keyword delimiter, defaults to $$. Should be at either side of all
-   * keywords.
-   * \param delimiter The delimiter to use.
-   */
-  void setDelimiter(const QString &newDelimiter)
+  void setCustomLaunchTemplate(const QString &str)
   {
-    m_delimiter = newDelimiter;
+    m_customLaunchTemplate = str;
   }
+  QString customLaunchTemplate() const {return m_customLaunchTemplate;}
 
-  /**
-   * Set the Queue that the Program belongs to, this is effectively the parent.
-   */
-  void setQueue(Queue *newQueue) { m_queue = newQueue; }
+  /// @return Either the custom launch template or a default generated template,
+  /// depending on the value of launchSyntax.
+  QString launchTemplate() const;
 
-  /**
-   * Get the queue that the program belongs to.
-   */
-  Queue * queue() { return m_queue; }
-  const Queue * queue() const { return m_queue; }
-
-  /**
-   * Get the name of the queue that the program belongs to.
-   */
-  QString queueName() const;
+  static QString generateFormattedExecutionString(const QString &executableName_, const QString &arguments_, const QString &inputFilename_,
+      const QString &outputFilename_, const QString &executablePath_,
+      bool useExecutablePath_, LaunchSyntax syntax_);
 
 protected:
-  /** The name of the program. This is normally used to describe what programs
-   * have been configured for each queue.
-   */
-  QString m_name;
 
-  /** Should the code be run directly, or via a shell script? */
-  bool m_runDirect;
-
-  /** Template for running the program. This will either be a direct run from
-   * the command line, or a shell script template. There are several standard
-   * replacements, such as $$nCPU$$, the delimiter can also be changed if
-   * necessary.
-   */
-  QString m_runTemplate;
-
-  /** The delimiter to be used at either side of keywords for replacement. */
-  QString m_delimiter;
-
-  /** The Queue that the Program belongs to/is being run by. */
+  /// The Queue that the Program belongs to/is being run by.
   Queue *m_queue;
+  /// GUI-visible name
+  QString m_name;
+  /// Name of executable
+  QString m_executable;
+  /// Toggle inclusion of path to executable
+  bool m_useExecutablePath;
+  /// Path to executable
+  QString m_executablePath;
+  /// Executable arguments
+  QString m_arguments;
+  /// Input filename
+  QString m_inputFilename;
+  /// Output filename
+  QString m_outputFilename;
+  /// Launch syntax style
+  LaunchSyntax m_launchSyntax;
+  /// Bash/Shell/Queue script template used to launch program
+  QString m_customLaunchTemplate;
 
 };
 
