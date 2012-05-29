@@ -60,15 +60,6 @@ public:
   QString name() const { return m_name; }
 
   /**
-   * Set the title of the job. This is the title that will show up in job list
-   * in the GUI
-   */
-  void setTitle(const QString &newTitle) { m_title = newTitle; }
-
-  /** Get the name of the program. Often used by GUIs etc. */
-  QString title() const { return m_title; }
-
-  /**
    * Will the program be run directly, or via an execution script?
    * Note that many queuing systems require that a job specification be
    * written, but local jobs might avoid this step for some codes.
@@ -132,9 +123,6 @@ protected:
    * have been configured for each queue.
    */
   QString m_name;
-
-  /** The title of the job, if set. */
-  QString m_title;
 
   /** Should the code be run directly, or via a shell script? */
   bool m_runDirect;
