@@ -77,7 +77,7 @@ void ClientTest::initTestCase()
 {
   m_server = new TestServer(&m_packet);
   m_client = new MoleQueue::Client();
-  m_client->connectToServer();
+  m_client->connectToServer(m_server->socketName());
   // Let the event loop run a bit to handle the connections
   qApp->processEvents(QEventLoop::AllEvents, 1000);
 }

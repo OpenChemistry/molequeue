@@ -21,6 +21,10 @@
 
 #include "molequeueglobal.h"
 
+#include <QtGlobal>
+
+#include <QtCore/QDateTime>
+#include <QtCore/QThread>
 #include <QtCore/QTimer>
 
 #include <QtGui/QApplication>
@@ -39,7 +43,7 @@ public:
     : QObject(NULL), m_target(target), m_server(new QLocalServer),
       m_socket(NULL)
   {
-    if (!m_server->listen("MoleQueue")) {
+    if (!m_server->listen(this->getRandomSocketName())) {
       qWarning() << "Cannot start test server:" << m_server->errorString();
       return;
     }
@@ -78,6 +82,25 @@ public:
       qApp->processEvents(QEventLoop::AllEvents, 500);
     }
     return !m_target->isEmpty();
+  }
+
+  QString socketName() const {return m_server->serverName();}
+
+  static QString getRandomSocketName()
+  {
+    // Generate a time, process, and thread independent random value.
+    quint32 threadPtr = static_cast<quint32>(
+          reinterpret_cast<qptrdiff>(QThread::currentThread()));
+    quint32 procId = static_cast<quint32>(qApp->applicationPid());
+    quint32 msecs = static_cast<quint32>(
+          QDateTime::currentDateTime().toMSecsSinceEpoch());
+    unsigned int seed = static_cast<unsigned int>(
+          (threadPtr ^ procId) ^ ((msecs << 16) ^ msecs));
+    qDebug() << "Seed:" << seed;
+    qsrand(seed);
+    int randVal = qrand();
+
+    return QString("MoleQueue-testing-%1").arg(QString::number(randVal));
   }
 
 private slots:
