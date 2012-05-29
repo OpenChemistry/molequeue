@@ -17,13 +17,13 @@
 #include "queuemanagerdialog.h"
 #include "ui_queuemanagerdialog.h"
 
-#include <QTableWidget>
-#include <QTableWidgetItem>
+#include <QtGui/QItemSelection>
 
 #include "queue.h"
 #include "mainwindow.h"
 #include "addqueuedialog.h"
 #include "queuemanager.h"
+#include "queuemanageritemmodel.h"
 #include "queuesettingsdialog.h"
 
 namespace MoleQueue {
@@ -32,36 +32,24 @@ QueueManagerDialog::QueueManagerDialog(QueueManager *queueManager,
                                        QWidget *parentObject)
   : QDialog(parentObject),
     ui(new Ui::QueueManagerDialog),
-    m_queueManager(queueManager)
+    m_queueManager(queueManager),
+    m_queueManagerItemModel(new QueueManagerItemModel (m_queueManager, this))
 {
   ui->setupUi(this);
 
-  // populate queue table
-  const QList<Queue *> &queues = queueManager->queues();
+  ui->queueTable->setModel(m_queueManagerItemModel);
+  ui->queueTable->horizontalHeader()->setResizeMode(3, QHeaderView::Stretch);
 
-  ui->queueTable->setRowCount(queues.size());
-
-  for(int i = 0; i < queues.size(); i++) {
-    const Queue *queue = queues[i];
-
-    QTableWidgetItem *nameItem = new QTableWidgetItem(queue->name());
-    ui->queueTable->setItem(i, 0, nameItem);
-    QTableWidgetItem *typeItem = new QTableWidgetItem(queue->typeName());
-    ui->queueTable->setItem(i, 1, typeItem);
-  }
-
-  // connect slots
-  connect(queueManager, SIGNAL(queueAdded(const MoleQueue::Queue*)),
-          this, SLOT(queueAdded(const MoleQueue::Queue*)));
-  connect(queueManager, SIGNAL(queueRemoved(const MoleQueue::Queue*)),
-          this, SLOT(queueRemoved(const MoleQueue::Queue*)));
-  connect(ui->queueTable, SIGNAL(itemDoubleClicked(QTableWidgetItem*)),
-          this, SLOT(itemDoubleClicked(QTableWidgetItem*)));
-  connect(ui->addQueueButton, SIGNAL(clicked()), this, SLOT(addQueue()));
-  connect(ui->removeQueueButton, SIGNAL(clicked()), this, SLOT(removeQueue()));
+  connect(ui->queueTable, SIGNAL(doubleClicked(QModelIndex)),
+          this, SLOT(doubleClicked(QModelIndex)));
+  connect(ui->addQueueButton, SIGNAL(clicked()),
+          this, SLOT(addQueue()));
+  connect(ui->removeQueueButton, SIGNAL(clicked()),
+          this, SLOT(removeQueue()));
   connect(ui->configureQueueButton, SIGNAL(clicked()),
           this, SLOT(configureQueue()));
-  connect(ui->closeButton, SIGNAL(clicked()), this, SLOT(close()));
+  connect(ui->closeButton, SIGNAL(clicked()),
+          this, SLOT(close()));
 }
 
 QueueManagerDialog::~QueueManagerDialog()
@@ -77,50 +65,55 @@ void QueueManagerDialog::addQueue()
 
 void QueueManagerDialog::removeQueue()
 {
-  int row = ui->queueTable->currentRow();
-  Queue *queue = m_queueManager->queues()[row];
-  m_queueManager->removeQueue(queue);
+  QList<Queue*> toRemove = this->getSelectedQueues();
+  foreach (Queue* queue, toRemove) {
+    m_queueManager->removeQueue(queue);
+    queue->deleteLater();
+  }
 }
 
 void QueueManagerDialog::configureQueue()
 {
-  int row = ui->queueTable->currentRow();
-  Queue *queue = m_queueManager->queues()[row];
-  this->showSettingsDialog(queue);
+  QList<Queue*> sel = this->getSelectedQueues();
+  if (!sel.isEmpty())
+    this->showSettingsDialog(sel.first());
 }
 
-void QueueManagerDialog::queueAdded(const MoleQueue::Queue *queue)
+void QueueManagerDialog::doubleClicked(const QModelIndex &index)
 {
-  int row = ui->queueTable->rowCount();
-  ui->queueTable->setRowCount(ui->queueTable->rowCount() + 1);
-
-  QTableWidgetItem *nameItem = new QTableWidgetItem(queue->name());
-  ui->queueTable->setItem(row, 0, nameItem);
-  QTableWidgetItem *typeItem = new QTableWidgetItem(queue->typeName());
-  ui->queueTable->setItem(row, 1, typeItem);
-}
-
-void QueueManagerDialog::queueRemoved(const MoleQueue::Queue *queue)
-{
-  for(int i = 0; i < ui->queueTable->rowCount(); i++){
-    QTableWidgetItem *nameItem = ui->queueTable->item(i, 0);
-    if(nameItem->text() == queue->name()){
-      ui->queueTable->removeRow(i);
-    }
-  }
-}
-
-void QueueManagerDialog::itemDoubleClicked(QTableWidgetItem *item)
-{
-  int row = item->row();
-  Queue *queue = m_queueManager->queues()[row];
-  this->showSettingsDialog(queue);
+  if (index.row() <= m_queueManager->numQueues())
+    this->showSettingsDialog(m_queueManager->queues().at(index.row()));
 }
 
 void QueueManagerDialog::showSettingsDialog(Queue *queue)
 {
   QueueSettingsDialog dialog(queue, this);
   dialog.exec();
+}
+
+QList<int> QueueManagerDialog::getSelectedRows()
+{
+  QItemSelection sel (ui->queueTable->selectionModel()->selection());
+
+  QList<int> rows;
+  foreach (const QModelIndex &ind, sel.indexes()) {
+    if (!rows.contains(ind.row()))
+      rows << ind.row();
+  }
+
+  qSort(rows);
+  return rows;
+}
+
+QList<Queue *> QueueManagerDialog::getSelectedQueues()
+{
+  QList<Queue *> allQueues = m_queueManager->queues();
+  QList<Queue *> selectedQueues;
+
+  foreach (int i, this->getSelectedRows())
+    selectedQueues << allQueues.at(i);
+
+  return selectedQueues;
 }
 
 } // end MoleQueue namespace

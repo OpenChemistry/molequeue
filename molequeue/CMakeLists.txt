@@ -21,6 +21,7 @@ set(mq_srcs
   program.cpp
   queue.cpp
   queuemanager.cpp
+  queuemanageritemmodel.cpp
   queueitemmodel.cpp
   server.cpp
   serverconnection.cpp
@@ -47,6 +48,7 @@ set(mq_moc
   program.h
   queue.h
   queuemanager.h
+  queuemanageritemmodel.h
   queueitemmodel.h
   server.h
   serverconnection.h
