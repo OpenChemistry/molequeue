@@ -22,7 +22,7 @@ set(mq_srcs
   queue.cpp
   queuemanager.cpp
   queuemanageritemmodel.cpp
-  queueitemmodel.cpp
+  queueprogramitemmodel.cpp
   server.cpp
   serverconnection.cpp
   sshcommand.cpp
@@ -49,7 +49,7 @@ set(mq_moc
   queue.h
   queuemanager.h
   queuemanageritemmodel.h
-  queueitemmodel.h
+  queueprogramitemmodel.h
   server.h
   serverconnection.h
   sshcommand.h
