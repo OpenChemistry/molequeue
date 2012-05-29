@@ -42,47 +42,8 @@ public:
   QWidget *settingsWidget() const;
 
 public slots:
-  /**
-   * Submit a new job to the queue.
-   * \param job The Program object to submit to the queue.
-   * \return True on successful addition to the queue.
-   */
-  virtual bool submit(Job *job);
 
-protected slots:
-  /** Job started successfully. */
-  virtual void jobStarted();
-
-  /** Job completed successfully. */
-  virtual void jobFinished();
-
-  /** Slot for polling remote jobs that are currently active. */
-  virtual void pollRemote();
-
-protected:
-  /** Set up some default programs. */
-  virtual void setupPrograms();
-
-  /** Set up our SSH connection. */
-  virtual void setupProcess();
-
-  /** Submit the job to the remote queue. */
-  virtual void submitJob(int index);
-
-  /** Poll the job to see if it is complete. */
-
-  /** Push files to the remote host. */
-
-  /** Retrieve files from the remote host. */
-
-  /** Our SSH connection to the remote host. */
-  SshCommand *m_ssh;
-
-  /** A timer for polling the remote host if jobs are active. **/
-  QTimer *m_timer;
-
-  /** The interval, in seconds, to poll the remote host. **/
-  int m_interval;
+  virtual bool submitJob(const Job *job);
 };
 
 } // End namespace
