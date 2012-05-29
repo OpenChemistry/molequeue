@@ -41,7 +41,7 @@ QueueSettingsDialog::QueueSettingsDialog(Queue *queue, QWidget *parentObject)
   // populate programs table
   int row = 0;
   ui->programsTable->setRowCount(queue->programs().size());
-  foreach(const QString &programName, queue->programs()){
+  foreach(const QString &programName, queue->programNames()){
     QTableWidgetItem *item = new QTableWidgetItem(programName);
     ui->programsTable->setItem(row++, 0, item);
   }

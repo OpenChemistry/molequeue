@@ -24,24 +24,27 @@
 namespace MoleQueue {
 
 Program::Program(Queue *parentQueue) :
+  QObject(parentQueue),
+  m_name("Unknown"),
   m_runDirect(true),
   m_delimiter("$$"),
   m_queue(parentQueue)
 {
 }
 
-Program::~Program()
+Program::Program(const Program &other)
+  : QObject(other.parent()),
+    m_name(other.m_name),
+    m_title(other.m_title),
+    m_runDirect(other.m_runDirect),
+    m_runTemplate(other.m_runTemplate),
+    m_delimiter(other.m_delimiter),
+    m_queue(other.m_queue)
 {
 }
 
-Program::Program(const Program &other)
+Program::~Program()
 {
-  m_runDirect = other.m_runDirect;
-  m_runTemplate = other.m_runTemplate;
-  m_delimiter = other.m_delimiter;
-  m_queue = other.m_queue;
-  m_title = other.m_title;
-  m_name = other.m_name;
 }
 
 QString Program::queueName() const

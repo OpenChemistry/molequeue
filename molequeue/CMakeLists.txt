@@ -44,6 +44,7 @@ set(mq_moc
   jobmanager.h
   jobview.h
   jsonrpc.h
+  program.h
   queue.h
   queuemanager.h
   queueitemmodel.h

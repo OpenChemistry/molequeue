@@ -74,17 +74,8 @@ bool QueueManager::removeQueue(const QString &name)
 QueueListType QueueManager::toQueueList() const
 {
   QueueListType queueList;
-  QString queueName;
-  QStringList programList;
-  foreach(const Queue *queue, m_queues) {
-    queueName = queue->name();
-    programList.clear();
-    foreach(const QString progName, queue->programs()) {
-      programList << progName;
-    }
-
-    queueList.insert(queueName, programList);
-  }
+  foreach(const Queue *queue, m_queues)
+    queueList.insert(queue->name(), queue->programNames());
 
   return queueList;
 }

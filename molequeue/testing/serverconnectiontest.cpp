@@ -219,15 +219,6 @@ void ServerConnectionTest::testSendQueueList()
     qApp->processEvents(QEventLoop::AllEvents, 100);
   }
 
-  // Cleanup
-  const QList<MoleQueue::Queue*> queues = qmanager.queues();
-  for (QList<MoleQueue::Queue*>::const_iterator it = queues.constBegin(),
-       it_end = queues.constEnd(); it != it_end; ++it) {
-    foreach (const QString &prog, (*it)->programs()) {
-      delete (*it)->program(prog);
-    }
-  }
-
   MoleQueue::PacketType refPacket =
       this->readReferenceString("serverconnection-ref/queue-list.json");
 

@@ -141,14 +141,6 @@ void JsonRpcTest::initTestCase()
 
 void JsonRpcTest::cleanupTestCase()
 {
-  const QList<Queue*> queues = m_qmanager.queues();
-
-  for (QList<Queue*>::const_iterator it = queues.constBegin(),
-       it_end = queues.constEnd(); it != it_end; ++it) {
-    foreach (const QString &prog, (*it)->programs()) {
-      delete (*it)->program(prog);
-    }
-  }
 }
 
 void JsonRpcTest::init()

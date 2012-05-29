@@ -19,11 +19,22 @@
 #include "program.h"
 #include "queue.h"
 
+class DummyQueue : public MoleQueue::Queue
+{
+  Q_OBJECT
+public:
+  DummyQueue(const QString &queueName = "Dummy", QObject *parentObject = NULL)
+    : MoleQueue::Queue(queueName, parentObject) {};
+public slots:
+  virtual bool submitJob(const MoleQueue::Job *) {return false;}
+};
+
 class QueueTest : public QObject
 {
   Q_OBJECT
 
 private:
+  DummyQueue m_queue;
 
 private slots:
   /// Called before the first test function is executed.
@@ -35,7 +46,13 @@ private slots:
   /// Called after every test function.
   void cleanup();
 
-  void runTest();
+  void testNames();
+  void testAddProgram();
+  void testLookupProgram();
+  void testNumPrograms();
+  void testProgramNames();
+  void testRemoveProgram();
+  void testCleanup();
 };
 
 void QueueTest::initTestCase()
@@ -54,49 +71,77 @@ void QueueTest::cleanup()
 {
 }
 
-void QueueTest::runTest()
+void QueueTest::testNames()
 {
-  bool error = false;
-  qDebug() << "Testing the queue class...";
+  QCOMPARE(m_queue.name(), QString ("Dummy"));
+  m_queue.setName("SomeQueue");
+  QCOMPARE(m_queue.name(), QString ("SomeQueue"));
+}
 
-  MoleQueue::Program *gamess = new MoleQueue::Program;
-  gamess->setName("GAMESS");
-//  gamess.setReplacement("input", "myInput.inp");
-//  gamess.setReplacement("ncpus", "8");
-  gamess->setRunTemplate("rungms $$input$$ 2010 $$ncpus$$");
+void QueueTest::testAddProgram()
+{
+  QSignalSpy spy (&m_queue, SIGNAL(programAdded(QString,Program*)));
 
-  MoleQueue::Program *gaussian = new MoleQueue::Program;
-  gaussian->setName("Gaussian");
-//  gaussian.setReplacement("input", "input.com");
-  gaussian->setRunTemplate("gaussian $$input$$");
+  MoleQueue::Program *p1 = new MoleQueue::Program(&m_queue);
+  p1->setName("First Program");
+  MoleQueue::Program *p2 = new MoleQueue::Program(NULL);
+  p2->setName("Second Program");
+  MoleQueue::Program *p2a = new MoleQueue::Program(&m_queue);
+  p2a->setName("Second Program");
 
-  MoleQueue::Queue queue;
-  if (!queue.addProgram(gamess)) {
-    error = true;
-    qDebug() << "Error adding the gamess program to the queue.";
-  }
-  if (!queue.addProgram(gaussian)) {
-    error = true;
-    qDebug() << "Error adding the gaussian program to the queue.";
-  }
-  QStringList programs = queue.programs();
-  qDebug() << "Programs in queue: " << programs.join(" ");
+  QVERIFY(m_queue.addProgram(p1));
+  QVERIFY(m_queue.addProgram(p2));
+  QVERIFY(!m_queue.addProgram(p2a)); // Duplicate name
 
-  if (!queue.removeProgram("GAMESS")) {
-    error = true;
-    qDebug() << "Error removing the GAMESS program from the queue.";
-  }
+  QCOMPARE(spy.count(), 2);
+}
 
-  foreach (const QString &name, programs)
-    qDebug() << name;
+void QueueTest::testLookupProgram()
+{
+  QString programName ("First Program");
+  QCOMPARE(m_queue.lookupProgram(programName)->name(), programName);
+}
 
-  programs = queue.programs();
-  qDebug() << "Programs in queue: " << programs.join(" ");
+void QueueTest::testNumPrograms()
+{
+  QCOMPARE(m_queue.numPrograms(), 2);
+}
 
-  QVERIFY(error == false);
+void QueueTest::testProgramNames()
+{
+  QStringList programNames = m_queue.programNames();
+  qSort(programNames);
+  QCOMPARE(programNames.size(), 2);
+  QCOMPARE(programNames[0], QString("First Program"));
+  QCOMPARE(programNames[1], QString("Second Program"));
+}
 
-  delete gamess;
-  delete gaussian;
+void QueueTest::testRemoveProgram()
+{
+  QSignalSpy spy (&m_queue, SIGNAL(programRemoved(QString,Program*)));
+
+  MoleQueue::Program notInQueue;
+  QCOMPARE(m_queue.removeProgram(&notInQueue ), false);
+  QCOMPARE(m_queue.removeProgram("notInQueue"), false);
+
+  QCOMPARE(m_queue.removeProgram("First Program"), true);
+  QCOMPARE(m_queue.numPrograms(), 1);
+  QCOMPARE(m_queue.removeProgram(m_queue.programs().first()), true);
+  QCOMPARE(m_queue.numPrograms(), 0);
+
+  QCOMPARE(spy.count(), 2);
+}
+
+void QueueTest::testCleanup()
+{
+  DummyQueue *queue = new DummyQueue();
+
+  QPointer<MoleQueue::Program> program = new MoleQueue::Program ();
+  queue->addProgram(program.data());
+  delete queue;
+  queue = NULL;
+
+  QCOMPARE(program.data(), static_cast<MoleQueue::Program*>(NULL));
 }
 
 QTEST_MAIN(QueueTest)
