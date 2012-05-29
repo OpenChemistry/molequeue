@@ -21,80 +21,11 @@
 #include "job.h"
 #include "molequeueglobal.h"
 
+#include "testserver.h"
+
 #include <QtGui/QApplication>
 
-#include <QtNetwork/QLocalServer>
 #include <QtNetwork/QLocalSocket>
-
-class TestServer : public QObject
-{
-  Q_OBJECT
-  MoleQueue::PacketType *m_target;
-  QLocalServer *m_server;
-  QLocalSocket *m_socket;
-public:
-  TestServer(MoleQueue::PacketType *target)
-    : QObject(NULL), m_target(target), m_server(new QLocalServer),
-      m_socket(NULL)
-  {
-    if (!m_server->listen("MoleQueue")) {
-      qWarning() << "Cannot start test server:" << m_server->errorString();
-      return;
-    }
-
-    connect(m_server, SIGNAL(newConnection()), this, SLOT(newConnection()));
-  }
-
-  ~TestServer()
-  {
-    if (m_socket != NULL)
-      m_socket->disconnect();
-
-    delete m_server;
-  }
-
-  void sendPacket(const MoleQueue::PacketType &packet)
-  {
-    QDataStream out (m_socket);
-    out.setVersion(QDataStream::Qt_4_7);
-//    qDebug() << "Test server writing" << packet.size() << "bytes.";
-
-    // Create header
-    out << static_cast<quint32>(1);
-    out << static_cast<quint32>(packet.size());
-    // write data
-    out << packet;
-    m_socket->flush();
-  }
-
-private slots:
-  void newConnection()
-  {
-    m_socket = m_server->nextPendingConnection();
-    connect(m_socket, SIGNAL(disconnected()), m_socket, SLOT(deleteLater()));
-    connect(m_socket, SIGNAL(readyRead()), this, SLOT(readyRead()));
-//    qDebug() << "New connection!";
-  }
-
-  void readyRead()
-  {
-//  qDebug() << "Test server received" << m_socket->bytesAvailable() << "bytes.";
-    QDataStream in (m_socket);
-    in.setVersion(QDataStream::Qt_4_7);
-
-    quint32 version;
-    quint32 size;
-    MoleQueue::PacketType packet;
-
-    in >> version;
-    in >> size;
-    in >> packet;
-
-//    qDebug() << "Received packet. Version" << version << "Size" << size;
-
-    m_target->append(packet);
-  }
-};
 
 class ClientTest : public QObject
 {
@@ -177,9 +108,7 @@ void ClientTest::testJobSubmission()
 
   m_client->submitJobRequest(req);
 
-  while (m_packet.size() == 0) {
-    qApp->processEvents(QEventLoop::AllEvents, 100);
-  }
+  QVERIFY2(m_server->waitForPacket(), "Timeout waiting for reply.");
 
   MoleQueue::PacketType refPacket =
       this->readReferenceString("client-ref/job-submission.json");
@@ -200,9 +129,7 @@ void ClientTest::testJobCancellation()
   MoleQueue::Job *req = m_client->newJobRequest();
   m_client->cancelJob(req);
 
-  while (m_packet.size() == 0) {
-    qApp->processEvents(QEventLoop::AllEvents, 100);
-  }
+  QVERIFY2(m_server->waitForPacket(), "Timeout waiting for reply.");
 
   MoleQueue::PacketType refPacket =
       this->readReferenceString("client-ref/job-cancellation.json");
@@ -222,9 +149,7 @@ void ClientTest::testRequestQueueListUpdate()
 {
   m_client->requestQueueListUpdate();
 
-  while (m_packet.size() == 0) {
-    qApp->processEvents(QEventLoop::AllEvents, 100);
-  }
+  QVERIFY2(m_server->waitForPacket(), "Timeout waiting for reply.");
 
   MoleQueue::PacketType refPacket =
       this->readReferenceString("client-ref/queue-list-request.json");
@@ -245,9 +170,7 @@ void ClientTest::testQueueListReceived()
   // First send a listQueues request, then parse out the id for the response.
   m_client->requestQueueListUpdate();
 
-  while (m_packet.size() == 0) {
-    qApp->processEvents(QEventLoop::AllEvents, 100);
-  }
+  QVERIFY2(m_server->waitForPacket(), "Timeout waiting for reply.");
 
   QRegExp capture ("\\n\\s+\"id\"\\s+:\\s+(\\d+)\\s*,\\s*\\n");
   int pos = capture.indexIn(m_packet);
@@ -279,9 +202,7 @@ void ClientTest::testSuccessfulSubmissionReceived()
   MoleQueue::Job *req = m_client->newJobRequest();
   m_client->submitJobRequest(req);
 
-  while (m_packet.size() == 0) {
-    qApp->processEvents(QEventLoop::AllEvents, 100);
-  }
+  QVERIFY2(m_server->waitForPacket(), "Timeout waiting for reply.");
 
   QRegExp capture ("\\n\\s+\"id\"\\s+:\\s+(\\d+)\\s*,\\s*\\n");
   int pos = capture.indexIn(m_packet);
@@ -313,9 +234,7 @@ void ClientTest::testFailedSubmissionReceived()
   MoleQueue::Job *req = m_client->newJobRequest();
   m_client->submitJobRequest(req);
 
-  while (m_packet.size() == 0) {
-    qApp->processEvents(QEventLoop::AllEvents, 100);
-  }
+  QVERIFY2(m_server->waitForPacket(), "Timeout waiting for reply.");
 
   QRegExp capture ("\\n\\s+\"id\"\\s+:\\s+(\\d+)\\s*,\\s*\\n");
   int pos = capture.indexIn(m_packet);
@@ -347,16 +266,12 @@ void ClientTest::testJobCancellationConfirmationReceived()
   MoleQueue::Job *req = m_client->newJobRequest();
   m_client->submitJobRequest(req);
 
-  while (m_packet.size() == 0) {
-    qApp->processEvents(QEventLoop::AllEvents, 100);
-  }
+  QVERIFY2(m_server->waitForPacket(), "Timeout waiting for reply.");
   m_packet.clear();
 
   m_client->cancelJob(req);
 
-  while (m_packet.size() == 0) {
-    qApp->processEvents(QEventLoop::AllEvents, 100);
-  }
+  QVERIFY2(m_server->waitForPacket(), "Timeout waiting for reply.");
 
   QRegExp capture ("\\n\\s+\"id\"\\s+:\\s+(\\d+)\\s*,\\s*\\n");
   int pos = capture.indexIn(m_packet);
