@@ -19,6 +19,9 @@ endif()
 include_directories("${MoleQueue_SOURCE_DIR}")
 add_subdirectory(molequeue)
 
+configure_file(${MoleQueue_SOURCE_DIR}/cmake/CTestCustom.cmake.in
+  ${MoleQueue_BINARY_DIR}/CTestCustom.cmake)
+
 option(BUILD_DOCUMENTATION "Build project documentation" OFF)
 
 if(BUILD_DOCUMENTATION)
