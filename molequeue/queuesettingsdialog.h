@@ -2,7 +2,7 @@
 
   This source file is part of the MoleQueue project.
 
-  Copyright 2011 Kitware, Inc.
+  Copyright 2012 Kitware, Inc.
 
   This source code is released under the New BSD License, (the "License").
 
@@ -23,9 +23,10 @@ namespace Ui {
     class QueueSettingsDialog;
 }
 
-namespace MoleQueue {
-
+namespace MoleQueue
+{
 class Queue;
+class QueueProgramItemModel;
 
 class QueueSettingsDialog : public QDialog
 {
@@ -38,6 +39,7 @@ public:
 private:
     Ui::QueueSettingsDialog *ui;
     Queue *m_queue;
+    QueueProgramItemModel *m_model;
 };
 
 } // end MoleQueue namespace

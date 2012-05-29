@@ -2,7 +2,7 @@
 
   This source file is part of the MoleQueue project.
 
-  Copyright 2011 Kitware, Inc.
+  Copyright 2012 Kitware, Inc.
 
   This source code is released under the New BSD License, (the "License").
 
@@ -18,13 +18,15 @@
 #include "ui_queuesettingsdialog.h"
 
 #include "queue.h"
+#include "queueprogramitemmodel.h"
 
 namespace MoleQueue {
 
 QueueSettingsDialog::QueueSettingsDialog(Queue *queue, QWidget *parentObject)
   : QDialog(parentObject),
     ui(new Ui::QueueSettingsDialog),
-    m_queue(queue)
+    m_queue(queue),
+    m_model(new QueueProgramItemModel (m_queue, this))
 {
   ui->setupUi(this);
 
@@ -39,12 +41,14 @@ QueueSettingsDialog::QueueSettingsDialog(Queue *queue, QWidget *parentObject)
   }
 
   // populate programs table
-  int row = 0;
-  ui->programsTable->setRowCount(queue->programs().size());
-  foreach(const QString &programName, queue->programNames()){
-    QTableWidgetItem *item = new QTableWidgetItem(programName);
-    ui->programsTable->setItem(row++, 0, item);
-  }
+  ui->programsTable->setModel(m_model);
+
+  /// @todo Make these GUI components useful:
+  ui->nameLineEdit->setDisabled(true);
+  ui->push_addProgram->setDisabled(true);
+  ui->push_removeProgram->setDisabled(true);
+  ui->push_save->setDisabled(true);
+  ui->push_reset->setDisabled(true);
 }
 
 QueueSettingsDialog::~QueueSettingsDialog()

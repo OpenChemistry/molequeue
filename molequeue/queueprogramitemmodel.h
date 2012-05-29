@@ -2,7 +2,7 @@
 
   This source file is part of the MoleQueue project.
 
-  Copyright 2011 Kitware, Inc.
+  Copyright 2012 Kitware, Inc.
 
   This source code is released under the New BSD License, (the "License").
 
@@ -17,42 +17,39 @@
 #ifndef QUEUEITEMMODEL_H
 #define QUEUEITEMMODEL_H
 
-#include <QtCore/QModelIndex>
-#include <QtCore/QList>
+#include <QtCore/QAbstractItemModel>
 
-namespace MoleQueue {
-
+namespace MoleQueue
+{
 class Queue;
 
-class QueueItemModel : public QAbstractItemModel
+class QueueProgramItemModel : public QAbstractItemModel
 {
   Q_OBJECT
 
+  enum ColumnNames {
+    PROGRAM_NAME = 0,
+
+    COLUMN_COUNT // Use to get total number of columns
+  };
+
 public:
-  explicit QueueItemModel(QList<Queue *> *queueList, QObject *parentObject = 0);
+  explicit QueueProgramItemModel(Queue *queue, QObject *parentObject = 0);
 
   QModelIndex parent(const QModelIndex & modelIndex) const;
   int rowCount(const QModelIndex & modelIndex = QModelIndex()) const;
   int columnCount(const QModelIndex & modelIndex = QModelIndex()) const;
+  QVariant headerData(int section, Qt::Orientation orientation,
+                      int role = Qt::DisplayRole) const;
   QVariant data(const QModelIndex & modelIndex,
                 int role = Qt::DisplayRole) const;
-  bool setData(const QModelIndex & modelIndex, const QVariant & value,
-               int role = Qt::EditRole);
   Qt::ItemFlags flags(const QModelIndex & modelIndex) const;
 
   QModelIndex index(int row, int column,
                     const QModelIndex & modelIndex = QModelIndex()) const;
 
-  void clear();
-
-private:
-  QList<Queue *> *m_queueList;
-
-private slots:
-  void add(Queue *queue);
-  void remove(Queue *queue);
-
-  void queuesChanged();
+protected:
+  Queue *m_queue;
 };
 
 } // End namespace
