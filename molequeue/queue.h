@@ -21,7 +21,7 @@
 
 #include "molequeueglobal.h"
 
-#include <QtCore/QHash>
+#include <QtCore/QMap>
 #include <QtCore/QList>
 #include <QtCore/QMetaType>
 #include <QtCore/QPointer>
@@ -122,7 +122,6 @@ public:
 
   /**
    * @return A list of program names available through this queue.
-   * @warning This list may not be in the same order as programs.
    */
   QStringList programNames() const
   {
@@ -131,7 +130,6 @@ public:
 
   /**
    * @return A list of the available Program objects.
-   * @warning This list may not be in the same order as programNames.
    */
   QList<Program *> programs() const
   {
@@ -182,9 +180,9 @@ public slots:
 
 protected:
   QString m_name;
-  QHash<QString, Program *> m_programs;
+  QMap<QString, Program *> m_programs;
   /// Lookup table for jobs that are using this Queue. Maps JobId to MoleQueueId.
-  QHash<IdType, IdType> m_jobs;
+  QMap<IdType, IdType> m_jobs;
 };
 
 } // End namespace

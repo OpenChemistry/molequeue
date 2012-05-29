@@ -21,7 +21,7 @@
 
 #include "molequeueglobal.h"
 
-#include <QtCore/QHash>
+#include <QtCore/QMap>
 
 namespace MoleQueue
 {
@@ -115,7 +115,7 @@ signals:
   void queueRemoved(const QString &name, MoleQueue::Queue *queue);
 
 protected:
-  QHash<QString, Queue*> m_queues;
+  QMap<QString, Queue*> m_queues;
 };
 
 } // end MoleQueue namespace
