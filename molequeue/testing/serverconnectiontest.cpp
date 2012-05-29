@@ -86,7 +86,7 @@ void ServerConnectionTest::initTestCase()
 
   m_server = new MoleQueue::Server ();
   QLocalSocket *serverSocket = new QLocalSocket ();
-  serverSocket->connectToServer("MoleQueue");
+  serverSocket->connectToServer(m_testServer->socketName());
   m_serverConnection = new MoleQueue::ServerConnection(m_server, serverSocket);
   m_serverConnection->startProcessing();
   // Let the event loop run a bit to handle the connections
