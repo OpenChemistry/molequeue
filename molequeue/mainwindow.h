@@ -89,8 +89,6 @@ protected:
   Server *m_server;
   JobItemModel *m_jobItemModel;
 
-  QueueManager *m_queueManager;
-
   QString m_tmpDir;
   QString m_localDir;
 };
