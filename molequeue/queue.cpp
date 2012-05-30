@@ -18,6 +18,7 @@
 
 #include "program.h"
 
+#include <QtCore/QDebug>
 #include <QtCore/QSettings>
 
 namespace MoleQueue {
@@ -36,14 +37,40 @@ Queue::~Queue()
   qDeleteAll(programList);
 }
 
-void Queue::readSettings(const QSettings &settings)
+void Queue::readSettings(QSettings &settings)
 {
-  Q_UNUSED(settings);
+  QStringList progNames = settings.value("programs").toStringList();
+
+  settings.beginGroup("Programs");
+  foreach (const QString &progName, progNames) {
+    settings.beginGroup(progName);
+
+    Program *program = new Program (this);
+    program->setName(progName);
+    program->readSettings(settings);
+
+    if (!this->addProgram(program)) {
+      qWarning() << Q_FUNC_INFO << "Could not add program" << progName
+                 << "to queue" << this->name() << "-- duplicate program name.";
+      delete program;
+    }
+
+    settings.endGroup(); // progName
+  }
+  settings.endGroup(); // "Programs"
 }
 
 void Queue::writeSettings(QSettings &settings) const
 {
-  Q_UNUSED(settings);
+  settings.setValue("programs", this->programNames());
+
+  settings.beginGroup("Programs");
+  foreach (const Program *prog, this->programs()) {
+    settings.beginGroup(prog->name());
+    prog->writeSettings(settings);
+    settings.endGroup(); // prog->name()
+  }
+  settings.endGroup(); // "Programs"
 }
 
 QWidget* Queue::settingsWidget() const
