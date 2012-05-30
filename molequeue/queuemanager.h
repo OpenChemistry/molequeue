@@ -23,6 +23,8 @@
 
 #include <QtCore/QMap>
 
+class QSettings;
+
 namespace MoleQueue
 {
 class Queue;
@@ -34,6 +36,11 @@ class QueueManager : public QObject
 public:
   explicit QueueManager(QObject *parentObject = 0);
   ~QueueManager();
+
+  /// @param settings QSettings object to write state to.
+  void readSettings(QSettings &settings);
+  /// @param settings QSettings object to read state from.
+  void writeSettings(QSettings &settings) const;
 
   /**
    * @param name String containing the name of the queue of interest.

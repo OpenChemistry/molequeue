@@ -45,7 +45,7 @@ QueueLocal::~QueueLocal()
 {
 }
 
-void QueueLocal::readSettings(const QSettings &settings)
+void QueueLocal::readSettings(QSettings &settings)
 {
   Queue::readSettings(settings);
   m_cores = settings.value("cores", -1).toInt();

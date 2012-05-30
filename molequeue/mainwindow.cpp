@@ -24,9 +24,6 @@
 #include "program.h"
 #include "queuemanager.h"
 #include "queuemanagerdialog.h"
-#include "queues/local.h"
-#include "queues/remote.h"
-#include "queues/sge.h"
 #include "server.h"
 #include "serverconnection.h"
 #include "sshcommand.h"
@@ -103,35 +100,7 @@ void MainWindow::readSettings()
   m_localDir = settings.value(
         "localDir", QDir::homePath() + "/.molequeue/local").toString();
 
-  // read names of queues
-  QStringList queueNames = settings.value("queues").toStringList();
-
-  // Process the queues.
-  settings.beginGroup("Queues");
-  foreach(const QString &queueName, queueNames){
-    settings.beginGroup(queueName);
-    QString queueType = settings.value("type").toString();
-
-    /// @todo Need a QueueFactory or similar to simplify this...
-    Queue *queue = NULL;
-    if (queueType == tr("Local")) {
-      queue = new QueueLocal (m_queueManager);
-    }
-    else if (queueType == tr("Remote")) {
-      queue = new QueueRemote (m_queueManager);
-    }
-    else if (queueType == tr("Remote - SGE")) {
-      queue = new QueueSGE (m_queueManager);
-    }
-
-    if(queue){
-      queue->setName(queueName);
-      queue->readSettings(settings);
-      m_queueManager->addQueue(queue);
-    }
-    settings.endGroup();
-  }
-  settings.endGroup();
+  m_queueManager->readSettings(settings);
 }
 
 void MainWindow::writeSettings()
@@ -140,20 +109,7 @@ void MainWindow::writeSettings()
   settings.setValue("tmpDir"  , m_tmpDir);
   settings.setValue("localDir", m_localDir);
 
-  // Process the queues.
-  QStringList queueNames;
-  settings.beginGroup("Queues");
-  foreach(Queue *queue, m_queueManager->queues()) {
-    settings.beginGroup(queue->name());
-    settings.setValue("type", queue->typeName());
-    queue->writeSettings(settings);
-    settings.endGroup();
-    queueNames.append(queue->name());
-  }
-  settings.endGroup();
-
-  // write name of each queue
-  settings.setValue("queues", queueNames);
+  m_queueManager->writeSettings(settings);
 }
 
 void MainWindow::showQueueManager()

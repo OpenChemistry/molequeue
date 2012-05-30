@@ -41,7 +41,7 @@ public:
   /**
    * Read settings for the queue, done early on at startup.
    */
-  virtual void readSettings(const QSettings &settings);
+  virtual void readSettings(QSettings &settings);
 
   /**
    * Write settings for the queue, done just before closing the server.
