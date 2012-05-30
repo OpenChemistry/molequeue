@@ -19,6 +19,11 @@
 
 #include "queue.h"
 #include "queueprogramitemmodel.h"
+#include "program.h"
+#include "programconfiguredialog.h"
+
+#include <QtGui/QMessageBox>
+#include <QtGui/QHeaderView>
 
 namespace MoleQueue {
 
@@ -42,10 +47,16 @@ QueueSettingsDialog::QueueSettingsDialog(Queue *queue, QWidget *parentObject)
 
   // populate programs table
   ui->programsTable->setModel(m_model);
+  ui->programsTable->horizontalHeader()->setResizeMode(0, QHeaderView::Stretch);
+
+  // Make connections
+  connect(ui->push_addProgram, SIGNAL(clicked()),
+          this, SLOT(addProgramClicked()));
+  connect(ui->programsTable, SIGNAL(doubleClicked(QModelIndex)),
+          this, SLOT(doubleClicked(QModelIndex)));
 
   /// @todo Make these GUI components useful:
   ui->nameLineEdit->setDisabled(true);
-  ui->push_addProgram->setDisabled(true);
   ui->push_removeProgram->setDisabled(true);
   ui->push_save->setDisabled(true);
   ui->push_reset->setDisabled(true);
@@ -54,6 +65,42 @@ QueueSettingsDialog::QueueSettingsDialog(Queue *queue, QWidget *parentObject)
 QueueSettingsDialog::~QueueSettingsDialog()
 {
   delete ui;
+}
+
+void QueueSettingsDialog::addProgramClicked()
+{
+  Program *prog = new Program (m_queue);
+
+  bool programAccepted = false;
+
+  while (!programAccepted) {
+    DialogCode dialogCode = this->showProgramConfigDialog(prog);
+
+    if (dialogCode == QDialog::Rejected)
+      return;
+
+    programAccepted = m_queue->addProgram(prog, false);
+
+    if (!programAccepted) {
+      QMessageBox::information(this, tr("Cannot Add Program"),
+                               tr("Cannot add program: Another program with "
+                                  "the same name exists. Please enter a "
+                                  "different name."));
+    }
+  }
+}
+
+void QueueSettingsDialog::doubleClicked(const QModelIndex &index)
+{
+  if (index.row() <= m_queue->numPrograms())
+    this->showProgramConfigDialog(m_queue->programs().at(index.row()));
+}
+
+QDialog::DialogCode QueueSettingsDialog::showProgramConfigDialog(Program *prog)
+{
+  ProgramConfigureDialog configDialog (prog, this);
+  int dialogCode = configDialog.exec();
+  return static_cast<QDialog::DialogCode>(dialogCode);
 }
 
 } // end MoleQueue namespace

@@ -14,43 +14,49 @@
 
 ******************************************************************************/
 
-#ifndef QUEUESETTINGSDIALOG_H
-#define QUEUESETTINGSDIALOG_H
+#ifndef PROGRAMCONFIGUREDIALOG_H
+#define PROGRAMCONFIGUREDIALOG_H
 
 #include <QtGui/QDialog>
 
-class QModelIndex;
-
 namespace Ui {
-    class QueueSettingsDialog;
+class ProgramConfigureDialog;
 }
 
 namespace MoleQueue
 {
 class Program;
-class Queue;
-class QueueProgramItemModel;
 
-class QueueSettingsDialog : public QDialog
+class ProgramConfigureDialog : public QDialog
 {
   Q_OBJECT
 
 public:
-  explicit QueueSettingsDialog(Queue *queue, QWidget *parentObject = 0);
-  ~QueueSettingsDialog();
+  explicit ProgramConfigureDialog(Program *program, QWidget *parentObject = 0);
+  ~ProgramConfigureDialog();
+
+public slots:
+  void accept();
 
 protected slots:
-  void addProgramClicked();
-  void doubleClicked(const QModelIndex &);
+  void populateSyntaxCombo();
 
-protected:
-  DialogCode showProgramConfigDialog(Program *prog);
+  void updateGuiFromProgram();
+  void updateProgramFromGui();
 
-  Ui::QueueSettingsDialog *ui;
-  Queue *m_queue;
-  QueueProgramItemModel *m_model;
+  void updateLaunchEditor();
+  void launchEditorTextChanged();
+
+  void launchSyntaxChanged(int enumVal);
+  void customizeLauncherClicked();
+
+private:
+  Ui::ProgramConfigureDialog *ui;
+  Program *m_program;
+  bool m_isCustomized;
+  QString m_customLaunchText;
 };
 
-} // end MoleQueue namespace
+} // end namespace MoleQueue
 
-#endif // QUEUESETTINGSDIALOG_H
+#endif // PROGRAMCONFIGUREDIALOG_H
