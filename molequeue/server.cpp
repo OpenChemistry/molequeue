@@ -18,6 +18,7 @@
 
 #include "job.h"
 #include "jobmanager.h"
+#include "queuemanager.h"
 #include "serverconnection.h"
 
 #include <QtNetwork/QLocalServer>
@@ -39,6 +40,7 @@ Server::Server(QObject *parentObject)
   : QObject(parentObject),
     m_server(new QLocalServer ()),
     m_jobManager(new JobManager (this)),
+    m_queueManager(new QueueManager (this)),
     m_isTesting(false),
     m_debug(false)
 {
@@ -65,6 +67,9 @@ Server::~Server()
 
   delete m_jobManager;
   m_jobManager = NULL;
+
+  delete m_queueManager;
+  m_queueManager = NULL;
 }
 
 void Server::start()
