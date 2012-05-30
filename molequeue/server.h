@@ -31,6 +31,7 @@ namespace MoleQueue
 {
 class Job;
 class JobManager;
+class QueueManager;
 class ServerConnection;
 
 /**
@@ -65,6 +66,16 @@ public:
    * @return A pointer to the Server JobManager.
    */
   const JobManager *jobManager() const {return m_jobManager;}
+
+  /**
+   * @return A pointer to the Server QueueManager.
+   */
+  QueueManager *queueManager() {return m_queueManager;}
+
+  /**
+   * @return A pointer to the Server QueueManager.
+   */
+  const QueueManager *queueManager() const {return m_queueManager;}
 
   /// Used for unit testing
   friend class ::ServerTest;
@@ -134,8 +145,11 @@ protected:
   /// The internal local socket server
   QLocalServer *m_server;
 
-  /// The JobManager for this server.
+  /// The JobManager for this Server.
   JobManager *m_jobManager;
+
+  /// The QueueManager for this Server.
+  QueueManager *m_queueManager;
 
   /// Used to change the socket name for unit testing.
   bool m_isTesting;

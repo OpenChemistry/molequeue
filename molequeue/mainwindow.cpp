@@ -52,8 +52,7 @@ MainWindow::MainWindow()
     m_trayIcon(NULL),
     m_trayIconMenu(NULL),
     m_server(new Server (this)),
-    m_jobItemModel(new JobItemModel (m_server->jobManager(), this)),
-    m_queueManager(new QueueManager (this))
+    m_jobItemModel(new JobItemModel (m_server->jobManager(), this))
 {
   m_ui->setupUi(this);
 
@@ -98,7 +97,7 @@ void MainWindow::readSettings()
   m_localDir = settings.value(
         "localDir", QDir::homePath() + "/.molequeue/local").toString();
 
-  m_queueManager->readSettings(settings);
+  m_server->queueManager()->readSettings(settings);
 }
 
 void MainWindow::writeSettings()
@@ -107,12 +106,12 @@ void MainWindow::writeSettings()
   settings.setValue("tmpDir"  , m_tmpDir);
   settings.setValue("localDir", m_localDir);
 
-  m_queueManager->writeSettings(settings);
+  m_server->queueManager()->writeSettings(settings);
 }
 
 void MainWindow::showQueueManager()
 {
-  QueueManagerDialog dialog(m_queueManager, this);
+  QueueManagerDialog dialog(m_server->queueManager(), this);
   dialog.exec();
 }
 
@@ -168,7 +167,7 @@ void MainWindow::queueListRequested()
     return;
   }
 
-  conn->sendQueueList(m_queueManager->toQueueList());
+  conn->sendQueueList(m_server->queueManager()->toQueueList());
 }
 
 void MainWindow::jobSubmissionRequested(const Job *req)
