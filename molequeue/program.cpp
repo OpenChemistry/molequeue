@@ -136,11 +136,8 @@ QString Program::generateFormattedExecutionString(
     break;
   case Program::INPUT_ARG_NO_EXT:
   {
-    QString inputNoExtension = inputFilename_;
-    int extensionIndex = inputNoExtension.lastIndexOf(".");
-    if (extensionIndex != -1)
-      inputNoExtension.truncate(extensionIndex);
-    execStr += QString("%1 %2\n").arg(executable).arg(inputNoExtension);
+    execStr += QString("%1 %2\n").arg(executable)
+        .arg(Program::chopExtension(inputFilename_));
   }
     break;
   case Program::REDIRECT:
