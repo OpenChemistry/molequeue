@@ -2,7 +2,7 @@
    "id" : 23,
    "jsonrpc" : "2.0",
    "result" : {
-      "Puny local queue" : [ "SpeedSlater", "SpectroCrunch", "FastFocker" ],
-      "Some big ol' cluster" : [ "Quantum Tater", "Nebulous Nucleus", "Crystal Math" ]
+      "Puny local queue" : [ "FastFocker", "SpectroCrunch", "SpeedSlater" ],
+      "Some big ol' cluster" : [ "Crystal Math", "Nebulous Nucleus", "Quantum Tater" ]
    }
 }
