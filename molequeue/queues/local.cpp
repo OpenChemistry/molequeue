@@ -23,10 +23,6 @@
 #include <QtCore/QProcess>
 #include <QtCore/QProcessEnvironment>
 
-#include <QtCore/QDir>
-#include <QtCore/QFile>
-#include <QtCore/QFileInfo>
-#include <QtCore/QVariant>
 #include <QtCore/QSettings>
 #include <QtCore/QThread>
 

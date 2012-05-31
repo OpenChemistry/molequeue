@@ -30,8 +30,8 @@ Queue::Queue(const QString &queueName, QueueManager *parentManager) :
   m_server((m_queueManager) ? m_queueManager->server() : NULL),
   m_name(queueName)
 {
-  qRegisterMetaType<Program*>("Program*");
-  qRegisterMetaType<const Program*>("const Program*");
+  qRegisterMetaType<Program*>("MoleQueue::Program*");
+  qRegisterMetaType<const Program*>("const MoleQueue::Program*");
 }
 
 Queue::~Queue()

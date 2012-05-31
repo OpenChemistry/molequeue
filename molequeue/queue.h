@@ -163,7 +163,7 @@ signals:
    * @param name Name of the program.
    * @param program Pointer to the newly added Program object.
    */
-  void programAdded(const QString &name, Program *program);
+  void programAdded(const QString &name, MoleQueue::Program *program);
 
   /**
    * Emitted when a program is removed from the queue.
@@ -172,7 +172,7 @@ signals:
    * @warning The @program pointer should not be dereferenced, as this signal
    * is often associated with program deletion.
    */
-  void programRemoved(const QString &name, Program *program);
+  void programRemoved(const QString &name, MoleQueue::Program *program);
 
 public slots:
   /**
@@ -181,7 +181,7 @@ public slots:
    * @return True on success, false on failure.
    * @sa jobSubmitted
    */
-  virtual bool submitJob(const Job *job) = 0;
+  virtual bool submitJob(const MoleQueue::Job *job) = 0;
 
 protected:
   QueueManager *m_queueManager;

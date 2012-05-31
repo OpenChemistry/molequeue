@@ -260,7 +260,7 @@ void ServerConnectionTest::testQueueListRequested()
 void ServerConnectionTest::testJobSubmissionRequested()
 {
   QSignalSpy spy (m_serverConnection,
-                  SIGNAL(jobSubmissionRequested(const Job*)));
+                  SIGNAL(jobSubmissionRequested(const MoleQueue::Job*)));
 
   MoleQueue::PacketType response =
       this->readReferenceString("serverconnection-ref/job-request.json");
@@ -278,7 +278,7 @@ void ServerConnectionTest::testJobSubmissionRequested()
 void ServerConnectionTest::testJobCancellationRequested()
 {
   QSignalSpy spy (m_serverConnection,
-                  SIGNAL(jobCancellationRequested(IdType)));
+                  SIGNAL(jobCancellationRequested(MoleQueue::IdType)));
 
   MoleQueue::PacketType response =
       this->readReferenceString("serverconnection-ref/job-cancellation.json");

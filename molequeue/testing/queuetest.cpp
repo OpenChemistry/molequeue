@@ -80,7 +80,7 @@ void QueueTest::testNames()
 
 void QueueTest::testAddProgram()
 {
-  QSignalSpy spy (&m_queue, SIGNAL(programAdded(QString,Program*)));
+  QSignalSpy spy (&m_queue, SIGNAL(programAdded(QString,MoleQueue::Program*)));
 
   MoleQueue::Program *p1 = new MoleQueue::Program(&m_queue);
   p1->setName("First Program");
@@ -118,7 +118,7 @@ void QueueTest::testProgramNames()
 
 void QueueTest::testRemoveProgram()
 {
-  QSignalSpy spy (&m_queue, SIGNAL(programRemoved(QString,Program*)));
+  QSignalSpy spy (&m_queue, SIGNAL(programRemoved(QString,MoleQueue::Program*)));
 
   MoleQueue::Program notInQueue;
   QCOMPARE(m_queue.removeProgram(&notInQueue ), false);

@@ -140,10 +140,10 @@ void MainWindow::handleServerError(QAbstractSocket::SocketError err,
 void MainWindow::newConnection(ServerConnection *conn)
 {
   connect(conn, SIGNAL(queueListRequested()), this, SLOT(queueListRequested()));
-  connect(conn, SIGNAL(jobSubmissionRequested(const Job*)),
-          this, SLOT(jobSubmissionRequested(const Job*)));
-  connect(conn, SIGNAL(jobCancellationRequested(IdType)),
-          this, SLOT(jobCancellationRequested(IdType)));
+  connect(conn, SIGNAL(jobSubmissionRequested(const MoleQueue::Job*)),
+          this, SLOT(jobSubmissionRequested(const MoleQueue::Job*)));
+  connect(conn, SIGNAL(jobCancellationRequested(MoleQueue::IdType)),
+          this, SLOT(jobCancellationRequested(MoleQueue::IdType)));
 }
 
 void MainWindow::queueListRequested()

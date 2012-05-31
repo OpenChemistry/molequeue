@@ -47,17 +47,18 @@ Server::Server(QObject *parentObject)
     m_debug(false)
 {
   qRegisterMetaType<QAbstractSocket::SocketError>("QAbstractSocket::SocketError");
-  qRegisterMetaType<ServerConnection*>("ServerConnection*");
+  qRegisterMetaType<ServerConnection*>("MoleQueue::ServerConnection*");
+  qRegisterMetaType<const ServerConnection*>("const MoleQueue::ServerConnection*");
 
   connect(m_server, SIGNAL(newConnection()),
           this, SLOT(newConnectionAvailable()));
 
-  connect(m_jobManager, SIGNAL(jobAboutToBeAdded(Job*)),
-          this, SLOT(jobAboutToBeAdded(Job*)),
+  connect(m_jobManager, SIGNAL(jobAboutToBeAdded(MoleQueue::Job*)),
+          this, SLOT(jobAboutToBeAdded(MoleQueue::Job*)),
           Qt::DirectConnection);
 
-  connect(m_jobManager, SIGNAL(jobStateChanged(const Job*,JobState,JobState)),
-          this, SLOT(dispatchJobStateChange(const Job*,JobState,JobState)));
+  connect(m_jobManager, SIGNAL(jobStateChanged(const MoleQueue::Job*,MoleQueue::JobState,MoleQueue::JobState)),
+          this, SLOT(dispatchJobStateChange(const MoleQueue::Job*,MoleQueue::JobState,MoleQueue::JobState)));
 }
 
 Server::~Server()

@@ -48,7 +48,7 @@ public slots:
    * \param job The Program object to submit to the queue.
    * \return True on successful addition to the queue.
    */
-  virtual bool submitJob(const Job *job);
+  virtual bool submitJob(const MoleQueue::Job *job);
 };
 
 } // End namespace
