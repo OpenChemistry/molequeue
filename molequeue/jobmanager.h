@@ -125,6 +125,14 @@ signals:
    */
   void jobAdded(const Job *job);
 
+  /**
+   * Emitted when a Job changes JobState.
+   * @param job Job object
+   * @param oldState Previous state of @a job
+   * @param newState New state of @a job
+   */
+  void jobStateChanged(const Job *job, JobState oldState, JobState newState);
+
 protected:
   /// @param job Job to insert into the internal lookup structures.
   void insertJob(Job *job);
