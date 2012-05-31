@@ -125,9 +125,24 @@ signals:
    */
   void jobAdded(const Job *job);
 
+  /**
+   * Emitted when a Job changes JobState.
+   * @param job Job object
+   * @param oldState Previous state of @a job
+   * @param newState New state of @a job
+   */
+  void jobStateChanged(const Job *job, JobState oldState, JobState newState);
+
 protected:
   /// @param job Job to insert into the internal lookup structures.
   void insertJob(Job *job);
+
+  /**
+   * Convenience function to make a Job object mutable.
+   * @param job Pointer to a const Job object.
+   * @return Mutable pointer to @a job.
+   */
+  Job * mut(const Job* job) {return const_cast<Job*>(job);}
 
   /// List of all jobs.
   QList<const Job*> m_jobs;
