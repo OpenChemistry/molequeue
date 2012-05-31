@@ -47,48 +47,7 @@ public slots:
    * \param job The Program object to submit to the queue.
    * \return True on successful addition to the queue.
    */
-  virtual bool submit(Job *job);
-
-protected slots:
-  /** Job started successfully. */
-  virtual void jobStarted(Job *job);
-
-  /** Job completed successfully. */
-  virtual void jobFinished(Job *job);
-
-  /** Slot for polling remote jobs that are currently active. */
-  virtual void pollRemote();
-
-protected:
-  /** Set up some default programs. */
-  virtual void setupPrograms();
-
-  /** Set up our SSH connection. */
-  virtual void setupProcess();
-
-  /** Submit the job to the remote queue. */
-  virtual void submitJob(int index);
-
-  /** Poll the job to see if it is complete. */
-
-  /** Push files to the remote host. */
-
-  /** Retrieve files from the remote host. */
-
-  /** Our SSH connection to the remote host. */
-  SshCommand *m_ssh;
-
-  /** A timer for polling the remote host if jobs are active. **/
-  QTimer *m_timer;
-
-  /** The interval, in seconds, to poll the remote host. Default is 10 seconds. **/
-  int m_interval;
-
-  /** A map of all active remote jobs, associated with their unique remote id. **/
-  QMap<QString, Job *> m_remoteJobs;
-
-  /** The local directory used to stage files, and retrieve them. **/
-  QString m_localDir;
+  virtual bool submitJob(const Job *job);
 };
 
 } // End namespace

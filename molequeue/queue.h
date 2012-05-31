@@ -2,7 +2,7 @@
 
   This source file is part of the MoleQueue project.
 
-  Copyright 2011 Kitware, Inc.
+  Copyright 2012 Kitware, Inc.
 
   This source code is released under the New BSD License, (the "License").
 
@@ -18,18 +18,21 @@
 #define QUEUE_H
 
 #include <QtCore/QObject>
-#include <QtCore/QMap>
-#include <QtCore/QMetaType>
-#include <QtCore/QList>
-#include <QtCore/QStringList>
 
-#include "program.h"
+#include "molequeueglobal.h"
+
+#include <QtCore/QHash>
+#include <QtCore/QList>
+#include <QtCore/QMetaType>
+#include <QtCore/QPointer>
+#include <QtCore/QStringList>
 
 class QSettings;
 
-namespace MoleQueue {
-
+namespace MoleQueue
+{
 class Job;
+class Program;
 
 /**
  * Abstract queue, generally want QueueLocal, or QueueRemote derived classes
@@ -112,49 +115,76 @@ public:
    * @return The Program object, a null pointer is returned if the
    * requested program is not in this queue.
    */
-  Program* program(const QString &programName);
+  Program* lookupProgram(const QString &programName) const
+  {
+    return m_programs.value(programName, NULL);
+  }
 
   /**
-   * Clear all programs, useful if you would like ot reset a Queue.
+   * @return A list of program names available through this queue.
+   * @warning This list may not be in the same order as programs.
    */
-  void clearPrograms();
+  QStringList programNames() const
+  {
+    return m_programs.keys();
+  }
 
   /**
-   * Retrieve a list of the programs that this Queue object has been configured
-   * with. This can be used by interfaces to show available resources.
+   * @return A list of the available Program objects.
+   * @warning This list may not be in the same order as programNames.
    */
-  QStringList programs() const;
+  QList<Program *> programs() const
+  {
+    return m_programs.values();
+  }
+
+  /**
+   * @return The number of programs belonging to this Queue.
+   */
+  int numPrograms() const
+  {
+    return m_programs.size();
+  }
 
 signals:
-  void jobAdded(Job *job);
-  void jobStateChanged(Job *job);
-  void jobRemoved(Job *job);
+  /**
+   * Emitted when a new program is added to the Queue.
+   * @param name Name of the program.
+   * @param program Pointer to the newly added Program object.
+   */
+  void programAdded(const QString &name, Program *program);
+
+  /**
+   * Emitted when a program is removed from the queue.
+   * @param name Name of the program
+   * @param program Pointer to the removed Program object.
+   * @warning The @program pointer should not be dereferenced, as this signal
+   * is often associated with program deletion.
+   */
+  void programRemoved(const QString &name, Program *program);
+
+  /**
+   * Emitted when a job has been successfully submitted.
+   * @param MoleQueueId MoleQueue identifier for the job.
+   * @param queueId Queue specific id (job id or process id).
+   * @param localDir Local directory where temporary files are stored.
+   */
+  void jobSubmitted(IdType MoleQueueId, IdType queueId, const QString &localDir);
 
 public slots:
   /**
-   * Submit a new job to the queue.
-   * \param job The Program object to submit to the queue.
-   * \return True on successful addition to the queue.
+   * Writes input files and submits a new job to the queue.
+   * @param job Job to submit.
+   * @return True on success, false on failure.
+   * @sa jobSubmitted
    */
-  virtual bool submit(Job *job);
+  virtual bool submitJob(const Job *job) = 0;
 
 protected:
   QString m_name;
-  QMap<QString, Program *> m_programs;
-  QList<Job *> m_jobs;
-
-  /** This stores the long running job number, largely used as a directory for
-   * storage or staged files. This is often an offset applied to the locally
-   * used index into the array of actual jobs stored in a running instance.
-   * The first time MoleQueue is run for a new queue it will be zero, after that
-   * it will keep a count of the total number of jobs run.
-   *
-   * This will require clean up passes/possible reset at some future time. The
-   * data will live longer term in a database/permanent storage. Queues are only
-   * intended for short term storage while processing jobs.
-   */
-  unsigned int m_jobIndexOffset;
-
+  QHash<QString, Program *> m_programs;
+  /// Lookup table for jobs that are using this Queue. Maps JobId to MoleQueueId.
+  QHash<IdType, IdType> m_jobs;
 };
 
 } // End namespace

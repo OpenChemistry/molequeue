@@ -55,33 +55,11 @@ public:
   QWidget* settingsWidget() const;
 
 public slots:
-  /**
-   * Submit a new job to the queue.
-   * \param job The Program object to submit to the queue.
-   * \return True on successful addition to the queue.
-   */
-  virtual bool submit(Job *job);
-
-protected slots:
-  /** Job started successfully. */
-  void jobStarted();
-
-  /** Job completed successfully. */
-  void jobFinished();
-  void jobFinished(int exitCode, QProcess::ExitStatus exitStatus);
-  void processStateChanged(QProcess::ProcessState newState);
+  virtual bool submitJob(const Job *job);
 
 protected:
-  /** Set up some default programs. */
-  void setupPrograms();
-
-  void runProgram(int jobId);
-
   /** The number of cores available. */
   int cores() const;
-
-  QProcess *m_process;
-  int m_currentJob;
   int m_cores;
 };
 

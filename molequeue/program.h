@@ -17,8 +17,11 @@
 #ifndef PROGRAM_H
 #define PROGRAM_H
 
-#include <QtCore/QString>
+#include <QtCore/QObject>
+
 #include <QtCore/QMap>
+#include <QtCore/QMetaType>
+#include <QtCore/QString>
 
 namespace MoleQueue {
 
@@ -35,9 +38,9 @@ class Queue;
  * if the executable, and options etc remain unchanged.
  */
 
-class Program
+class Program : public QObject
 {
-
+  Q_OBJECT
 public:
   explicit Program(Queue *parentQueue = 0);
   ~Program();
@@ -152,5 +155,8 @@ protected:
 };
 
 } // End namespace
+
+Q_DECLARE_METATYPE(MoleQueue::Program*)
+Q_DECLARE_METATYPE(const MoleQueue::Program*)
 
 #endif // PROGRAM_H

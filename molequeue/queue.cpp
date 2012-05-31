@@ -2,7 +2,7 @@
 
   This source file is part of the MoleQueue project.
 
-  Copyright 2011 Kitware, Inc.
+  Copyright 2012 Kitware, Inc.
 
   This source code is released under the New BSD License, (the "License").
 
@@ -16,42 +16,54 @@
 
 #include "queue.h"
 
+#include "program.h"
+
 #include <QtCore/QSettings>
 
 namespace MoleQueue {
 
 Queue::Queue(const QString &queueName, QObject *parentObject) :
-  QObject(parentObject), m_name(queueName), m_jobIndexOffset(0)
+  QObject(parentObject), m_name(queueName)
 {
+  qRegisterMetaType<Program*>("Program*");
+  qRegisterMetaType<const Program*>("const Program*");
 }
 
 Queue::~Queue()
 {
-
+  QList<Program*> programList = m_programs.values();
+  m_programs.clear();
+  qDeleteAll(programList);
 }
 
 void Queue::readSettings(const QSettings &settings)
 {
-  m_jobIndexOffset = settings.value("jobIndexOffset", 0).toUInt();
+  Q_UNUSED(settings);
 }
 
 void Queue::writeSettings(QSettings &settings) const
 {
-  settings.setValue("jobIndexOffset", m_jobIndexOffset + m_jobs.size());
+  Q_UNUSED(settings);
 }
 
 QWidget* Queue::settingsWidget() const
 {
-  return 0;
+  return NULL;
 }
 
 bool Queue::addProgram(Program *newProgram, bool replace)
 {
   // Check for duplicates, unless we are replacing, and return false if found.
-  if (!replace && m_programs.contains(newProgram->name()))
-    return false;
+  if (m_programs.contains(newProgram->name())) {
+    if (replace)
+      m_programs.take(newProgram->name())->deleteLater();
+    else
+      return false;
+  }
 
-  m_programs[newProgram->name()] = newProgram;
+  m_programs.insert(newProgram->name(), newProgram);
+
+  emit programAdded(newProgram->name(), newProgram);
   return true;
 }
 
@@ -62,32 +74,13 @@ bool Queue::removeProgram(Program* programToRemove)
 
 bool Queue::removeProgram(const QString &programName)
 {
-  return m_programs.remove(programName) >= 1 ? true : false;
-}
+  if (!m_programs.contains(programName))
+    return false;
 
-Program* Queue::program(const QString &programName)
-{
-  return m_programs.value(programName, 0);
-}
+  Program *program = m_programs.take(programName);
 
-void Queue::clearPrograms()
-{
-  m_programs.clear();
-}
-
-QStringList Queue::programs() const
-{
-  QStringList programList;
-  foreach(const Program *prog, m_programs)
-    programList << prog->name();
-  return programList;
-}
-
-bool Queue::submit(Job *job)
-{
-  Q_UNUSED(job);
-
-  return false;
+  emit programRemoved(programName, program);
+  return true;
 }
 
 } // End namespace
