@@ -33,6 +33,8 @@ namespace MoleQueue
 {
 class Job;
 class Program;
+class QueueManager;
+class Server;
 
 /**
  * Abstract queue, generally want QueueLocal, or QueueRemote derived classes
@@ -50,8 +52,19 @@ class Queue : public QObject
 {
   Q_OBJECT
 public:
-  explicit Queue(const QString &queueName = "Undefined", QObject *parentObject = 0);
+  explicit Queue(const QString &queueName = "Undefined",
+                 QueueManager *parentManager = 0);
   ~Queue();
+
+  /// @return The parent Server
+  Server *server() {return m_server;}
+  /// @return The parent Server
+  const Server *server() const {return m_server;}
+
+  /// @return The parent QueueManager
+  QueueManager *queueManager() {return m_queueManager;}
+  /// @return The parent Server
+  const QueueManager *queueManager() const {return m_queueManager;}
 
   /**
    * Set the name of the queue. This should be unique, and will be used in the
@@ -179,6 +192,9 @@ public slots:
   virtual bool submitJob(const Job *job) = 0;
 
 protected:
+  QueueManager *m_queueManager;
+  Server *m_server;
+
   QString m_name;
   QMap<QString, Program *> m_programs;
   /// Lookup table for jobs that are using this Queue. Maps JobId to MoleQueueId.

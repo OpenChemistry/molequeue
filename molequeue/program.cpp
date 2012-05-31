@@ -17,6 +17,8 @@
 #include "program.h"
 
 #include "queue.h"
+#include "queuemanager.h"
+#include "server.h"
 
 #include <QtCore/QDebug>
 #include <QtCore/QFileInfo>
@@ -27,6 +29,8 @@ namespace MoleQueue {
 Program::Program(Queue *parentQueue) :
   QObject(parentQueue),
   m_queue(parentQueue),
+  m_queueManager((m_queue) ? m_queue->queueManager() : NULL),
+  m_server((m_queueManager) ? m_queueManager->server() : NULL),
   m_name("Program"),
   m_executable("program"),
   m_useExecutablePath(false),

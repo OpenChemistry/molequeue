@@ -28,7 +28,7 @@
 
 namespace MoleQueue {
 
-QueueRemote::QueueRemote(QObject *parentObject) :
+QueueRemote::QueueRemote(QueueManager *parentObject) :
   Queue("Remote", parentObject)
 {
 }
