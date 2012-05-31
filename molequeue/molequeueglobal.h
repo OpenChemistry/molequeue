@@ -18,9 +18,9 @@
 #define MOLEQUEUEGLOBAL_H
 
 #include <QtCore/QByteArray>
+#include <QtCore/QHash>
 #include <QtCore/QList>
 #include <QtCore/QMetaType>
-#include <QtCore/QPair>
 #include <QtCore/QString>
 #include <QtCore/QStringList>
 
@@ -35,7 +35,7 @@ typedef QByteArray PacketType;
 
 /// Type for list queue/program names. Key is queue, value is list of supported
 /// programs
-typedef QList<QPair<QString, QStringList> > QueueListType;
+typedef QHash<QString, QStringList> QueueListType;
 
 /**
   * Enumeration defining states that jobs are allowed to be in.

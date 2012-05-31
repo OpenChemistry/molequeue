@@ -19,6 +19,9 @@
 
 #include "queue.h"
 #include "queuemanager.h"
+#include "queues/local.h"
+#include "queues/remote.h"
+#include "queues/sge.h"
 
 namespace MoleQueue {
 
@@ -30,7 +33,10 @@ AddQueueDialog::AddQueueDialog(QueueManager *queueManager,
 {
     ui->setupUi(this);
 
-    ui->typeComboBox->addItems(queueManager->queueTypes());
+    /// @todo Find a more scalable way to handle this...
+    ui->typeComboBox->addItem(tr("Local"));
+    ui->typeComboBox->addItem(tr("Remote"));
+    ui->typeComboBox->addItem(tr("Remote - SGE"));
 
     connect(this, SIGNAL(accepted()), SLOT(addQueue()));
 }
@@ -42,7 +48,18 @@ AddQueueDialog::~AddQueueDialog()
 
 void AddQueueDialog::addQueue()
 {
-  Queue *queue = m_queueManager->createQueue(ui->typeComboBox->currentText());
+  const QString queueType = ui->typeComboBox->currentText();
+  /// @todo Find a more scalable way to handle this...
+  Queue *queue = NULL;
+  if (queueType == tr("Local")) {
+    queue = new QueueLocal (m_queueManager);
+  }
+  else if (queueType == tr("Remote")) {
+    queue = new QueueRemote (m_queueManager);
+  }
+  else if (queueType == tr("Remote - SGE")) {
+    queue = new QueueSGE (m_queueManager);
+  }
 
   if(queue){
     queue->setName(ui->nameLineEdit->text());

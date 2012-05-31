@@ -2,7 +2,7 @@
 
   This source file is part of the MoleQueue project.
 
-  Copyright 2011 Kitware, Inc.
+  Copyright 2012 Kitware, Inc.
 
   This source code is released under the New BSD License, (the "License").
 
@@ -16,80 +16,74 @@
 
 #include "queuemanager.h"
 
-#include "queues/local.h"
-#include "queues/remote.h"
-#include "queues/sge.h"
+#include "queue.h"
 
 namespace MoleQueue {
 
 QueueManager::QueueManager(QObject *parentObject)
   : QObject(parentObject)
 {
+  qRegisterMetaType<Queue*>("Queue*");
+  qRegisterMetaType<const Queue*>("const Queue*");
 }
 
 QueueManager::~QueueManager()
 {
+  QList<Queue*> queueList = m_queues.values();
+  m_queues.clear();
+  qDeleteAll(queueList);
 }
 
-void QueueManager::addQueue(Queue *queue)
+bool QueueManager::addQueue(Queue *queue, bool replace)
 {
-  m_queues.append(queue);
-
-  emit queueAdded(queue);
-}
-
-void QueueManager::addQueue(const QString &type)
-{
-  Queue *queue = createQueue(type);
-
-  if(queue){
-    addQueue(queue);
+  if (m_queues.contains(queue->name())) {
+    if (replace == true)
+      m_queues.take(queue->name())->deleteLater();
+    else
+      return false;
   }
+
+  m_queues.insert(queue->name(), queue);
+
+  emit queueAdded(queue->name(), queue);
+  return true;
 }
 
-void QueueManager::removeQueue(Queue *queue)
+bool QueueManager::removeQueue(const Queue *queue)
 {
-  m_queues.removeAll(queue);
+  if (!m_queues.contains(queue->name()))
+    return false;
 
-  emit queueRemoved(queue);
+  Queue *mutableQueue = m_queues.take(queue->name());
+
+  emit queueRemoved(queue->name(), mutableQueue);
+  return true;
 }
 
-Queue* QueueManager::createQueue(const QString &type)
+bool QueueManager::removeQueue(const QString &name)
 {
-  if(type == "Local")
-    return new QueueLocal(this);
-  else if(type == "Remote")
-    return new QueueRemote(this);
-  else if(type == "Remote - SGE")
-    return new QueueSGE(this);
-  else
-    return 0;
-}
+  if (!m_queues.contains(name))
+    return false;
 
-QStringList QueueManager::queueTypes() const
-{
-  QStringList types;
+  Queue *queue = m_queues.take(name);
 
-  types.append("Local");
-  types.append("Remote");
-  types.append("Remote - SGE");
-
-  return types;
+  emit queueRemoved(name, queue);
+  return true;
 }
 
 QueueListType QueueManager::toQueueList() const
 {
   QueueListType queueList;
-  QPair<QString, QStringList> pair;
+  QString queueName;
+  QStringList programList;
   foreach(const Queue *queue, m_queues) {
-    pair.first = queue->name();
-    pair.second.clear();
-
-    foreach(const QString prog, queue->programs()) {
-      pair.second << prog;
+    queueName = queue->name();
+    programList.clear();
+    foreach(const QString progName, queue->programs()) {
+      programList << progName;
     }
 
-    queueList << pair;
+    queueList.insert(queueName, programList);
   }
 
   return queueList;
