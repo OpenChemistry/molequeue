@@ -92,6 +92,24 @@ public:
    */
   int count() const {return m_jobs.size();}
 
+public slots:
+
+  /**
+   * Inform the QueueManager that the MoleQueue id or Client id of @a job have
+   * changed so that it may update its internal lookup tables.
+   * @param job The Job object.
+   */
+  void jobIdsChanged(const Job *job);
+
+  /**
+   * Called when a job enters a new state. If the new state differs from the
+   * previous state, the Job object is updated and the jobStateChanged signal
+   * is emitted.
+   * @param moleQueueId
+   * @param newState
+   */
+  void updateJobState(IdType moleQueueId, JobState newState);
+
 signals:
 
   /**

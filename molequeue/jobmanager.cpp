@@ -67,11 +67,33 @@ const Job *JobManager::lookupMoleQueueId(IdType moleQueueId) const
   return m_moleQueueMap.value(moleQueueId, NULL);
 }
 
+void JobManager::jobIdsChanged(const Job *job)
+{
+  if (!m_jobs.contains(job))
+    return;
+
+  if (m_clientMap.value(job->clientId(), NULL) != job) {
+    IdType oldClientId = m_clientMap.key(job, 0);
+    if (oldClientId != 0)
+      m_clientMap.remove(oldClientId);
+    m_clientMap.insert(job->clientId(), job);
+  }
+
+  if (m_moleQueueMap.value(job->moleQueueId(), NULL) != job) {
+    IdType oldMoleQueueId = m_moleQueueMap.key(job, 0);
+    if (oldMoleQueueId != 0)
+      m_moleQueueMap.remove(oldMoleQueueId);
+    m_moleQueueMap.insert(job->moleQueueId(), job);
+  }
+}
+
 void JobManager::insertJob(Job *job)
 {
   m_jobs.append(job);
-  m_clientMap.insert(job->clientId(), job);
-  m_moleQueueMap.insert(job->moleQueueId(), job);
+  if (job->clientId() != 0)
+    m_clientMap.insert(job->clientId(), job);
+  if (job->moleQueueId() != 0)
+    m_moleQueueMap.insert(job->moleQueueId(), job);
 
   emit jobAdded(job);
 }
