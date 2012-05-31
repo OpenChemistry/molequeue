@@ -26,6 +26,7 @@
 class ServerTest;
 
 class QLocalServer;
+class QSettings;
 
 namespace MoleQueue
 {
@@ -76,6 +77,14 @@ public:
    * @return A pointer to the Server QueueManager.
    */
   const QueueManager *queueManager() const {return m_queueManager;}
+
+  /// @param settings QSettings object to write state to.
+  void readSettings(QSettings &settings);
+  /// @param settings QSettings object to read state from.
+  void writeSettings(QSettings &settings) const;
+
+  /// The working directory where running job file are kept.
+  QString workingDirectoryBase() const {return m_workingDirectoryBase;}
 
   /// Used for unit testing
   friend class ::ServerTest;
@@ -153,6 +162,9 @@ protected:
 
   /// Used to change the socket name for unit testing.
   bool m_isTesting;
+
+  /// Local directory for running jobs.
+  QString m_workingDirectoryBase;
 
 public:
   /// @param d Enable runtime debugging if true.
