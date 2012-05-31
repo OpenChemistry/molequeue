@@ -123,9 +123,17 @@ public:
 
   void setInputFilename(const QString &str) {m_inputFilename = str;}
   QString inputFilename() const {return m_inputFilename;}
+  QString inputFilenameNoExtension() const
+  {
+    return this->chopExtension(m_inputFilename);
+  }
 
   void setOutputFilename(const QString &str) {m_outputFilename = str;}
   QString outputFilename() const {return m_outputFilename;}
+  QString outputFilenameNoExtension() const
+  {
+    return this->chopExtension(m_outputFilename);
+  }
 
   void setLaunchSyntax(LaunchSyntax s)
   {
@@ -150,6 +158,16 @@ public:
       bool useExecutablePath_, LaunchSyntax syntax_);
 
 protected:
+
+  /// Internal convenience function
+  static QString chopExtension(const QString & str)
+  {
+    QString ret (str);
+    int extensionIndex = ret.lastIndexOf(".");
+    if (extensionIndex != -1)
+      ret.truncate(extensionIndex);
+    return ret;
+  }
 
   /// The Queue that the Program belongs to/is being run by.
   Queue *m_queue;
