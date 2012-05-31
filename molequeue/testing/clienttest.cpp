@@ -19,6 +19,7 @@
 #include "client.h"
 
 #include "job.h"
+#include "jobmanager.h"
 #include "molequeueglobal.h"
 
 #include "testserver.h"
@@ -304,6 +305,11 @@ void ClientTest::testJobStateChangeReceived()
 
   MoleQueue::PacketType response =
       this->readReferenceString("client-ref/jobstate-change.json");
+
+  // Fake the molequeue id
+  MoleQueue::Job *job = m_client->newJobRequest();
+  job->setMolequeueId(1);
+  m_client->m_jobManager->jobIdsChanged(job);
 
   m_server->sendPacket(response);
 

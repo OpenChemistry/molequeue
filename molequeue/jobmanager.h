@@ -23,6 +23,8 @@
 
 #include <QtCore/QVariantHash>
 
+class ClientTest;
+
 namespace MoleQueue
 {
 class Job;
@@ -91,6 +93,9 @@ public:
    * @return Number of Job objects held by this manager.
    */
   int count() const {return m_jobs.size();}
+
+  /// Used for unit tests
+  friend class ::ClientTest;
 
 public slots:
 
