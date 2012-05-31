@@ -26,7 +26,9 @@
 
 #include <QtCore/QDateTime>
 #include <QtCore/QDebug>
+#include <QtCore/QDir>
 #include <QtCore/QList>
+#include <QtCore/QSettings>
 
 #define DEBUGOUT(title) \
   if (this->m_debug)    \
@@ -72,6 +74,22 @@ Server::~Server()
   m_queueManager = NULL;
 }
 
+void Server::readSettings(QSettings &settings)
+{
+  m_workingDirectoryBase = settings.value(
+        "workingDirectoryBase",
+        QDir::homePath() + "/.molequeue/local").toString();
+
+  m_queueManager->readSettings(settings);
+}
+
+void Server::writeSettings(QSettings &settings) const
+{
+  settings.setValue("workingDirectoryBase", m_workingDirectoryBase);
+
+  m_queueManager->writeSettings(settings);
+}
+
 void Server::start()
 {
   const QString serverName = (!m_isTesting) ? "MoleQueue"
@@ -110,6 +128,8 @@ void Server::stop()
 void Server::jobAboutToBeAdded(Job *job)
 {
   job->setMolequeueId(static_cast<IdType>(m_jobManager->count()) + 1);
+  job->setLocalWorkingDirectory(m_workingDirectoryBase + "/" +
+                                QString::number(job->moleQueueId()));
 }
 
 void Server::newConnectionAvailable()

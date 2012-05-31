@@ -88,9 +88,6 @@ protected:
 
   Server *m_server;
   JobItemModel *m_jobItemModel;
-
-  QString m_tmpDir;
-  QString m_localDir;
 };
 
 } // End namespace
