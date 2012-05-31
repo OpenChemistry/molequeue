@@ -27,8 +27,8 @@
 
 namespace MoleQueue {
 
-QueueSGE::QueueSGE(QObject *parentObject) :
-  Queue("Remote (SGE)", parentObject)
+QueueSGE::QueueSGE(QueueManager *parentManager) :
+  Queue("Remote (SGE)", parentManager)
 {
 }
 
