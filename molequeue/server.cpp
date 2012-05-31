@@ -166,4 +166,15 @@ void Server::clientDisconnected()
   conn->deleteLater();
 }
 
+ServerConnection *Server::lookupConnection(IdType moleQueueId)
+{
+  foreach (ServerConnection *conn, m_connections) {
+    if (!conn->hasJob(moleQueueId))
+      continue;
+    return conn;
+  }
+
+  return NULL;
+}
+
 } // end namespace MoleQueue

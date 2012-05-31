@@ -19,6 +19,8 @@
 
 #include <QtCore/QObject>
 
+#include "molequeueglobal.h"
+
 #include <QtCore/QList>
 
 #include <QtNetwork/QAbstractSocket> // for SocketError enum
@@ -148,6 +150,14 @@ protected slots:
   void clientDisconnected();
 
 protected:
+  /**
+   * Find the ServerConnection that owns the Job with the request MoleQueue id.
+   * @param moleQueueId MoleQueue id of Job.
+   * @return A pointer to the ServerConnection, or NULL if no active connection
+   * found.
+   */
+  ServerConnection * lookupConnection(IdType moleQueueId);
+
   /// List of active connections
   QList<ServerConnection*> m_connections;
 
