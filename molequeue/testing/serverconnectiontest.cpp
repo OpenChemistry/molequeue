@@ -205,7 +205,7 @@ void ServerConnectionTest::testSendQueueList()
   // Send dummy request to give the ServerConnection a packetId
   m_serverConnection->queueListRequestReceived(23);
 
-  m_serverConnection->sendQueueList(&qmanager);
+  m_serverConnection->sendQueueList(qmanager.toQueueList());
 
   while (m_packet.size() == 0) {
     qApp->processEvents(QEventLoop::AllEvents, 100);

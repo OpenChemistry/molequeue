@@ -19,6 +19,8 @@
 
 #include <QtCore>
 
+#include "molequeueglobal.h"
+
 namespace MoleQueue {
 
 class Queue;
@@ -39,6 +41,8 @@ public:
 
   Queue* createQueue(const QString &type);
   QStringList queueTypes() const;
+
+  QueueListType toQueueList() const;
 
 signals:
   void queueAdded(const MoleQueue::Queue *queue);

@@ -146,6 +146,7 @@ void ClientTest::initTestCase()
 {
   m_server = new TestServer(&m_packet);
   m_client = new MoleQueue::Client();
+  m_client->connectToServer();
   // Let the event loop run a bit to handle the connections
   qApp->processEvents(QEventLoop::AllEvents, 1000);
 }
@@ -167,7 +168,7 @@ void ClientTest::cleanup()
 
 void ClientTest::testJobSubmission()
 {
-  MoleQueue::JobRequest req = m_client->newJobRequest();
+  MoleQueue::JobRequest req;
 
   req.setQueue("Some queue");
   req.setProgram("Some program");
@@ -196,7 +197,7 @@ void ClientTest::testJobSubmission()
 
 void ClientTest::testJobCancellation()
 {
-  MoleQueue::JobRequest req = m_client->newJobRequest();
+  MoleQueue::JobRequest req;
   m_client->cancelJobRequest(req);
 
   while (m_packet.size() == 0) {
@@ -277,7 +278,8 @@ void ClientTest::testQueueListReceived()
 void ClientTest::testSuccessfulSubmissionReceived()
 {
   // First send a submitJob request, then parse out the id for the response.
-  m_client->submitJobRequest(m_client->newJobRequest());
+  MoleQueue::JobRequest req;
+  m_client->submitJobRequest(req);
 
   while (m_packet.size() == 0) {
     qApp->processEvents(QEventLoop::AllEvents, 100);
@@ -310,7 +312,8 @@ void ClientTest::testSuccessfulSubmissionReceived()
 void ClientTest::testFailedSubmissionReceived()
 {
   // First send a submitJob request, then parse out the id for the response.
-  m_client->submitJobRequest(m_client->newJobRequest());
+  MoleQueue::JobRequest req;
+  m_client->submitJobRequest(req);
 
   while (m_packet.size() == 0) {
     qApp->processEvents(QEventLoop::AllEvents, 100);
@@ -343,7 +346,15 @@ void ClientTest::testFailedSubmissionReceived()
 void ClientTest::testJobCancellationConfirmationReceived()
 {
   // First send a cancelJob request, then parse out the id for the response.
-  m_client->cancelJobRequest(m_client->newJobRequest());
+  MoleQueue::JobRequest req;
+  m_client->submitJobRequest(req);
+
+  while (m_packet.size() == 0) {
+    qApp->processEvents(QEventLoop::AllEvents, 100);
+  }
+  m_packet.clear();
+
+  m_client->cancelJobRequest(req);
 
   while (m_packet.size() == 0) {
     qApp->processEvents(QEventLoop::AllEvents, 100);

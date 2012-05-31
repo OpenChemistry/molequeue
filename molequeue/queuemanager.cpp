@@ -77,4 +77,22 @@ QStringList QueueManager::queueTypes() const
   return types;
 }
 
+QueueListType QueueManager::toQueueList() const
+{
+  QueueListType queueList;
+  QPair<QString, QStringList> pair;
+  foreach(const Queue *queue, m_queues) {
+    pair.first = queue->name();
+    pair.second.clear();
+
+    foreach(const QString prog, queue->programs()) {
+      pair.second << prog;
+    }
+
+    queueList << pair;
+  }
+
+  return queueList;
+}
+
 } // end MoleQueue namespace

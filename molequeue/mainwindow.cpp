@@ -17,28 +17,31 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
+#include "connection.h"
 #include "job.h"
-#include "terminalprocess.h"
-#include "sshcommand.h"
+#include "jobrequest.h"
 #include "jobitemmodel.h"
 #include "program.h"
-#include "connection.h"
+#include "queuemanager.h"
+#include "queuemanagerdialog.h"
 #include "queues/local.h"
 #include "queues/remote.h"
 #include "queues/sge.h"
-#include "queuemanager.h"
-#include "queuemanagerdialog.h"
+#include "server.h"
+#include "serverconnection.h"
+#include "sshcommand.h"
+#include "terminalprocess.h"
 
-#include <QtCore/QProcess>
-#include <QtCore/QProcessEnvironment>
-#include <QtCore/QTimer>
-#include <QtCore/QSettings>
 #include <QtCore/QDataStream>
 #include <QtCore/QDir>
-#include <QtGui/QMessageBox>
+#include <QtCore/QProcess>
+#include <QtCore/QProcessEnvironment>
+#include <QtCore/QSettings>
+#include <QtCore/QTimer>
+
 #include <QtGui/QCloseEvent>
-#include <QtNetwork/QLocalServer>
-#include <QtNetwork/QLocalSocket>
+#include <QtGui/QInputDialog>
+#include <QtGui/QMessageBox>
 
 namespace MoleQueue {
 
@@ -50,15 +53,11 @@ MainWindow::MainWindow()
     m_icon(NULL),
     m_trayIcon(NULL),
     m_trayIconMenu(NULL),
-    m_server(NULL),
-    m_removeServer(false),
-    m_queueManager(NULL),
-    m_jobModel(NULL),
-    m_connection(NULL)
+    m_server(new Server (this)),
+    m_queueManager(new QueueManager (this)),
+    m_jobModel(NULL)
 {
   m_ui->setupUi(this);
-
-  m_queueManager = new QueueManager(this);
 
   createActions();
   createMainMenu();
@@ -66,27 +65,14 @@ MainWindow::MainWindow()
   readSettings();
   createJobModel();
 
-  // Start up our local socket server
-  m_server = new QLocalServer(this);
-  if (!m_server->listen("MoleQueue")) {
-    // Already running -- display error message and exit.
-    QMessageBox::critical(this, tr("MoleQueue Server"),
-                                tr("Unable to start the server: %1.\n"
-                                   "Exiting.")
-                                  .arg(m_server->errorString()));
-    m_server->close();
-    m_removeServer = true;
-    this->removeServer();
-    QTimer::singleShot(0, qApp, SLOT(quit()));
-    this->close();
+  connect(m_server, SIGNAL(connectionError(QAbstractSocket::SocketError,QString)),
+          this, SLOT(handleServerError(QAbstractSocket::SocketError, QString)));
 
-    return;
-  }
-  else {
-    qDebug() << "Connecting server new connection up..."
-             << m_server->fullServerName();
-    connect(m_server, SIGNAL(newConnection()), this, SLOT(newConnection()));
-  }
+  connect(m_server, SIGNAL(newConnection(ServerConnection*)),
+          this, SLOT(newConnection(ServerConnection*)));
+
+  m_server->setDebug(true);
+  m_server->start();
 
   m_trayIcon->show();
 }
@@ -104,19 +90,6 @@ void MainWindow::setVisible(bool visible)
   m_ui->actionMaximize->setEnabled(!isMaximized());
   m_ui->actionRestore->setEnabled(isMaximized() || !visible);
   QMainWindow::setVisible(visible);
-}
-
-void MainWindow::closeEvent(QCloseEvent *theEvent)
-{
-  if (m_trayIcon->isVisible()) {
-    QMessageBox::information(this, tr("Systray"),
-                             tr("The program will keep running in the "
-                                "system tray. To terminate the program, "
-                                "choose <b>Quit</b> in the context menu "
-                                "of the system tray entry."));
-    hide();
-    theEvent->ignore();
-  }
 }
 
 void MainWindow::readSettings()
@@ -169,60 +142,112 @@ void MainWindow::writeSettings()
   settings.setValue("queues", queueNames);
 }
 
-void MainWindow::newConnection()
-{
-  m_trayIcon->showMessage("Info",
-                          tr("Client connected to us!"),
-                          QSystemTrayIcon::MessageIcon(0), 5000);
-
-  QLocalSocket *clientSocket = m_server->nextPendingConnection();
-  if (!clientSocket) {
-    qDebug() << "Erorr, invalid socket.";
-    return;
-  }
-
-  connect(clientSocket, SIGNAL(disconnected()),
-          clientSocket, SLOT(deleteLater()));
-
-  m_connection = new Connection(clientSocket, this);
-  connect(m_connection, SIGNAL(jobSubmitted(QString,QString,QString,QString)),
-          this, SLOT(submitJob(QString,QString,QString,QString)));
-}
-
-void MainWindow::removeServer()
-{
-  if (m_removeServer) {
-    qDebug() << "Removing the server, as it looks like there was a timeout.";
-    m_server->removeServer("MoleQueue");
-  }
-  else {
-    qDebug() << "Server not removed, client received response.";
-  }
-}
-
-void MainWindow::submitJob(const QString &queue, const QString &program,
-                           const QString &title, const QString &input)
-{
-  Queue *q = 0;
-  if (queue == "local")
-    q = m_queueManager->queues()[0];
-  else if (queue == "remote")
-    q = m_queueManager->queues()[1];
-  Job *job = q->program(program)->createJob();
-  job->setTitle(title);
-  QString inputFile = title;
-  inputFile.replace(" ", "_");
-  job->setInputFile(inputFile + ".inp");
-  job->setInput(input);
-  q->submit(job);
-  qDebug() << "Mainwindow submitting job" << queue << program << title
-           << inputFile << "\n\n" << input;
-}
-
 void MainWindow::showQueueManager()
 {
   QueueManagerDialog dialog(m_queueManager, this);
   dialog.exec();
+}
+
+void MainWindow::handleServerError(QAbstractSocket::SocketError err,
+                                   const QString &str)
+{
+  // handle AddressInUseError by giving user option to replace current socket
+  if (err == QAbstractSocket::AddressInUseError) {
+    QStringList choices;
+    choices << tr("There is no other server running. Continue running.")
+            << tr("Oops -- there is an existing server. Terminate the new server.");
+    bool ok;
+    QString choice =
+        QInputDialog::getItem(this, tr("Replace existing MoleQueue server?"),
+                              tr("A MoleQueue server appears to already be "
+                                 "running. How would you like to handle this?"),
+                              choices, 0, false, &ok);
+    int index = choices.indexOf(choice);
+
+    // Terminate
+    if (!ok || index == 1) {
+      this->hide();
+      qApp->exit(0);
+    }
+    // Take over connection
+    else {
+      m_server->forceStart();
+    }
+  }
+
+  // Any other error -- just notify user:
+  else {
+    QMessageBox::warning(this, tr("Server error"),
+                         tr("A server error has occurred: '%1'").arg(str));
+  }
+}
+
+void MainWindow::newConnection(ServerConnection *conn)
+{
+  connect(conn, SIGNAL(queueListRequested()), this, SLOT(queueListRequested()));
+  connect(conn, SIGNAL(jobSubmissionRequested(JobRequest)),
+          this, SLOT(jobSubmissionRequested(JobRequest)));
+  connect(conn, SIGNAL(jobCancellationRequested(IdType)),
+          this, SLOT(jobCancellationRequested(IdType)));
+}
+
+void MainWindow::queueListRequested()
+{
+  ServerConnection *conn = qobject_cast<ServerConnection*>(this->sender());
+  if (conn == NULL) {
+    qWarning() << Q_FUNC_INFO << "called with a sender which is not a "
+                  "ServerConnection.";
+    return;
+  }
+
+  conn->sendQueueList(m_queueManager->toQueueList());
+}
+
+void MainWindow::jobSubmissionRequested(const JobRequest &req)
+{
+  ServerConnection *conn = qobject_cast<ServerConnection*>(this->sender());
+  if (conn == NULL) {
+    qWarning() << Q_FUNC_INFO << "called with a sender which is not a "
+                  "ServerConnection.";
+    return;
+  }
+
+  qDebug() << "Job submission requested:\n" << req.hash();
+
+  /// @todo Actually handle the submission
+
+  conn->sendSuccessfulSubmissionResponse(req);
+}
+
+void MainWindow::jobCancellationRequested(IdType moleQueueId)
+{
+  ServerConnection *conn = qobject_cast<ServerConnection*>(this->sender());
+  if (conn == NULL) {
+    qWarning() << Q_FUNC_INFO << "called with a sender which is not a "
+                  "ServerConnection.";
+    return;
+  }
+
+  qDebug() << "Job cancellation requested: MoleQueueId:" << moleQueueId;
+
+  /// @todo actually handle the cancellation
+  JobRequest req;
+  //  req.setMolequeueId(moleQueueId); // needs to be done from within the
+                                       // JobManager
+  conn->sendSuccessfulCancellationResponse(req);
+}
+
+void MainWindow::closeEvent(QCloseEvent *theEvent)
+{
+  if (m_trayIcon->isVisible()) {
+    QMessageBox::information(this, tr("Systray"),
+                             tr("The program will keep running in the "
+                                "system tray. To terminate the program, "
+                                "choose <b>Quit</b> in the context menu "
+                                "of the system tray entry."));
+    hide();
+    theEvent->ignore();
+  }
 }
 
 void MainWindow::createActions()
