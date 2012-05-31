@@ -17,6 +17,7 @@
 #include "local.h"
 
 #include "../job.h"
+#include "localworker.h"
 #include "../jobmanager.h"
 #include "../server.h"
 
@@ -36,12 +37,22 @@ namespace MoleQueue {
 
 QueueLocal::QueueLocal(QueueManager *parentManager) :
   Queue("Local", parentManager),
-  m_cores(-1)
+  m_cores(-1),
+  m_thread(new QThread (this)),
+  m_worker(new QueueLocalWorker (this, m_thread))
 {
+  m_thread->start();
 }
 
 QueueLocal::~QueueLocal()
 {
+  m_thread->quit();
+
+  delete m_worker;
+  m_worker = NULL;
+
+  delete m_thread;
+  m_thread = NULL;
 }
 
 void QueueLocal::readSettings(QSettings &settings)
@@ -77,15 +88,9 @@ QWidget* QueueLocal::settingsWidget() const
 
 bool QueueLocal::submitJob(const Job *job)
 {
-  /// @todo This needs to be rewritten
-  Q_UNUSED(job);
-  /*
-  m_jobs.push_back(job);
-  job->setJobState(MoleQueue::Accepted);
-  emit(jobAdded(job));
-  if (m_currentJob == m_jobs.size() - 1)
-    runProgram(m_jobs.size() - 1);
-  */
+  if (!m_worker->acceptSubmission(job))
+    return false;
+
   return true;
 }
 

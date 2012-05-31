@@ -30,6 +30,7 @@ set(mq_srcs
   sshconnection.cpp
   terminalprocess.cpp
   queues/local.cpp
+  queues/localworker.cpp
   queues/remote.cpp
   queues/sge.cpp
   addqueuedialog.cpp
@@ -58,6 +59,7 @@ set(mq_moc
   sshconnection.h
   terminalprocess.h
   queues/local.h
+  queues/localworker.h
   queues/remote.h
   queues/sge.h
   addqueuedialog.h
