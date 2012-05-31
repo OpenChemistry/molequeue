@@ -26,6 +26,8 @@
 
 class QDir;
 
+class ClientTest;
+
 namespace MoleQueue
 {
 class Job;
@@ -68,7 +70,7 @@ public:
   typedef QMap<IdType, IdType> PacketLookupTable;
 
   /// Used for unit testing
-  friend class ClientTest;
+  friend class ::ClientTest;
 
 signals:
 
