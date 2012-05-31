@@ -28,19 +28,25 @@ class QSettings;
 namespace MoleQueue
 {
 class Queue;
+class Server;
 
 class QueueManager : public QObject
 {
   Q_OBJECT
 
 public:
-  explicit QueueManager(QObject *parentObject = 0);
+  explicit QueueManager(Server *parentServer = 0);
   ~QueueManager();
 
   /// @param settings QSettings object to write state to.
   void readSettings(QSettings &settings);
   /// @param settings QSettings object to read state from.
   void writeSettings(QSettings &settings) const;
+
+  /// @return The parent Server
+  Server *server() {return m_server;}
+  /// @return The parent Server
+  const Server *server() const {return m_server;}
 
   /**
    * @param name String containing the name of the queue of interest.
@@ -123,6 +129,7 @@ signals:
 
 protected:
   QMap<QString, Queue*> m_queues;
+  Server *m_server;
 };
 
 } // end MoleQueue namespace

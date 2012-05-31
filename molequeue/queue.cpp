@@ -17,14 +17,18 @@
 #include "queue.h"
 
 #include "program.h"
+#include "queuemanager.h"
+#include "server.h"
 
 #include <QtCore/QDebug>
 #include <QtCore/QSettings>
 
 namespace MoleQueue {
 
-Queue::Queue(const QString &queueName, QObject *parentObject) :
-  QObject(parentObject), m_name(queueName)
+Queue::Queue(const QString &queueName, QueueManager *parentManager) :
+  QObject(parentManager), m_queueManager(parentManager),
+  m_server((m_queueManager) ? m_queueManager->server() : NULL),
+  m_name(queueName)
 {
   qRegisterMetaType<Program*>("Program*");
   qRegisterMetaType<const Program*>("const Program*");

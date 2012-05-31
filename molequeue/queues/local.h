@@ -24,6 +24,7 @@
 namespace MoleQueue
 {
 class Job;
+class QueueManager;
 
 /**
  * Queue for jobs to run locally.
@@ -33,7 +34,7 @@ class QueueLocal : public Queue
 {
   Q_OBJECT
 public:
-  explicit QueueLocal(QObject *parentObject = 0);
+  explicit QueueLocal(QueueManager *parentManager = 0);
   ~QueueLocal();
 
   QString typeName() const { return "Local"; }
