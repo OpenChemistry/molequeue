@@ -20,14 +20,16 @@
 #include "queues/local.h"
 #include "queues/remote.h"
 #include "queues/sge.h"
+#include "server.h"
 
 #include <QtCore/QDebug>
 #include <QtCore/QSettings>
 
 namespace MoleQueue {
 
-QueueManager::QueueManager(QObject *parentObject)
-  : QObject(parentObject)
+QueueManager::QueueManager(Server *parentServer)
+  : QObject(parentServer),
+    m_server(parentServer)
 {
   qRegisterMetaType<Queue*>("Queue*");
   qRegisterMetaType<const Queue*>("const Queue*");
