@@ -26,15 +26,9 @@
 #include "queuemanagerdialog.h"
 #include "server.h"
 #include "serverconnection.h"
-#include "sshcommand.h"
-#include "terminalprocess.h"
 
 #include <QtCore/QDataStream>
-#include <QtCore/QDir>
-#include <QtCore/QProcess>
-#include <QtCore/QProcessEnvironment>
 #include <QtCore/QSettings>
-#include <QtCore/QTimer>
 
 #include <QtGui/QCloseEvent>
 #include <QtGui/QInputDialog>
@@ -92,21 +86,13 @@ void MainWindow::setVisible(bool visible)
 void MainWindow::readSettings()
 {
   QSettings settings;
-  m_tmpDir = settings.value(
-        "tmpDir", QDir::tempPath() + "/MoleQueue").toString();
-  m_localDir = settings.value(
-        "localDir", QDir::homePath() + "/.molequeue/local").toString();
-
-  m_server->queueManager()->readSettings(settings);
+  m_server->readSettings(settings);
 }
 
 void MainWindow::writeSettings()
 {
   QSettings settings;
-  settings.setValue("tmpDir"  , m_tmpDir);
-  settings.setValue("localDir", m_localDir);
-
-  m_server->queueManager()->writeSettings(settings);
+  m_server->writeSettings(settings);
 }
 
 void MainWindow::showQueueManager()
