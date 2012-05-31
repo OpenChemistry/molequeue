@@ -130,6 +130,16 @@ public slots:
    */
   void stop();
 
+  /**
+   * Find the client that owns @a job and send a notification to the client that
+   * the JobState has changed.
+   * @param job Job of interest.
+   * @param oldState Previous state of @a job.
+   * @param newState New state of @a job.
+   */
+  void dispatchJobStateChange(const Job *job,
+                              JobState oldState, JobState newState);
+
 protected slots:
 
   /**

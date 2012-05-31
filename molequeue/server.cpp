@@ -55,6 +55,9 @@ Server::Server(QObject *parentObject)
   connect(m_jobManager, SIGNAL(jobAboutToBeAdded(Job*)),
           this, SLOT(jobAboutToBeAdded(Job*)),
           Qt::DirectConnection);
+
+  connect(m_jobManager, SIGNAL(jobStateChanged(const Job*,JobState,JobState)),
+          this, SLOT(dispatchJobStateChange(const Job*,JobState,JobState)));
 }
 
 Server::~Server()
@@ -123,6 +126,16 @@ void Server::forceStart()
 void Server::stop()
 {
   m_server->close();
+}
+
+void Server::dispatchJobStateChange(const Job *job,
+                                    JobState oldState, JobState newState)
+{
+  ServerConnection *conn = this->lookupConnection(job->moleQueueId());
+  if (!conn)
+    return;
+
+  conn->sendJobStateChangeNotification(job, oldState, newState);
 }
 
 void Server::jobAboutToBeAdded(Job *job)
