@@ -80,7 +80,7 @@ signals:
    * @param list List of key/value pairs; key is queue name, list is of
    * supported programs.
    */
-  void queueListUpdated(const QueueListType &list) const;
+  void queueListUpdated(const MoleQueue::QueueListType &list) const;
 
   /**
    * Emitted when a job submission reply is received.
@@ -89,7 +89,7 @@ signals:
    * @param errorMessage String describing the error occurred. Empty if @a
    * success is true.
    */
-  void jobSubmitted(const Job *req, bool success,
+  void jobSubmitted(const MoleQueue::Job *req, bool success,
                     const QString &errorMessage) const;
 
   /**
@@ -99,7 +99,7 @@ signals:
   * @param errorMessage String describing the error occurred. Empty if @a
   * success is true.
    */
-  void jobCanceled(const Job *req, bool success,
+  void jobCanceled(const MoleQueue::Job *req, bool success,
                    const QString &errorMessage) const;
 
   /**
@@ -110,8 +110,9 @@ signals:
    * @param oldState The previous state of the job.
    * @param newState The new state of the job.
    */
-  void jobStateChanged(const Job *req,
-                       JobState oldState, JobState newState);
+  void jobStateChanged(const MoleQueue::Job *req,
+                       MoleQueue::JobState oldState,
+                       MoleQueue::JobState newState);
 
 public slots:
 
@@ -139,13 +140,13 @@ public slots:
    * Submit the job request to the connected server.
    * @param req The Job
    */
-  void submitJobRequest(const Job *req);
+  void submitJobRequest(const MoleQueue::Job *req);
 
   /**
    * Cancel a previously submitted job.
    * @param req The Job
    */
-  void cancelJob(const Job *req);
+  void cancelJob(const MoleQueue::Job *req);
 
 protected slots:
 
@@ -153,13 +154,14 @@ protected slots:
    * Set the client Id of a job before it is added to the manager.
    * @param job The new Job.
    */
-  void jobAboutToBeAdded(Job *job);
+  void jobAboutToBeAdded(MoleQueue::Job *job);
 
   /**
    * Called when the JsonRpc instance handles a listQueues response.
    * @param list List of supported Queues/Programs
    */
-  void queueListReceived(IdType, const QueueListType &list);
+  void queueListReceived(MoleQueue::IdType,
+                         const MoleQueue::QueueListType &list);
 
   /**
    * Called when the JsonRpc instance handles a successful submitJob response.
@@ -168,8 +170,9 @@ protected slots:
    * @param queueJobId Queue-specific job identifier
    * @param workingDir Local working directory for temporary files.
    */
-  void successfulSubmissionReceived(IdType, IdType moleQueueId,
-                                    IdType queueJobId,
+  void successfulSubmissionReceived(MoleQueue::IdType,
+                                    MoleQueue::IdType moleQueueId,
+                                    MoleQueue::IdType queueJobId,
                                     const QDir &workingDir);
 
   /**
@@ -178,7 +181,8 @@ protected slots:
    * @param errorCode Indication of why the job failed.
    * @param errorMessage Descriptive string detail the failure.
    */
-  void failedSubmissionReceived(IdType, JobSubmissionErrorCode errorCode,
+  void failedSubmissionReceived(MoleQueue::IdType,
+                                MoleQueue::JobSubmissionErrorCode errorCode,
                                 const QString &errorMessage);
 
   /**
@@ -186,8 +190,8 @@ protected slots:
    *
    * @param moleQueueId Unique MoleQueue identifier for the job.
    */
-  void jobCancellationConfirmationReceived(IdType,
-                                           IdType moleQueueId);
+  void jobCancellationConfirmationReceived(MoleQueue::IdType,
+                                           MoleQueue::IdType moleQueueId);
 
   /**
    * Called when the JsonRpc instance handles a job state change notification.
@@ -196,8 +200,9 @@ protected slots:
    * @param oldState Previous state of job.
    * @param newState New state of job.
    */
-  void jobStateChangeReceived(IdType moleQueueId,
-                              JobState oldState, JobState newState);
+  void jobStateChangeReceived(MoleQueue::IdType moleQueueId,
+                              MoleQueue::JobState oldState,
+                              MoleQueue::JobState newState);
 
 protected:
 

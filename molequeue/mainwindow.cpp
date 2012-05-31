@@ -62,8 +62,8 @@ MainWindow::MainWindow()
 
   // Must be a direct connection to ensure that connections are made before the
   // socket starts processing and announcing requests.
-  connect(m_server, SIGNAL(newConnection(ServerConnection*)),
-          this, SLOT(newConnection(ServerConnection*)), Qt::DirectConnection);
+  connect(m_server, SIGNAL(newConnection(MoleQueue::ServerConnection*)),
+          this, SLOT(newConnection(MoleQueue::ServerConnection*)), Qt::DirectConnection);
 
   m_server->setDebug(true);
   m_server->start();
@@ -142,10 +142,10 @@ void MainWindow::handleServerError(QAbstractSocket::SocketError err,
 void MainWindow::newConnection(ServerConnection *conn)
 {
   connect(conn, SIGNAL(queueListRequested()), this, SLOT(queueListRequested()));
-  connect(conn, SIGNAL(jobSubmissionRequested(const Job*)),
-          this, SLOT(jobSubmissionRequested(const Job*)));
-  connect(conn, SIGNAL(jobCancellationRequested(IdType)),
-          this, SLOT(jobCancellationRequested(IdType)));
+  connect(conn, SIGNAL(jobSubmissionRequested(const MoleQueue::Job*)),
+          this, SLOT(jobSubmissionRequested(const MoleQueue::Job*)));
+  connect(conn, SIGNAL(jobCancellationRequested(MoleQueue::IdType)),
+          this, SLOT(jobCancellationRequested(MoleQueue::IdType)));
 }
 
 void MainWindow::queueListRequested()

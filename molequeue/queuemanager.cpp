@@ -31,8 +31,8 @@ QueueManager::QueueManager(Server *parentServer)
   : QObject(parentServer),
     m_server(parentServer)
 {
-  qRegisterMetaType<Queue*>("Queue*");
-  qRegisterMetaType<const Queue*>("const Queue*");
+  qRegisterMetaType<Queue*>("MoleQueue::Queue*");
+  qRegisterMetaType<const Queue*>("const MoleQueue::Queue*");
 }
 
 QueueManager::~QueueManager()

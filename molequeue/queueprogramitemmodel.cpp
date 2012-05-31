@@ -27,9 +27,9 @@ QueueProgramItemModel::QueueProgramItemModel(Queue *queue,
   : QAbstractItemModel(parentObject),
     m_queue(queue)
 {
-  connect(m_queue, SIGNAL(programAdded(QString,Program*)),
+  connect(m_queue, SIGNAL(programAdded(QString,MoleQueue::Program*)),
           this, SIGNAL(layoutChanged()));
-  connect(m_queue, SIGNAL(programRemoved(QString,Program*)),
+  connect(m_queue, SIGNAL(programRemoved(QString,MoleQueue::Program*)),
           this, SIGNAL(layoutChanged()));
 }
 

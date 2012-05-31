@@ -325,7 +325,7 @@ signals:
     *
     * @param packetId The JSON-RPC id for the packet
     */
-  void queueListRequestReceived(IdType packetId) const;
+  void queueListRequestReceived(MoleQueue::IdType packetId) const;
 
   /**
     * Emitted when a list of available Queues/Programs is received.
@@ -333,7 +333,8 @@ signals:
     * @param packetId The JSON-RPC id for the packet
     * @param options List of Queues/Programs
     */
-  void queueListReceived(IdType packetId, const QueueListType &list) const;
+  void queueListReceived(MoleQueue::IdType packetId,
+                         const MoleQueue::QueueListType &list) const;
 
   /**
     * Emitted when a request to submit a new job is received.
@@ -341,7 +342,7 @@ signals:
     * @param packetId The JSON-RPC id for the packet
     * @param options Options for the job.
     */
-  void jobSubmissionRequestReceived(IdType packetId,
+  void jobSubmissionRequestReceived(MoleQueue::IdType packetId,
                                     const QVariantHash &options) const;
 
   /**
@@ -355,8 +356,10 @@ signals:
     * @param workingDir The local directory where the temporary files will be
     * stored.
     */
-  void successfulSubmissionReceived(IdType packetId, IdType moleQueueId,
-                                    IdType jobId, const QDir &workingDir) const;
+  void successfulSubmissionReceived(MoleQueue::IdType packetId,
+                                    MoleQueue::IdType moleQueueId,
+                                    MoleQueue::IdType jobId,
+                                    const QDir &workingDir) const;
 
   /**
     * Emitted when a response for an unsuccessful job submission is received.
@@ -365,8 +368,8 @@ signals:
     * @param errorCode Error code categorizing the error.
     * @param errorMessage Descriptive string identifying the error.
     */
-  void failedSubmissionReceived(IdType packetId,
-                                JobSubmissionErrorCode errorCode,
+  void failedSubmissionReceived(MoleQueue::IdType packetId,
+                                MoleQueue::JobSubmissionErrorCode errorCode,
                                 const QString &errorMessage) const;
 
   /**
@@ -376,8 +379,8 @@ signals:
     * @param moleQueueId The internal MoleQueue identifier for the job to
     * cancel.
     */
-  void jobCancellationRequestReceived(IdType packetId,
-                                      IdType moleQueueId) const;
+  void jobCancellationRequestReceived(MoleQueue::IdType packetId,
+                                      MoleQueue::IdType moleQueueId) const;
 
   /**
     * Emitted when a confirmation of job cancellation is received.
@@ -385,8 +388,8 @@ signals:
     * @param packetId The JSON-RPC id for the packet
     * @param moleQueueId The internal MoleQueue identifier for the canceled job.
     */
-  void jobCancellationConfirmationReceived(IdType packetId,
-                                           IdType moleQueueId) const;
+  void jobCancellationConfirmationReceived(MoleQueue::IdType packetId,
+                                           MoleQueue::IdType moleQueueId) const;
 
   /**
     * Emitted when a notification that a job has changed state is received.
@@ -395,8 +398,9 @@ signals:
     * @param oldState The original state of the job
     * @param newState The new state of the job.
     */
-  void jobStateChangeReceived(IdType moleQueueId,
-                              JobState oldState, JobState newState) const;
+  void jobStateChangeReceived(MoleQueue::IdType moleQueueId,
+                              MoleQueue::JobState oldState,
+                              MoleQueue::JobState newState) const;
 
 public slots:
   /// @param b If true, enable debugging output at runtime.

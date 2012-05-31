@@ -60,14 +60,12 @@ signals:
    *
    * @param packet The packet
    */
-  void newPacketReady(const PacketType &packet);
+  void newPacketReady(const MoleQueue::PacketType &packet);
 
   /**
    * Emitted when the socket is disconnected.
    */
   void disconnected();
-
-public slots:
 
 protected slots:
 
@@ -87,14 +85,14 @@ protected slots:
    *
    * @param packet The packet
    */
-  void readPacket(const PacketType &packet);
+  void readPacket(const MoleQueue::PacketType &packet);
 
   /**
    * Write a packet to the local socket.
    *
    * @param packet The packet
    */
-  void sendPacket(const PacketType &packet);
+  void sendPacket(const MoleQueue::PacketType &packet);
 
   /**
    * Called when a local socket disconnects. This emits the disconnected()

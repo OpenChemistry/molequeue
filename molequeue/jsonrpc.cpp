@@ -41,10 +41,10 @@ JsonRpc::JsonRpc(QObject *parentObject)
 {
   qRegisterMetaType<QDir>("QDir");
   qRegisterMetaType<Json::Value>("Json::Value");
-  qRegisterMetaType<IdType>("IdType");
-  qRegisterMetaType<JobState>("JobState");
-  qRegisterMetaType<QueueListType>("QueueListType");
-  qRegisterMetaType<JobSubmissionErrorCode>("JobSubmissionErrorCode");
+  qRegisterMetaType<IdType>("MoleQueue::IdType");
+  qRegisterMetaType<JobState>("MoleQueue::JobState");
+  qRegisterMetaType<QueueListType>("MoleQueue::QueueListType");
+  qRegisterMetaType<JobSubmissionErrorCode>("MoleQueue::JobSubmissionErrorCode");
 }
 
 JsonRpc::~JsonRpc()

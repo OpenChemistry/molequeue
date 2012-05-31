@@ -56,7 +56,7 @@ public:
   QWidget* settingsWidget() const;
 
 public slots:
-  virtual bool submitJob(const Job *job);
+  virtual bool submitJob(const MoleQueue::Job *job);
 
 protected:
   /** The number of cores available. */

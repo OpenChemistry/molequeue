@@ -122,7 +122,7 @@ void ServerTest::testNewConnection()
   m_server.stop();
   m_server.start();
 
-  QSignalSpy spy (&m_server, SIGNAL(newConnection(ServerConnection*)));
+  QSignalSpy spy (&m_server, SIGNAL(newConnection(MoleQueue::ServerConnection*)));
 
   m_testSocket.connectToServer("MoleQueue-testing");
   qApp->processEvents(QEventLoop::AllEvents, 1000);
