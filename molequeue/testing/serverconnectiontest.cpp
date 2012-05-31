@@ -15,6 +15,7 @@
 ******************************************************************************/
 
 #include <QtTest>
+#include "testserver.h"
 
 #include "serverconnection.h"
 
@@ -28,80 +29,7 @@
 #include "queues/sge.h"
 #include "server.h"
 
-#include <QtGui/QApplication>
-
-#include <QtNetwork/QLocalServer>
 #include <QtNetwork/QLocalSocket>
-
-class TestServer : public QObject
-{
-  Q_OBJECT
-  MoleQueue::PacketType *m_target;
-  QLocalServer *m_server;
-  QLocalSocket *m_socket;
-public:
-  TestServer(MoleQueue::PacketType *target)
-    : QObject(NULL), m_target(target), m_server(new QLocalServer),
-      m_socket(NULL)
-  {
-    if (!m_server->listen("MoleQueue")) {
-      qWarning() << "Cannot start test server:" << m_server->errorString();
-      return;
-    }
-
-    connect(m_server, SIGNAL(newConnection()), this, SLOT(newConnection()));
-  }
-
-  ~TestServer()
-  {
-    if (m_socket != NULL)
-      m_socket->disconnect();
-
-    delete m_server;
-  }
-
-  void sendPacket(const MoleQueue::PacketType &packet)
-  {
-    QDataStream out (m_socket);
-    out.setVersion(QDataStream::Qt_4_7);
-//    qDebug() << "Test server writing" << packet.size() << "bytes.";
-
-    // Create header
-    out << static_cast<quint32>(1);
-    out << static_cast<quint32>(packet.size());
-    // write data
-    out << packet;
-    m_socket->flush();
-  }
-
-private slots:
-  void newConnection()
-  {
-    m_socket = m_server->nextPendingConnection();
-    connect(m_socket, SIGNAL(disconnected()), m_socket, SLOT(deleteLater()));
-    connect(m_socket, SIGNAL(readyRead()), this, SLOT(readyRead()));
-//    qDebug() << "New connection!";
-  }
-
-  void readyRead()
-  {
-//  qDebug() << "Test server received" << m_socket->bytesAvailable() << "bytes.";
-    QDataStream in (m_socket);
-    in.setVersion(QDataStream::Qt_4_7);
-
-    quint32 version;
-    quint32 size;
-    MoleQueue::PacketType packet;
-
-    in >> version;
-    in >> size;
-    in >> packet;
-
-//    qDebug() << "Received packet. Version" << version << "Size" << size;
-
-    m_target->append(packet);
-  }
-};
 
 class ServerConnectionTest : public QObject
 {
@@ -158,7 +86,7 @@ void ServerConnectionTest::initTestCase()
 
   m_server = new MoleQueue::Server ();
   QLocalSocket *serverSocket = new QLocalSocket ();
-  serverSocket->connectToServer("MoleQueue");
+  serverSocket->connectToServer(m_testServer->socketName());
   m_serverConnection = new MoleQueue::ServerConnection(m_server, serverSocket);
   m_serverConnection->startProcessing();
   // Let the event loop run a bit to handle the connections
@@ -215,9 +143,7 @@ void ServerConnectionTest::testSendQueueList()
 
   m_serverConnection->sendQueueList(qmanager.toQueueList());
 
-  while (m_packet.size() == 0) {
-    qApp->processEvents(QEventLoop::AllEvents, 100);
-  }
+  QVERIFY2(m_testServer->waitForPacket(), "Timeout waiting for reply.");
 
   MoleQueue::PacketType refPacket =
       this->readReferenceString("serverconnection-ref/queue-list.json");
@@ -240,9 +166,7 @@ void ServerConnectionTest::testSendSuccessfulSubmissionResponse()
   // Send the reply
   m_serverConnection->sendSuccessfulSubmissionResponse(&req);
 
-  while (m_packet.size() == 0) {
-    qApp->processEvents(QEventLoop::AllEvents, 100);
-  }
+  QVERIFY2(m_testServer->waitForPacket(), "Timeout waiting for reply.");
 
   MoleQueue::PacketType refPacket =
       this->readReferenceString("serverconnection-ref/submit-success.json");
@@ -266,9 +190,7 @@ void ServerConnectionTest::testSendFailedSubmissionResponse()
   m_serverConnection->sendFailedSubmissionResponse(&req, MoleQueue::Success,
                                                    "Not a real error!");
 
-  while (m_packet.size() == 0) {
-    qApp->processEvents(QEventLoop::AllEvents, 100);
-  }
+  QVERIFY2(m_testServer->waitForPacket(), "Timeout waiting for reply.");
 
   MoleQueue::PacketType refPacket =
       this->readReferenceString("serverconnection-ref/submit-failure.json");
@@ -287,9 +209,7 @@ void ServerConnectionTest::testSendSuccessfulCancellationResponse()
   // Send the reply
   m_serverConnection->sendSuccessfulCancellationResponse(&req);
 
-  while (m_packet.size() == 0) {
-    qApp->processEvents(QEventLoop::AllEvents, 100);
-  }
+  QVERIFY2(m_testServer->waitForPacket(), "Timeout waiting for reply.");
 
   MoleQueue::PacketType refPacket =
       this->readReferenceString("serverconnection-ref/cancel-success.json");
@@ -306,9 +226,7 @@ void ServerConnectionTest::testJobStateChangeNotification()
         &req, MoleQueue::RunningLocal, MoleQueue::Finished);
 
 
-  while (m_packet.size() == 0) {
-    qApp->processEvents(QEventLoop::AllEvents, 100);
-  }
+  QVERIFY2(m_testServer->waitForPacket(), "Timeout waiting for reply.");
 
   MoleQueue::PacketType refPacket =
       this->readReferenceString("serverconnection-ref/state-change.json");
