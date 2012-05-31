@@ -135,7 +135,7 @@ void Client::successfulSubmissionReceived(IdType packetId,
   mutableJob->setMolequeueId(moleQueueId);
   mutableJob->setQueueJobId(queueJobId);
   mutableJob->setLocalWorkingDirectory(workingDir.absolutePath());
-  /// @todo update job manager's LUTs
+  m_jobManager->jobIdsChanged(req);
 
   emit jobSubmitted(req, true, QString());
 }
