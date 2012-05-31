@@ -39,18 +39,18 @@ ServerConnection::ServerConnection(Server *parentServer,
   : m_server(parentServer),
     m_holdRequests(true)
 {
-  qRegisterMetaType<Job*>("Job*");
-  qRegisterMetaType<const Job*>("const Job*");
-  qRegisterMetaType<QueueListType>("QueueListType");
+  qRegisterMetaType<Job*>("MoleQueue::Job*");
+  qRegisterMetaType<const Job*>("const MoleQueue::Job*");
+  qRegisterMetaType<QueueListType>("MoleQueue::QueueListType");
 
   this->setSocket(theSocket);
 
-  connect(m_jsonrpc, SIGNAL(queueListRequestReceived(IdType)),
-          this, SLOT(queueListRequestReceived(IdType)));
-  connect(m_jsonrpc, SIGNAL(jobSubmissionRequestReceived(IdType,QVariantHash)),
-          this, SLOT(jobSubmissionRequestReceived(IdType,QVariantHash)));
-  connect(m_jsonrpc, SIGNAL(jobCancellationRequestReceived(IdType,IdType)),
-          this, SLOT(jobCancellationRequestReceived(IdType,IdType)));
+  connect(m_jsonrpc, SIGNAL(queueListRequestReceived(MoleQueue::IdType)),
+          this, SLOT(queueListRequestReceived(MoleQueue::IdType)));
+  connect(m_jsonrpc, SIGNAL(jobSubmissionRequestReceived(MoleQueue::IdType,QVariantHash)),
+          this, SLOT(jobSubmissionRequestReceived(MoleQueue::IdType,QVariantHash)));
+  connect(m_jsonrpc, SIGNAL(jobCancellationRequestReceived(MoleQueue::IdType,MoleQueue::IdType)),
+          this, SLOT(jobCancellationRequestReceived(MoleQueue::IdType,MoleQueue::IdType)));
 }
 
 ServerConnection::~ServerConnection()

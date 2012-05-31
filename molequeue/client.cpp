@@ -41,31 +41,33 @@ Client::Client(QObject *parentObject) :
   m_submittedLUT(new PacketLookupTable ()),
   m_canceledLUT(new PacketLookupTable ())
 {
-  qRegisterMetaType<Job*>("Job*");
-  qRegisterMetaType<const Job*>("const Job*");
+  qRegisterMetaType<Job*>("MoleQueue::Job*");
+  qRegisterMetaType<const Job*>("const MoleQueue::Job*");
+  qRegisterMetaType<JobState>("MoleQueue::JobState");
+  qRegisterMetaType<QueueListType>("MoleQueue::QueueListType");
 
   QLocalSocket *socket = new QLocalSocket ();
   this->setSocket(socket);
 
-  connect(m_jsonrpc, SIGNAL(queueListReceived(IdType,QueueListType)),
-          this, SLOT(queueListReceived(IdType,QueueListType)));
+  connect(m_jsonrpc, SIGNAL(queueListReceived(MoleQueue::IdType,MoleQueue::QueueListType)),
+          this, SLOT(queueListReceived(MoleQueue::IdType,MoleQueue::QueueListType)));
   connect(m_jsonrpc,
-          SIGNAL(successfulSubmissionReceived(IdType,IdType,IdType,QDir)),
+          SIGNAL(successfulSubmissionReceived(MoleQueue::IdType,MoleQueue::IdType,MoleQueue::IdType,QDir)),
           this,
-          SLOT(successfulSubmissionReceived(IdType,IdType,IdType,QDir)));
+          SLOT(successfulSubmissionReceived(MoleQueue::IdType,MoleQueue::IdType,MoleQueue::IdType,QDir)));
   connect(m_jsonrpc,
-          SIGNAL(failedSubmissionReceived(IdType,JobSubmissionErrorCode,QString)),
+          SIGNAL(failedSubmissionReceived(MoleQueue::IdType,MoleQueue::JobSubmissionErrorCode,QString)),
           this,
-          SLOT(failedSubmissionReceived(IdType,JobSubmissionErrorCode,QString)));
+          SLOT(failedSubmissionReceived(MoleQueue::IdType,MoleQueue::JobSubmissionErrorCode,QString)));
   connect(m_jsonrpc,
-          SIGNAL(jobCancellationConfirmationReceived(IdType,IdType)),
+          SIGNAL(jobCancellationConfirmationReceived(MoleQueue::IdType,MoleQueue::IdType)),
           this,
-          SLOT(jobCancellationConfirmationReceived(IdType,IdType)));
-  connect(m_jsonrpc, SIGNAL(jobStateChangeReceived(IdType,JobState,JobState)),
-          this, SLOT(jobStateChangeReceived(IdType,JobState,JobState)));
+          SLOT(jobCancellationConfirmationReceived(MoleQueue::IdType,MoleQueue::IdType)));
+  connect(m_jsonrpc, SIGNAL(jobStateChangeReceived(MoleQueue::IdType,MoleQueue::JobState,MoleQueue::JobState)),
+          this, SLOT(jobStateChangeReceived(MoleQueue::IdType,MoleQueue::JobState,MoleQueue::JobState)));
 
-  connect(m_jobManager, SIGNAL(jobAboutToBeAdded(Job*)),
-          this, SLOT(jobAboutToBeAdded(Job*)),
+  connect(m_jobManager, SIGNAL(jobAboutToBeAdded(MoleQueue::Job*)),
+          this, SLOT(jobAboutToBeAdded(MoleQueue::Job*)),
           Qt::DirectConnection);
 }
 

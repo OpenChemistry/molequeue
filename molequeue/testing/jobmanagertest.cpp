@@ -41,7 +41,7 @@ private slots:
   void cleanup();
 
   // Set both MoleQueue and Client ids to the current count()+1
-  void setNewJobIds(Job*);
+  void setNewJobIds(MoleQueue::Job*);
 
   void testJobAboutToBeAdded();
   void testlookupClientId();
@@ -51,8 +51,8 @@ private slots:
 
 void JobManagerTest::initTestCase()
 {
-  connect(&m_jobManager, SIGNAL(jobAboutToBeAdded(Job*)),
-          this, SLOT(setNewJobIds(Job*)),
+  connect(&m_jobManager, SIGNAL(jobAboutToBeAdded(MoleQueue::Job*)),
+          this, SLOT(setNewJobIds(MoleQueue::Job*)),
           Qt::DirectConnection);
 }
 
@@ -77,7 +77,7 @@ void JobManagerTest::setNewJobIds(MoleQueue::Job *job)
 
 void JobManagerTest::testJobAboutToBeAdded()
 {
-  QSignalSpy spy (&m_jobManager, SIGNAL(jobAboutToBeAdded(Job*)));
+  QSignalSpy spy (&m_jobManager, SIGNAL(jobAboutToBeAdded(MoleQueue::Job*)));
 
   m_jobManager.newJob();
   QCOMPARE(spy.count(), 1);

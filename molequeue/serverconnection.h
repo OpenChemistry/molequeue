@@ -87,13 +87,13 @@ signals:
    * Emitted when the client sends a request for a new job submission.
    * @param req The Job
    */
-  void jobSubmissionRequested(const Job *req);
+  void jobSubmissionRequested(const MoleQueue::Job *req);
 
   /**
    * Emitted when the client sends a request to cancel a submitted job.
    * @param moleQueueId MoleQueue identifier
    */
-  void jobCancellationRequested(IdType moleQueueId);
+  void jobCancellationRequested(MoleQueue::IdType moleQueueId);
 
 public slots:
 
@@ -102,14 +102,14 @@ public slots:
    * @param manager The QueueManager List
    * @sa QueueManager::toQueueList()
    */
-  void sendQueueList(const QueueListType &queueList);
+  void sendQueueList(const MoleQueue::QueueListType &queueList);
 
   /**
    * Sends a reply to the client informing them that the job submission was
    * successful.
    * @param req The Job
    */
-  void sendSuccessfulSubmissionResponse(const Job *req);
+  void sendSuccessfulSubmissionResponse(const MoleQueue::Job *req);
 
   /**
    * Sends a reply to the client informing them that the job submission failed.
@@ -117,8 +117,8 @@ public slots:
    * @param ec Error code
    * @param errorMessage Descriptive string
    */
-  void sendFailedSubmissionResponse(const Job *req,
-                                    JobSubmissionErrorCode ec,
+  void sendFailedSubmissionResponse(const MoleQueue::Job *req,
+                                    MoleQueue::JobSubmissionErrorCode ec,
                                     const QString &errorMessage);
 
   /**
@@ -126,7 +126,7 @@ public slots:
    * successful.
    * @param req The Job
    */
-  void sendSuccessfulCancellationResponse(const Job *req);
+  void sendSuccessfulCancellationResponse(const MoleQueue::Job *req);
 
   /**
    * Sends a notification to the connected client informing them that a job
@@ -135,27 +135,30 @@ public slots:
    * @param oldState
    * @param newState
    */
-  void sendJobStateChangeNotification(const Job *req,
-                                      JobState oldState, JobState newState);
+  void sendJobStateChangeNotification(const MoleQueue::Job *req,
+                                      MoleQueue::JobState oldState,
+                                      MoleQueue::JobState newState);
 
 protected slots:
 
   /**
    * Called when the JsonRpc instance handles a listQueues request.
    */
-  void queueListRequestReceived(IdType);
+  void queueListRequestReceived(MoleQueue::IdType);
 
   /**
    * Called when the JsonRpc instance handles a submitJob request.
    * @param options Option hash (see Job::hash())
    */
-  void jobSubmissionRequestReceived(IdType, const QVariantHash &options);
+  void jobSubmissionRequestReceived(MoleQueue::IdType,
+                                    const QVariantHash &options);
 
   /**
    * Called when the JsonRpc instance handles a cancelJob request.
    * @param moleQueueId The MoleQueue identifier of the job to cancel.
    */
-  void jobCancellationRequestReceived(IdType, IdType moleQueueId);
+  void jobCancellationRequestReceived(MoleQueue::IdType,
+                                      MoleQueue::IdType moleQueueId);
 
   /**
    * Start handling incoming request. This should be called by the parent server

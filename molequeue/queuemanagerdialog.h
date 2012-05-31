@@ -43,7 +43,7 @@ protected slots:
   void removeQueue();
   void configureQueue();
   void doubleClicked(const QModelIndex &);
-  void showSettingsDialog(Queue *queue);
+  void showSettingsDialog(MoleQueue::Queue *queue);
 
 protected:
   /// Row indices, ascending order
