@@ -22,6 +22,7 @@
 #include "jobitemmodel.h"
 #include "jobmanager.h"
 #include "program.h"
+#include "queue.h"
 #include "queuemanager.h"
 #include "queuemanagerdialog.h"
 #include "server.h"
@@ -137,6 +138,7 @@ void MainWindow::handleServerError(QAbstractSocket::SocketError err,
   }
 }
 
+/// @todo Move these to Server
 void MainWindow::newConnection(ServerConnection *conn)
 {
   connect(conn, SIGNAL(queueListRequested()), this, SLOT(queueListRequested()));
@@ -169,11 +171,23 @@ void MainWindow::jobSubmissionRequested(const Job *req)
 
   qDebug() << "Job submission requested:\n" << req->hash();
 
+  // Lookup queue and submit job.
+  Queue *queue = m_server->queueManager()->lookupQueue(req->queue());
+  if (!queue) {
+    conn->sendFailedSubmissionResponse(req, MoleQueue::InvalidQueue,
+                                       tr("Unknown queue: %1")
+                                       .arg(req->queue()));
+    return;
+  }
 
-
-  /// @todo Actually handle the submission
-
+  // Send the submission confirmation first so that the client can update the
+  // MoleQueue id and properly handle packets sent during job submission.
   conn->sendSuccessfulSubmissionResponse(req);
+
+  /// @todo Handle submission failures better -- return JobSubErrCode?
+  bool ok = queue->submitJob(req);
+  qDebug() << "Submission ok?" << ok;
+
 }
 
 void MainWindow::jobCancellationRequested(IdType moleQueueId)

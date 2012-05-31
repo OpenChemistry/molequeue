@@ -174,14 +174,6 @@ signals:
    */
   void programRemoved(const QString &name, Program *program);
 
-  /**
-   * Emitted when a job has been successfully submitted.
-   * @param MoleQueueId MoleQueue identifier for the job.
-   * @param queueId Queue specific id (job id or process id).
-   * @param localDir Local directory where temporary files are stored.
-   */
-  void jobSubmitted(IdType MoleQueueId, IdType queueId, const QString &localDir);
-
 public slots:
   /**
    * Writes input files and submits a new job to the queue.
