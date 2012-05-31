@@ -144,6 +144,7 @@ void ServerConnection::jobSubmissionRequestReceived(IdType packetId,
   Job *req = m_server->jobManager()->newJob(options);
 
   m_submissionLUT.insert(req->moleQueueId(), packetId);
+  m_ownedJobMoleQueueIds.append(req->moleQueueId());
 
   emit jobSubmissionRequested(req);
 }

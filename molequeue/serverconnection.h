@@ -50,6 +50,22 @@ public:
    */
   virtual ~ServerConnection();
 
+  /**
+   * Test whether the Job with @a moleQueueId originated from this connection.
+   * @param moleQueueId MoleQueue Id of Job
+   * @return true if the Job belongs to this ServerConnection, false otherwise.
+   */
+  bool hasJob(IdType moleQueueId) const
+  {
+    return m_ownedJobMoleQueueIds.contains(moleQueueId);
+  }
+
+  /**
+   * @return A list of MoleQueue ids indicating which Jobs belong to this
+   * connection.
+   */
+  QList<IdType> ownedJobs() const {return m_ownedJobMoleQueueIds;}
+
   /// Used for internal lookup structures
   typedef QMap<IdType, IdType> PacketLookupTable;
 
@@ -156,6 +172,9 @@ protected slots:
 protected:
   /// The parent server instance
   Server *m_server;
+
+  /// Tracks MoleQueue ids belonging to this connection
+  QList<IdType> m_ownedJobMoleQueueIds;
 
   /// Tracks queue list requests
   QList<IdType> m_listQueuesLUT;
