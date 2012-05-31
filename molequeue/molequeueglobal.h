@@ -58,7 +58,9 @@ enum JobState {
   /// Job is running remotely.
   RunningRemote,
   /// Job has completed.
-  Finished
+  Finished,
+  /// Job has been terminated at a user request.
+  Killed
 };
 
 /**
@@ -126,7 +128,9 @@ inline JobState stringToJobState(const char *str)
   */
 enum JobSubmissionErrorCode {
   /// No error occurred.
-  Success = 0
+  Success = 0,
+  /// Requested queue does not exist
+  InvalidQueue
 };
 
 } // end namespace MoleQueue
