@@ -21,9 +21,12 @@
 
 #include <QtCore/QProcess>
 
+class QThread;
+
 namespace MoleQueue
 {
 class Job;
+class QueueLocalWorker;
 class QueueManager;
 
 /**
@@ -62,6 +65,9 @@ protected:
   /** The number of cores available. */
   int cores() const;
   int m_cores;
+
+  QThread *m_thread;
+  QueueLocalWorker *m_worker;
 };
 
 } // End namespace
