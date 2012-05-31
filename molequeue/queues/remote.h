@@ -44,7 +44,7 @@ public:
 
 public slots:
 
-  virtual bool submitJob(const Job *job);
+  virtual bool submitJob(const MoleQueue::Job *job);
 };
 
 } // End namespace

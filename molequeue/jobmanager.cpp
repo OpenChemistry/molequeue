@@ -24,8 +24,8 @@ namespace MoleQueue
 JobManager::JobManager(QObject *parentObject) :
   QObject(parentObject)
 {
-  qRegisterMetaType<Job*>("Job*");
-  qRegisterMetaType<const Job*>("const Job*");
+  qRegisterMetaType<Job*>("MoleQueue::Job*");
+  qRegisterMetaType<const Job*>("const MoleQueue::Job*");
 }
 
 JobManager::~JobManager()

@@ -97,7 +97,7 @@ signals:
    * Emitted when a new connection is made with a client.
    * @param conn The ServerConnection with the new client.
    */
-  void newConnection(ServerConnection *conn);
+  void newConnection(MoleQueue::ServerConnection *conn);
 
   /**
    * Emitted when an error occurs.
@@ -137,8 +137,9 @@ public slots:
    * @param oldState Previous state of @a job.
    * @param newState New state of @a job.
    */
-  void dispatchJobStateChange(const Job *job,
-                              JobState oldState, JobState newState);
+  void dispatchJobStateChange(const MoleQueue::Job *job,
+                              MoleQueue::JobState oldState,
+                              MoleQueue::JobState newState);
 
 protected slots:
 
@@ -146,7 +147,7 @@ protected slots:
    * Set the MoleQueue Id of a job before it is added to the manager.
    * @param job The new Job.
    */
-  void jobAboutToBeAdded(Job *job);
+  void jobAboutToBeAdded(MoleQueue::Job *job);
 
   /**
    * Called when the internal socket server has a new connection ready.

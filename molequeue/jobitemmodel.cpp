@@ -24,7 +24,7 @@ namespace MoleQueue {
 JobItemModel::JobItemModel(JobManager *jobManager, QObject *parentObject)
   : QAbstractItemModel(parentObject), m_jobManager(jobManager)
 {
-  connect(m_jobManager, SIGNAL(jobAdded(const Job*)),
+  connect(m_jobManager, SIGNAL(jobAdded(const MoleQueue::Job*)),
           this, SIGNAL(layoutChanged()));
 }
 
