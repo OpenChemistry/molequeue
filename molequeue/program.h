@@ -28,6 +28,8 @@ class QSettings;
 namespace MoleQueue
 {
 class Queue;
+class QueueManager;
+class Server;
 
 /**
  * Class to represent a computer program. Embodies how to execute the program,
@@ -70,6 +72,16 @@ public:
     /// Use to get total number of syntax types.
     SYNTAX_COUNT
   };
+
+  /// @return The parent Server
+  Server *server() {return m_server;}
+  /// @return The parent Server
+  const Server *server() const {return m_server;}
+
+  /// @return The parent QueueManager
+  QueueManager *queueManager() {return m_queueManager;}
+  /// @return The parent Server
+  const QueueManager *queueManager() const {return m_queueManager;}
 
   /// @return The Queue that this Program belongs to.
   Queue * queue() { return m_queue; }
@@ -141,6 +153,10 @@ protected:
 
   /// The Queue that the Program belongs to/is being run by.
   Queue *m_queue;
+  /// The QueueManager owning the Queue this Program belongs to.
+  QueueManager *m_queueManager;
+  /// The Server this program is associated with.
+  Server *m_server;
   /// GUI-visible name
   QString m_name;
   /// Name of executable

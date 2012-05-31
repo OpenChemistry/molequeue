@@ -23,8 +23,8 @@ class DummyQueue : public MoleQueue::Queue
 {
   Q_OBJECT
 public:
-  DummyQueue(const QString &queueName = "Dummy", QObject *parentObject = NULL)
-    : MoleQueue::Queue(queueName, parentObject) {};
+  DummyQueue(const QString &queueName = "Dummy")
+    : MoleQueue::Queue(queueName, NULL) {};
 public slots:
   virtual bool submitJob(const MoleQueue::Job *) {return false;}
 };

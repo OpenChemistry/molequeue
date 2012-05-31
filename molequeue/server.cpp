@@ -38,7 +38,7 @@ namespace MoleQueue
 
 Server::Server(QObject *parentObject)
   : QObject(parentObject),
-    m_server(new QLocalServer ()),
+    m_server(new QLocalServer (this)),
     m_jobManager(new JobManager (this)),
     m_queueManager(new QueueManager (this)),
     m_isTesting(false),

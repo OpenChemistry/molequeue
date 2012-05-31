@@ -23,8 +23,9 @@ class QTimer;
 
 namespace MoleQueue {
 
-class TerminalProcess;
+class QueueManager;
 class SshCommand;
+class TerminalProcess;
 
 /**
  * Remote queue.
@@ -34,7 +35,7 @@ class QueueRemote : public Queue
 {
   Q_OBJECT
 public:
-  explicit QueueRemote(QObject *parentObject = 0);
+  explicit QueueRemote(QueueManager *parentManager = 0);
   ~QueueRemote();
 
   QString typeName() const { return "Remote"; }
