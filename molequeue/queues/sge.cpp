@@ -45,7 +45,7 @@ QueueSGE::~QueueSGE()
 bool QueueSGE::submit(Job *job)
 {
   m_jobs.push_back(job);
-  job->setStatus(Job::QUEUED);
+  job->setJobState(MoleQueue::LocalQueued);
   emit(jobAdded(job));
   submitJob(m_jobs.size() - 1);
   return true;
@@ -58,7 +58,7 @@ void QueueSGE::jobStarted(Job * /*job*/)
 
 void QueueSGE::jobFinished(Job *job)
 {
-  job->setStatus(Job::COMPLETE);
+  job->setJobState(MoleQueue::Finished);
   emit(jobStateChanged(job));
   // Now retrieve our output files, and put them in the local queue store
   int i = 0;
@@ -66,7 +66,7 @@ void QueueSGE::jobFinished(Job *job)
     if (m_jobs[i] == job)
       break;
   QString localDir = m_localDir + "/" + QString::number(i + m_jobIndexOffset);
-  m_ssh->copyDirFrom(job->workingDirectory(), localDir);
+//  m_ssh->copyDirFrom(job->workingDirectory(), localDir);
 }
 
 void QueueSGE::pollRemote()
@@ -78,6 +78,8 @@ void QueueSGE::pollRemote()
   m_ssh->execute(command, output, exitCode);
   qDebug() << "Poll:" << output << "exit:" << exitCode;
   QStringList lines = output.split("\n", QString::SkipEmptyParts);
+  /// @todo This will need to be rewritten:
+  /*
   // Copy the map of active jobs, update the status of each. If any are left,
   // they probably finished - check they did and retrieve the results file(s).
   QMap<QString, Job *> jobs = m_remoteJobs;
@@ -112,6 +114,7 @@ void QueueSGE::pollRemote()
   }
   if (m_remoteJobs.size() == 0) // No need to poll the remote queue anymore
     m_timer->stop();
+  */
 }
 
 void QueueSGE::setupPrograms()
@@ -148,7 +151,9 @@ void QueueSGE::setupProcess()
 void QueueSGE::submitJob(int jobId)
 {
   Job *job = m_jobs[jobId];
-
+  Q_UNUSED(job);
+  /// @todo This will need to be rewritten:
+  /*
   qDebug() << "Job (R):" << jobId << job->workingDirectory()
            << job->expandedRunTemplate();
 
@@ -209,6 +214,7 @@ void QueueSGE::submitJob(int jobId)
     job->setStatus(Job::FAILED);
   emit(jobStateChanged(job));
   qDebug() << "Run gamess:" << output << exitCode;
+  */
 }
 
 } // End namespace

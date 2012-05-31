@@ -21,7 +21,9 @@
 
 #include <QtCore/QProcess>
 
-namespace MoleQueue {
+namespace MoleQueue
+{
+class Job;
 
 /**
  * Queue for jobs to run locally.

@@ -16,6 +16,7 @@
 
 #include "client.h"
 
+#include "jobmanager.h"
 #include "jsonrpc.h"
 
 #include <QtNetwork/QLocalSocket>
@@ -36,11 +37,12 @@ namespace MoleQueue
 
 Client::Client(QObject *parentObject) :
   AbstractRpcInterface(parentObject),
-  m_jobArray(new QVector<JobRequest>()),
+  m_jobManager(new JobManager(this)),
   m_submittedLUT(new PacketLookupTable ()),
   m_canceledLUT(new PacketLookupTable ())
 {
-  qRegisterMetaType<JobRequest>("JobRequest");
+  qRegisterMetaType<Job*>("Job*");
+  qRegisterMetaType<const Job*>("const Job*");
 
   QLocalSocket *socket = new QLocalSocket ();
   this->setSocket(socket);
@@ -61,12 +63,16 @@ Client::Client(QObject *parentObject) :
           SLOT(jobCancellationConfirmationReceived(IdType,IdType)));
   connect(m_jsonrpc, SIGNAL(jobStateChangeReceived(IdType,JobState,JobState)),
           this, SLOT(jobStateChangeReceived(IdType,JobState,JobState)));
+
+  connect(m_jobManager, SIGNAL(jobAboutToBeAdded(Job*)),
+          this, SLOT(jobAboutToBeAdded(Job*)),
+          Qt::DirectConnection);
 }
 
 Client::~Client()
 {
-  delete m_jobArray;
-  m_jobArray = NULL;
+  delete m_jobManager;
+  m_jobManager = NULL;
 
   delete m_submittedLUT;
   m_submittedLUT = NULL;
@@ -80,24 +86,25 @@ QueueListType Client::queueList() const
   return m_queueList;
 }
 
-void Client::submitJobRequest(JobRequest &req)
+void Client::submitJobRequest(const Job *req)
 {
-  IdType clientId = m_jobArray->size() + 1;
-  req.setClientId(clientId);
-  m_jobArray->push_back(req);
-
   const IdType id = this->nextPacketId();
   const PacketType packet = m_jsonrpc->generateJobRequest(req, id);
-  m_submittedLUT->insert(id, req.clientId());
+  m_submittedLUT->insert(id, req->clientId());
   this->sendPacket(packet);
 }
 
-void Client::cancelJobRequest(const JobRequest &req)
+void Client::cancelJob(const Job *req)
 {
   const IdType id = this->nextPacketId();
   const PacketType packet = m_jsonrpc->generateJobCancellation(req, id);
-  m_canceledLUT->insert(id, req.clientId());
+  m_canceledLUT->insert(id, req->clientId());
   this->sendPacket(packet);
+}
+
+void Client::jobAboutToBeAdded(Job *job)
+{
+  job->setClientId(static_cast<IdType>(m_jobManager->count()) + 1);
 }
 
 void Client::queueListReceived(IdType, const QueueListType &list)
@@ -118,17 +125,19 @@ void Client::successfulSubmissionReceived(IdType packetId,
   }
 
   const IdType clientId = m_submittedLUT->take(packetId);
-  JobRequest *req = this->jobRequestByClientId(clientId);
+  const Job *req = m_jobManager->lookupClientId(clientId);
   if (req == NULL) {
     qWarning() << "Client received a successful job submission response for a "
                   "job that does not exist in the job list.";
     return;
   }
-  req->setMolequeueId(moleQueueId);
-  req->setQueueJobId(queueJobId);
-  req->setLocalWorkingDirectory(workingDir.absolutePath());
+  Job *mutableJob = const_cast<Job*>(req);
+  mutableJob->setMolequeueId(moleQueueId);
+  mutableJob->setQueueJobId(queueJobId);
+  mutableJob->setLocalWorkingDirectory(workingDir.absolutePath());
+  /// @todo update job manager's LUTs
 
-  emit jobSubmitted(*req, true, QString());
+  emit jobSubmitted(req, true, QString());
 }
 
 void Client::failedSubmissionReceived(IdType packetId,
@@ -142,7 +151,7 @@ void Client::failedSubmissionReceived(IdType packetId,
   }
 
   const IdType clientId = m_submittedLUT->take(packetId);
-  JobRequest *req = this->jobRequestByClientId(clientId);
+  const Job *req = m_jobManager->lookupClientId(clientId);
   if (req == NULL) {
     qWarning() << "Client received a failed job submission response for a "
                   "job that does not exist in the job list.";
@@ -153,7 +162,7 @@ void Client::failedSubmissionReceived(IdType packetId,
       << ((req == NULL) ? 0 : req->clientId()) << "; Error" << errorCode
       << ":" << errorMessage;
 
-  emit jobSubmitted(*req, false, errorMessage);
+  emit jobSubmitted(req, false, errorMessage);
 }
 
 void Client::jobCancellationConfirmationReceived(IdType packetId,
@@ -166,7 +175,7 @@ void Client::jobCancellationConfirmationReceived(IdType packetId,
   }
 
   const IdType clientId = m_canceledLUT->take(packetId);
-  JobRequest *req = this->jobRequestByClientId(clientId);
+  const Job *req = m_jobManager->lookupClientId(clientId);
   if (req == NULL) {
     qWarning() << "Client received a successful job cancellation response for a "
                   "job that does not exist in the job list.";
@@ -178,22 +187,22 @@ void Client::jobCancellationConfirmationReceived(IdType packetId,
                   " id.";
   }
 
-  emit jobCanceled(*req, true, QString());
+  emit jobCanceled(req, true, QString());
 }
 
 void Client::jobStateChangeReceived(IdType moleQueueId,
                                     JobState oldState, JobState newState)
 {
-  JobRequest *req = this->jobRequestByMoleQueueId(moleQueueId);
+  const Job *req = m_jobManager->lookupMoleQueueId(moleQueueId);
   if (req == NULL) {
     qWarning() << "Client received a job state change notification for a "
                   "job with an unrecognized MoleQueue id:" << moleQueueId;
     return;
   }
 
-  req->setJobState(newState);
+  const_cast<Job*>(req)->setJobState(newState);
 
-  emit jobStateChanged(*req, oldState, newState);
+  emit jobStateChanged(req, oldState, newState);
 }
 
 void Client::connectToServer(const QString &serverName)
@@ -233,51 +242,9 @@ void Client::requestQueueListUpdate()
   this->sendPacket(packet);
 }
 
-JobRequest * Client::jobRequestByClientId(IdType clientId)
+Job *Client::newJobRequest()
 {
-  if (clientId < 1 || clientId > static_cast<IdType>(m_jobArray->size())) {
-    qWarning() << "Request for JobRequest with invalid clientId:" << clientId;
-    return NULL;
-  }
-  return &((*m_jobArray)[clientId - 1]);
-}
-
-const JobRequest * Client::jobRequestByClientId(IdType clientId) const
-{
-  if (clientId < 1 || clientId > static_cast<IdType>(m_jobArray->size())) {
-    qWarning() << "Request for JobRequest with invalid clientId:" << clientId;
-    return NULL;
-  }
-  return &((*m_jobArray)[clientId - 1]);
-}
-
-JobRequest *Client::jobRequestByMoleQueueId(IdType moleQueueId)
-{
-  for (QVector<JobRequest>::const_iterator it = m_jobArray->constBegin(),
-       it_end = m_jobArray->constEnd(); it != it_end; ++it) {
-    if (it->moleQueueId() != moleQueueId)
-      continue;
-    // Look up with getRequestByClientId to get mutable ref
-    return this->jobRequestByClientId(it->clientId());
-  }
-
-  qWarning() << "Request for JobRequest with unrecognized moleQueueId:"
-             << moleQueueId;
-  return NULL;
-}
-
-const JobRequest *Client::jobRequestByMoleQueueId(IdType moleQueueId) const
-{
-  for (QVector<JobRequest>::const_iterator it = m_jobArray->constBegin(),
-       it_end = m_jobArray->constEnd(); it != it_end; ++it) {
-    if (it->moleQueueId() != moleQueueId)
-      continue;
-    return &(*it);
-  }
-
-  qWarning() << "Request for JobRequest with unrecognized moleQueueId:"
-             << moleQueueId;
-  return NULL;
+  return m_jobManager->newJob();
 }
 
 }

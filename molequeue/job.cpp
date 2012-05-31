@@ -2,7 +2,7 @@
 
   This source file is part of the MoleQueue project.
 
-  Copyright 2011 Kitware, Inc.
+  Copyright 2012 Kitware, Inc.
 
   This source code is released under the New BSD License, (the "License").
 
@@ -16,126 +16,89 @@
 
 #include "job.h"
 
-#include <QFileInfo>
+namespace MoleQueue
+{
 
-#include "program.h"
-
-namespace MoleQueue {
-
-Job::Job(const Program *prog)
-  : QObject(),
-    m_program(prog)
+Job::Job()
+  : m_jobState(MoleQueue::None),
+    m_cleanRemoteFiles(false),
+    m_retrieveOutput(true),
+    m_cleanLocalWorkingDirectory(false),
+    m_hideFromQueue(false),
+    m_popupOnStateChange(true),
+    m_molequeueId(0),
+    m_queueJobId(0),
+    m_clientId(0)
 {
 }
 
-Job::~Job()
+Job::Job(const MoleQueue::Job &other)
+  : m_queue(other.m_queue),
+    m_program(other.m_program),
+    m_jobState(other.m_jobState),
+    m_description(other.m_description),
+    m_inputAsPath(other.m_inputAsPath),
+    m_inputAsString(other.m_inputAsString),
+    m_outputDirectory(other.m_outputDirectory),
+    m_localWorkingDirectory(other.m_localWorkingDirectory),
+    m_cleanRemoteFiles(other.m_cleanRemoteFiles),
+    m_retrieveOutput(other.m_retrieveOutput),
+    m_cleanLocalWorkingDirectory(other.m_cleanLocalWorkingDirectory),
+    m_hideFromQueue(other.m_hideFromQueue),
+    m_popupOnStateChange(other.m_popupOnStateChange),
+    m_molequeueId(other.m_molequeueId),
+    m_queueJobId(other.m_queueJobId),
+    m_clientId(other.m_clientId)
 {
 }
 
-void Job::setName(const QString &newName)
+QVariantHash Job::hash() const
 {
-  m_name = newName;
+  QVariantHash state;
+
+  state.insert("queue", m_queue);
+  state.insert("program", m_program);
+  state.insert("jobState", m_jobState);
+  state.insert("description", m_description);
+  state.insert("inputAsPath", m_inputAsPath);
+  state.insert("inputAsString", m_inputAsString);
+  state.insert("outputDirectory", m_outputDirectory);
+  state.insert("localWorkingDirectory", m_localWorkingDirectory);
+  state.insert("cleanRemoteFiles", m_cleanRemoteFiles);
+  state.insert("retrieveOutput", m_retrieveOutput);
+  state.insert("cleanLocalWorkingDirectory", m_cleanLocalWorkingDirectory);
+  state.insert("hideFromQueue", m_hideFromQueue);
+  state.insert("popupOnStateChange", m_popupOnStateChange);
+  state.insert("molequeueId", m_molequeueId);
+  state.insert("queueJobId", m_queueJobId);
+  state.insert("clientId", m_clientId);
+
+  return state;
 }
 
-QString Job::name() const
+void Job::setFromHash(const QVariantHash &state)
 {
-  return m_name;
+  m_queue = state.value("queue", "").toString();
+  m_program = state.value("program", "").toString();
+  m_description = state.value("description", "").toString();
+  m_jobState = static_cast<JobState>(
+        state.value("jobState", MoleQueue::None).toInt());
+  m_inputAsPath = state.value("inputAsPath", "").toString();
+  m_inputAsString = state.value("inputAsString", "").toString();
+  m_outputDirectory = state.value("outputDirectory", "").toString();
+  m_localWorkingDirectory = state.value("localWorkingDirectory", "").toString();
+  m_cleanRemoteFiles = state.value("cleanRemoteFiles", false).toBool();
+  m_retrieveOutput = state.value("retrieveOutput", true).toBool();
+  m_cleanLocalWorkingDirectory =
+      state.value("cleanLocalWorkingDirectory", false).toBool();
+  m_hideFromQueue = state.value("hideFromQueue", false).toBool();
+  m_popupOnStateChange = state.value("popupOnStateChange", true).toBool();
+  m_molequeueId = static_cast<IdType>(
+        state.value("molequeueId", 0).toUInt());
+  m_queueJobId = static_cast<IdType>(
+        state.value("queueJobId", 0).toUInt());
+  m_clientId = static_cast<IdType>(
+        state.value("clientId", 0).toUInt());
 }
 
-void Job::setTitle(const QString &newTitle)
-{
-  m_title = newTitle;
-}
-
-QString Job::title() const
-{
-  return m_title;
-}
-
-const Program* Job::program() const
-{
-  return m_program;
-}
-
-const Queue* Job::queue() const
-{
-  return m_program->queue();
-}
-
-void Job::setWorkingDirectory(const QString &dir)
-{
-  m_workingDirectory = dir;
-  setReplacement("workingDirectory", dir);
-}
-
-void Job::setInputFile(const QString &file)
-{
-  m_inputFile = file;
-  QFileInfo info(file);
-  setReplacement("input", info.baseName());
-}
-
-void Job::setOutputFile(const QString &file)
-{
-  m_outputFile = file;
-  QFileInfo info(file);
-  setReplacement("output", info.baseName());
-}
-
-QString Job::statusString() const
-{
-  switch (m_status) {
-  case UNDEFINED:
-    return "Undefined";
-  case QUEUED:
-    return "Queued (L)";
-  case REMOTEQUEUED:
-    return "Queued (R)";
-  case RUNNING:
-    return "Running";
-  case COMPLETE:
-    return "Completed";
-  case FAILED:
-    return "Failed";
-  default:
-    return "Undefined";
-  }
-}
-
-QString Job::replacement(const QString &keyword) const
-{
-  if (m_replacements.contains(keyword))
-    return m_replacements[keyword];
-  else
-    return QString();
-}
-
-void Job::setReplacement(const QString &keyword, const QString &value)
-{
-  m_replacements[keyword] = value;
-}
-
-QString Job::replacementList() const
-{
-  QString list;
-  foreach(const QString &key, m_replacements.keys()) {
-    list = "Keyword: " + key + " = " + m_replacements[key] + "\n";
-  }
-  return list;
-}
-
-QString Job::expandedRunTemplate() const
-{
-  QString delimiter = m_program->delimiter();
-  QString runTemplate = m_program->runTemplate();
-
-  QString expanded(runTemplate);
-  foreach(const QString &key, m_replacements.keys()) {
-    expanded = expanded.replace(delimiter + key + delimiter,
-                                m_replacements[key]);
-  }
-
-  return expanded;
-}
-
-} // end MoleQueue namespace
+} // end namespace MoleQueue

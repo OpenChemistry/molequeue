@@ -19,8 +19,8 @@
 
 #include "connection.h"
 #include "job.h"
-#include "jobrequest.h"
 #include "jobitemmodel.h"
+#include "jobmanager.h"
 #include "program.h"
 #include "queuemanager.h"
 #include "queuemanagerdialog.h"
@@ -41,6 +41,7 @@
 
 #include <QtGui/QCloseEvent>
 #include <QtGui/QInputDialog>
+#include <QtGui/QHeaderView>
 #include <QtGui/QMessageBox>
 
 namespace MoleQueue {
@@ -54,8 +55,8 @@ MainWindow::MainWindow()
     m_trayIcon(NULL),
     m_trayIconMenu(NULL),
     m_server(new Server (this)),
-    m_queueManager(new QueueManager (this)),
-    m_jobModel(NULL)
+    m_jobItemModel(new JobItemModel (m_server->jobManager(), this)),
+    m_queueManager(new QueueManager (this))
 {
   m_ui->setupUi(this);
 
@@ -185,8 +186,8 @@ void MainWindow::handleServerError(QAbstractSocket::SocketError err,
 void MainWindow::newConnection(ServerConnection *conn)
 {
   connect(conn, SIGNAL(queueListRequested()), this, SLOT(queueListRequested()));
-  connect(conn, SIGNAL(jobSubmissionRequested(JobRequest)),
-          this, SLOT(jobSubmissionRequested(JobRequest)));
+  connect(conn, SIGNAL(jobSubmissionRequested(const Job*)),
+          this, SLOT(jobSubmissionRequested(const Job*)));
   connect(conn, SIGNAL(jobCancellationRequested(IdType)),
           this, SLOT(jobCancellationRequested(IdType)));
 }
@@ -203,7 +204,7 @@ void MainWindow::queueListRequested()
   conn->sendQueueList(m_queueManager->toQueueList());
 }
 
-void MainWindow::jobSubmissionRequested(const JobRequest &req)
+void MainWindow::jobSubmissionRequested(const Job *req)
 {
   ServerConnection *conn = qobject_cast<ServerConnection*>(this->sender());
   if (conn == NULL) {
@@ -212,7 +213,9 @@ void MainWindow::jobSubmissionRequested(const JobRequest &req)
     return;
   }
 
-  qDebug() << "Job submission requested:\n" << req.hash();
+  qDebug() << "Job submission requested:\n" << req->hash();
+
+
 
   /// @todo Actually handle the submission
 
@@ -230,10 +233,11 @@ void MainWindow::jobCancellationRequested(IdType moleQueueId)
 
   qDebug() << "Job cancellation requested: MoleQueueId:" << moleQueueId;
 
+  const Job *req = m_server->jobManager()->lookupMoleQueueId(moleQueueId);
+
   /// @todo actually handle the cancellation
-  JobRequest req;
-  //  req.setMolequeueId(moleQueueId); // needs to be done from within the
-                                       // JobManager
+  /// @todo Handle NULL req
+
   conn->sendSuccessfulCancellationResponse(req);
 }
 
@@ -286,14 +290,8 @@ void MainWindow::createTrayIcon()
 
 void MainWindow::createJobModel()
 {
-  m_jobModel = new JobItemModel(this);
-
-  foreach(Queue *queue, m_queueManager->queues()){
-    m_jobModel->addQueue(queue);
-  }
-
-  m_ui->jobView->setModel(m_jobModel);
-  m_ui->jobView->header()->setResizeMode(0, QHeaderView::Stretch);
+  m_ui->jobView->setModel(m_jobItemModel);
+  m_ui->jobView->horizontalHeader()->setResizeMode(0, QHeaderView::Stretch);
 }
 
 } // End namespace

@@ -16,16 +16,10 @@
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
-     <widget class="MoleQueue::JobTreeView" name="jobView">
+     <widget class="MoleQueue::JobView" name="jobView">
       <property name="alternatingRowColors">
        <bool>true</bool>
       </property>
-      <property name="rootIsDecorated">
-       <bool>false</bool>
-      </property>
-      <attribute name="headerStretchLastSection">
-       <bool>false</bool>
-      </attribute>
      </widget>
     </item>
    </layout>
@@ -80,9 +74,9 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>MoleQueue::JobTreeView</class>
-   <extends>QTreeView</extends>
-   <header location="global">molequeue/jobtreeview.h</header>
+   <class>MoleQueue::JobView</class>
+   <extends>QTableView</extends>
+   <header>molequeue/jobview.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

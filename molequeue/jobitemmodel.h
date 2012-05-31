@@ -2,7 +2,7 @@
 
   This source file is part of the MoleQueue project.
 
-  Copyright 2011 Kitware, Inc.
+  Copyright 2012 Kitware, Inc.
 
   This source code is released under the New BSD License, (the "License").
 
@@ -14,54 +14,48 @@
 
 ******************************************************************************/
 
-#ifndef PROGRAMITEMMODEL_H
-#define PROGRAMITEMMODEL_H
+#ifndef JOBITEMMODEL_H
+#define JOBITEMMODEL_H
 
-#include <QtCore/QModelIndex>
-#include <QtCore/QList>
-#include <QtCore/QPointer>
+#include <QtCore/QAbstractItemModel>
 
-namespace MoleQueue {
-
-class Job;
-class Queue;
+namespace MoleQueue
+{
+class JobManager;
 
 class JobItemModel : public QAbstractItemModel
 {
   Q_OBJECT
 
+  enum ColumnNames {
+    JOB_TITLE = 0,
+    QUEUE_NAME,
+    PROGRAM_NAME,
+    JOB_STATE,
+
+    COLUMN_COUNT // Use to get the total number of columns
+  };
+
 public:
-  explicit JobItemModel(QObject *parentObject = 0);
+  explicit JobItemModel(JobManager *jobManager, QObject *parentObject = 0);
 
-  /** Add a Queue to the model. */
-  void addQueue(Queue *queue);
+  QModelIndex parent(const QModelIndex &) const {return QModelIndex();}
 
-  QModelIndex parent(const QModelIndex & index) const;
-  int rowCount(const QModelIndex & modelIndex = QModelIndex()) const;
+  int rowCount(const QModelIndex & theModelIndex = QModelIndex()) const;
   int columnCount(const QModelIndex & modelIndex = QModelIndex()) const;
 
   QVariant headerData(int section, Qt::Orientation orientation,
                       int role = Qt::DisplayRole) const;
 
   QVariant data(const QModelIndex & modelIndex, int role = Qt::DisplayRole) const;
-  bool setData(const QModelIndex & modelIndex, const QVariant & value,
-               int role = Qt::EditRole);
+
   Qt::ItemFlags flags(const QModelIndex & modelIndex) const;
 
   QModelIndex index(int row, int column,
                     const QModelIndex & modelIndex = QModelIndex()) const;
 
-  void clear();
-
-private:
-  QList<Job *> m_jobList;
-  QList< QPointer<Queue> > m_queues;
-
-public slots:
-  void add(Job *job);
-  void remove(Job *job);
-
-  void queuesChanged();
+protected:
+  JobManager *m_jobManager;
 };
 
 } // End namespace

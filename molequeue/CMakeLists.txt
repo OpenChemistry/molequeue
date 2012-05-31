@@ -14,8 +14,8 @@ set(mq_srcs
   connection.cpp
   job.cpp
   jobitemmodel.cpp
-  jobrequest.cpp
-  jobtreeview.cpp
+  jobmanager.cpp
+  jobview.cpp
   jsonrpc.cpp
   molequeueglobal.h
   program.cpp
@@ -40,9 +40,9 @@ set(mq_moc
   abstractrpcinterface.h
   client.h
   connection.h
-  job.h
   jobitemmodel.h
-  jobtreeview.h
+  jobmanager.h
+  jobview.h
   jsonrpc.h
   queue.h
   queuemanager.h
@@ -107,7 +107,8 @@ endif()
 set(mqclient_srcs
   abstractrpcinterface.cpp
   client.cpp
-  jobrequest.cpp
+  job.cpp
+  jobmanager.cpp
   jsonrpc.cpp
   molequeueglobal.h
   ${jsoncpp_srcs}
@@ -116,6 +117,7 @@ set(mqclient_srcs
 set(mqclient_moc
   abstractrpcinterface.h
   client.h
+  jobmanager.h
   jsonrpc.h
 )
 
@@ -123,7 +125,7 @@ set(mqclient_moc
 set(mqclient_headers
   abstractrpcinterface.h
   client.h
-  jobrequest.h
+  job.h
   molequeueglobal.h
   ${JSONCPP_SOURCE_DIR}/json/json-forwards.h
 )

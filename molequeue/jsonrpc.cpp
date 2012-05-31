@@ -16,7 +16,7 @@
 
 #include "jsonrpc.h"
 
-#include "jobrequest.h"
+#include "job.h"
 #include "molequeueglobal.h"
 
 #include <json/json.h>
@@ -60,8 +60,8 @@ JsonRpc::~JsonRpc()
   }
 }
 
-PacketType JsonRpc::generateJobRequest(const JobRequest &req,
-                                         IdType packetId)
+PacketType JsonRpc::generateJobRequest(const Job *req,
+                                       IdType packetId)
 {
   Json::Value packet = generateEmptyRequest(packetId);
 
@@ -69,7 +69,7 @@ PacketType JsonRpc::generateJobRequest(const JobRequest &req,
 
   Json::Value paramsObject (Json::objectValue);
 
-  const QVariantHash reqHash = req.hash();
+  const QVariantHash reqHash = req->hash();
 
   for (QVariantHash::const_iterator it = reqHash.constBegin(),
        it_end = reqHash.constEnd(); it != it_end; ++it) {
@@ -276,15 +276,15 @@ PacketType JsonRpc::generateErrorResponse(int errorCode,
   return ret;
 }
 
-PacketType JsonRpc::generateJobCancellation(const JobRequest &req,
-                                              IdType packetId)
+PacketType JsonRpc::generateJobCancellation(const Job *req,
+                                            IdType packetId)
 {
   Json::Value packet = generateEmptyRequest(packetId);
 
   packet["method"] = "cancelJob";
 
   Json::Value paramsObject (Json::objectValue);
-  paramsObject["moleQueueJobId"] = req.moleQueueId();
+  paramsObject["moleQueueJobId"] = req->moleQueueId();
 
   packet["params"] = paramsObject;
 

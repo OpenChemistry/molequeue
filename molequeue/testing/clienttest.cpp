@@ -18,7 +18,7 @@
 
 #include "client.h"
 
-#include "jobrequest.h"
+#include "job.h"
 #include "molequeueglobal.h"
 
 #include <QtGui/QApplication>
@@ -168,12 +168,12 @@ void ClientTest::cleanup()
 
 void ClientTest::testJobSubmission()
 {
-  MoleQueue::JobRequest req;
+  MoleQueue::Job *req = m_client->newJobRequest();
 
-  req.setQueue("Some queue");
-  req.setProgram("Some program");
-  req.setDescription("Test job");
-  req.setInputAsString("I'm a sample input text!");
+  req->setQueue("Some queue");
+  req->setProgram("Some program");
+  req->setDescription("Test job");
+  req->setInputAsString("I'm a sample input text!");
 
   m_client->submitJobRequest(req);
 
@@ -197,8 +197,8 @@ void ClientTest::testJobSubmission()
 
 void ClientTest::testJobCancellation()
 {
-  MoleQueue::JobRequest req;
-  m_client->cancelJobRequest(req);
+  MoleQueue::Job *req = m_client->newJobRequest();
+  m_client->cancelJob(req);
 
   while (m_packet.size() == 0) {
     qApp->processEvents(QEventLoop::AllEvents, 100);
@@ -278,7 +278,7 @@ void ClientTest::testQueueListReceived()
 void ClientTest::testSuccessfulSubmissionReceived()
 {
   // First send a submitJob request, then parse out the id for the response.
-  MoleQueue::JobRequest req;
+  MoleQueue::Job *req = m_client->newJobRequest();
   m_client->submitJobRequest(req);
 
   while (m_packet.size() == 0) {
@@ -290,7 +290,7 @@ void ClientTest::testSuccessfulSubmissionReceived()
   QVERIFY2(pos >= 0, "id not found in job submission request!");
   MoleQueue::IdType id = static_cast<MoleQueue::IdType>(capture.cap(1).toULong());
 
-  QSignalSpy spy (m_client, SIGNAL(jobSubmitted(JobRequest,bool,QString)));
+  QSignalSpy spy (m_client, SIGNAL(jobSubmitted(const Job*,bool,QString)));
 
   MoleQueue::PacketType response =
       this->readReferenceString("client-ref/successful-submission.json");
@@ -312,7 +312,7 @@ void ClientTest::testSuccessfulSubmissionReceived()
 void ClientTest::testFailedSubmissionReceived()
 {
   // First send a submitJob request, then parse out the id for the response.
-  MoleQueue::JobRequest req;
+  MoleQueue::Job *req = m_client->newJobRequest();
   m_client->submitJobRequest(req);
 
   while (m_packet.size() == 0) {
@@ -324,7 +324,7 @@ void ClientTest::testFailedSubmissionReceived()
   QVERIFY2(pos >= 0, "id not found in job submission request!");
   MoleQueue::IdType id = static_cast<MoleQueue::IdType>(capture.cap(1).toULong());
 
-  QSignalSpy spy (m_client, SIGNAL(jobSubmitted(JobRequest,bool,QString)));
+  QSignalSpy spy (m_client, SIGNAL(jobSubmitted(const Job*,bool,QString)));
 
   MoleQueue::PacketType response =
       this->readReferenceString("client-ref/failed-submission.json");
@@ -346,7 +346,7 @@ void ClientTest::testFailedSubmissionReceived()
 void ClientTest::testJobCancellationConfirmationReceived()
 {
   // First send a cancelJob request, then parse out the id for the response.
-  MoleQueue::JobRequest req;
+  MoleQueue::Job *req = m_client->newJobRequest();
   m_client->submitJobRequest(req);
 
   while (m_packet.size() == 0) {
@@ -354,7 +354,7 @@ void ClientTest::testJobCancellationConfirmationReceived()
   }
   m_packet.clear();
 
-  m_client->cancelJobRequest(req);
+  m_client->cancelJob(req);
 
   while (m_packet.size() == 0) {
     qApp->processEvents(QEventLoop::AllEvents, 100);
@@ -365,7 +365,7 @@ void ClientTest::testJobCancellationConfirmationReceived()
   QVERIFY2(pos >= 0, "id not found in job cancellation request!");
   MoleQueue::IdType id = static_cast<MoleQueue::IdType>(capture.cap(1).toULong());
 
-  QSignalSpy spy (m_client, SIGNAL(jobCanceled(JobRequest,bool,QString)));
+  QSignalSpy spy (m_client, SIGNAL(jobCanceled(const Job*,bool,QString)));
 
   MoleQueue::PacketType response =
       this->readReferenceString("client-ref/job-canceled.json");
@@ -387,7 +387,7 @@ void ClientTest::testJobCancellationConfirmationReceived()
 void ClientTest::testJobStateChangeReceived()
 {
   QSignalSpy spy (m_client,
-                  SIGNAL(jobStateChanged(JobRequest,JobState,JobState)));
+                  SIGNAL(jobStateChanged(const Job*,JobState,JobState)));
 
   MoleQueue::PacketType response =
       this->readReferenceString("client-ref/jobstate-change.json");

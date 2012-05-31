@@ -22,7 +22,6 @@
 
 namespace MoleQueue {
 
-class Job;
 class Queue;
 
 /**
@@ -56,11 +55,6 @@ public:
 
   /** Get the name of the program. Often used by GUIs etc. */
   QString name() const { return m_name; }
-
-  /**
-    * Creates and returns a new job for the program.
-    */
-  Job* createJob() const;
 
   /**
    * Set the title of the job. This is the title that will show up in job list

@@ -16,6 +16,8 @@
 
 #include "server.h"
 
+#include "job.h"
+#include "jobmanager.h"
 #include "serverconnection.h"
 
 #include <QtNetwork/QLocalServer>
@@ -36,6 +38,7 @@ namespace MoleQueue
 Server::Server(QObject *parentObject)
   : QObject(parentObject),
     m_server(new QLocalServer ()),
+    m_jobManager(new JobManager (this)),
     m_isTesting(false),
     m_debug(false)
 {
@@ -44,6 +47,10 @@ Server::Server(QObject *parentObject)
 
   connect(m_server, SIGNAL(newConnection()),
           this, SLOT(newConnectionAvailable()));
+
+  connect(m_jobManager, SIGNAL(jobAboutToBeAdded(Job*)),
+          this, SLOT(jobAboutToBeAdded(Job*)),
+          Qt::DirectConnection);
 }
 
 Server::~Server()
@@ -51,9 +58,13 @@ Server::~Server()
   this->stop();
 
   qDeleteAll(m_connections);
+  m_connections.clear();
 
   delete m_server;
   m_server = NULL;
+
+  delete m_jobManager;
+  m_jobManager = NULL;
 }
 
 void Server::start()
@@ -89,6 +100,11 @@ void Server::forceStart()
 void Server::stop()
 {
   m_server->close();
+}
+
+void Server::jobAboutToBeAdded(Job *job)
+{
+  job->setMolequeueId(static_cast<IdType>(m_jobManager->count()) + 1);
 }
 
 void Server::newConnectionAvailable()

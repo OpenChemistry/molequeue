@@ -30,7 +30,7 @@ class QVariant;
 
 namespace MoleQueue
 {
-class JobRequest;
+class Job;
 class QueueManager;
 
 /**
@@ -66,11 +66,11 @@ public:
     * Generate a JSON-RPC packet for the job submission request described by
     * @a req.
     *
-    * @param req The JobRequest of interest.
+    * @param req The Job of interest.
     * @param packetId The JSON-RPC id for the request.
     * @return A PacketType, ready to send to a QLocalSocket.
     */
-  PacketType generateJobRequest(const JobRequest &req, IdType packetId);
+  PacketType generateJobRequest(const Job *req, IdType packetId);
 
   /**
     * Generate a JSON-RPC packet to confirm a successful job submission.
@@ -83,9 +83,9 @@ public:
     * @return A PacketType, ready to send to a QLocalSocket.
     */
   PacketType generateJobSubmissionConfirmation(IdType moleQueueJobId,
-                                                 IdType queueJobId,
-                                                 const QString &workingDir,
-                                                 IdType packetId);
+                                               IdType queueJobId,
+                                               const QString &workingDir,
+                                               IdType packetId);
 
   /**
     * Generate a JSON-RPC response packet to notify of an error.
@@ -96,36 +96,8 @@ public:
     * @return A PacketType, ready to send to a QLocalSocket.
     */
   PacketType generateErrorResponse(int errorCode,
-                                     const QString &message,
-                                     IdType packetId);
-
-  /**
-    * Generate a JSON-RPC response packet to notify of an error.
-    *
-    * @param errorCode Error code
-    * @param message Single sentence describing the error that occurred.
-    * @param data a Json::Value to be used as the error object's data member
-    * @param packetId The JSON-RPC id for the packet.
-    * @return A PacketType, ready to send to a QLocalSocket.
-    * @overload
-    */
-  PacketType generateErrorResponse(int errorCode,
-                                     const QString &message,
-                                     const Json::Value &data,
-                                     IdType packetId);
-
-  /**
-    * Generate a JSON-RPC response packet to notify of an error.
-    *
-    * @param errorCode Error code
-    * @param message Single sentence describing the error that occurred.
-    * @param packetId The JSON-RPC id for the packet.
-    * @return A PacketType, ready to send to a QLocalSocket.
-    * @overload
-    */
-  PacketType generateErrorResponse(int errorCode,
-                                     const QString &message,
-                                     const Json::Value &packetId);
+                                   const QString &message,
+                                   IdType packetId);
 
   /**
     * Generate a JSON-RPC response packet to notify of an error.
@@ -138,19 +110,47 @@ public:
     * @overload
     */
   PacketType generateErrorResponse(int errorCode,
-                                     const QString &message,
-                                     const Json::Value &data,
-                                     const Json::Value &packetId);
+                                   const QString &message,
+                                   const Json::Value &data,
+                                   IdType packetId);
+
+  /**
+    * Generate a JSON-RPC response packet to notify of an error.
+    *
+    * @param errorCode Error code
+    * @param message Single sentence describing the error that occurred.
+    * @param packetId The JSON-RPC id for the packet.
+    * @return A PacketType, ready to send to a QLocalSocket.
+    * @overload
+    */
+  PacketType generateErrorResponse(int errorCode,
+                                   const QString &message,
+                                   const Json::Value &packetId);
+
+  /**
+    * Generate a JSON-RPC response packet to notify of an error.
+    *
+    * @param errorCode Error code
+    * @param message Single sentence describing the error that occurred.
+    * @param data a Json::Value to be used as the error object's data member
+    * @param packetId The JSON-RPC id for the packet.
+    * @return A PacketType, ready to send to a QLocalSocket.
+    * @overload
+    */
+  PacketType generateErrorResponse(int errorCode,
+                                   const QString &message,
+                                   const Json::Value &data,
+                                   const Json::Value &packetId);
 
   /**
     * Generate a JSON-RPC packet for requesting a job cancellation.
     *
-    * @param req The JobRequest to cancel.
+    * @param req The Job to cancel.
     * @param packetId The JSON-RPC id for the request.
     * @return A PacketType, ready to send to a QLocalSocket.
     */
-  PacketType generateJobCancellation(const JobRequest &req,
-                                       IdType packetId);
+  PacketType generateJobCancellation(const Job *req,
+                                     IdType packetId);
 
   /**
     * Generate a JSON-RPC packet confirming a job cancellation.
@@ -160,7 +160,7 @@ public:
     * @return A PacketType, ready to send to a QLocalSocket.
     */
   PacketType generateJobCancellationConfirmation(IdType moleQueueId,
-                                                   IdType packetId);
+                                                 IdType packetId);
 
   /**
     * Generate a JSON-RPC packet for requesting a list of available Queues and
@@ -192,8 +192,8 @@ public:
     * @return A PacketType, ready to send to a QLocalSocket.
     */
   PacketType generateJobStateChangeNotification(IdType moleQueueJobId,
-                                                  JobState oldState,
-                                                  JobState newState);
+                                                JobState oldState,
+                                                JobState newState);
 
   /**
     * Read a newly received packet.

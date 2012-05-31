@@ -35,8 +35,8 @@ class MainWindow;
 namespace MoleQueue {
 
 class Connection;
+class Job;
 class JobItemModel;
-class JobRequest;
 class Program;
 class Queue;
 class QueueManager;
@@ -64,7 +64,7 @@ protected slots:
 
   // ServerConnection handlers
   void queueListRequested();
-  void jobSubmissionRequested(const JobRequest &req);
+  void jobSubmissionRequested(const Job *req);
   void jobCancellationRequested(IdType moleQueueId);
 
 protected:
@@ -87,10 +87,9 @@ protected:
   QMenu *m_trayIconMenu;
 
   Server *m_server;
+  JobItemModel *m_jobItemModel;
 
   QueueManager *m_queueManager;
-
-  JobItemModel *m_jobModel;
 
   QString m_tmpDir;
   QString m_localDir;
