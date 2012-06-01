@@ -2,7 +2,7 @@
 
   This source file is part of the MoleQueue project.
 
-  Copyright 2011 Kitware, Inc.
+  Copyright 2012 Kitware, Inc.
 
   This source code is released under the New BSD License, (the "License").
 
@@ -24,10 +24,11 @@ namespace Ui {
 class QueueManagerDialog;
 }
 
-namespace MoleQueue {
-
+namespace MoleQueue
+{
 class Queue;
 class QueueManager;
+class QueueManagerItemModel;
 
 class QueueManagerDialog : public QDialog
 {
@@ -37,18 +38,21 @@ public:
   explicit QueueManagerDialog(QueueManager *manager, QWidget *parentObject = 0);
   ~QueueManagerDialog();
 
-private slots:
+protected slots:
   void addQueue();
   void removeQueue();
   void configureQueue();
-  void queueAdded(const MoleQueue::Queue *queue);
-  void queueRemoved(const MoleQueue::Queue *queue);
-  void itemDoubleClicked(QTableWidgetItem *item);
+  void doubleClicked(const QModelIndex &);
   void showSettingsDialog(Queue *queue);
 
-private:
+protected:
+  /// Row indices, ascending order
+  QList<int> getSelectedRows();
+  QList<Queue*> getSelectedQueues();
+
   Ui::QueueManagerDialog *ui;
   QueueManager *m_queueManager;
+  QueueManagerItemModel *m_queueManagerItemModel;
 };
 
 } // end MoleQueue namespace

@@ -19,9 +19,11 @@ set(mq_srcs
   jsonrpc.cpp
   molequeueglobal.h
   program.cpp
+  programconfiguredialog.cpp
   queue.cpp
   queuemanager.cpp
-  queueitemmodel.cpp
+  queuemanageritemmodel.cpp
+  queueprogramitemmodel.cpp
   server.cpp
   serverconnection.cpp
   sshcommand.cpp
@@ -45,9 +47,11 @@ set(mq_moc
   jobview.h
   jsonrpc.h
   program.h
+  programconfiguredialog.h
   queue.h
   queuemanager.h
-  queueitemmodel.h
+  queuemanageritemmodel.h
+  queueprogramitemmodel.h
   server.h
   serverconnection.h
   sshcommand.h
@@ -66,6 +70,7 @@ qt4_wrap_cpp(moc_srcs ${mq_moc})
 qt4_wrap_ui(ui_srcs
   ui/addqueuedialog.ui
   ui/mainwindow.ui
+  ui/programconfiguredialog.ui
   ui/queuemanagerdialog.ui
   ui/queuesettingsdialog.ui
 )

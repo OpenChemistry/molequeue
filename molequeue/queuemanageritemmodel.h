@@ -2,7 +2,7 @@
 
   This source file is part of the MoleQueue project.
 
-  Copyright 2011 Kitware, Inc.
+  Copyright 2012 Kitware, Inc.
 
   This source code is released under the New BSD License, (the "License").
 
@@ -14,47 +14,52 @@
 
 ******************************************************************************/
 
-#ifndef QUEUEITEMMODEL_H
-#define QUEUEITEMMODEL_H
+#ifndef QUEUEMANAGERITEMMODEL_H
+#define QUEUEMANAGERITEMMODEL_H
 
-#include <QtCore/QModelIndex>
-#include <QtCore/QList>
+#include <QtCore/QAbstractItemModel>
 
-namespace MoleQueue {
+namespace MoleQueue
+{
+class QueueManager;
 
-class Queue;
-
-class QueueItemModel : public QAbstractItemModel
+class QueueManagerItemModel : public QAbstractItemModel
 {
   Q_OBJECT
 
-public:
-  explicit QueueItemModel(QList<Queue *> *queueList, QObject *parentObject = 0);
+  enum ColumnNames {
+    QUEUE_NAME,
+    QUEUE_TYPE,
+    NUM_PROGRAMS,
+    PROGRAM_NAMES,
 
-  QModelIndex parent(const QModelIndex & modelIndex) const;
+    COLUMN_COUNT // Use to get the total number of columns
+  };
+
+public:
+  explicit QueueManagerItemModel(QueueManager *queueManager,
+                                 QObject *parentObject = 0);
+
+  QModelIndex parent(const QModelIndex &) const {return QModelIndex();}
+
   int rowCount(const QModelIndex & modelIndex = QModelIndex()) const;
   int columnCount(const QModelIndex & modelIndex = QModelIndex()) const;
+
+  QVariant headerData(int section, Qt::Orientation orientation,
+                      int role = Qt::DisplayRole) const;
+
   QVariant data(const QModelIndex & modelIndex,
                 int role = Qt::DisplayRole) const;
-  bool setData(const QModelIndex & modelIndex, const QVariant & value,
-               int role = Qt::EditRole);
+
   Qt::ItemFlags flags(const QModelIndex & modelIndex) const;
 
   QModelIndex index(int row, int column,
                     const QModelIndex & modelIndex = QModelIndex()) const;
 
-  void clear();
-
-private:
-  QList<Queue *> *m_queueList;
-
-private slots:
-  void add(Queue *queue);
-  void remove(Queue *queue);
-
-  void queuesChanged();
+protected:
+  QueueManager *m_queueManager;
 };
 
-} // End namespace
+} // end namespace MoleQueue
 
-#endif
+#endif // QUEUEMANAGERITEMMODEL_H

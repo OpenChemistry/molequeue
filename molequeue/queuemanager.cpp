@@ -17,6 +17,12 @@
 #include "queuemanager.h"
 
 #include "queue.h"
+#include "queues/local.h"
+#include "queues/remote.h"
+#include "queues/sge.h"
+
+#include <QtCore/QDebug>
+#include <QtCore/QSettings>
 
 namespace MoleQueue {
 
@@ -32,6 +38,50 @@ QueueManager::~QueueManager()
   QList<Queue*> queueList = m_queues.values();
   m_queues.clear();
   qDeleteAll(queueList);
+}
+
+void QueueManager::readSettings(QSettings &settings)
+{
+  QStringList queueNameList = settings.value("queues").toStringList();
+
+  settings.beginGroup("Queues");
+  foreach (const QString &queueName, queueNameList) {
+    settings.beginGroup(queueName);
+
+    QString queueType = settings.value("type").toString();
+
+    Queue *queue = NULL;
+    if (queueType == "Local")
+      queue = new QueueLocal (this);
+    else if (queueType == "Remote")
+      queue = new QueueRemote (this);
+    else if (queueType == "Remote - SGE")
+      queue = new QueueSGE (this);
+    else
+      qWarning() << Q_FUNC_INFO << "Unrecognized Queue type:" << queueType;
+
+    if (queue != NULL) {
+      queue->setName(queueName);
+      queue->readSettings(settings);
+      this->addQueue(queue);
+    }
+    settings.endGroup(); // queueName
+  }
+  settings.endGroup(); // "Queues"
+}
+
+void QueueManager::writeSettings(QSettings &settings) const
+{
+  settings.setValue("queues", this->queueNames());
+
+  settings.beginGroup("Queues");
+  foreach (const Queue* queue, this->queues()) {
+    settings.beginGroup(queue->name());
+    settings.setValue("type", queue->typeName());
+    queue->writeSettings(settings);
+    settings.endGroup(); // queue->name()
+  }
+  settings.endGroup(); // "Queues"
 }
 
 bool QueueManager::addQueue(Queue *queue, bool replace)

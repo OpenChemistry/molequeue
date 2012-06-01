@@ -55,21 +55,7 @@ void ProgramTest::cleanup()
 
 void ProgramTest::runTest()
 {
-  bool error = false;
-  qDebug() << "Testing the program class...";
-
-  MoleQueue::Program program;
-
-  program.setRunTemplate("rungms $$input$$ 2010 $$ncpus$$");
-
-  qDebug() << "Template: " << program.runTemplate();
-
-  MoleQueue::Program programCopy = program;
-  qDebug() << "TemplateCopy: " << programCopy.runTemplate();
-  qDebug() << "Template: " << program.runTemplate();
-  qDebug() << "TemplateCopy: " << programCopy.runTemplate();
-
-  QVERIFY(error == false);
+  qDebug() << "No tests implemented yet!";
 }
 
 QTEST_MAIN(ProgramTest)
