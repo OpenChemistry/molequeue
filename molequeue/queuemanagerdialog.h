@@ -45,6 +45,8 @@ private slots:
   void queueRemoved(const MoleQueue::Queue *queue);
   void itemDoubleClicked(QTableWidgetItem *item);
   void showSettingsDialog(Queue *queue);
+  void queueSelected(QTableWidgetItem *item);
+  void setEnabledQueueButtons(bool enabled);
 
 private:
   Ui::QueueManagerDialog *ui;

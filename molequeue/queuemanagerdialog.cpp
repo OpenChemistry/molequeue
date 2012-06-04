@@ -57,6 +57,8 @@ QueueManagerDialog::QueueManagerDialog(QueueManager *queueManager,
           this, SLOT(queueRemoved(const MoleQueue::Queue*)));
   connect(ui->queueTable, SIGNAL(itemDoubleClicked(QTableWidgetItem*)),
           this, SLOT(itemDoubleClicked(QTableWidgetItem*)));
+  connect(ui->queueTable, SIGNAL(itemClicked(QTableWidgetItem*)),
+          this, SLOT(queueSelected(QTableWidgetItem*)));
   connect(ui->addQueueButton, SIGNAL(clicked()), this, SLOT(addQueue()));
   connect(ui->removeQueueButton, SIGNAL(clicked()), this, SLOT(removeQueue()));
   connect(ui->configureQueueButton, SIGNAL(clicked()),
@@ -80,6 +82,10 @@ void QueueManagerDialog::removeQueue()
   int row = ui->queueTable->currentRow();
   Queue *queue = m_queueManager->queues()[row];
   m_queueManager->removeQueue(queue);
+
+  // if we have no queues, disable buttons associate with them
+  if (ui->queueTable->rowCount() < 1)
+    this->setEnabledQueueButtons(false);
 }
 
 void QueueManagerDialog::configureQueue()
@@ -115,6 +121,18 @@ void QueueManagerDialog::itemDoubleClicked(QTableWidgetItem *item)
   int row = item->row();
   Queue *queue = m_queueManager->queues()[row];
   this->showSettingsDialog(queue);
+}
+
+void QueueManagerDialog::setEnabledQueueButtons(bool enabled)
+{
+  ui->removeQueueButton->setEnabled(enabled);
+  ui->configureQueueButton->setEnabled(enabled);
+}
+
+void QueueManagerDialog::queueSelected(QTableWidgetItem *item)
+{
+  Q_UNUSED(item)
+  this->setEnabledQueueButtons(true);
 }
 
 void QueueManagerDialog::showSettingsDialog(Queue *queue)
