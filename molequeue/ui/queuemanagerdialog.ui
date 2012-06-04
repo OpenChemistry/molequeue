@@ -79,6 +79,9 @@
        <property name="text">
         <string>&amp;Remove</string>
        </property>
+       <property name="Enabled">
+        <bool>false</bool>
+       </property>
       </widget>
      </item>
      <item>
@@ -88,6 +91,9 @@
        </property>
        <property name="text">
         <string>&amp;Configure</string>
+       </property>
+       <property name="Enabled">
+        <bool>false</bool>
        </property>
       </widget>
      </item>
