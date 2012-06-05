@@ -60,8 +60,8 @@ MainWindow::MainWindow()
   connect(m_server, SIGNAL(connectionError(QAbstractSocket::SocketError,QString)),
           this, SLOT(handleServerError(QAbstractSocket::SocketError, QString)));
 
-  connect(m_server, SIGNAL(newConnection(ServerConnection*)),
-          this, SLOT(newConnection(ServerConnection*)));
+  connect(m_server, SIGNAL(newConnection(MoleQueue::ServerConnection*)),
+          this, SLOT(newConnection(MoleQueue::ServerConnection*)));
 
   m_server->setDebug(true);
   m_server->start();
