@@ -18,6 +18,7 @@
 
 #include "job.h"
 #include "jobmanager.h"
+#include "queue.h"
 #include "queuemanager.h"
 #include "serverconnection.h"
 
@@ -139,6 +140,66 @@ void Server::dispatchJobStateChange(const Job *job,
   conn->sendJobStateChangeNotification(job, oldState, newState);
 }
 
+void Server::queueListRequested()
+{
+  ServerConnection *conn = qobject_cast<ServerConnection*>(this->sender());
+  if (conn == NULL) {
+    qWarning() << Q_FUNC_INFO << "called with a sender which is not a "
+                  "ServerConnection.";
+    return;
+  }
+
+  conn->sendQueueList(m_queueManager->toQueueList());
+}
+
+void Server::jobSubmissionRequested(const Job *req)
+{
+  ServerConnection *conn = qobject_cast<ServerConnection*>(this->sender());
+  if (conn == NULL) {
+    qWarning() << Q_FUNC_INFO << "called with a sender which is not a "
+                  "ServerConnection.";
+    return;
+  }
+
+  qDebug() << "Job submission requested:\n" << req->hash();
+
+  // Lookup queue and submit job.
+  Queue *queue = m_queueManager->lookupQueue(req->queue());
+  if (!queue) {
+    conn->sendFailedSubmissionResponse(req, MoleQueue::InvalidQueue,
+                                       tr("Unknown queue: %1")
+                                       .arg(req->queue()));
+    return;
+  }
+
+  // Send the submission confirmation first so that the client can update the
+  // MoleQueue id and properly handle packets sent during job submission.
+  conn->sendSuccessfulSubmissionResponse(req);
+
+  /// @todo Handle submission failures better -- return JobSubErrCode?
+  bool ok = queue->submitJob(req);
+  qDebug() << "Submission ok?" << ok;
+}
+
+void Server::jobCancellationRequested(IdType moleQueueId)
+{
+  ServerConnection *conn = qobject_cast<ServerConnection*>(this->sender());
+  if (conn == NULL) {
+    qWarning() << Q_FUNC_INFO << "called with a sender which is not a "
+                  "ServerConnection.";
+    return;
+  }
+
+  qDebug() << "Job cancellation requested: MoleQueueId:" << moleQueueId;
+
+  const Job *req = m_jobManager->lookupMoleQueueId(moleQueueId);
+
+  /// @todo actually handle the cancellation
+  /// @todo Handle NULL req
+
+  conn->sendSuccessfulCancellationResponse(req);
+}
+
 void Server::jobAboutToBeAdded(Job *job)
 {
   job->setMolequeueId(static_cast<IdType>(m_jobManager->count()) + 1);
@@ -157,8 +218,11 @@ void Server::newConnectionAvailable()
   QLocalSocket *socket = m_server->nextPendingConnection();
   ServerConnection *conn = new ServerConnection (this, socket);
 
-  /// @todo make connections between the new ServerConnection and the rest of
-  /// the MoleQueue application here.
+  connect(conn, SIGNAL(queueListRequested()), this, SLOT(queueListRequested()));
+  connect(conn, SIGNAL(jobSubmissionRequested(const MoleQueue::Job*)),
+          this, SLOT(jobSubmissionRequested(const MoleQueue::Job*)));
+  connect(conn, SIGNAL(jobCancellationRequested(MoleQueue::IdType)),
+          this, SLOT(jobCancellationRequested(MoleQueue::IdType)));
 
   m_connections.append(conn);
   connect(conn, SIGNAL(disconnected()), this, SLOT(clientDisconnected()));
