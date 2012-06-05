@@ -21,9 +21,12 @@
 
 #include <QtCore/QProcess>
 
+class QThread;
+
 namespace MoleQueue
 {
 class Job;
+class QueueLocalWorker;
 class QueueManager;
 
 /**
@@ -55,12 +58,77 @@ public:
    */
   QWidget* settingsWidget() const;
 
+signals:
+  /**
+   * Emitted once the worker is installed to the worker thread and ready to make
+   * connections.
+   */
+  void readyToConnect();
+
+  /**
+   * Emitted when a job changes state.
+   * @param moleQueueId MoleQueue id of job.
+   * @param newState New state of job.
+   */
+  void jobStateChanged(MoleQueue::IdType moleQueueId,
+                       MoleQueue::JobState newState);
+
+
 public slots:
   virtual bool submitJob(const MoleQueue::Job *job);
 
+protected slots:
+  /**
+   * Write the input files for the job and add to the queue
+   * @param job The Job.
+   * @return True on success, false otherwise.
+   */
+  bool prepareJobForSubmission(const MoleQueue::Job *job);
+
+  /**
+   * Called when a process starts.
+   */
+  void processStarted();
+
+  /**
+   * Called when a process exits.
+   * @param exitCode Exit code of process
+   * @param exitStatus Exit status of process
+   */
+  void processFinished(int exitCode, QProcess::ExitStatus exitStatus);
+
 protected:
-  /** The number of cores available. */
+  /// The number of cores available.
   int cores() const;
+
+  /// Write the input files for @a job.
+  bool writeInputFiles(const Job *job);
+
+  /// Insert the job into the queue.
+  bool addJobToQueue(const Job *job);
+
+  /// Connect @a proc to handlers prior to submitting job
+  void connectProcess(QProcess *proc);
+
+  /// Test if any more jobs can be submitted.
+  bool checkJobLimit();
+
+  /// Submit the job with MoleQueue id @a moleQueueId.
+  bool startJob(IdType moleQueueId);
+
+  /// Reimplemented to monitor queue events.
+  void timerEvent(QTimerEvent *theEvent);
+
+  /// Internal timer id.
+  int m_checkJobLimitTimerId;
+
+  /// FIFO queue of MoleQueue ids.
+  QList<IdType> m_pendingJobQueue;
+
+  /// List of running processes. MoleQueue Id to QProcess*
+  QMap<IdType, QProcess*> m_runningJobs;
+
+  /// The number of cores available.
   int m_cores;
 };
 

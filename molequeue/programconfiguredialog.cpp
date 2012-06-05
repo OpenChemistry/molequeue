@@ -150,10 +150,8 @@ void ProgramConfigureDialog::updateLaunchEditor()
 
   /// @todo Pull this from the queue eventually.
   QString launchText;
-  launchText +=
-      "#!/bin/bash\n"
-      "\n"
-      "cd $$localWorkingDirectory$$\n";
+  /// @todo Would be a batch script on windows.
+  launchText += "#!/bin/bash\n\n";
 
   const QString executableName = ui->edit_executableName->text();
   const QString executablePath = ui->edit_executablePath->text();
