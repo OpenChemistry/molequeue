@@ -44,6 +44,7 @@ protected slots:
   void configureQueue();
   void doubleClicked(const QModelIndex &);
   void showSettingsDialog(Queue *queue);
+  void modelLayoutChanged();
 
 protected:
   /// Row indices, ascending order

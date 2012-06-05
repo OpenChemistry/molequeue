@@ -42,6 +42,8 @@ QueueManagerDialog::QueueManagerDialog(QueueManager *queueManager,
 
   connect(ui->queueTable, SIGNAL(doubleClicked(QModelIndex)),
           this, SLOT(doubleClicked(QModelIndex)));
+  connect(m_queueManagerItemModel, SIGNAL(layoutChanged()),
+          this, SLOT(modelLayoutChanged()));
   connect(ui->addQueueButton, SIGNAL(clicked()),
           this, SLOT(addQueue()));
   connect(ui->removeQueueButton, SIGNAL(clicked()),
@@ -89,6 +91,21 @@ void QueueManagerDialog::showSettingsDialog(Queue *queue)
 {
   QueueSettingsDialog dialog(queue, this);
   dialog.exec();
+}
+
+void QueueManagerDialog::modelLayoutChanged()
+{
+  // Enable/disable relevant buttons
+  int rows = m_queueManagerItemModel->rowCount();
+
+  if (rows == 0) {
+    ui->configureQueueButton->setDisabled(true);
+    ui->removeQueueButton->setDisabled(true);
+  }
+  else {
+    ui->configureQueueButton->setEnabled(true);
+    ui->removeQueueButton->setEnabled(true);
+  }
 }
 
 QList<int> QueueManagerDialog::getSelectedRows()
