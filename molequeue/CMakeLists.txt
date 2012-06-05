@@ -11,7 +11,6 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR}
 set(mq_srcs
   abstractrpcinterface.cpp
   client.cpp
-  connection.cpp
   job.cpp
   jobitemmodel.cpp
   jobmanager.cpp
@@ -41,7 +40,6 @@ set(mq_srcs
 set(mq_moc
   abstractrpcinterface.h
   client.h
-  connection.h
   jobitemmodel.h
   jobmanager.h
   jobview.h

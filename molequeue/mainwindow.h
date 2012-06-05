@@ -23,7 +23,7 @@
 
 #include <QtGui/QSystemTrayIcon>
 
-#include <QtNetwork/QLocalSocket>
+#include <QtNetwork/QAbstractSocket>
 
 class QAction;
 class QIcon;
@@ -32,16 +32,10 @@ namespace Ui {
 class MainWindow;
 }
 
-namespace MoleQueue {
-
-class Connection;
-class Job;
+namespace MoleQueue
+{
 class JobItemModel;
-class Program;
-class Queue;
-class QueueManager;
 class Server;
-class ServerConnection;
 
 class MainWindow : public QMainWindow
 {
@@ -59,13 +53,8 @@ public slots:
 
 protected slots:
   void showQueueManager();
-  void handleServerError(QAbstractSocket::SocketError, const QString &);
-  void newConnection(MoleQueue::ServerConnection *conn);
-
-  // ServerConnection handlers
-  void queueListRequested();
-  void jobSubmissionRequested(const MoleQueue::Job *req);
-  void jobCancellationRequested(MoleQueue::IdType moleQueueId);
+  void handleServerConnectionError(QAbstractSocket::SocketError,
+                                   const QString &);
 
 protected:
   void closeEvent(QCloseEvent *theEvent);
