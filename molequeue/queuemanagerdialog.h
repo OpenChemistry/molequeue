@@ -44,11 +44,13 @@ protected slots:
   void configureQueue();
   void doubleClicked(const QModelIndex &);
   void showSettingsDialog(MoleQueue::Queue *queue);
+  void enableQueueButtons(const QItemSelection &selected);
 
 protected:
   /// Row indices, ascending order
   QList<int> getSelectedRows();
   QList<Queue*> getSelectedQueues();
+  void setEnabledQueueButtons(bool enabled);
 
   Ui::QueueManagerDialog *ui;
   QueueManager *m_queueManager;

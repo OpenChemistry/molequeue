@@ -50,6 +50,8 @@ QueueManagerDialog::QueueManagerDialog(QueueManager *queueManager,
           this, SLOT(configureQueue()));
   connect(ui->closeButton, SIGNAL(clicked()),
           this, SLOT(close()));
+  connect(ui->queueTable->selectionModel(), SIGNAL(selectionChanged(QItemSelection, QItemSelection)),
+          this, SLOT(enableQueueButtons(QItemSelection)));
 }
 
 QueueManagerDialog::~QueueManagerDialog()
@@ -70,6 +72,9 @@ void QueueManagerDialog::removeQueue()
     m_queueManager->removeQueue(queue);
     queue->deleteLater();
   }
+  // reset selection and disable queue buttons
+  ui->queueTable->selectionModel()->reset();
+  this->setEnabledQueueButtons(false);
 }
 
 void QueueManagerDialog::configureQueue()
@@ -114,6 +119,17 @@ QList<Queue *> QueueManagerDialog::getSelectedQueues()
     selectedQueues << allQueues.at(i);
 
   return selectedQueues;
+}
+
+void QueueManagerDialog::setEnabledQueueButtons(bool enabled)
+{
+  ui->removeQueueButton->setEnabled(enabled);
+  ui->configureQueueButton->setEnabled(enabled);
+}
+
+void QueueManagerDialog::enableQueueButtons(const QItemSelection &selected)
+{
+  this->setEnabledQueueButtons(!selected.isEmpty());
 }
 
 } // end MoleQueue namespace
