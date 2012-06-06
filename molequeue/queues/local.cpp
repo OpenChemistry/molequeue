@@ -378,13 +378,6 @@ void QueueLocal::timerEvent(QTimerEvent *theEvent)
     if (!this->checkJobLimit()) {
       qWarning() << Q_FUNC_INFO << "Error checking queue...";
     }
-
-    /// @todo remove debugging...
-    qDebug() << "\n\nLocal Queue process dump. NumJobs:" << m_runningJobs.size();
-    if (m_runningJobs.size()) {
-      qDebug() << m_runningJobs.values().first()->state();
-      qDebug() << m_runningJobs.values().first()->errorString();
-    }
   }
 
   QObject::timerEvent(theEvent);

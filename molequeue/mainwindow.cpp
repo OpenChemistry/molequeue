@@ -38,8 +38,7 @@ MainWindow::MainWindow()
     m_icon(NULL),
     m_trayIcon(NULL),
     m_trayIconMenu(NULL),
-    m_server(new Server (this)),
-    m_jobItemModel(new JobItemModel (m_server->jobManager(), this))
+    m_server(new Server (this))
 {
   m_ui->setupUi(this);
 
@@ -47,7 +46,7 @@ MainWindow::MainWindow()
   createMainMenu();
   createTrayIcon();
   readSettings();
-  createJobModel();
+  createJobTable();
 
   connect(m_server->jobManager(), SIGNAL(jobStateChanged(const MoleQueue::Job*,
                                                          MoleQueue::JobState,
@@ -69,6 +68,7 @@ MainWindow::~MainWindow()
   writeSettings();
 
   delete m_ui;
+  delete m_server;
 }
 
 void MainWindow::setVisible(bool visible)
@@ -206,10 +206,9 @@ void MainWindow::createTrayIcon()
     m_trayIcon->setToolTip("Queue manager (no message support)...");
 }
 
-void MainWindow::createJobModel()
+void MainWindow::createJobTable()
 {
-  m_ui->jobView->setModel(m_jobItemModel);
-  m_ui->jobView->horizontalHeader()->setResizeMode(0, QHeaderView::Stretch);
+  m_ui->jobTableWidget->setJobManager(m_server->jobManager());
 }
 
 } // End namespace

@@ -2,7 +2,7 @@
 
   This source file is part of the MoleQueue project.
 
-  Copyright 2011 Kitware, Inc.
+  Copyright 2011-2012 Kitware, Inc.
 
   This source code is released under the New BSD License, (the "License").
 
@@ -67,7 +67,7 @@ protected:
   void createActions();
   void createMainMenu();
   void createTrayIcon();
-  void createJobModel();
+  void createJobTable();
 
   /** Our MainWindow GUI. */
   Ui::MainWindow *m_ui;
@@ -81,7 +81,6 @@ protected:
   QMenu *m_trayIconMenu;
 
   Server *m_server;
-  JobItemModel *m_jobItemModel;
 };
 
 } // End namespace

@@ -23,6 +23,8 @@
 
 #include <QtCore/QVariantHash>
 
+class QSettings;
+
 class ClientTest;
 
 namespace MoleQueue
@@ -46,6 +48,11 @@ public:
   explicit JobManager(QObject *parentObject = 0);
   virtual ~JobManager();
 
+  /// @param settings QSettings object to write state to.
+  void readSettings(QSettings &settings);
+  /// @param settings QSettings object to read state from.
+  void writeSettings(QSettings &settings) const;
+
   /**
    * @return A new Job object, set to default values.
    */
@@ -57,6 +64,28 @@ public:
    * @sa Job::hash() Job::setFromHash()
    */
   Job * newJob(const QVariantHash &jobState);
+
+  /**
+   * Remove the specified @a job from this manager and delete it.
+   */
+  void removeJob(const Job* job);
+
+  /**
+   * Remove the job with the specified @a moleQueueId from this manager and
+   * delete it.
+   */
+  void removeJob(IdType moleQueueId);
+
+  /**
+   * Remove the specified @a jobs from this manager and delete them.
+   */
+  void removeJobs(const QList<const Job*> &jobsToRemove);
+
+  /**
+   * Remove the jobs with the specified @a moleQueueIds from this manager and
+   * delete them.
+   */
+  void removeJobs(const QList<IdType> &moleQueueIds);
 
   /**
    * @param clientId The Client Id of the requested Job.
@@ -76,6 +105,13 @@ public:
    * @return A list of all Job objects owned by this JobManager.
    */
   QList<const Job*> jobs() const {return m_jobs;}
+
+  /**
+   * Return a list of Job objects that have JobState @a state.
+   * @param state JobState of interests
+   * @return List of Job objects with JobState @a state
+   */
+  QList<const Job*> jobsWithJobState(MoleQueue::JobState state);
 
   /**
    * Return the job at the specified index.
@@ -140,6 +176,20 @@ signals:
   void jobStateChanged(const MoleQueue::Job *job,
                        MoleQueue::JobState oldState,
                        MoleQueue::JobState newState);
+
+  /**
+   * Emitted when the @a job is about to be removed and deleted.
+   */
+  void jobAboutToBeRemoved(const MoleQueue::Job *job);
+
+  /**
+   * Emitted when the @a job with the specified @a moleQueueId has been removed
+   * and deleted.
+   *
+   * @warning Do not dereference @a job, as it no longer points to allocated
+   * memory.
+   */
+  void jobRemoved(MoleQueue::IdType moleQueueId, const MoleQueue::Job *job);
 
 protected:
   /// @param job Job to insert into the internal lookup structures.
