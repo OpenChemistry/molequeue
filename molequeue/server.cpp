@@ -45,6 +45,7 @@ Server::Server(QObject *parentObject)
     m_jobManager(new JobManager (this)),
     m_queueManager(new QueueManager (this)),
     m_isTesting(false),
+    m_moleQueueIdCounter(0),
     m_debug(false)
 {
   qRegisterMetaType<QAbstractSocket::SocketError>("QAbstractSocket::SocketError");
@@ -84,15 +85,20 @@ void Server::readSettings(QSettings &settings)
   m_workingDirectoryBase = settings.value(
         "workingDirectoryBase",
         QDir::homePath() + "/.molequeue/local").toString();
+  m_moleQueueIdCounter =
+      settings.value("moleQueueIdCounter", 0).value<IdType>();
 
   m_queueManager->readSettings(settings);
+  m_jobManager->readSettings(settings);
 }
 
 void Server::writeSettings(QSettings &settings) const
 {
   settings.setValue("workingDirectoryBase", m_workingDirectoryBase);
+  settings.setValue("moleQueueIdCounter", m_moleQueueIdCounter);
 
   m_queueManager->writeSettings(settings);
+  m_jobManager->writeSettings(settings);
 }
 
 void Server::start()
@@ -202,9 +208,14 @@ void Server::jobCancellationRequested(IdType moleQueueId)
 
 void Server::jobAboutToBeAdded(Job *job)
 {
-  job->setMolequeueId(static_cast<IdType>(m_jobManager->count()) + 1);
+  IdType nextMoleQueueId = ++m_moleQueueIdCounter;
+
+  QSettings settings;
+  settings.setValue("moleQueueIdCounter", m_moleQueueIdCounter);
+
+  job->setMolequeueId(nextMoleQueueId);
   job->setLocalWorkingDirectory(m_workingDirectoryBase + "/" +
-                                QString::number(job->moleQueueId()));
+                                QString::number(nextMoleQueueId));
 }
 
 void Server::newConnectionAvailable()

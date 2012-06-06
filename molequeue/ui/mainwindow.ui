@@ -16,11 +16,7 @@
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
-     <widget class="MoleQueue::JobView" name="jobView">
-      <property name="alternatingRowColors">
-       <bool>true</bool>
-      </property>
-     </widget>
+     <widget class="MoleQueue::JobTableWidget" name="jobTableWidget" native="true"/>
     </item>
    </layout>
   </widget>
@@ -74,9 +70,10 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>MoleQueue::JobView</class>
-   <extends>QTableView</extends>
-   <header>molequeue/jobview.h</header>
+   <class>MoleQueue::JobTableWidget</class>
+   <extends>QWidget</extends>
+   <header>molequeue/jobtablewidget.h</header>
+   <container>1</container>
   </customwidget>
  </customwidgets>
  <resources/>

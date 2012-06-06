@@ -2,7 +2,7 @@
 
   This source file is part of the MoleQueue project.
 
-  Copyright 2011 Kitware, Inc.
+  Copyright 2012 Kitware, Inc.
 
   This source code is released under the New BSD License, (the "License").
 
@@ -14,31 +14,45 @@
 
 ******************************************************************************/
 
-#ifndef JOBVIEW_H
-#define JOBVIEW_H
+#ifndef JOBTABLEWIDGET_H
+#define JOBTABLEWIDGET_H
 
-#include <QtGui/QTableView>
+#include <QtGui/QWidget>
+
+namespace Ui {
+class JobTableWidget;
+}
 
 namespace MoleQueue
 {
+class Job;
+class JobManager;
+class JobItemModel;
 
-class JobView : public QTableView
+class JobTableWidget : public QWidget
 {
   Q_OBJECT
 
 public:
-  JobView(QWidget *theParent = 0);
+  explicit JobTableWidget(QWidget *parentObject = 0);
+  ~JobTableWidget();
 
-  /** Custom context menu for this view. */
-  void contextMenuEvent(QContextMenuEvent *e);
+  void setJobManager(JobManager *jobManager);
 
+  QList<const Job*> getSelectedJobs();
+
+public slots:
+  void clearFinishedJobs();
+
+protected:
+  // Row indices, ascending order
   QList<int> getSelectedRows();
 
-protected slots:
-  void removeSelectedRows();
+  Ui::JobTableWidget *ui;
 
+  JobItemModel *m_jobItemModel;
 };
 
-} // End of namespace
+} // end namespace MoleQueue
 
-#endif
+#endif // JOBTABLEWIDGET_H

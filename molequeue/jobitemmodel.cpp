@@ -19,18 +19,44 @@
 #include "job.h"
 #include "jobmanager.h"
 
+#include <QtCore/QDebug>
+
 namespace MoleQueue {
 
-JobItemModel::JobItemModel(JobManager *jobManager, QObject *parentObject)
-  : QAbstractItemModel(parentObject), m_jobManager(jobManager)
+JobItemModel::JobItemModel(QObject *parentObject)
+  : QAbstractItemModel(parentObject),
+    m_jobManager(NULL)
 {
-  connect(m_jobManager, SIGNAL(jobAdded(const MoleQueue::Job*)),
-          this, SIGNAL(layoutChanged()));
+}
+
+void JobItemModel::setJobManager(JobManager *newJobManager)
+{
+  if (m_jobManager == newJobManager)
+    return;
+
+  if (m_jobManager)
+    m_jobManager->disconnect(this);
+
+  m_jobManager = newJobManager;
+
+  if (m_jobManager) {
+    connect(m_jobManager, SIGNAL(jobAdded(const MoleQueue::Job*)),
+            this, SIGNAL(layoutChanged()));
+    connect(m_jobManager, SIGNAL(jobRemoved(MoleQueue::IdType,
+                                            const MoleQueue::Job*)),
+            this, SIGNAL(layoutChanged()));
+    connect(m_jobManager, SIGNAL(jobStateChanged(const MoleQueue::Job*,
+                                                 MoleQueue::JobState,
+                                                 MoleQueue::JobState)),
+            this, SLOT(jobUpdated(const MoleQueue::Job*)));
+  }
+
+  emit layoutChanged();
 }
 
 int JobItemModel::rowCount(const QModelIndex &modelIndex) const
 {
-  if (!modelIndex.isValid())
+  if (m_jobManager && !modelIndex.isValid())
     return m_jobManager->count();
   else
     return 0;
@@ -46,6 +72,8 @@ QVariant JobItemModel::headerData(int section, Qt::Orientation orientation,
 {
   if (orientation == Qt::Horizontal && role == Qt::DisplayRole) {
     switch (section) {
+    case MOLEQUEUE_ID:
+      return QVariant("#");
     case JOB_TITLE:
       return QVariant("Job Title");
     case QUEUE_NAME:
@@ -64,17 +92,25 @@ QVariant JobItemModel::headerData(int section, Qt::Orientation orientation,
 
 QVariant JobItemModel::data(const QModelIndex &modelIndex, int role) const
 {
-  if (!modelIndex.isValid() || modelIndex.column() + 1 > COLUMN_COUNT)
+  if (!m_jobManager || !modelIndex.isValid() ||
+      modelIndex.column() + 1 > COLUMN_COUNT)
     return QVariant();
 
   const Job *job = m_jobManager->jobAt(modelIndex.row());
   if (job) {
     if (role == Qt::DisplayRole) {
       switch (modelIndex.column()) {
+      case MOLEQUEUE_ID:
+        return QVariant(QString::number(job->moleQueueId()));
       case JOB_TITLE:
         return QVariant(job->description());
-      case QUEUE_NAME:
-        return QVariant(job->queue());
+      case QUEUE_NAME: {
+        if (IdType jobId = job->queueJobId())
+          return QVariant(QString("%1 (%2)").arg(job->queue())
+                          .arg(QString::number(jobId)));
+        else
+          return QVariant(job->queue());
+      }
       case PROGRAM_NAME:
         return QVariant(job->program());
       case JOB_STATE:
@@ -83,25 +119,70 @@ QVariant JobItemModel::data(const QModelIndex &modelIndex, int role) const
         return QVariant();
       }
     }
+    else if (role == FetchJobRole) {
+      return QVariant::fromValue(job);
+    }
   }
   return QVariant();
 }
 
-Qt::ItemFlags JobItemModel::flags(const QModelIndex &modelIndex) const
+bool JobItemModel::removeRows(int row, int count, const QModelIndex &)
 {
-  if (modelIndex.column() == 0)
-    return Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsUserCheckable;
-  else
-    return Qt::ItemIsSelectable | Qt::ItemIsEnabled;
+  if (!m_jobManager)
+    return false;
+
+  this->beginRemoveRows(QModelIndex(), row, row + count - 1);
+
+  QList<const Job*> jobs = m_jobManager->jobs().mid(row, count);
+
+  // Disconnect the layoutChanged signal from the manager and reattach it when
+  // finished, otherwise the table will mistakenly pop off the last item in the
+  // list. Don't block signals here -- other receivers may need to handle the
+  // removal signals.
+  disconnect(m_jobManager, SIGNAL(jobRemoved(MoleQueue::IdType,
+                                             const MoleQueue::Job*)),
+             this, SIGNAL(layoutChanged()));
+  m_jobManager->removeJobs(jobs);
+  connect(m_jobManager, SIGNAL(jobRemoved(MoleQueue::IdType,
+                                          const MoleQueue::Job*)),
+          this, SIGNAL(layoutChanged()));
+
+  this->endRemoveRows();
+  return true;
+}
+
+Qt::ItemFlags JobItemModel::flags(const QModelIndex &) const
+{
+  return Qt::ItemIsSelectable | Qt::ItemIsEnabled;
 }
 
 QModelIndex JobItemModel::index(int row, int column,
                                 const QModelIndex &/*modelIndex*/) const
 {
-  if (row >= 0 && row < m_jobManager->count())
+  if (m_jobManager && row >= 0 && row < m_jobManager->count())
     return this->createIndex(row, column);
   else
     return QModelIndex();
+}
+
+void JobItemModel::jobUpdated(const Job *job)
+{
+  if (!m_jobManager)
+    return;
+
+  int row = m_jobManager->jobs().indexOf(job);
+  if (row >= 0)
+    emit dataChanged(this->index(row, 0), this->index(row, COLUMN_COUNT));
+}
+
+void JobItemModel::jobUpdated(const IdType moleQueueId)
+{
+  if (!m_jobManager)
+    return;
+
+  const Job *job = m_jobManager->lookupMoleQueueId(moleQueueId);
+  if (job != NULL)
+    this->jobUpdated(job);
 }
 
 } // End of namespace

@@ -19,8 +19,11 @@
 
 #include <QtCore/QAbstractItemModel>
 
+#include "molequeueglobal.h"
+
 namespace MoleQueue
 {
+class Job;
 class JobManager;
 
 class JobItemModel : public QAbstractItemModel
@@ -28,7 +31,8 @@ class JobItemModel : public QAbstractItemModel
   Q_OBJECT
 
   enum ColumnNames {
-    JOB_TITLE = 0,
+    MOLEQUEUE_ID = 0,
+    JOB_TITLE ,
     QUEUE_NAME,
     PROGRAM_NAME,
     JOB_STATE,
@@ -37,7 +41,15 @@ class JobItemModel : public QAbstractItemModel
   };
 
 public:
-  explicit JobItemModel(JobManager *jobManager, QObject *parentObject = 0);
+  explicit JobItemModel(QObject *parentObject = 0);
+
+  // Used with the data() method to get info.
+  enum UserRoles {
+    FetchJobRole = Qt::UserRole
+  };
+
+  void setJobManager(JobManager *jobManager);
+  JobManager *jobManager() const {return m_jobManager;}
 
   QModelIndex parent(const QModelIndex &) const {return QModelIndex();}
 
@@ -49,10 +61,16 @@ public:
 
   QVariant data(const QModelIndex & modelIndex, int role = Qt::DisplayRole) const;
 
+  bool removeRows(int row, int count, const QModelIndex &parent);
+
   Qt::ItemFlags flags(const QModelIndex & modelIndex) const;
 
   QModelIndex index(int row, int column,
                     const QModelIndex & modelIndex = QModelIndex()) const;
+
+public slots:
+  void jobUpdated(const MoleQueue::Job *job);
+  void jobUpdated(const MoleQueue::IdType moleQueueId);
 
 protected:
   JobManager *m_jobManager;
