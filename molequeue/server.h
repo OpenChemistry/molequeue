@@ -204,6 +204,9 @@ protected:
   /// Local directory for running jobs.
   QString m_workingDirectoryBase;
 
+  /// Counter for MoleQueue job ids.
+  IdType m_moleQueueIdCounter;
+
 public:
   /// @param d Enable runtime debugging if true.
   void setDebug(bool d) {m_debug = d;}

@@ -17,12 +17,16 @@
 #include "jobview.h"
 
 #include "job.h"
+#include "jobitemmodel.h"
 
-#include <QtGui/QMenu>
 #include <QtGui/QContextMenuEvent>
+#include <QtGui/QMenu>
+#include <QtGui/QMessageBox>
 
 #include <QtCore/QProcess>
 #include <QtCore/QDebug>
+
+Q_DECLARE_METATYPE(QList<int>)
 
 namespace MoleQueue
 {
@@ -33,30 +37,64 @@ JobView::JobView(QWidget *theParent) : QTableView(theParent)
 
 void JobView::contextMenuEvent(QContextMenuEvent *e)
 {
-  Q_UNUSED(e);
-  /*
   QModelIndex index = indexAt(e->pos());
+  const Job *job =
+      this->model()->data(index, JobItemModel::FetchJobRole).value<const Job*>();
+  QList<int> selectedRows = this->getSelectedRows();
+  int numSelectedRows = selectedRows.size();
+
   if (index.isValid()) {
-    Job *job = static_cast<Job *>(index.internalPointer());
     QMenu *menu = new QMenu(this);
 
-    if (job->jobState() == MoleQueue::Finished) {
-      QAction *action = menu->addAction("&Open in Avogadro");
-      action->setData(QVariant(job->outputFile()));
-      connect(action, SIGNAL(triggered()), this, SLOT(openInAvogadro()));
+    if (numSelectedRows > 0) {
+      QAction *action =
+          menu->addAction(tr("&Remove %n job(s)...", "", numSelectedRows));
+      action->setData(QVariant::fromValue(selectedRows));
+      connect(action, SIGNAL(triggered()), this, SLOT(removeSelectedRows()));
     }
+
     menu->exec(QCursor::pos());
   }
-  */
 }
 
-void JobView::openInAvogadro()
+QList<int> JobView::getSelectedRows()
 {
-  QAction *action = static_cast<QAction*>(sender());
-  if (action) {
-    qDebug() << "Open in avogadro..." << action->data();
-    QProcess::startDetached("/home/marcus/ssd/build/avogadro-squared/prefix/bin/avogadro " + action->data().toString());
+  QItemSelection sel (this->selectionModel()->selection());
+
+  QList<int> rows;
+  foreach (const QModelIndex &ind, sel.indexes()) {
+    if (!rows.contains(ind.row()))
+      rows << ind.row();
+  }
+
+  qSort(rows);
+  return rows;
+}
+
+void JobView::removeSelectedRows()
+{
+  QAction *action = qobject_cast<QAction*>(this->sender());
+  if (!action)
+    return;
+
+  QList<int> sel = action->data().value<QList<int> >();
+
+  QMessageBox::StandardButton confirm =
+      QMessageBox::question(this, tr("Really remove jobs?"),
+                            tr("Are you sure you would like to remove %n job(s)? "
+                               "This will not delete any input or output files.",
+                               "", sel.size()),
+                            QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
+
+  if (confirm != QMessageBox::Yes)
+    return;
+
+  // Sel is sorted, delete rows in reverse order
+  for (QList<int>::const_iterator it = sel.constEnd() - 1,
+       it_end = sel.constBegin(); it >= it_end; --it) {
+    this->model()->removeRow(*it);
   }
 }
+
 
 } // End of namespace

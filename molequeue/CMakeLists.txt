@@ -14,6 +14,7 @@ set(mq_srcs
   job.cpp
   jobitemmodel.cpp
   jobmanager.cpp
+  jobtablewidget.cpp
   jobview.cpp
   jsonrpc.cpp
   molequeueglobal.h
@@ -42,6 +43,7 @@ set(mq_moc
   client.h
   jobitemmodel.h
   jobmanager.h
+  jobtablewidget.h
   jobview.h
   jsonrpc.h
   program.h
@@ -67,6 +69,7 @@ qt4_wrap_cpp(moc_srcs ${mq_moc})
 
 qt4_wrap_ui(ui_srcs
   ui/addqueuedialog.ui
+  ui/jobtablewidget.ui
   ui/mainwindow.ui
   ui/programconfiguredialog.ui
   ui/queuemanagerdialog.ui
