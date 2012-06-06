@@ -58,6 +58,14 @@ QueueLocal::QueueLocal(QueueManager *parentManager) :
     }
   }
 
+#ifdef WIN32
+  m_launchTemplate = "@echo off\n\n$$programExecution$$\n";
+  m_launchScriptName = "MoleQueueLauncher.bat";
+#else // WIN32
+  m_launchTemplate = "#!/bin/bash\n\n$$programExecution$$\n";
+  m_launchScriptName = "MoleQueueLauncher.sh";
+#endif // WIN32
+
   // Check if new jobs need starting every 10 seconds
   m_checkJobLimitTimerId = this->startTimer(10000);
 }
@@ -75,12 +83,33 @@ void QueueLocal::readSettings(QSettings &settings)
   if(m_cores == -1){
     m_cores = QThread::idealThreadCount();
   }
+
+  int numPendingJobs = settings.beginReadArray("PendingJobs");
+  m_pendingJobQueue.reserve(numPendingJobs);
+  for (int i = 0; i < numPendingJobs; ++i) {
+    settings.setArrayIndex(i);
+    IdType mqId = settings.value("moleQueueId", 0).value<IdType>();
+    if (mqId == 0)
+      continue;
+    m_pendingJobQueue.append(mqId);
+  }
+  settings.endArray(); // "PendingJobs"
 }
 
 void QueueLocal::writeSettings(QSettings &settings) const
 {
   Queue::writeSettings(settings);
   settings.setValue("cores", m_cores);
+
+  QList<IdType> jobsToResume;
+  jobsToResume.append(m_runningJobs.keys());
+  jobsToResume.append(m_pendingJobQueue);
+  settings.beginWriteArray("PendingJobs", jobsToResume.size());
+  for (int i = 0; i < jobsToResume.size(); ++i) {
+    settings.setArrayIndex(i);
+    settings.setValue("moleQueueId", jobsToResume.at(i));
+  }
+  settings.endArray(); // "PendingJobs"
 }
 
 QWidget* QueueLocal::settingsWidget() const
@@ -216,7 +245,7 @@ bool QueueLocal::writeInputFiles(const Job *job)
   // Do we need a driver script?
   if (program->launchSyntax() == Program::CUSTOM) {
     /// @todo Would be a batch file on windows.
-    QFile launcherFile (dir.absoluteFilePath("MoleQueueLauncher.sh"));
+    QFile launcherFile (dir.absoluteFilePath(queue->launchScriptName()));
     if (!launcherFile.open(QFile::WriteOnly | QFile::Text)) {
       qWarning() << Q_FUNC_INFO << "Error: Cannot open file for writing:"
                  << launcherFile.fileName();
