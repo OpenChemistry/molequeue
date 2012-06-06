@@ -18,6 +18,7 @@
 #include "ui_programconfiguredialog.h"
 
 #include "program.h"
+#include "queue.h"
 
 #include <QtGui/QTextDocument>
 
@@ -148,10 +149,8 @@ void ProgramConfigureDialog::updateLaunchEditor()
     return;
   }
 
-  /// @todo Pull this from the queue eventually.
-  QString launchText;
-  /// @todo Would be a batch script on windows.
-  launchText += "#!/bin/bash\n\n";
+  QString launchText = m_program->queue() ? m_program->queue()->launchTemplate()
+                                          : QString("$$programExecution$$\n");
 
   const QString executableName = ui->edit_executableName->text();
   const QString executablePath = ui->edit_executablePath->text();
@@ -160,9 +159,11 @@ void ProgramConfigureDialog::updateLaunchEditor()
   const QString outputFilename = ui->edit_outputFilename->text();
   const bool useExecutablePath = ui->gb_executablePath->isChecked();
 
-  launchText += Program::generateFormattedExecutionString(
+  QString programExecution = Program::generateFormattedExecutionString(
         executableName, arguments, inputFilename, outputFilename,
         executablePath, useExecutablePath, syntax);
+
+  launchText.replace("$$programExecution$$", programExecution);
 
   ui->text_launchTemplate->document()->setPlainText(launchText);
 }
