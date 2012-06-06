@@ -157,6 +157,23 @@ public:
     return m_programs.size();
   }
 
+  /**
+   * @return A string containing a template for the launcher script. For remote
+   * queues, this will be a batch script for the queuing system, for local
+   * queues this will be a shell script (unix) or batch script (windows).
+   *
+   * It should contain the token "$$programExecution$$", which will be replaced
+   * with program-specific launch details.
+   */
+  QString launchTemplate() const {return m_launchTemplate;}
+
+  /**
+   * @return The filename for the launcher script. For remote
+   * queues, this will be a batch script for the queuing system, for local
+   * queues this will be a shell script (unix) or batch script (windows).
+   */
+  QString launchScriptName() const {return m_launchScriptName;}
+
 signals:
   /**
    * Emitted when a new program is added to the Queue.
@@ -183,11 +200,34 @@ public slots:
    */
   virtual bool submitJob(const MoleQueue::Job *job) = 0;
 
+  /**
+   * Update the launch script template.
+   * @param script The new launch template.
+   * @sa launchTemplate
+   */
+  virtual void setLaunchTemplate(const QString &script)
+  {
+    m_launchTemplate = script;
+  }
+
+  /**
+   * Update the launch script name.
+   * @param scriptName The new launch script name.
+   * @sa launchTemplate
+   * @sa launchScript
+   */
+  virtual void setLaunchScriptName(const QString &scriptName)
+  {
+    m_launchScriptName = scriptName;
+  }
+
 protected:
   QueueManager *m_queueManager;
   Server *m_server;
 
   QString m_name;
+  QString m_launchTemplate;
+  QString m_launchScriptName;
   QMap<QString, Program *> m_programs;
   /// Lookup table for jobs that are using this Queue. Maps JobId to MoleQueueId.
   QMap<IdType, IdType> m_jobs;

@@ -23,6 +23,10 @@
 #include <QtCore/QDebug>
 #include <QtCore/QSettings>
 
+// typedef used to work around commas in macro
+typedef QMap<MoleQueue::IdType, MoleQueue::IdType> JobIdMapType;
+Q_DECLARE_METATYPE(JobIdMapType)
+
 namespace MoleQueue {
 
 Queue::Queue(const QString &queueName, QueueManager *parentManager) :
@@ -43,6 +47,11 @@ Queue::~Queue()
 
 void Queue::readSettings(QSettings &settings)
 {
+  m_launchTemplate = settings.value("launchTemplate").toString();
+  m_launchScriptName = settings.value("launchScriptName").toString();
+
+  m_jobs = settings.value("jobIdMap").value<JobIdMapType>();
+
   QStringList progNames = settings.value("programs").toStringList();
 
   settings.beginGroup("Programs");
@@ -66,6 +75,11 @@ void Queue::readSettings(QSettings &settings)
 
 void Queue::writeSettings(QSettings &settings) const
 {
+  settings.setValue("launchTemplate", m_launchTemplate);
+  settings.setValue("launchScriptName", m_launchScriptName);
+
+  settings.setValue("jobIdMap", QVariant::fromValue(m_jobs));
+
   settings.setValue("programs", this->programNames());
 
   settings.beginGroup("Programs");
