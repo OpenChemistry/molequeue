@@ -49,6 +49,9 @@ void JobItemModel::setJobManager(JobManager *newJobManager)
                                                  MoleQueue::JobState,
                                                  MoleQueue::JobState)),
             this, SLOT(jobUpdated(const MoleQueue::Job*)));
+    connect(m_jobManager, SIGNAL(queueIdChanged(const MoleQueue::Job*,
+                                                MoleQueue::IdType)),
+            this, SLOT(jobUpdated(const MoleQueue::Job*)));
   }
 
   emit layoutChanged();

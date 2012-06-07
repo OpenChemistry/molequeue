@@ -17,6 +17,7 @@
 #include "program.h"
 
 #include "queue.h"
+#include "queues/remote.h"
 #include "queuemanager.h"
 #include "server.h"
 
@@ -99,15 +100,26 @@ void Program::writeSettings(QSettings &settings) const
 
 QString Program::launchTemplate() const
 {
-  /// @todo Query queue for its launch template, and then fill in execution
-  /// details as needed.
-
   if (m_launchSyntax == CUSTOM)
     return m_customLaunchTemplate;
 
-  return Program::generateFormattedExecutionString(
-        m_executable, m_arguments, m_inputFilename, m_outputFilename,
-        m_executablePath, m_useExecutablePath, m_launchSyntax);
+  QString result = m_queue->launchTemplate();
+  if (result.contains("$$programExecution$$")) {
+    const QString progExec = Program::generateFormattedExecutionString(
+          m_executable, m_arguments, m_inputFilename, m_outputFilename,
+          m_executablePath, m_useExecutablePath, m_launchSyntax);
+    result.replace("$$programExecution$$", progExec);
+  }
+  if (QueueRemote *remoteQueue = qobject_cast<QueueRemote*>(m_queue)) {
+    if (result.contains("$$remoteWorkingDir$$")) {
+      const QString remoteWorkingDir = QString("%1/%2/")
+          .arg(remoteQueue->workingDirectoryBase())
+          .arg("$$moleQueueId$$");
+      result.replace("$$remoteWorkingDir$$", remoteWorkingDir);
+    }
+  }
+
+  return result;
 }
 
 QString Program::generateFormattedExecutionString(

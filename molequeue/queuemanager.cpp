@@ -55,10 +55,8 @@ void QueueManager::readSettings(QSettings &settings)
     Queue *queue = NULL;
     if (queueType == "Local")
       queue = new QueueLocal (this);
-    else if (queueType == "Remote")
-      queue = new QueueRemote (this);
-    else if (queueType == "Remote - SGE")
-      queue = new QueueSGE (this);
+    else if (queueType == "Sun Grid Engine")
+      queue = new QueueSge (this);
     else
       qWarning() << Q_FUNC_INFO << "Unrecognized Queue type:" << queueType;
 

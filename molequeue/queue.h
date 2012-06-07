@@ -94,7 +94,7 @@ public:
    * Returns a widget that can be used to configure the settings for the
    * queue.
    */
-  virtual QWidget* settingsWidget() const;
+  virtual QWidget* settingsWidget();
 
   /**
    * Add a new program to the queue. Program names must be unique in each
@@ -165,7 +165,7 @@ public:
    * It should contain the token "$$programExecution$$", which will be replaced
    * with program-specific launch details.
    */
-  QString launchTemplate() const {return m_launchTemplate;}
+  virtual QString launchTemplate() const {return m_launchTemplate;}
 
   /**
    * @return The filename for the launcher script. For remote
@@ -190,6 +190,23 @@ signals:
    * is often associated with program deletion.
    */
   void programRemoved(const QString &name, MoleQueue::Program *program);
+
+  /**
+   * Emitted when either a job changes state, or the queue updates. The job
+   * may or may not have changed state. The Server's JobManager will notify
+   * of job state changes.
+   *
+   * @param moleQueueId MoleQueue identifier for job.
+   * @param state JobState of job.
+   */
+  void jobStateUpdate(MoleQueue::IdType moleQueueId, MoleQueue::JobState state);
+
+  /**
+   * Emitted when a job is assigned a QueueId by the queuing system.
+   * @param moleQueueId MoleQueue identifier for job.
+   * @param queueId Queuing system's identifier for job.
+   */
+  void queueIdUpdate(MoleQueue::IdType moleQueueId, MoleQueue::IdType queueId);
 
 public slots:
   /**
@@ -222,6 +239,9 @@ public slots:
   }
 
 protected:
+  /// Write the input files for @a job to the local working directory.
+  bool writeInputFiles(const Job *job);
+
   QueueManager *m_queueManager;
   Server *m_server;
 
