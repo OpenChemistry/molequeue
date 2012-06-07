@@ -18,6 +18,7 @@
 
 #include "job.h"
 #include "jobmanager.h"
+#include "queuemanager.h"
 #include "serverconnection.h"
 
 #include <QtNetwork/QLocalServer>
@@ -25,7 +26,9 @@
 
 #include <QtCore/QDateTime>
 #include <QtCore/QDebug>
+#include <QtCore/QDir>
 #include <QtCore/QList>
+#include <QtCore/QSettings>
 
 #define DEBUGOUT(title) \
   if (this->m_debug)    \
@@ -37,20 +40,25 @@ namespace MoleQueue
 
 Server::Server(QObject *parentObject)
   : QObject(parentObject),
-    m_server(new QLocalServer ()),
+    m_server(new QLocalServer (this)),
     m_jobManager(new JobManager (this)),
+    m_queueManager(new QueueManager (this)),
     m_isTesting(false),
     m_debug(false)
 {
   qRegisterMetaType<QAbstractSocket::SocketError>("QAbstractSocket::SocketError");
-  qRegisterMetaType<ServerConnection*>("ServerConnection*");
+  qRegisterMetaType<ServerConnection*>("MoleQueue::ServerConnection*");
+  qRegisterMetaType<const ServerConnection*>("const MoleQueue::ServerConnection*");
 
   connect(m_server, SIGNAL(newConnection()),
           this, SLOT(newConnectionAvailable()));
 
-  connect(m_jobManager, SIGNAL(jobAboutToBeAdded(Job*)),
-          this, SLOT(jobAboutToBeAdded(Job*)),
+  connect(m_jobManager, SIGNAL(jobAboutToBeAdded(MoleQueue::Job*)),
+          this, SLOT(jobAboutToBeAdded(MoleQueue::Job*)),
           Qt::DirectConnection);
+
+  connect(m_jobManager, SIGNAL(jobStateChanged(const MoleQueue::Job*,MoleQueue::JobState,MoleQueue::JobState)),
+          this, SLOT(dispatchJobStateChange(const MoleQueue::Job*,MoleQueue::JobState,MoleQueue::JobState)));
 }
 
 Server::~Server()
@@ -65,6 +73,25 @@ Server::~Server()
 
   delete m_jobManager;
   m_jobManager = NULL;
+
+  delete m_queueManager;
+  m_queueManager = NULL;
+}
+
+void Server::readSettings(QSettings &settings)
+{
+  m_workingDirectoryBase = settings.value(
+        "workingDirectoryBase",
+        QDir::homePath() + "/.molequeue/local").toString();
+
+  m_queueManager->readSettings(settings);
+}
+
+void Server::writeSettings(QSettings &settings) const
+{
+  settings.setValue("workingDirectoryBase", m_workingDirectoryBase);
+
+  m_queueManager->writeSettings(settings);
 }
 
 void Server::start()
@@ -102,9 +129,21 @@ void Server::stop()
   m_server->close();
 }
 
+void Server::dispatchJobStateChange(const Job *job,
+                                    JobState oldState, JobState newState)
+{
+  ServerConnection *conn = this->lookupConnection(job->moleQueueId());
+  if (!conn)
+    return;
+
+  conn->sendJobStateChangeNotification(job, oldState, newState);
+}
+
 void Server::jobAboutToBeAdded(Job *job)
 {
   job->setMolequeueId(static_cast<IdType>(m_jobManager->count()) + 1);
+  job->setLocalWorkingDirectory(m_workingDirectoryBase + "/" +
+                                QString::number(job->moleQueueId()));
 }
 
 void Server::newConnectionAvailable()
@@ -139,6 +178,17 @@ void Server::clientDisconnected()
   DEBUGOUT("clientDisconnected") "Removing connection" << conn;
   m_connections.removeOne(conn);
   conn->deleteLater();
+}
+
+ServerConnection *Server::lookupConnection(IdType moleQueueId)
+{
+  foreach (ServerConnection *conn, m_connections) {
+    if (!conn->hasJob(moleQueueId))
+      continue;
+    return conn;
+  }
+
+  return NULL;
 }
 
 } // end namespace MoleQueue

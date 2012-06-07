@@ -23,6 +23,7 @@
 #include <QtCore/QString>
 #include <QtCore/QVariantHash>
 
+class ClientTest;
 class JobManagerTest;
 class JsonRpcTest;
 class ServerConnectionTest;
@@ -147,6 +148,7 @@ public:
   friend class MoleQueue::Client;
   friend class MoleQueue::JobManager;
   friend class MoleQueue::Server;
+  friend class ::ClientTest;
   friend class ::JobManagerTest;
   friend class ::JsonRpcTest;
   friend class ::ServerConnectionTest;

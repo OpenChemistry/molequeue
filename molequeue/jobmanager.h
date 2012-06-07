@@ -23,6 +23,8 @@
 
 #include <QtCore/QVariantHash>
 
+class ClientTest;
+
 namespace MoleQueue
 {
 class Job;
@@ -92,6 +94,28 @@ public:
    */
   int count() const {return m_jobs.size();}
 
+  /// Used for unit tests
+  friend class ::ClientTest;
+
+public slots:
+
+  /**
+   * Inform the QueueManager that the MoleQueue id or Client id of @a job have
+   * changed so that it may update its internal lookup tables.
+   * @param job The Job object.
+   */
+  void jobIdsChanged(const MoleQueue::Job *job);
+
+  /**
+   * Called when a job enters a new state. If the new state differs from the
+   * previous state, the Job object is updated and the jobStateChanged signal
+   * is emitted.
+   * @param moleQueueId
+   * @param newState
+   */
+  void updateJobState(MoleQueue::IdType moleQueueId,
+                      MoleQueue::JobState newState);
+
 signals:
 
   /**
@@ -99,13 +123,23 @@ signals:
    * directly connect slots to this signal which will set the client or
    * molequeue ids.
    */
-  void jobAboutToBeAdded(Job *);
+  void jobAboutToBeAdded(MoleQueue::Job *);
 
   /**
    * Emitted when a Job has been added to this JobManager.
    * @param job The new Job object.
    */
-  void jobAdded(const Job *job);
+  void jobAdded(const MoleQueue::Job *job);
+
+  /**
+   * Emitted when a Job changes JobState.
+   * @param job Job object
+   * @param oldState Previous state of @a job
+   * @param newState New state of @a job
+   */
+  void jobStateChanged(const MoleQueue::Job *job,
+                       MoleQueue::JobState oldState,
+                       MoleQueue::JobState newState);
 
 protected:
   /// @param job Job to insert into the internal lookup structures.

@@ -63,8 +63,8 @@ AbstractRpcInterface::AbstractRpcInterface(QObject *parentObject) :
   connect(m_jsonrpc, SIGNAL(internalErrorOccurred(Json::Value,Json::Value)),
           this, SLOT(replyWithInternalError(Json::Value,Json::Value)));
 
-  connect(this, SIGNAL(newPacketReady(PacketType)),
-          this, SLOT(readPacket(PacketType)));
+  connect(this, SIGNAL(newPacketReady(MoleQueue::PacketType)),
+          this, SLOT(readPacket(MoleQueue::PacketType)));
 }
 
 AbstractRpcInterface::~AbstractRpcInterface()

@@ -16,12 +16,23 @@
 
 #include "queuemanager.h"
 #include "queue.h"
-#include "queues/local.h"
 
 #include <QtTest>
 
 #include <QtCore/QPointer>
 #include <QtCore/QList>
+
+class QueueDummy : public MoleQueue::Queue
+{
+  Q_OBJECT
+public:
+  QueueDummy(MoleQueue::QueueManager *parentManager)
+    : MoleQueue::Queue ("Dummy", parentManager)
+  {
+  }
+public slots:
+  bool submitJob(const MoleQueue::Job *) {return false;}
+};
 
 class QueueManagerTest : public QObject
 {
@@ -67,11 +78,11 @@ void QueueManagerTest::cleanup()
 void QueueManagerTest::testAddQueue()
 {
   QSignalSpy spy (&m_queueManager, SIGNAL(queueAdded(QString,MoleQueue::Queue*)));
-  MoleQueue::Queue *q1 = new MoleQueue::QueueLocal (NULL);
+  MoleQueue::Queue *q1 = new QueueDummy(NULL);
   q1->setName("First Queue");
-  MoleQueue::Queue *q2 = new MoleQueue::QueueLocal (&m_queueManager);
+  MoleQueue::Queue *q2 = new QueueDummy (&m_queueManager);
   q2->setName("Second Queue");
-  MoleQueue::Queue *q2a = new MoleQueue::QueueLocal (NULL);
+  MoleQueue::Queue *q2a = new QueueDummy (NULL);
   q2a->setName("Second Queue");
   QCOMPARE(m_queueManager.addQueue(q1), true);
   QCOMPARE(m_queueManager.addQueue(q2), true);
@@ -105,7 +116,7 @@ void QueueManagerTest::testRemoveQueue()
 {
   QSignalSpy spy (&m_queueManager, SIGNAL(queueRemoved(QString,MoleQueue::Queue*)));
 
-  MoleQueue::QueueLocal notInManager;
+  QueueDummy notInManager (NULL);
   QCOMPARE(m_queueManager.removeQueue(&notInManager), false);
   QCOMPARE(m_queueManager.removeQueue("notInManager"), false);
 
@@ -121,7 +132,7 @@ void QueueManagerTest::testCleanup()
 {
   MoleQueue::QueueManager *manager = new MoleQueue::QueueManager ();
 
-  QPointer<MoleQueue::Queue> q = new MoleQueue::QueueLocal ();
+  QPointer<MoleQueue::Queue> q = new QueueDummy (NULL);
   manager->addQueue(q.data());
   delete manager;
   manager = NULL;

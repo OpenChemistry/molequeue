@@ -25,11 +25,21 @@
 #include "program.h"
 #include "queue.h"
 #include "queuemanager.h"
-#include "queues/local.h"
-#include "queues/sge.h"
 #include "server.h"
 
 #include <QtNetwork/QLocalSocket>
+
+class QueueDummy : public MoleQueue::Queue
+{
+  Q_OBJECT
+public:
+  QueueDummy(MoleQueue::QueueManager *parentManager)
+    : MoleQueue::Queue ("Dummy", parentManager)
+  {
+  }
+public slots:
+  bool submitJob(const MoleQueue::Job *) {return false;}
+};
 
 class ServerConnectionTest : public QObject
 {
@@ -113,9 +123,9 @@ void ServerConnectionTest::testSendQueueList()
 {
   // Create phony queue
   MoleQueue::QueueManager qmanager;
-  MoleQueue::Queue *queueTmp = new MoleQueue::QueueSGE (&qmanager);
-  qmanager.addQueue(queueTmp);
+  MoleQueue::Queue *queueTmp = new QueueDummy (&qmanager);
   queueTmp->setName("Some big ol' cluster");
+  qmanager.addQueue(queueTmp);
   MoleQueue::Program *progTmp = new MoleQueue::Program (NULL);
   progTmp->setName("Quantum Tater");
   queueTmp->addProgram(progTmp);
@@ -125,9 +135,9 @@ void ServerConnectionTest::testSendQueueList()
   progTmp = new MoleQueue::Program (*progTmp);
   progTmp->setName("Nebulous Nucleus");
   queueTmp->addProgram(progTmp);
-  queueTmp = new MoleQueue::QueueLocal (&qmanager);
-  qmanager.addQueue(queueTmp);
+  queueTmp = new QueueDummy (&qmanager);
   queueTmp->setName("Puny local queue");
+  qmanager.addQueue(queueTmp);
   progTmp = new MoleQueue::Program (NULL);
   progTmp->setName("SpectroCrunch");
   queueTmp->addProgram(progTmp);
@@ -250,7 +260,7 @@ void ServerConnectionTest::testQueueListRequested()
 void ServerConnectionTest::testJobSubmissionRequested()
 {
   QSignalSpy spy (m_serverConnection,
-                  SIGNAL(jobSubmissionRequested(const Job*)));
+                  SIGNAL(jobSubmissionRequested(const MoleQueue::Job*)));
 
   MoleQueue::PacketType response =
       this->readReferenceString("serverconnection-ref/job-request.json");
@@ -268,7 +278,7 @@ void ServerConnectionTest::testJobSubmissionRequested()
 void ServerConnectionTest::testJobCancellationRequested()
 {
   QSignalSpy spy (m_serverConnection,
-                  SIGNAL(jobCancellationRequested(IdType)));
+                  SIGNAL(jobCancellationRequested(MoleQueue::IdType)));
 
   MoleQueue::PacketType response =
       this->readReferenceString("serverconnection-ref/job-cancellation.json");

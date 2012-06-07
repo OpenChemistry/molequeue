@@ -17,14 +17,12 @@
 #include "local.h"
 
 #include "../job.h"
+#include "../jobmanager.h"
+#include "../server.h"
 
 #include <QtCore/QProcess>
 #include <QtCore/QProcessEnvironment>
 
-#include <QtCore/QDir>
-#include <QtCore/QFile>
-#include <QtCore/QFileInfo>
-#include <QtCore/QVariant>
 #include <QtCore/QSettings>
 #include <QtCore/QThread>
 
@@ -36,8 +34,9 @@
 
 namespace MoleQueue {
 
-QueueLocal::QueueLocal(QObject *parentObject) :
-  Queue("Local", parentObject), m_cores(-1)
+QueueLocal::QueueLocal(QueueManager *parentManager) :
+  Queue("Local", parentManager),
+  m_cores(-1)
 {
 }
 

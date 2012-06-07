@@ -19,6 +19,8 @@
 
 #include <QtCore/QObject>
 
+#include "molequeueglobal.h"
+
 #include <QtCore/QList>
 
 #include <QtNetwork/QAbstractSocket> // for SocketError enum
@@ -26,11 +28,13 @@
 class ServerTest;
 
 class QLocalServer;
+class QSettings;
 
 namespace MoleQueue
 {
 class Job;
 class JobManager;
+class QueueManager;
 class ServerConnection;
 
 /**
@@ -66,6 +70,24 @@ public:
    */
   const JobManager *jobManager() const {return m_jobManager;}
 
+  /**
+   * @return A pointer to the Server QueueManager.
+   */
+  QueueManager *queueManager() {return m_queueManager;}
+
+  /**
+   * @return A pointer to the Server QueueManager.
+   */
+  const QueueManager *queueManager() const {return m_queueManager;}
+
+  /// @param settings QSettings object to write state to.
+  void readSettings(QSettings &settings);
+  /// @param settings QSettings object to read state from.
+  void writeSettings(QSettings &settings) const;
+
+  /// The working directory where running job file are kept.
+  QString workingDirectoryBase() const {return m_workingDirectoryBase;}
+
   /// Used for unit testing
   friend class ::ServerTest;
 
@@ -75,7 +97,7 @@ signals:
    * Emitted when a new connection is made with a client.
    * @param conn The ServerConnection with the new client.
    */
-  void newConnection(ServerConnection *conn);
+  void newConnection(MoleQueue::ServerConnection *conn);
 
   /**
    * Emitted when an error occurs.
@@ -108,13 +130,24 @@ public slots:
    */
   void stop();
 
+  /**
+   * Find the client that owns @a job and send a notification to the client that
+   * the JobState has changed.
+   * @param job Job of interest.
+   * @param oldState Previous state of @a job.
+   * @param newState New state of @a job.
+   */
+  void dispatchJobStateChange(const MoleQueue::Job *job,
+                              MoleQueue::JobState oldState,
+                              MoleQueue::JobState newState);
+
 protected slots:
 
   /**
    * Set the MoleQueue Id of a job before it is added to the manager.
    * @param job The new Job.
    */
-  void jobAboutToBeAdded(Job *job);
+  void jobAboutToBeAdded(MoleQueue::Job *job);
 
   /**
    * Called when the internal socket server has a new connection ready.
@@ -128,17 +161,31 @@ protected slots:
   void clientDisconnected();
 
 protected:
+  /**
+   * Find the ServerConnection that owns the Job with the request MoleQueue id.
+   * @param moleQueueId MoleQueue id of Job.
+   * @return A pointer to the ServerConnection, or NULL if no active connection
+   * found.
+   */
+  ServerConnection * lookupConnection(IdType moleQueueId);
+
   /// List of active connections
   QList<ServerConnection*> m_connections;
 
   /// The internal local socket server
   QLocalServer *m_server;
 
-  /// The JobManager for this server.
+  /// The JobManager for this Server.
   JobManager *m_jobManager;
+
+  /// The QueueManager for this Server.
+  QueueManager *m_queueManager;
 
   /// Used to change the socket name for unit testing.
   bool m_isTesting;
+
+  /// Local directory for running jobs.
+  QString m_workingDirectoryBase;
 
 public:
   /// @param d Enable runtime debugging if true.

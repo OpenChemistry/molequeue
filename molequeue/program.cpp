@@ -17,6 +17,8 @@
 #include "program.h"
 
 #include "queue.h"
+#include "queuemanager.h"
+#include "server.h"
 
 #include <QtCore/QDebug>
 #include <QtCore/QFileInfo>
@@ -27,6 +29,8 @@ namespace MoleQueue {
 Program::Program(Queue *parentQueue) :
   QObject(parentQueue),
   m_queue(parentQueue),
+  m_queueManager((m_queue) ? m_queue->queueManager() : NULL),
+  m_server((m_queueManager) ? m_queueManager->server() : NULL),
   m_name("Program"),
   m_executable("program"),
   m_useExecutablePath(false),
@@ -132,11 +136,8 @@ QString Program::generateFormattedExecutionString(
     break;
   case Program::INPUT_ARG_NO_EXT:
   {
-    QString inputNoExtension = inputFilename_;
-    int extensionIndex = inputNoExtension.lastIndexOf(".");
-    if (extensionIndex != -1)
-      inputNoExtension.truncate(extensionIndex);
-    execStr += QString("%1 %2\n").arg(executable).arg(inputNoExtension);
+    execStr += QString("%1 %2\n").arg(executable)
+        .arg(Program::chopExtension(inputFilename_));
   }
     break;
   case Program::REDIRECT:

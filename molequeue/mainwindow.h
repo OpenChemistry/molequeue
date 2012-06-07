@@ -60,12 +60,12 @@ public slots:
 protected slots:
   void showQueueManager();
   void handleServerError(QAbstractSocket::SocketError, const QString &);
-  void newConnection(ServerConnection *conn);
+  void newConnection(MoleQueue::ServerConnection *conn);
 
   // ServerConnection handlers
   void queueListRequested();
-  void jobSubmissionRequested(const Job *req);
-  void jobCancellationRequested(IdType moleQueueId);
+  void jobSubmissionRequested(const MoleQueue::Job *req);
+  void jobCancellationRequested(MoleQueue::IdType moleQueueId);
 
 protected:
   void closeEvent(QCloseEvent *theEvent);
@@ -88,11 +88,6 @@ protected:
 
   Server *m_server;
   JobItemModel *m_jobItemModel;
-
-  QueueManager *m_queueManager;
-
-  QString m_tmpDir;
-  QString m_localDir;
 };
 
 } // End namespace

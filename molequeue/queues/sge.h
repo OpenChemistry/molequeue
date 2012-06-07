@@ -25,8 +25,9 @@ class QTimer;
 
 namespace MoleQueue {
 
-class TerminalProcess;
+class QueueManager;
 class SshCommand;
+class TerminalProcess;
 
 /**
  * Remote queue.
@@ -36,7 +37,7 @@ class QueueSGE : public Queue
 {
   Q_OBJECT
 public:
-  explicit QueueSGE(QObject *parentObject = 0);
+  explicit QueueSGE(QueueManager *parentManager = 0);
   ~QueueSGE();
 
   QString typeName() const { return "Remote - SGE"; }
@@ -47,7 +48,7 @@ public slots:
    * \param job The Program object to submit to the queue.
    * \return True on successful addition to the queue.
    */
-  virtual bool submitJob(const Job *job);
+  virtual bool submitJob(const MoleQueue::Job *job);
 };
 
 } // End namespace

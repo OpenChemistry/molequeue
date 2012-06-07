@@ -33,6 +33,8 @@ namespace MoleQueue
 {
 class Job;
 class Program;
+class QueueManager;
+class Server;
 
 /**
  * Abstract queue, generally want QueueLocal, or QueueRemote derived classes
@@ -50,8 +52,19 @@ class Queue : public QObject
 {
   Q_OBJECT
 public:
-  explicit Queue(const QString &queueName = "Undefined", QObject *parentObject = 0);
+  explicit Queue(const QString &queueName = "Undefined",
+                 QueueManager *parentManager = 0);
   ~Queue();
+
+  /// @return The parent Server
+  Server *server() {return m_server;}
+  /// @return The parent Server
+  const Server *server() const {return m_server;}
+
+  /// @return The parent QueueManager
+  QueueManager *queueManager() {return m_queueManager;}
+  /// @return The parent Server
+  const QueueManager *queueManager() const {return m_queueManager;}
 
   /**
    * Set the name of the queue. This should be unique, and will be used in the
@@ -150,7 +163,7 @@ signals:
    * @param name Name of the program.
    * @param program Pointer to the newly added Program object.
    */
-  void programAdded(const QString &name, Program *program);
+  void programAdded(const QString &name, MoleQueue::Program *program);
 
   /**
    * Emitted when a program is removed from the queue.
@@ -159,15 +172,7 @@ signals:
    * @warning The @program pointer should not be dereferenced, as this signal
    * is often associated with program deletion.
    */
-  void programRemoved(const QString &name, Program *program);
-
-  /**
-   * Emitted when a job has been successfully submitted.
-   * @param MoleQueueId MoleQueue identifier for the job.
-   * @param queueId Queue specific id (job id or process id).
-   * @param localDir Local directory where temporary files are stored.
-   */
-  void jobSubmitted(IdType MoleQueueId, IdType queueId, const QString &localDir);
+  void programRemoved(const QString &name, MoleQueue::Program *program);
 
 public slots:
   /**
@@ -176,9 +181,12 @@ public slots:
    * @return True on success, false on failure.
    * @sa jobSubmitted
    */
-  virtual bool submitJob(const Job *job) = 0;
+  virtual bool submitJob(const MoleQueue::Job *job) = 0;
 
 protected:
+  QueueManager *m_queueManager;
+  Server *m_server;
+
   QString m_name;
   QMap<QString, Program *> m_programs;
   /// Lookup table for jobs that are using this Queue. Maps JobId to MoleQueueId.

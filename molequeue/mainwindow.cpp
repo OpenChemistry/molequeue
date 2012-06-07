@@ -22,19 +22,14 @@
 #include "jobitemmodel.h"
 #include "jobmanager.h"
 #include "program.h"
+#include "queue.h"
 #include "queuemanager.h"
 #include "queuemanagerdialog.h"
 #include "server.h"
 #include "serverconnection.h"
-#include "sshcommand.h"
-#include "terminalprocess.h"
 
 #include <QtCore/QDataStream>
-#include <QtCore/QDir>
-#include <QtCore/QProcess>
-#include <QtCore/QProcessEnvironment>
 #include <QtCore/QSettings>
-#include <QtCore/QTimer>
 
 #include <QtGui/QCloseEvent>
 #include <QtGui/QInputDialog>
@@ -52,8 +47,7 @@ MainWindow::MainWindow()
     m_trayIcon(NULL),
     m_trayIconMenu(NULL),
     m_server(new Server (this)),
-    m_jobItemModel(new JobItemModel (m_server->jobManager(), this)),
-    m_queueManager(new QueueManager (this))
+    m_jobItemModel(new JobItemModel (m_server->jobManager(), this))
 {
   m_ui->setupUi(this);
 
@@ -93,26 +87,18 @@ void MainWindow::setVisible(bool visible)
 void MainWindow::readSettings()
 {
   QSettings settings;
-  m_tmpDir = settings.value(
-        "tmpDir", QDir::tempPath() + "/MoleQueue").toString();
-  m_localDir = settings.value(
-        "localDir", QDir::homePath() + "/.molequeue/local").toString();
-
-  m_queueManager->readSettings(settings);
+  m_server->readSettings(settings);
 }
 
 void MainWindow::writeSettings()
 {
   QSettings settings;
-  settings.setValue("tmpDir"  , m_tmpDir);
-  settings.setValue("localDir", m_localDir);
-
-  m_queueManager->writeSettings(settings);
+  m_server->writeSettings(settings);
 }
 
 void MainWindow::showQueueManager()
 {
-  QueueManagerDialog dialog(m_queueManager, this);
+  QueueManagerDialog dialog(m_server->queueManager(), this);
   dialog.exec();
 }
 
@@ -150,13 +136,14 @@ void MainWindow::handleServerError(QAbstractSocket::SocketError err,
   }
 }
 
+/// @todo Move these to Server
 void MainWindow::newConnection(ServerConnection *conn)
 {
   connect(conn, SIGNAL(queueListRequested()), this, SLOT(queueListRequested()));
-  connect(conn, SIGNAL(jobSubmissionRequested(const Job*)),
-          this, SLOT(jobSubmissionRequested(const Job*)));
-  connect(conn, SIGNAL(jobCancellationRequested(IdType)),
-          this, SLOT(jobCancellationRequested(IdType)));
+  connect(conn, SIGNAL(jobSubmissionRequested(const MoleQueue::Job*)),
+          this, SLOT(jobSubmissionRequested(const MoleQueue::Job*)));
+  connect(conn, SIGNAL(jobCancellationRequested(MoleQueue::IdType)),
+          this, SLOT(jobCancellationRequested(MoleQueue::IdType)));
 }
 
 void MainWindow::queueListRequested()
@@ -168,7 +155,7 @@ void MainWindow::queueListRequested()
     return;
   }
 
-  conn->sendQueueList(m_queueManager->toQueueList());
+  conn->sendQueueList(m_server->queueManager()->toQueueList());
 }
 
 void MainWindow::jobSubmissionRequested(const Job *req)
@@ -182,11 +169,23 @@ void MainWindow::jobSubmissionRequested(const Job *req)
 
   qDebug() << "Job submission requested:\n" << req->hash();
 
+  // Lookup queue and submit job.
+  Queue *queue = m_server->queueManager()->lookupQueue(req->queue());
+  if (!queue) {
+    conn->sendFailedSubmissionResponse(req, MoleQueue::InvalidQueue,
+                                       tr("Unknown queue: %1")
+                                       .arg(req->queue()));
+    return;
+  }
 
-
-  /// @todo Actually handle the submission
-
+  // Send the submission confirmation first so that the client can update the
+  // MoleQueue id and properly handle packets sent during job submission.
   conn->sendSuccessfulSubmissionResponse(req);
+
+  /// @todo Handle submission failures better -- return JobSubErrCode?
+  bool ok = queue->submitJob(req);
+  qDebug() << "Submission ok?" << ok;
+
 }
 
 void MainWindow::jobCancellationRequested(IdType moleQueueId)

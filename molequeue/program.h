@@ -28,6 +28,8 @@ class QSettings;
 namespace MoleQueue
 {
 class Queue;
+class QueueManager;
+class Server;
 
 /**
  * Class to represent a computer program. Embodies how to execute the program,
@@ -71,6 +73,16 @@ public:
     SYNTAX_COUNT
   };
 
+  /// @return The parent Server
+  Server *server() {return m_server;}
+  /// @return The parent Server
+  const Server *server() const {return m_server;}
+
+  /// @return The parent QueueManager
+  QueueManager *queueManager() {return m_queueManager;}
+  /// @return The parent Server
+  const QueueManager *queueManager() const {return m_queueManager;}
+
   /// @return The Queue that this Program belongs to.
   Queue * queue() { return m_queue; }
   /// @return The Queue that this Program belongs to.
@@ -111,9 +123,17 @@ public:
 
   void setInputFilename(const QString &str) {m_inputFilename = str;}
   QString inputFilename() const {return m_inputFilename;}
+  QString inputFilenameNoExtension() const
+  {
+    return this->chopExtension(m_inputFilename);
+  }
 
   void setOutputFilename(const QString &str) {m_outputFilename = str;}
   QString outputFilename() const {return m_outputFilename;}
+  QString outputFilenameNoExtension() const
+  {
+    return this->chopExtension(m_outputFilename);
+  }
 
   void setLaunchSyntax(LaunchSyntax s)
   {
@@ -139,8 +159,22 @@ public:
 
 protected:
 
+  /// Internal convenience function
+  static QString chopExtension(const QString & str)
+  {
+    QString ret (str);
+    int extensionIndex = ret.lastIndexOf(".");
+    if (extensionIndex != -1)
+      ret.truncate(extensionIndex);
+    return ret;
+  }
+
   /// The Queue that the Program belongs to/is being run by.
   Queue *m_queue;
+  /// The QueueManager owning the Queue this Program belongs to.
+  QueueManager *m_queueManager;
+  /// The Server this program is associated with.
+  Server *m_server;
   /// GUI-visible name
   QString m_name;
   /// Name of executable
