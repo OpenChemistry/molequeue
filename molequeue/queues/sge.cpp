@@ -2,7 +2,7 @@
 
   This source file is part of the MoleQueue project.
 
-  Copyright 2011 Kitware, Inc.
+  Copyright 2011-2012 Kitware, Inc.
 
   This source code is released under the New BSD License, (the "License").
 
@@ -16,37 +16,104 @@
 
 #include "sge.h"
 
-#include "../job.h"
-#include "../program.h"
-#include "../terminalprocess.h"
-#include "../sshcommand.h"
-
-#include <QtCore/QDir>
-#include <QtCore/QTimer>
 #include <QtCore/QDebug>
 
-namespace MoleQueue {
+namespace MoleQueue
+{
 
-QueueSGE::QueueSGE(QueueManager *parentManager) :
-  Queue("Remote (SGE)", parentManager)
+QueueSge::QueueSge(QueueManager *parentManager) :
+  QueueRemote("Remote (SGE)", parentManager)
+{
+  m_submissionCommand = "qsub";
+  m_requestQueueCommand = "qstat";
+  m_launchScriptName = "job.sge";
+
+  m_launchTemplate =
+      "#!/bin/sh\n"
+      "#\n"
+      "# Sample job script provided by MoleQueue.\n"
+      "#\n"
+      "# Use BASH as job shell:\n"
+      "#$ -S /bin/bash\n"
+      "\n"
+      "$$programExecution$$\n";
+}
+
+QueueSge::~QueueSge()
 {
 }
 
-QueueSGE::~QueueSGE()
+bool QueueSge::parseQueueId(const QString &submissionOutput, IdType *queueId)
 {
+  // Assuming submissionOutput is:
+  // your job <jobID> ('batchFileName') has been submitted
+  QRegExp parser ("^[Yy]our job (\\d+)");
+
+  int ind = parser.indexIn(submissionOutput);
+  if (ind >= 0) {
+    bool ok;
+    *queueId = static_cast<IdType>(parser.cap(1).toInt(&ok));
+    return ok;
+  }
+  return false;
 }
 
-bool QueueSGE::submitJob(const Job *job)
+bool QueueSge::parseQueueLine(const QString &queueListOutput,
+                              IdType *queueId, JobState *state)
 {
-  /// @todo This needs to be rewritten
-  Q_UNUSED(job);
-  /*
-  m_jobs.push_back(job);
-  job->setJobState(MoleQueue::LocalQueued);
-  emit(jobAdded(job));
-  submitJob(m_jobs.size() - 1);
-  */
-  return true;
+  // Expecting qstat output is:
+  //
+  //  job-ID   prior   name         user      state   submit/start at     queue      function
+  //  231      0       hydra        craig     r       07/13/96            durin.q    MASTER
+  //                                                  20:27:15
+  //  232      0       compile      penny     r       07/13/96            durin.q    MASTER
+  //                                                  20:30:40
+  //  230      0       blackhole    don       r       07/13/96            dwain.q    MASTER
+  //                                                  20:26:10
+  //  233      0       mac          elaine    r       07/13/96            dwain.q    MASTER
+  //                                                  20:30:40
+  //  234      0       golf         shannon   r       07/13/96            dwain.q    MASTER
+  //                                                  20:31:44
+  //  236      5       word         elaine    qw      07/13/96
+  //                                                  20:32:07
+  //  235      0       andrun       penny     qw      07/13/96 20:31:43
+  QRegExp parser ("^\\s*(\\d+)" // job-ID
+                  "\\s+\\S+"    // prior
+                  "\\s+\\S+"    // name
+                  "\\s+\\S+"    // user
+                  "\\s+(\\w+)"); // state
+
+  QString stateStr;
+  int ind = parser.indexIn(queueListOutput);
+  if (ind >= 0) {
+    bool ok;
+    *queueId = static_cast<IdType>(parser.cap(1).toInt(&ok));
+    if (!ok)
+      return false;
+    stateStr = parser.cap(2).toLower();
+
+    if (stateStr == "r" ||
+        stateStr == "d" || // mark deleted/errored jobs as running for now
+        stateStr == "e") {
+      *state = MoleQueue::RunningRemote;
+      return true;
+    }
+    else if (stateStr == "qw"||
+             stateStr == "q" ||
+             stateStr == "w" ||
+             stateStr == "s" ||
+             stateStr == "h" ||
+             stateStr == "t") {
+      *state = MoleQueue::RemoteQueued;
+      return true;
+    }
+    else {
+      qWarning() << Q_FUNC_INFO << "unrecognized queue state:" << stateStr
+                 << "\n" << queueListOutput;
+      return false;
+    }
+  }
+  return false;
 }
 
 } // End namespace

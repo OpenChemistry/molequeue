@@ -10,6 +10,7 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR}
 
 set(mq_srcs
   abstractrpcinterface.cpp
+  addqueuedialog.cpp
   client.cpp
   job.cpp
   jobitemmodel.cpp
@@ -17,53 +18,54 @@ set(mq_srcs
   jobtablewidget.cpp
   jobview.cpp
   jsonrpc.cpp
+  mainwindow.cpp
   molequeueglobal.h
   program.cpp
   programconfiguredialog.cpp
   queue.cpp
   queuemanager.cpp
+  queuemanagerdialog.cpp
   queuemanageritemmodel.cpp
   queueprogramitemmodel.cpp
+  queues/local.cpp
+  queues/remote.cpp
+  queues/sge.cpp
+  queuesettingsdialog.cpp
+  remotequeuewidget.cpp
   server.cpp
   serverconnection.cpp
   sshcommand.cpp
   sshconnection.cpp
   terminalprocess.cpp
-  queues/local.cpp
-  queues/remote.cpp
-  queues/sge.cpp
-  addqueuedialog.cpp
-  mainwindow.cpp
-  queuemanagerdialog.cpp
-  queuesettingsdialog.cpp
 )
 
 set(mq_moc
   abstractrpcinterface.h
+  addqueuedialog.h
   client.h
   jobitemmodel.h
   jobmanager.h
   jobtablewidget.h
   jobview.h
   jsonrpc.h
+  mainwindow.h
   program.h
   programconfiguredialog.h
   queue.h
   queuemanager.h
+  queuemanagerdialog.h
   queuemanageritemmodel.h
   queueprogramitemmodel.h
+  queues/local.h
+  queues/remote.h
+  queues/sge.h
+  queuesettingsdialog.h
+  remotequeuewidget.h
   server.h
   serverconnection.h
   sshcommand.h
   sshconnection.h
   terminalprocess.h
-  queues/local.h
-  queues/remote.h
-  queues/sge.h
-  addqueuedialog.h
-  mainwindow.h
-  queuemanagerdialog.h
-  queuesettingsdialog.h
 )
 qt4_wrap_cpp(moc_srcs ${mq_moc})
 
@@ -74,6 +76,7 @@ qt4_wrap_ui(ui_srcs
   ui/programconfiguredialog.ui
   ui/queuemanagerdialog.ui
   ui/queuesettingsdialog.ui
+  ui/remotequeuewidget.ui
 )
 qt4_add_resources(rcc_srcs queuetray.qrc)
 

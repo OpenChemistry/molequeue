@@ -152,6 +152,14 @@ public slots:
   void updateJobState(MoleQueue::IdType moleQueueId,
                       MoleQueue::JobState newState);
 
+  /**
+   * Called when a job is assigned a QueueId by the queue
+   * @param moleQueueId
+   * @param queueId
+   */
+  void updateQueueId(MoleQueue::IdType moleQueueId,
+                     MoleQueue::IdType queueId);
+
 signals:
 
   /**
@@ -176,6 +184,14 @@ signals:
   void jobStateChanged(const MoleQueue::Job *job,
                        MoleQueue::JobState oldState,
                        MoleQueue::JobState newState);
+
+  /**
+   * Emitted when a Job is assigned a queue id.
+   * @param job
+   * @param queueId
+   */
+  void queueIdChanged(const MoleQueue::Job *job,
+                      MoleQueue::IdType queueId);
 
   /**
    * Emitted when the @a job is about to be removed and deleted.
