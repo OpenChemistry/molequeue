@@ -17,23 +17,15 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
-#include "connection.h"
 #include "job.h"
-#include "jobitemmodel.h"
 #include "jobmanager.h"
-#include "program.h"
-#include "queue.h"
-#include "queuemanager.h"
 #include "queuemanagerdialog.h"
 #include "server.h"
-#include "serverconnection.h"
 
-#include <QtCore/QDataStream>
 #include <QtCore/QSettings>
 
 #include <QtGui/QCloseEvent>
 #include <QtGui/QInputDialog>
-#include <QtGui/QHeaderView>
 #include <QtGui/QMessageBox>
 
 namespace MoleQueue {
@@ -46,8 +38,7 @@ MainWindow::MainWindow()
     m_icon(NULL),
     m_trayIcon(NULL),
     m_trayIconMenu(NULL),
-    m_server(new Server (this)),
-    m_jobItemModel(new JobItemModel (m_server->jobManager(), this))
+    m_server(new Server (this))
 {
   m_ui->setupUi(this);
 
@@ -55,13 +46,16 @@ MainWindow::MainWindow()
   createMainMenu();
   createTrayIcon();
   readSettings();
-  createJobModel();
+  createJobTable();
 
+  connect(m_server->jobManager(), SIGNAL(jobStateChanged(const MoleQueue::Job*,
+                                                         MoleQueue::JobState,
+                                                         MoleQueue::JobState)),
+          this, SLOT(notifyJobStateChanged(const MoleQueue::Job*,
+                                           MoleQueue::JobState,
+                                           MoleQueue::JobState)));
   connect(m_server, SIGNAL(connectionError(QAbstractSocket::SocketError,QString)),
-          this, SLOT(handleServerError(QAbstractSocket::SocketError, QString)));
-
-  connect(m_server, SIGNAL(newConnection(ServerConnection*)),
-          this, SLOT(newConnection(ServerConnection*)));
+          this, SLOT(handleServerConnectionError(QAbstractSocket::SocketError, QString)));
 
   m_server->setDebug(true);
   m_server->start();
@@ -74,6 +68,7 @@ MainWindow::~MainWindow()
   writeSettings();
 
   delete m_ui;
+  delete m_server;
 }
 
 void MainWindow::setVisible(bool visible)
@@ -87,12 +82,20 @@ void MainWindow::setVisible(bool visible)
 void MainWindow::readSettings()
 {
   QSettings settings;
+
+  this->restoreGeometry(settings.value("geometry").toByteArray());
+  this->restoreState(settings.value("windowState").toByteArray());
+
   m_server->readSettings(settings);
 }
 
 void MainWindow::writeSettings()
 {
   QSettings settings;
+
+  settings.setValue("geometry", this->saveGeometry());
+  settings.setValue("windowState", this->saveState());
+
   m_server->writeSettings(settings);
 }
 
@@ -102,8 +105,8 @@ void MainWindow::showQueueManager()
   dialog.exec();
 }
 
-void MainWindow::handleServerError(QAbstractSocket::SocketError err,
-                                   const QString &str)
+void MainWindow::handleServerConnectionError(QAbstractSocket::SocketError err,
+                                             const QString &str)
 {
   // handle AddressInUseError by giving user option to replace current socket
   if (err == QAbstractSocket::AddressInUseError) {
@@ -136,79 +139,28 @@ void MainWindow::handleServerError(QAbstractSocket::SocketError err,
   }
 }
 
-/// @todo Move these to Server
-void MainWindow::newConnection(ServerConnection *conn)
+void MainWindow::notifyJobStateChanged(const Job *job, JobState,
+                                       JobState newState)
 {
-  connect(conn, SIGNAL(queueListRequested()), this, SLOT(queueListRequested()));
-  connect(conn, SIGNAL(jobSubmissionRequested(const MoleQueue::Job*)),
-          this, SLOT(jobSubmissionRequested(const MoleQueue::Job*)));
-  connect(conn, SIGNAL(jobCancellationRequested(MoleQueue::IdType)),
-          this, SLOT(jobCancellationRequested(MoleQueue::IdType)));
-}
-
-void MainWindow::queueListRequested()
-{
-  ServerConnection *conn = qobject_cast<ServerConnection*>(this->sender());
-  if (conn == NULL) {
-    qWarning() << Q_FUNC_INFO << "called with a sender which is not a "
-                  "ServerConnection.";
+  QString notification;
+  if (newState == MoleQueue::Accepted)
+    notification = tr("Job accepted: '%1'").arg(job->description());
+  else if (newState == MoleQueue::Finished)
+    notification = tr("Job finished: '%1'").arg(job->description());
+  else
     return;
-  }
 
-  conn->sendQueueList(m_server->queueManager()->toQueueList());
-}
-
-void MainWindow::jobSubmissionRequested(const Job *req)
-{
-  ServerConnection *conn = qobject_cast<ServerConnection*>(this->sender());
-  if (conn == NULL) {
-    qWarning() << Q_FUNC_INFO << "called with a sender which is not a "
-                  "ServerConnection.";
-    return;
-  }
-
-  qDebug() << "Job submission requested:\n" << req->hash();
-
-  // Lookup queue and submit job.
-  Queue *queue = m_server->queueManager()->lookupQueue(req->queue());
-  if (!queue) {
-    conn->sendFailedSubmissionResponse(req, MoleQueue::InvalidQueue,
-                                       tr("Unknown queue: %1")
-                                       .arg(req->queue()));
-    return;
-  }
-
-  // Send the submission confirmation first so that the client can update the
-  // MoleQueue id and properly handle packets sent during job submission.
-  conn->sendSuccessfulSubmissionResponse(req);
-
-  /// @todo Handle submission failures better -- return JobSubErrCode?
-  bool ok = queue->submitJob(req);
-  qDebug() << "Submission ok?" << ok;
-
-}
-
-void MainWindow::jobCancellationRequested(IdType moleQueueId)
-{
-  ServerConnection *conn = qobject_cast<ServerConnection*>(this->sender());
-  if (conn == NULL) {
-    qWarning() << Q_FUNC_INFO << "called with a sender which is not a "
-                  "ServerConnection.";
-    return;
-  }
-
-  qDebug() << "Job cancellation requested: MoleQueueId:" << moleQueueId;
-
-  const Job *req = m_server->jobManager()->lookupMoleQueueId(moleQueueId);
-
-  /// @todo actually handle the cancellation
-  /// @todo Handle NULL req
-
-  conn->sendSuccessfulCancellationResponse(req);
+  m_trayIcon->showMessage(tr("MoleQueue"), notification,
+                          QSystemTrayIcon::Information, 5000);
 }
 
 void MainWindow::closeEvent(QCloseEvent *theEvent)
 {
+  QSettings settings;
+
+  settings.setValue("geometry", this->saveGeometry());
+  settings.setValue("windowState", this->saveState());
+
   if (m_trayIcon->isVisible()) {
     QMessageBox::information(this, tr("Systray"),
                              tr("The program will keep running in the "
@@ -254,10 +206,9 @@ void MainWindow::createTrayIcon()
     m_trayIcon->setToolTip("Queue manager (no message support)...");
 }
 
-void MainWindow::createJobModel()
+void MainWindow::createJobTable()
 {
-  m_ui->jobView->setModel(m_jobItemModel);
-  m_ui->jobView->horizontalHeader()->setResizeMode(0, QHeaderView::Stretch);
+  m_ui->jobTableWidget->setJobManager(m_server->jobManager());
 }
 
 } // End namespace

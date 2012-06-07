@@ -144,6 +144,23 @@ public slots:
 protected slots:
 
   /**
+   * Called when a Client requests a list of available queues and programs.
+   */
+  void queueListRequested();
+
+  /**
+   * Called when a Client submits a new job.
+   * @param req The new Job request.
+   */
+  void jobSubmissionRequested(const MoleQueue::Job *req);
+
+  /**
+   * @brief Called when a Client requests a job be canceled.
+   * @param moleQueueId
+   */
+  void jobCancellationRequested(MoleQueue::IdType moleQueueId);
+
+  /**
    * Set the MoleQueue Id of a job before it is added to the manager.
    * @param job The new Job.
    */
@@ -186,6 +203,9 @@ protected:
 
   /// Local directory for running jobs.
   QString m_workingDirectoryBase;
+
+  /// Counter for MoleQueue job ids.
+  IdType m_moleQueueIdCounter;
 
 public:
   /// @param d Enable runtime debugging if true.

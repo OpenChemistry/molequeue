@@ -2,7 +2,7 @@
 
   This source file is part of the MoleQueue project.
 
-  Copyright 2011 Kitware, Inc.
+  Copyright 2011-2012 Kitware, Inc.
 
   This source code is released under the New BSD License, (the "License").
 
@@ -23,7 +23,7 @@
 
 #include <QtGui/QSystemTrayIcon>
 
-#include <QtNetwork/QLocalSocket>
+#include <QtNetwork/QAbstractSocket>
 
 class QAction;
 class QIcon;
@@ -32,16 +32,11 @@ namespace Ui {
 class MainWindow;
 }
 
-namespace MoleQueue {
-
-class Connection;
+namespace MoleQueue
+{
 class Job;
 class JobItemModel;
-class Program;
-class Queue;
-class QueueManager;
 class Server;
-class ServerConnection;
 
 class MainWindow : public QMainWindow
 {
@@ -59,13 +54,12 @@ public slots:
 
 protected slots:
   void showQueueManager();
-  void handleServerError(QAbstractSocket::SocketError, const QString &);
-  void newConnection(MoleQueue::ServerConnection *conn);
+  void handleServerConnectionError(QAbstractSocket::SocketError,
+                                   const QString &);
 
-  // ServerConnection handlers
-  void queueListRequested();
-  void jobSubmissionRequested(const MoleQueue::Job *req);
-  void jobCancellationRequested(MoleQueue::IdType moleQueueId);
+  void notifyJobStateChanged(const MoleQueue::Job *job,
+                             MoleQueue::JobState oldState,
+                             MoleQueue::JobState newState);
 
 protected:
   void closeEvent(QCloseEvent *theEvent);
@@ -73,7 +67,7 @@ protected:
   void createActions();
   void createMainMenu();
   void createTrayIcon();
-  void createJobModel();
+  void createJobTable();
 
   /** Our MainWindow GUI. */
   Ui::MainWindow *m_ui;
@@ -87,7 +81,6 @@ protected:
   QMenu *m_trayIconMenu;
 
   Server *m_server;
-  JobItemModel *m_jobItemModel;
 };
 
 } // End namespace

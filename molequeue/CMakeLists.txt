@@ -11,10 +11,10 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR}
 set(mq_srcs
   abstractrpcinterface.cpp
   client.cpp
-  connection.cpp
   job.cpp
   jobitemmodel.cpp
   jobmanager.cpp
+  jobtablewidget.cpp
   jobview.cpp
   jsonrpc.cpp
   molequeueglobal.h
@@ -41,9 +41,9 @@ set(mq_srcs
 set(mq_moc
   abstractrpcinterface.h
   client.h
-  connection.h
   jobitemmodel.h
   jobmanager.h
+  jobtablewidget.h
   jobview.h
   jsonrpc.h
   program.h
@@ -69,6 +69,7 @@ qt4_wrap_cpp(moc_srcs ${mq_moc})
 
 qt4_wrap_ui(ui_srcs
   ui/addqueuedialog.ui
+  ui/jobtablewidget.ui
   ui/mainwindow.ui
   ui/programconfiguredialog.ui
   ui/queuemanagerdialog.ui
