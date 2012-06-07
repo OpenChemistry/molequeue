@@ -54,6 +54,8 @@ ProgramConfigureDialog::ProgramConfigureDialog(Program *program,
   connect(ui->text_launchTemplate, SIGNAL(textChanged()),
           this, SLOT(launchEditorTextChanged()));
 
+  this->launchSyntaxChanged(ui->combo_syntax->currentIndex());
+
   this->updateGuiFromProgram();
 }
 

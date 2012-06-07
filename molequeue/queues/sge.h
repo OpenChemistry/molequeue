@@ -2,7 +2,7 @@
 
   This source file is part of the MoleQueue project.
 
-  Copyright 2011 Kitware, Inc.
+  Copyright 2011-2012 Kitware, Inc.
 
   This source code is released under the New BSD License, (the "License").
 
@@ -17,38 +17,29 @@
 #ifndef QUEUESGE_H
 #define QUEUESGE_H
 
-#include "../queue.h"
+#include "remote.h"
 
-#include <QtCore/QMap>
+class QueueSgeTest;
 
-class QTimer;
+namespace MoleQueue
+{
 
-namespace MoleQueue {
-
-class QueueManager;
-class SshCommand;
-class TerminalProcess;
-
-/**
- * Remote queue.
- */
-
-class QueueSGE : public Queue
+class QueueSge : public QueueRemote
 {
   Q_OBJECT
 public:
-  explicit QueueSGE(QueueManager *parentManager = 0);
-  ~QueueSGE();
+  explicit QueueSge(QueueManager *parentManager = 0);
+  ~QueueSge();
 
-  QString typeName() const { return "Remote - SGE"; }
+  QString typeName() const { return "Sun Grid Engine"; }
 
-public slots:
-  /**
-   * Submit a new job to the queue.
-   * \param job The Program object to submit to the queue.
-   * \return True on successful addition to the queue.
-   */
-  virtual bool submitJob(const MoleQueue::Job *job);
+  friend class ::QueueSgeTest;
+
+protected:
+  virtual bool parseQueueId(const QString &submissionOutput, IdType *queueId);
+  virtual bool parseQueueLine(const QString &queueListOutput, IdType *queueId,
+                              JobState *state);
+
 };
 
 } // End namespace

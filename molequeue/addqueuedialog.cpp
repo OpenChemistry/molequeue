@@ -35,8 +35,7 @@ AddQueueDialog::AddQueueDialog(QueueManager *queueManager,
 
     /// @todo Find a more scalable way to handle this...
     ui->typeComboBox->addItem(tr("Local"));
-    ui->typeComboBox->addItem(tr("Remote"));
-    ui->typeComboBox->addItem(tr("Remote - SGE"));
+    ui->typeComboBox->addItem(tr("Sun Grid Engine"));
 
     connect(this, SIGNAL(accepted()), SLOT(addQueue()));
 }
@@ -54,11 +53,8 @@ void AddQueueDialog::addQueue()
   if (queueType == tr("Local")) {
     queue = new QueueLocal (m_queueManager);
   }
-  else if (queueType == tr("Remote")) {
-    queue = new QueueRemote (m_queueManager);
-  }
-  else if (queueType == tr("Remote - SGE")) {
-    queue = new QueueSGE (m_queueManager);
+  else if (queueType == tr("Sun Grid Engine")) {
+    queue = new QueueSge (m_queueManager);
   }
 
   if(queue){

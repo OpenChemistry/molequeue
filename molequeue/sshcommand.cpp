@@ -25,7 +25,9 @@ namespace MoleQueue {
 SshCommand::SshCommand(QObject *parentObject) : SshConnection(parentObject),
   m_sshCommand("ssh"),
   m_scpCommand("scp"),
-  m_process(0)
+  m_exitCode(-1),
+  m_process(0),
+  m_isComplete(true)
 {
 }
 
@@ -35,38 +37,36 @@ SshCommand::~SshCommand()
   m_process = 0;
 }
 
-bool SshCommand::execute(const QString &command, QString &output, int &exitCode)
+QString SshCommand::output() const
+{
+  return isComplete() ? m_output : QString();
+}
+
+int SshCommand::exitCode() const
+{
+  return isComplete() ? m_exitCode : -1;
+}
+
+bool SshCommand::waitForCompletion(int msecs)
+{
+  return m_process ? m_process->waitForFinished(msecs) : false;
+}
+
+bool SshCommand::isComplete() const
+{
+  return m_isComplete;
+}
+
+bool SshCommand::execute(const QString &command)
 {
   if (!isValid())
     return false;
-  if (!m_process)
-    initializeProcess();
 
-  QStringList args;
-  if (!m_userName.isEmpty())
-    args << "-l" << m_userName;
-  if (!m_identityFile.isEmpty())
-    args << "-i" << m_identityFile;
-  if (m_portNumber >= 0)
-    args << "-p" << QString(m_portNumber);
-  // Finally append the host name and the actual command
-  args << m_hostName << command;
+  QStringList args = this->sshArgs();
+  args << this->remoteSpec() << command;
 
-  m_process->start(m_sshCommand, args);
-  if (!m_process->waitForStarted()) {
-    qDebug() << "Failed to start SSH command...";
-    return false;
-  }
-  m_process->closeWriteChannel();
-  if (!m_process->waitForFinished()) {
-    m_process->close();
-    qDebug() << "Failed to exit.";
-    return false;
-  }
-  output = m_process->readAll();
-  qDebug() << "SSH command:" << output;
-  exitCode = m_process->exitCode();
-  m_process->close();
+  this->sendRequest(m_sshCommand, args);
+
   return true;
 }
 
@@ -74,38 +74,12 @@ bool SshCommand::copyTo(const QString &localFile, const QString &remoteFile)
 {
   if (!isValid())
     return false;
-  if (!m_process)
-    initializeProcess();
 
   QStringList args = scpArgs();
-//  args << "-v";
-  QString remoteFileSpec;
-  if (m_userName.isEmpty())
-    remoteFileSpec = m_hostName;
-  else
-    remoteFileSpec = m_userName + "@" + m_hostName;
-  remoteFileSpec += ":" + remoteFile;
-
-  // Build up the command line with local and remote files
+  QString remoteFileSpec = this->remoteSpec() + ":" + remoteFile;
   args << localFile << remoteFileSpec;
 
-  qDebug() << m_scpCommand << args;
-
-  m_process->start(m_scpCommand, args);
-  if (!m_process->waitForStarted()) {
-    qDebug() << "Failed to start SCP command...";
-    return false;
-  }
-  m_process->closeWriteChannel();
-  if (!m_process->waitForFinished()) {
-    m_process->close();
-    qDebug() << "Failed to exit.";
-    return false;
-  }
-  QString output = m_process->readAll();
-  qDebug() << "Output:" << output;
-  int exitCode = m_process->exitCode();
-  qDebug() << "Exit code:" << exitCode;
+  this->sendRequest(m_scpCommand, args);
 
   return true;
 }
@@ -114,38 +88,12 @@ bool SshCommand::copyFrom(const QString &remoteFile, const QString &localFile)
 {
   if (!isValid())
     return false;
-  if (!m_process)
-    initializeProcess();
 
   QStringList args = scpArgs();
-  args << "-v";
-  QString remoteFileSpec;
-  if (m_userName.isEmpty())
-    remoteFileSpec = m_hostName;
-  else
-    remoteFileSpec = m_userName + "@" + m_hostName;
-  remoteFileSpec += ":" + remoteFile;
-
-  // Build up the command line with local and remote files
+  QString remoteFileSpec = this->remoteSpec() + ":" + remoteFile;
   args << remoteFileSpec << localFile;
 
-  qDebug() << m_scpCommand << args;
-
-  m_process->start(m_scpCommand, args);
-  if (!m_process->waitForStarted()) {
-    qDebug() << "Failed to start SCP command...";
-    return false;
-  }
-  m_process->closeWriteChannel();
-  if (!m_process->waitForFinished()) {
-    m_process->close();
-    qDebug() << "Failed to exit.";
-    return false;
-  }
-  QString output = m_process->readAll();
-  qDebug() << "Output:" << output;
-  int exitCode = m_process->exitCode();
-  qDebug() << "Exit code:" << exitCode;
+  this->sendRequest(m_scpCommand, args);
 
   return true;
 }
@@ -154,38 +102,12 @@ bool SshCommand::copyDirTo(const QString &localDir, const QString &remoteDir)
 {
   if (!isValid())
     return false;
-  if (!m_process)
-    initializeProcess();
 
   QStringList args = scpArgs();
-  args << "-r";
-  QString remoteSpec;
-  if (m_userName.isEmpty())
-    remoteSpec = m_hostName;
-  else
-    remoteSpec = m_userName + "@" + m_hostName;
-  remoteSpec += ":" + remoteDir;
+  QString remoteDirSpec = this->remoteSpec() + ":" + remoteDir;
+  args << "-r" << localDir << remoteDirSpec;
 
-  // Build up the command line with local and remote files
-  args << localDir << remoteSpec;
-
-  qDebug() << m_scpCommand << " " << args.join(" ");
-
-  m_process->start(m_scpCommand, args);
-  if (!m_process->waitForStarted()) {
-    qDebug() << "Failed to start SCP command...";
-    return false;
-  }
-  m_process->closeWriteChannel();
-  if (!m_process->waitForFinished()) {
-    m_process->close();
-    qDebug() << "Failed to exit.";
-    return false;
-  }
-  QString output = m_process->readAll();
-  qDebug() << "Output:" << output;
-  int exitCode = m_process->exitCode();
-  qDebug() << "Exit code:" << exitCode;
+  this->sendRequest(m_scpCommand, args);
 
   return true;
 }
@@ -194,44 +116,48 @@ bool SshCommand::copyDirFrom(const QString &remoteDir, const QString &localDir)
 {
   if (!isValid())
     return false;
-  if (!m_process)
-    initializeProcess();
 
   QDir local(localDir);
   if (!local.exists())
-    local.mkpath(localDir);
+    local.mkpath(localDir); /// @todo Check for failure of mkpath
 
   QStringList args = scpArgs();
-  args << "-r";
-  QString remoteSpec;
-  if (m_userName.isEmpty())
-    remoteSpec = m_hostName;
-  else
-    remoteSpec = m_userName + "@" + m_hostName;
-  remoteSpec += ":" + remoteDir;
+  QString remoteDirSpec = this->remoteSpec() + ":" + remoteDir;
+  args << "-r" << remoteDirSpec << localDir;
 
-  // Build up the command line with local and remote files
-  args << remoteSpec << localDir;
-
-  qDebug() << m_scpCommand << " " << args.join(" ");
-
-  m_process->start(m_scpCommand, args);
-  if (!m_process->waitForStarted()) {
-    qDebug() << "Failed to start SCP command...";
-    return false;
-  }
-  m_process->closeWriteChannel();
-  if (!m_process->waitForFinished()) {
-    m_process->close();
-    qDebug() << "Failed to exit.";
-    return false;
-  }
-  QString output = m_process->readAll();
-  qDebug() << "Output:" << output;
-  int exitCode = m_process->exitCode();
-  qDebug() << "Exit code:" << exitCode;
+  this->sendRequest(m_scpCommand, args);
 
   return true;
+}
+
+void SshCommand::processStarted()
+{
+  m_process->closeWriteChannel();
+  emit requestSent();
+}
+
+void SshCommand::processFinished()
+{
+  m_output = m_process->readAll();
+  m_exitCode = m_process->exitCode();
+  m_process->close();
+
+  qDebug() << "SshCommand output:\n" << m_output;
+
+  m_isComplete = true;
+  emit requestComplete();
+}
+
+void SshCommand::sendRequest(const QString &command, const QStringList &args)
+{
+  if (!m_process)
+    this->initializeProcess();
+
+  m_isComplete = false;
+
+  qDebug() << "SshCommand sending request:" << command << args.join(" ");
+
+  m_process->start(command, args);
 }
 
 void SshCommand::initializeProcess()
@@ -250,6 +176,20 @@ void SshCommand::initializeProcess()
   sshEnv.insert("SSH_ASKPASS", "/usr/bin/pinentry-qt4");
   m_process->setProcessEnvironment(sshEnv);
   m_process->setProcessChannelMode(QProcess::MergedChannels);
+
+  connect(m_process, SIGNAL(started()), this, SLOT(processStarted()));
+  connect(m_process, SIGNAL(finished(int,QProcess::ExitStatus)),
+          this, SLOT(processFinished()));
+}
+
+QStringList SshCommand::sshArgs()
+{
+  QStringList args;
+  if (!m_identityFile.isEmpty())
+    args << "-i" << m_identityFile;
+  if (m_portNumber >= 0)
+    args << "-p" << QString::number(m_portNumber);
+  return args;
 }
 
 QStringList SshCommand::scpArgs()
@@ -258,8 +198,13 @@ QStringList SshCommand::scpArgs()
   if (!m_identityFile.isEmpty())
     args << "-i" << m_identityFile;
   if (m_portNumber >= 0)
-    args << "-P" << QString(m_portNumber);
+    args << "-P" << QString::number(m_portNumber);
   return args;
+}
+
+QString SshCommand::remoteSpec()
+{
+  return m_userName.isEmpty() ? m_hostName : m_userName + "@" + m_hostName;
 }
 
 } // End namespace

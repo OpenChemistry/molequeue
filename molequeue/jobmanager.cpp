@@ -178,6 +178,20 @@ void JobManager::updateJobState(IdType moleQueueId, JobState newState)
   emit jobStateChanged(job, oldState, newState);
 }
 
+void JobManager::updateQueueId(IdType moleQueueId, IdType queueId)
+{
+  const Job *job = this->lookupMoleQueueId(moleQueueId);
+  if (!job)
+    return;
+
+  if (job->queueJobId() == queueId)
+    return;
+
+  const_cast<Job*>(job)->setQueueJobId(queueId);
+
+  emit queueIdChanged(job, queueId);
+}
+
 void JobManager::insertJob(Job *job)
 {
   m_jobs.append(job);
