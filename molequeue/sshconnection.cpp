@@ -35,7 +35,27 @@ bool SshConnection::isValid() const
     return true;
 }
 
-bool SshConnection::execute(const QString &, QString &, int &)
+QString SshConnection::output() const
+{
+  return "";
+}
+
+int SshConnection::exitCode() const
+{
+  return -1;
+}
+
+bool SshConnection::waitForCompletion(int)
+{
+  return false;
+}
+
+bool SshConnection::isComplete() const
+{
+  return false;
+}
+
+bool SshConnection::execute(const QString &)
 {
   // Always fails in the base class - no valid transport.
   return false;

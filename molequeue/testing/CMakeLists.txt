@@ -23,6 +23,7 @@ set(MyTests
   queuemanager
   server
   serverconnection
+  sge
   )
 
 foreach(test ${MyTests})

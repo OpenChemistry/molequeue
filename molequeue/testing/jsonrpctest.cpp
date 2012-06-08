@@ -113,7 +113,7 @@ void JsonRpcTest::initTestCase()
 {
 //  m_rpc.setDebug(true);
 
-  Queue *queueTmp = new QueueSGE(&m_qmanager);
+  Queue *queueTmp = new QueueSge(&m_qmanager);
   m_qmanager.addQueue(queueTmp);
   queueTmp->setName("Some big ol' cluster");
   Program *progTmp = new Program (NULL);

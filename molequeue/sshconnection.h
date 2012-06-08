@@ -18,6 +18,7 @@
 #define SSHCONNECTION_H
 
 #include <QtCore/QObject>
+#include <QtCore/QVariant>
 
 namespace MoleQueue {
 
@@ -46,6 +47,33 @@ public:
 
   /** \return Whether the connection is valid, at a minimum need a host name. */
   bool isValid() const;
+
+  /** \return The merged stdout and stderr of the remote command. */
+  QString output() const;
+
+  /** \return The exit code returned from a remote command. */
+  int exitCode() const;
+
+  /**
+   * Wait until the request has been completed.
+   *
+   * @param msecs Timeout in milliseconds. Default is 30 seconds.
+   *
+   * @return True if request finished, false on timeout.
+   */
+  bool waitForCompletion(int msecs = 30000);
+
+  /** @return True if the request has completed. False otherwise. */
+  bool isComplete() const;
+
+  /** @return A reference to arbitrary data stored in the command. */
+  QVariant & data() {return m_data;}
+
+  /** @return A reference to arbitrary data stored in the command. */
+  const QVariant & data() const {return m_data;}
+
+  /** @param newData Arbitrary data to store in the command. */
+  void setData(const QVariant &newData) {m_data = newData;}
 
 public slots:
   /**
@@ -83,15 +111,26 @@ public slots:
 
   /**
    * Execute the supplied command on the remote host.
+   *
+   * \note The command is executed asynchronously, see requestComplete() or
+   * waitForCompletion() for results.
+   *
+   * \sa requestSent() requestCompleted() waitForCompeletion()
+   *
    * \param command The command to execute.
-   * \param output The output from the command (if any).
-   * \param exitCode The exit code from the command.
+   *
    * \return True on success, false on failure.
    */
-  virtual bool execute(const QString &command, QString &output, int &exitCode);
+  virtual bool execute(const QString &command);
 
   /**
    * Copy a local file to the remote system.
+   *
+   * \note The command is executed asynchronously, see requestComplete() or
+   * waitForCompletion() for results.
+   *
+   * \sa requestSent() requestCompleted() waitForCompeletion()
+   *
    * \param localFile The path of the local file.
    * \param remoteFile The path of the file on the remote system.
    * \return True on success, false on failure.
@@ -100,6 +139,12 @@ public slots:
 
   /**
    * Copy a remote file to the local system.
+   *
+   * \note The command is executed asynchronously, see requestComplete() or
+   * waitForCompletion() for results.
+   *
+   * \sa requestSent() requestCompleted() waitForCompeletion()
+   *
    * \param remoteFile The path of the file on the remote system.
    * \param localFile The path of the local file.
    * \return True on success, false on failure.
@@ -108,6 +153,12 @@ public slots:
 
   /**
    * Copy a local directory recursively to the remote system.
+   *
+   * \note The command is executed asynchronously, see requestComplete() or
+   * waitForCompletion() for results.
+   *
+   * \sa requestSent() requestCompleted() waitForCompeletion()
+   *
    * \param localDir The path of the local directory.
    * \param remoteDir The path of the directory on the remote system.
    * \return True on success, false on failure.
@@ -116,14 +167,32 @@ public slots:
 
   /**
    * Copy a remote directory recursively to the local system.
+   *
+   * \note The command is executed asynchronously, see requestComplete() or
+   * waitForCompletion() for results.
+   *
+   * \sa requestSent() requestCompleted() waitForCompeletion()
+   *
    * \param remoteDir The path of the directory on the remote system.
    * \param localFile The path of the local directory.
    * \return True on success, false on failure.
    */
   virtual bool copyDirFrom(const QString &remoteDir, const QString &localDir);
 
+signals:
+  /**
+   * Emitted when the request has been sent to the server.
+   */
+  void requestSent();
+
+  /**
+   * Emitted when the request has been sent and the reply (if any) received.
+   */
+  void requestComplete();
+
 protected:
   bool m_persistent;
+  QVariant m_data;
   QString m_userName;
   QString m_hostName;
   QString m_identityFile;

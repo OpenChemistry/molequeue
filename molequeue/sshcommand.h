@@ -44,6 +44,24 @@ public:
   /** \return The SCP command that will be run. */
   QString scpCommand() { return m_scpCommand; }
 
+  /** \return The merged stdout and stderr of the remote command */
+  QString output() const;
+
+  /** \return The exit code returned from the remote command. */
+  int exitCode() const;
+
+  /**
+   * Wait until the request has been completed.
+   *
+   * @param msecs Timeout in milliseconds. Default is 30 seconds.
+   *
+   * @return True if request finished, false on timeout.
+   */
+  bool waitForCompletion(int msecs = 30000);
+
+  /** @return True if the request has completed. False otherwise. */
+  bool isComplete() const;
+
 public slots:
   /**
    * Set the SSH command for the class. Defaults to 'ssh', and would execute
@@ -59,15 +77,25 @@ public slots:
 
   /**
    * Execute the supplied command on the remote host.
+   *
+   * \note The command is executed asynchronously, see requestComplete() or
+   * waitForCompletion() for results.
+   *
+   * \sa requestSent() requestCompleted() waitForCompeletion()
+   *
    * \param command The command to execute.
-   * \param output The output from the command (if any).
-   * \param exitCode The exit code from the command.
    * \return True on success, false on failure.
    */
-  virtual bool execute(const QString &command, QString &output, int &exitCode);
+  virtual bool execute(const QString &command);
 
   /**
    * Copy a local file to the remote system.
+   *
+   * \note The command is executed asynchronously, see requestComplete() or
+   * waitForCompletion() for results.
+   *
+   * \sa requestSent() requestCompleted() waitForCompeletion()
+   *
    * \param localFile The path of the local file.
    * \param remoteFile The path of the file on the remote system.
    * \return True on success, false on failure.
@@ -76,6 +104,12 @@ public slots:
 
   /**
    * Copy a remote file to the local system.
+   *
+   * \note The command is executed asynchronously, see requestComplete() or
+   * waitForCompletion() for results.
+   *
+   * \sa requestSent() requestCompleted() waitForCompeletion()
+   *
    * \param remoteFile The path of the file on the remote system.
    * \param localFile The path of the local file.
    * \return True on success, false on failure.
@@ -84,6 +118,12 @@ public slots:
 
   /**
    * Copy a local directory recursively to the remote system.
+   *
+   * \note The command is executed asynchronously, see requestComplete() or
+   * waitForCompletion() for results.
+   *
+   * \sa requestSent() requestCompleted() waitForCompeletion()
+   *
    * \param localDir The path of the local directory.
    * \param remoteDir The path of the directory on the remote system.
    * \return True on success, false on failure.
@@ -92,22 +132,50 @@ public slots:
 
   /**
    * Copy a remote directory recursively to the local system.
+   *
+   * \note The command is executed asynchronously, see requestComplete() or
+   * waitForCompletion() for results.
+   *
+   * \sa requestSent() requestCompleted() waitForCompeletion()
+   *
    * \param remoteDir The path of the directory on the remote system.
    * \param localFile The path of the local directory.
    * \return True on success, false on failure.
    */
   virtual bool copyDirFrom(const QString &remoteDir, const QString &localDir);
 
-protected:
-  QString m_sshCommand;
-  QString m_scpCommand;
-  TerminalProcess *m_process;
+protected slots:
 
-  /** Initialize the TerminalProcess object. */
+  /// Called when the TerminalProcess enters the Running state.
+  void processStarted();
+
+  /// Called when the TerminalProcess exits the Running state.
+  void processFinished();
+
+protected:
+
+  /// Send a request. This launches the process and connects the completion
+  /// signals
+  void sendRequest(const QString &command, const QStringList &args);
+
+  /// Initialize the TerminalProcess object.
   void initializeProcess();
 
-  /** Return the arguments to be passed to the SCP command. */
+  /// @return the arguments to be passed to the SSH command.
+  QStringList sshArgs();
+
+  /// @return the arguments to be passed to the SCP command.
   QStringList scpArgs();
+
+  /// @return the remote specification, e.g. "user@host" or "host"
+  QString remoteSpec();
+
+  QString m_sshCommand;
+  QString m_scpCommand;
+  QString m_output;
+  int m_exitCode;
+  TerminalProcess *m_process;
+  bool m_isComplete;
 };
 
 } // End namespace

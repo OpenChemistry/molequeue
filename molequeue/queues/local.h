@@ -55,17 +55,7 @@ public:
    * Returns a widget that can be used to configure the settings for the
    * queue.
    */
-  QWidget* settingsWidget() const;
-
-signals:
-  /**
-   * Emitted when a job changes state.
-   * @param moleQueueId MoleQueue id of job.
-   * @param newState New state of job.
-   */
-  void jobStateChanged(MoleQueue::IdType moleQueueId,
-                       MoleQueue::JobState newState);
-
+  QWidget* settingsWidget();
 
 public slots:
   virtual bool submitJob(const MoleQueue::Job *job);
@@ -93,9 +83,6 @@ protected slots:
 protected:
   /// The number of cores available.
   int cores() const;
-
-  /// Write the input files for @a job.
-  bool writeInputFiles(const Job *job);
 
   /// Insert the job into the queue.
   bool addJobToQueue(const Job *job);

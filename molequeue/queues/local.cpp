@@ -46,18 +46,6 @@ QueueLocal::QueueLocal(QueueManager *parentManager) :
   m_checkJobLimitTimerId(-1),
   m_cores(-1)
 {
-  qRegisterMetaType<Job*>("MoleQueue::Job*");
-  qRegisterMetaType<const Job*>("const MoleQueue::Job*");
-  qRegisterMetaType<IdType>("MoleQueue::IdType");
-  qRegisterMetaType<JobState>("MoleQueue::JobState");
-
-  if (m_server) {
-    if (JobManager *jobManager = m_server->jobManager()) {
-      connect(this, SIGNAL(jobStateChanged(MoleQueue::IdType,MoleQueue::JobState)),
-              jobManager, SLOT(updateJobState(MoleQueue::IdType,MoleQueue::JobState)));
-    }
-  }
-
 #ifdef WIN32
   m_launchTemplate = "@echo off\n\n$$programExecution$$\n";
   m_launchScriptName = "MoleQueueLauncher.bat";
@@ -112,7 +100,7 @@ void QueueLocal::writeSettings(QSettings &settings) const
   settings.endArray(); // "PendingJobs"
 }
 
-QWidget* QueueLocal::settingsWidget() const
+QWidget* QueueLocal::settingsWidget()
 {
   QWidget *widget = new QWidget;
 
@@ -128,7 +116,7 @@ QWidget* QueueLocal::settingsWidget() const
 
 bool QueueLocal::submitJob(const Job *job)
 {
-  emit jobStateChanged(job->moleQueueId(), MoleQueue::Accepted);
+  emit jobStateUpdate(job->moleQueueId(), MoleQueue::Accepted);
   this->prepareJobForSubmission(job);
   return true;
 }
@@ -153,7 +141,15 @@ void QueueLocal::processStarted()
   if (moleQueueId == 0)
     return;
 
-  emit jobStateChanged(moleQueueId, MoleQueue::RunningLocal);
+  IdType queueId;
+#ifdef WIN32
+  queueId = static_cast<IdType>(process->pid()->dwProcessId);
+#else // WIN32
+  queueId = static_cast<IdType>(process->pid());
+#endif // WIN32
+
+  emit queueIdUpdate(moleQueueId, queueId);
+  emit jobStateUpdate(moleQueueId, MoleQueue::RunningLocal);
 }
 
 void QueueLocal::processFinished(int exitCode, QProcess::ExitStatus exitStatus)
@@ -172,7 +168,7 @@ void QueueLocal::processFinished(int exitCode, QProcess::ExitStatus exitStatus)
   // Remove and delete QProcess from queue
   m_runningJobs.take(moleQueueId)->deleteLater();
 
-  emit jobStateChanged(moleQueueId, MoleQueue::Finished);
+  emit jobStateUpdate(moleQueueId, MoleQueue::Finished);
 }
 
 int QueueLocal::cores() const
@@ -183,91 +179,12 @@ int QueueLocal::cores() const
     return QThread::idealThreadCount() > 8 ? 8 : QThread::idealThreadCount();
 }
 
-bool QueueLocal::writeInputFiles(const Job *job)
-{
-  /// @todo Emit job error signals instead of qWarnings
-
-  QString workdir = job->localWorkingDirectory();
-
-  // Lookup queue and program.
-  if (!m_server) {
-    qWarning() << Q_FUNC_INFO << "Error: Cannot locate server.";
-    return false;
-  }
-  const Queue *queue = m_server->queueManager()->lookupQueue(job->queue());
-  if (!queue) {
-    qWarning() << Q_FUNC_INFO << "Error: Unknown queue:" << job->queue();
-    return false;
-  }
-  const Program *program = queue->lookupProgram(job->program());
-  if (!queue) {
-    qWarning() << Q_FUNC_INFO << "Error: Unknown program:" << job->program();
-    return false;
-  }
-
-  // Create directory
-  QDir dir (workdir);
-
-  /// @todo Should this be a failure?
-  if (dir.exists()) {
-    qWarning() << Q_FUNC_INFO << "Error: Directory already exists:"
-               << dir.absolutePath();
-    return false;
-  }
-  if (!dir.mkpath(dir.absolutePath())) {
-    qWarning() << Q_FUNC_INFO << "Error: Cannot create directory:"
-               << dir.absolutePath();
-    return false;
-  }
-
-  // Create input files
-  QString inputFilePath = dir.absoluteFilePath(program->inputFilename());
-  if (job->inputAsPath().isEmpty()) {
-    // Open a file and write the input string to it.
-    QFile inputFile (inputFilePath);
-    if (!inputFile.open(QFile::WriteOnly | QFile::Text)) {
-      qWarning() << Q_FUNC_INFO << "Error: Cannot open file for writing:"
-                 << inputFilePath;
-      return false;
-    }
-    inputFile.write(job->inputAsString().toLatin1());
-    inputFile.close();
-  }
-  else {
-    // Copy the input file to the input path
-    if (!QFile::copy(job->inputAsPath(), inputFilePath)) {
-      qWarning() << Q_FUNC_INFO << "Error: Cannot copy file"
-                 << job->inputAsPath() << "to" << inputFilePath;
-      return false;
-    }
-  }
-
-  // Do we need a driver script?
-  if (program->launchSyntax() == Program::CUSTOM) {
-    /// @todo Would be a batch file on windows.
-    QFile launcherFile (dir.absoluteFilePath(queue->launchScriptName()));
-    if (!launcherFile.open(QFile::WriteOnly | QFile::Text)) {
-      qWarning() << Q_FUNC_INFO << "Error: Cannot open file for writing:"
-                 << launcherFile.fileName();
-      return false;
-    }
-    launcherFile.write(program->launchTemplate().toLatin1());
-    if (!launcherFile.setPermissions(launcherFile.permissions()|QFile::ExeUser)) {
-      qWarning() << Q_FUNC_INFO << "Error: Cannot set permissions on file:"
-                 << launcherFile.fileName();
-      return false;
-    }
-    launcherFile.close();
-  }
-
-  return true;
-}
 
 bool QueueLocal::addJobToQueue(const Job *job)
 {
   m_pendingJobQueue.append(job->moleQueueId());
 
-  emit jobStateChanged(job->moleQueueId(), MoleQueue::LocalQueued);
+  emit jobStateUpdate(job->moleQueueId(), MoleQueue::LocalQueued);
 
   return true;
 }
@@ -378,6 +295,8 @@ void QueueLocal::timerEvent(QTimerEvent *theEvent)
     if (!this->checkJobLimit()) {
       qWarning() << Q_FUNC_INFO << "Error checking queue...";
     }
+    theEvent->accept();
+    return;
   }
 
   QObject::timerEvent(theEvent);

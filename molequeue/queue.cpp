@@ -16,16 +16,17 @@
 
 #include "queue.h"
 
+#include "job.h"
+#include "jobmanager.h"
 #include "program.h"
+#include "queues/local.h"
+#include "queues/remote.h"
 #include "queuemanager.h"
 #include "server.h"
 
 #include <QtCore/QDebug>
+#include <QtCore/QDir>
 #include <QtCore/QSettings>
-
-// typedef used to work around commas in macro
-typedef QMap<MoleQueue::IdType, MoleQueue::IdType> JobIdMapType;
-Q_DECLARE_METATYPE(JobIdMapType)
 
 namespace MoleQueue {
 
@@ -36,6 +37,18 @@ Queue::Queue(const QString &queueName, QueueManager *parentManager) :
 {
   qRegisterMetaType<Program*>("MoleQueue::Program*");
   qRegisterMetaType<const Program*>("const MoleQueue::Program*");
+  qRegisterMetaType<IdType>("MoleQueue::IdType");
+  qRegisterMetaType<JobState>("MoleQueue::JobState");
+
+  if (m_server) {
+    connect(this, SIGNAL(jobStateUpdate(MoleQueue::IdType,MoleQueue::JobState)),
+            m_server->jobManager(), SLOT(updateJobState(MoleQueue::IdType,
+                                                        MoleQueue::JobState)));
+    connect(this, SIGNAL(queueIdUpdate(MoleQueue::IdType,MoleQueue::IdType)),
+            m_server->jobManager(), SLOT(updateQueueId(MoleQueue::IdType,
+                                                       MoleQueue::IdType)));
+  }
+
 }
 
 Queue::~Queue()
@@ -50,7 +63,13 @@ void Queue::readSettings(QSettings &settings)
   m_launchTemplate = settings.value("launchTemplate").toString();
   m_launchScriptName = settings.value("launchScriptName").toString();
 
-  m_jobs = settings.value("jobIdMap").value<JobIdMapType>();
+  int jobIdMapSize = settings.beginReadArray("JobIdMap");
+  for (int i = 0; i < jobIdMapSize; ++i) {
+    settings.setArrayIndex(i);
+    m_jobs.insert(static_cast<IdType>(settings.value("queueId").toInt()),
+                  static_cast<IdType>(settings.value("moleQueueId").toInt()));
+  }
+  settings.endArray(); // JobIdMap
 
   QStringList progNames = settings.value("programs").toStringList();
 
@@ -78,10 +97,16 @@ void Queue::writeSettings(QSettings &settings) const
   settings.setValue("launchTemplate", m_launchTemplate);
   settings.setValue("launchScriptName", m_launchScriptName);
 
-  settings.setValue("jobIdMap", QVariant::fromValue(m_jobs));
+  QList<IdType> keys = m_jobs.keys();
+  settings.beginWriteArray("JobIdMap", keys.size());
+  for (int i = 0; i < keys.size(); ++i) {
+    settings.setArrayIndex(i);
+    settings.setValue("queueId", keys[i]);
+    settings.setValue("moleQueueId", m_jobs[keys[i]]);
+  }
+  settings.endArray(); // JobIdMap
 
   settings.setValue("programs", this->programNames());
-
   settings.beginGroup("Programs");
   foreach (const Program *prog, this->programs()) {
     settings.beginGroup(prog->name());
@@ -91,7 +116,7 @@ void Queue::writeSettings(QSettings &settings) const
   settings.endGroup(); // "Programs"
 }
 
-QWidget* Queue::settingsWidget() const
+QWidget* Queue::settingsWidget()
 {
   return NULL;
 }
@@ -125,6 +150,91 @@ bool Queue::removeProgram(const QString &programName)
   Program *program = m_programs.take(programName);
 
   emit programRemoved(programName, program);
+  return true;
+}
+
+bool Queue::writeInputFiles(const Job *job)
+{
+  /// @todo Emit job error signals instead of qWarnings
+
+  QString workdir = job->localWorkingDirectory();
+
+  // Lookup program.
+  if (!m_server) {
+    qWarning() << Q_FUNC_INFO << "Error: Cannot locate server.";
+    return false;
+  }
+  const Program *program = this->lookupProgram(job->program());
+  if (!program) {
+    qWarning() << Q_FUNC_INFO << "Error: Unknown program:" << job->program();
+    return false;
+  }
+
+  // Create directory
+  QDir dir (workdir);
+
+  /// @todo Should this be a failure?
+  if (dir.exists()) {
+    qWarning() << Q_FUNC_INFO << "Error: Directory already exists:"
+               << dir.absolutePath();
+    return false;
+  }
+  if (!dir.mkpath(dir.absolutePath())) {
+    qWarning() << Q_FUNC_INFO << "Error: Cannot create directory:"
+               << dir.absolutePath();
+    return false;
+  }
+
+  // Create input files
+  QString inputFilePath = dir.absoluteFilePath(program->inputFilename());
+  if (job->inputAsPath().isEmpty()) {
+    // Open a file and write the input string to it.
+    QFile inputFile (inputFilePath);
+    if (!inputFile.open(QFile::WriteOnly | QFile::Text)) {
+      qWarning() << Q_FUNC_INFO << "Error: Cannot open file for writing:"
+                 << inputFilePath;
+      return false;
+    }
+    inputFile.write(job->inputAsString().toLatin1());
+    inputFile.close();
+  }
+  else {
+    // Copy the input file to the input path
+    if (!QFile::copy(job->inputAsPath(), inputFilePath)) {
+      qWarning() << Q_FUNC_INFO << "Error: Cannot copy file"
+                 << job->inputAsPath() << "to" << inputFilePath;
+      return false;
+    }
+  }
+
+  // Do we need a driver script?
+  const QueueLocal *localQueue =
+      qobject_cast<const QueueLocal*>(program->queue());
+  const QueueRemote *remoteQueue =
+      qobject_cast<const QueueRemote*>(program->queue());
+  if ((localQueue && program->launchSyntax() == Program::CUSTOM) ||
+      remoteQueue) {
+    QFile launcherFile (dir.absoluteFilePath(this->launchScriptName()));
+    if (!launcherFile.open(QFile::WriteOnly | QFile::Text)) {
+      qWarning() << Q_FUNC_INFO << "Error: Cannot open file for writing:"
+                 << launcherFile.fileName();
+      return false;
+    }
+    QString launchString = program->launchTemplate();
+    if (launchString.contains("$$moleQueueId$$")) {
+      launchString.replace("$$moleQueueId$$",
+                           QString::number(job->moleQueueId()));
+    }
+    launcherFile.write(launchString.toLatin1());
+    if (!launcherFile.setPermissions(
+          launcherFile.permissions() | QFile::ExeUser)) {
+      qWarning() << Q_FUNC_INFO << "Error: Cannot set permissions on file:"
+                 << launcherFile.fileName();
+      return false;
+    }
+    launcherFile.close();
+  }
+
   return true;
 }
 

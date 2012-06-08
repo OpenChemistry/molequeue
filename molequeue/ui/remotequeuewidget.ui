@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>RemoteQueueWidget</class>
+ <widget class="QWidget" name="RemoteQueueWidget">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>958</width>
+    <height>480</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <layout class="QGridLayout" name="gridLayout">
+   <item row="0" column="0">
+    <widget class="QGroupBox" name="groupBox">
+     <property name="title">
+      <string>Queue configuration</string>
+     </property>
+     <layout class="QFormLayout" name="formLayout_2">
+      <property name="fieldGrowthPolicy">
+       <enum>QFormLayout::ExpandingFieldsGrow</enum>
+      </property>
+      <item row="0" column="0">
+       <widget class="QLabel" name="label_3">
+        <property name="text">
+         <string>Job &amp;submission command:</string>
+        </property>
+        <property name="buddy">
+         <cstring>edit_submissionCommand</cstring>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QLineEdit" name="edit_submissionCommand">
+        <property name="minimumSize">
+         <size>
+          <width>150</width>
+          <height>0</height>
+         </size>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="label_8">
+        <property name="text">
+         <string>Request &amp;queue command:</string>
+        </property>
+        <property name="buddy">
+         <cstring>edit_requestQueueCommand</cstring>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QLineEdit" name="edit_requestQueueCommand"/>
+      </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="label_7">
+        <property name="text">
+         <string>Launch &amp;script name:</string>
+        </property>
+        <property name="buddy">
+         <cstring>edit_launchScriptName</cstring>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="QLineEdit" name="edit_launchScriptName"/>
+      </item>
+      <item row="3" column="0">
+       <widget class="QLabel" name="label_5">
+        <property name="text">
+         <string>Remote &amp;working directory:</string>
+        </property>
+        <property name="buddy">
+         <cstring>edit_workingDirectoryBase</cstring>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="1">
+       <widget class="QLineEdit" name="edit_workingDirectoryBase"/>
+      </item>
+      <item row="4" column="0" colspan="2">
+       <widget class="QGroupBox" name="groupBox_3">
+        <property name="title">
+         <string>SSH connection settings</string>
+        </property>
+        <layout class="QFormLayout" name="formLayout">
+         <item row="0" column="0">
+          <widget class="QLabel" name="label_4">
+           <property name="text">
+            <string>&amp;Hostname:</string>
+           </property>
+           <property name="buddy">
+            <cstring>edit_hostName</cstring>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <widget class="QLineEdit" name="edit_hostName"/>
+         </item>
+         <item row="1" column="0">
+          <widget class="QLabel" name="label_6">
+           <property name="text">
+            <string>&amp;User:</string>
+           </property>
+           <property name="buddy">
+            <cstring>edit_userName</cstring>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QLineEdit" name="edit_userName"/>
+         </item>
+         <item row="2" column="0">
+          <widget class="QLabel" name="label_9">
+           <property name="text">
+            <string>&amp;Port:</string>
+           </property>
+           <property name="buddy">
+            <cstring>spin_sshPort</cstring>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="1">
+          <widget class="QSpinBox" name="spin_sshPort"/>
+         </item>
+        </layout>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item row="0" column="1">
+    <widget class="QGroupBox" name="groupBox_2">
+     <property name="title">
+      <string>Launcher template</string>
+     </property>
+     <layout class="QGridLayout" name="gridLayout_3">
+      <item row="1" column="0" colspan="2">
+       <widget class="QLabel" name="label_2">
+        <property name="text">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; color:#ff0000;&quot;&gt;$$programExecution$$&lt;/span&gt; will be replaced with program execution details.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0" colspan="2">
+       <widget class="QPlainTextEdit" name="text_launchTemplate">
+        <property name="minimumSize">
+         <size>
+          <width>600</width>
+          <height>400</height>
+         </size>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0" colspan="2">
+       <widget class="QLabel" name="label">
+        <property name="text">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; color:#ff0000;&quot;&gt;$$remoteWorkingDir$$&lt;/span&gt; will be replaced with the job's remote working directory.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <tabstops>
+  <tabstop>edit_submissionCommand</tabstop>
+  <tabstop>edit_requestQueueCommand</tabstop>
+  <tabstop>edit_launchScriptName</tabstop>
+  <tabstop>edit_workingDirectoryBase</tabstop>
+  <tabstop>edit_hostName</tabstop>
+  <tabstop>edit_userName</tabstop>
+  <tabstop>spin_sshPort</tabstop>
+  <tabstop>text_launchTemplate</tabstop>
+ </tabstops>
+ <resources/>
+ <connections/>
+</ui>
