@@ -49,7 +49,7 @@ AbstractRpcInterface::AbstractRpcInterface(QObject *parentObject) :
   m_dataStream->setVersion(QDataStream::Qt_4_7);
 
   // Randomize the packet counter's starting value.
-  qsrand(QDateTime::currentMSecsSinceEpoch());
+  qsrand(static_cast<uint>(QDateTime::currentMSecsSinceEpoch()));
   m_packetCounter = static_cast<IdType>(qrand());
 
   connect(m_jsonrpc, SIGNAL(invalidPacketReceived(Json::Value,Json::Value)),
