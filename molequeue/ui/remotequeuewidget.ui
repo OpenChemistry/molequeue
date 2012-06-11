@@ -125,10 +125,58 @@
           </widget>
          </item>
          <item row="2" column="1">
-          <widget class="QSpinBox" name="spin_sshPort"/>
+          <layout class="QHBoxLayout" name="horizontalLayout">
+           <item>
+            <widget class="QSpinBox" name="spin_sshPort"/>
+           </item>
+           <item>
+            <spacer name="horizontalSpacer">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item>
+            <widget class="QPushButton" name="push_testConnection">
+             <property name="text">
+              <string>Test Connection...</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
          </item>
         </layout>
        </widget>
+      </item>
+      <item row="6" column="0" colspan="2">
+       <layout class="QHBoxLayout" name="horizontalLayout_3">
+        <item>
+         <spacer name="horizontalSpacer_2">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
+         <widget class="QPushButton" name="push_sleepTest">
+          <property name="text">
+           <string>Submit &quot;sleep&quot; (testing)</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </item>
      </layout>
     </widget>
@@ -175,7 +223,6 @@
   <tabstop>edit_workingDirectoryBase</tabstop>
   <tabstop>edit_hostName</tabstop>
   <tabstop>edit_userName</tabstop>
-  <tabstop>spin_sshPort</tabstop>
   <tabstop>text_launchTemplate</tabstop>
  </tabstops>
  <resources/>

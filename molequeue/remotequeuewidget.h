@@ -45,6 +45,10 @@ public:
 protected slots:
   void updateGuiFromQueue();
 
+  void testConnection();
+
+  void sleepTest();
+
   void updateSubmissionCommand(const QString &command);
   void updateRequestQueueCommand(const QString &command);
   void updateLaunchScriptName(const QString &name);

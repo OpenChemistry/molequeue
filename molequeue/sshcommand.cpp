@@ -49,7 +49,16 @@ int SshCommand::exitCode() const
 
 bool SshCommand::waitForCompletion(int msecs)
 {
-  return m_process ? m_process->waitForFinished(msecs) : false;
+  if (!m_process)
+    return false;
+
+  if (m_process->state() == QProcess::Starting)
+    m_process->waitForStarted(msecs);
+
+  if (m_isComplete)
+    return true;
+
+  return m_process->waitForFinished(msecs);
 }
 
 bool SshCommand::isComplete() const
@@ -142,7 +151,7 @@ void SshCommand::processFinished()
   m_exitCode = m_process->exitCode();
   m_process->close();
 
-  qDebug() << "SshCommand output:\n" << m_output;
+  qDebug() << "SshCommand exit:" << m_exitCode << "output:\n" << m_output;
 
   m_isComplete = true;
   emit requestComplete();

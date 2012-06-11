@@ -186,24 +186,26 @@ bool Queue::writeInputFiles(const Job *job)
   }
 
   // Create input files
-  QString inputFilePath = dir.absoluteFilePath(program->inputFilename());
-  if (job->inputAsPath().isEmpty()) {
-    // Open a file and write the input string to it.
-    QFile inputFile (inputFilePath);
-    if (!inputFile.open(QFile::WriteOnly | QFile::Text)) {
-      qWarning() << Q_FUNC_INFO << "Error: Cannot open file for writing:"
-                 << inputFilePath;
-      return false;
+  if (!program->inputFilename().isEmpty()) {
+    QString inputFilePath = dir.absoluteFilePath(program->inputFilename());
+    if (job->inputAsPath().isEmpty()) {
+      // Open a file and write the input string to it.
+      QFile inputFile (inputFilePath);
+      if (!inputFile.open(QFile::WriteOnly | QFile::Text)) {
+        qWarning() << Q_FUNC_INFO << "Error: Cannot open file for writing:"
+                   << inputFilePath;
+        return false;
+      }
+      inputFile.write(job->inputAsString().toLatin1());
+      inputFile.close();
     }
-    inputFile.write(job->inputAsString().toLatin1());
-    inputFile.close();
-  }
-  else {
-    // Copy the input file to the input path
-    if (!QFile::copy(job->inputAsPath(), inputFilePath)) {
-      qWarning() << Q_FUNC_INFO << "Error: Cannot copy file"
-                 << job->inputAsPath() << "to" << inputFilePath;
-      return false;
+    else {
+      // Copy the input file to the input path
+      if (!QFile::copy(job->inputAsPath(), inputFilePath)) {
+        qWarning() << Q_FUNC_INFO << "Error: Cannot copy file"
+                   << job->inputAsPath() << "to" << inputFilePath;
+        return false;
+      }
     }
   }
 

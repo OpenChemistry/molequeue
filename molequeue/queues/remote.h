@@ -117,6 +117,14 @@ public slots:
   virtual bool submitJob(const MoleQueue::Job *job);
 
 protected slots:
+  virtual void submitPendingJobs();
+
+  /// Main entry point into the job submission pipeline
+  virtual void beginJobSubmission(const MoleQueue::Job *job);
+
+  virtual void createRemoteDirectory(const MoleQueue::Job *job);
+  virtual void remoteDirectoryCreated();
+
   virtual void copyInputFilesToHost(const MoleQueue::Job *job);
   virtual void inputFilesCopied();
   virtual void submitJobToRemoteQueue(const MoleQueue::Job *job);
@@ -158,6 +166,9 @@ protected:
   int m_sshPort;
   int m_checkQueueTimerId;
   bool m_isCheckingQueue;
+  /// MoleQueue ids of jobs that have been accepted but not submitted.
+  QList<IdType> m_pendingSubmission;
+  int m_checkForPendingJobsTimerId;
 
   QString m_submissionCommand;
   QString m_requestQueueCommand;
