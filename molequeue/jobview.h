@@ -38,6 +38,7 @@ public:
 protected slots:
   void removeSelectedRows();
   void openInAvogadro(const MoleQueue::Job *job = NULL);
+  void openInFileBrowser(const MoleQueue::Job *job = NULL);
 
 };
 
