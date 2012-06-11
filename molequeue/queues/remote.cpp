@@ -33,10 +33,14 @@ namespace MoleQueue {
 QueueRemote::QueueRemote(const QString &queueName, QueueManager *parentObject)
   : Queue(queueName, parentObject),
     m_sshPort(22),
-    m_isCheckingQueue(false)
+    m_isCheckingQueue(false),
+    m_checkForPendingJobsTimerId(-1)
 {
   // Check remote queue every 60 seconds
   m_checkQueueTimerId = this->startTimer(60000);
+
+  // Check for jobs to submit every 5 seconds
+  m_checkForPendingJobsTimerId = this->startTimer(5000);
 }
 
 QueueRemote::~QueueRemote()
@@ -62,8 +66,8 @@ void QueueRemote::writeSettings(QSettings &settings) const
   settings.setValue("workingDirectoryBase", m_workingDirectoryBase);
   settings.setValue("submissionCommand", m_submissionCommand);
   settings.setValue("requestQueueCommand", m_requestQueueCommand);
-  settings.setValue("hostName", m_userName);
-  settings.setValue("userName", m_hostName);
+  settings.setValue("hostName", m_hostName);
+  settings.setValue("userName", m_userName);
   settings.setValue("sshPort",  m_sshPort);
 }
 
@@ -75,9 +79,76 @@ QWidget* QueueRemote::settingsWidget()
 
 bool QueueRemote::submitJob(const Job *job)
 {
-  /// @todo This needs to be rewritten
-  Q_UNUSED(job);
-  return false;
+  m_pendingSubmission.append(job->moleQueueId());
+
+  emit jobStateUpdate(job->moleQueueId(), MoleQueue::Accepted);
+
+  return true;
+}
+
+void QueueRemote::submitPendingJobs()
+{
+  if (m_pendingSubmission.isEmpty())
+    return;
+
+  // lookup job manager:
+  JobManager *jobManager = NULL;
+  if (m_server)
+    jobManager = m_server->jobManager();
+
+  if (!jobManager) {
+    qWarning() << Q_FUNC_INFO << "Cannot locate jobmanager.";
+    return;
+  }
+
+  foreach (const IdType moleQueueId, m_pendingSubmission) {
+    const Job *job = jobManager->lookupMoleQueueId(moleQueueId);
+    // Kick off the submission process...
+    this->beginJobSubmission(job);
+  }
+
+  m_pendingSubmission.clear();
+}
+
+void QueueRemote::beginJobSubmission(const Job *job)
+{
+  this->writeInputFiles(job);
+
+  this->createRemoteDirectory(job);
+}
+
+void QueueRemote::createRemoteDirectory(const Job *job)
+{
+  // Note that this is just the working directory base -- the job folder is
+  // created by scp.
+  QString remoteDir = QString("%1").arg(m_workingDirectoryBase);
+
+  SshConnection *conn = this->newSshConnection();
+  conn->setData(QVariant::fromValue(job));
+  connect(conn, SIGNAL(requestComplete()), this, SLOT(remoteDirectoryCreated()));
+
+  conn->execute(QString("mkdir -p %1").arg(remoteDir));
+}
+
+void QueueRemote::remoteDirectoryCreated()
+{
+  SshConnection *conn = qobject_cast<SshConnection*>(this->sender());
+  if (!conn) {
+    qWarning() << Q_FUNC_INFO << "sender is not an SshConnection";
+    return;
+  }
+
+  const Job *job = conn->data().value<const Job*>();
+
+  if (!job) {
+    qWarning() << Q_FUNC_INFO << "sender does not have an associated job!";
+    return;
+  }
+
+  /// @todo Check for errors
+  conn->deleteLater();
+
+  this->copyInputFilesToHost(job);
 }
 
 void QueueRemote::copyInputFilesToHost(const Job *job)
@@ -103,13 +174,13 @@ void QueueRemote::inputFilesCopied()
 
   const Job *job = conn->data().value<const Job*>();
 
+  /// @todo Check for errors
+  conn->deleteLater();
+
   if (!job) {
     qWarning() << Q_FUNC_INFO << "sender does not have an associated job!";
     return;
   }
-
-  /// @todo Check for errors
-  conn->deleteLater();
 
   this->submitJobToRemoteQueue(job);
 }
@@ -138,17 +209,17 @@ void QueueRemote::jobSubmittedToRemoteQueue()
     return;
   }
 
+  /// @todo Check for errors
+  IdType queueId;
+  this->parseQueueId(conn->output(), &queueId);
   const Job *job = conn->data().value<const Job*>();
+
+  conn->deleteLater();
 
   if (!job) {
     qWarning() << Q_FUNC_INFO << "sender does not have an associated job!";
     return;
   }
-
-  /// @todo Check for errors
-  IdType queueId;
-  this->parseQueueId(conn->output(), &queueId);
-  conn->deleteLater();
 
   emit jobStateUpdate(job->moleQueueId(), MoleQueue::Submitted);
   emit queueIdUpdate(job->moleQueueId(), queueId);
@@ -187,9 +258,10 @@ void QueueRemote::handleQueueUpdate()
     return;
   }
 
-  /// @todo handle error
-
   QStringList output = conn->output().split("\n", QString::SkipEmptyParts);
+
+  /// @todo handle error
+  conn->deleteLater();
 
   // Get list of submitted queue ids so that we detect when jobs have left
   // the queue.
@@ -252,6 +324,8 @@ void QueueRemote::finishedJobOutputCopied()
 
   const Job *job = conn->data().value<const Job*>();
 
+  conn->deleteLater();
+
   if (!job) {
     qWarning() << Q_FUNC_INFO << "sender does not have an associated job!";
     return;
@@ -278,6 +352,11 @@ void QueueRemote::timerEvent(QTimerEvent *theEvent)
     theEvent->accept();
     if (m_jobs.size())
       this->requestQueueUpdate();
+    return;
+  }
+  else if (theEvent->timerId() == m_checkForPendingJobsTimerId) {
+    theEvent->accept();
+    this->submitPendingJobs();
     return;
   }
 

@@ -46,13 +46,13 @@ public:
   int portNumber() const { return m_portNumber; }
 
   /** \return Whether the connection is valid, at a minimum need a host name. */
-  bool isValid() const;
+  virtual bool isValid() const;
 
   /** \return The merged stdout and stderr of the remote command. */
-  QString output() const;
+  virtual QString output() const;
 
   /** \return The exit code returned from a remote command. */
-  int exitCode() const;
+  virtual int exitCode() const;
 
   /**
    * Wait until the request has been completed.
@@ -61,10 +61,10 @@ public:
    *
    * @return True if request finished, false on timeout.
    */
-  bool waitForCompletion(int msecs = 30000);
+  virtual bool waitForCompletion(int msecs = 30000);
 
   /** @return True if the request has completed. False otherwise. */
-  bool isComplete() const;
+  virtual bool isComplete() const;
 
   /** @return A reference to arbitrary data stored in the command. */
   QVariant & data() {return m_data;}

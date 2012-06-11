@@ -103,7 +103,8 @@ QString Program::launchTemplate() const
   if (m_launchSyntax == CUSTOM)
     return m_customLaunchTemplate;
 
-  QString result = m_queue->launchTemplate();
+  QString result = m_queue ? m_queue->launchTemplate()
+                           : QString("$$programExecution$$");
   if (result.contains("$$programExecution$$")) {
     const QString progExec = Program::generateFormattedExecutionString(
           m_executable, m_arguments, m_inputFilename, m_outputFilename,
