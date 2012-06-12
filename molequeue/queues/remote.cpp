@@ -16,6 +16,7 @@
 
 #include "remote.h"
 
+#include "../error.h"
 #include "../job.h"
 #include "../jobmanager.h"
 #include "../program.h"
@@ -97,7 +98,10 @@ void QueueRemote::submitPendingJobs()
     jobManager = m_server->jobManager();
 
   if (!jobManager) {
-    qWarning() << Q_FUNC_INFO << "Cannot locate jobmanager.";
+    Error err (tr("Internal error: %1\n%2").arg(Q_FUNC_INFO)
+               .arg("Cannot locate server JobManager!"),
+               Error::MiscError, this);
+    emit errorOccurred(err);
     return;
   }
 
@@ -112,7 +116,8 @@ void QueueRemote::submitPendingJobs()
 
 void QueueRemote::beginJobSubmission(const Job *job)
 {
-  this->writeInputFiles(job);
+  if (!this->writeInputFiles(job))
+    return;
 
   this->createRemoteDirectory(job);
 }
@@ -134,14 +139,19 @@ void QueueRemote::remoteDirectoryCreated()
 {
   SshConnection *conn = qobject_cast<SshConnection*>(this->sender());
   if (!conn) {
-    qWarning() << Q_FUNC_INFO << "sender is not an SshConnection";
+    Error err (tr("Internal error: %1\n%2").arg(Q_FUNC_INFO)
+               .arg("Sender is not an SshConnection!"), Error::MiscError, this);
+    emit errorOccurred(err);
     return;
   }
 
   const Job *job = conn->data().value<const Job*>();
 
   if (!job) {
-    qWarning() << Q_FUNC_INFO << "sender does not have an associated job!";
+    Error err (tr("Internal error: %1\n%2").arg(Q_FUNC_INFO)
+               .arg("Sender does not have an associated job!"),
+               Error::MiscError, this);
+    emit errorOccurred(err);
     return;
   }
 
@@ -168,7 +178,9 @@ void QueueRemote::inputFilesCopied()
 {
   SshConnection *conn = qobject_cast<SshConnection*>(this->sender());
   if (!conn) {
-    qWarning() << Q_FUNC_INFO << "sender is not an SshConnection";
+    Error err (tr("Internal error: %1\n%2").arg(Q_FUNC_INFO)
+               .arg("Sender is not an SshConnection!"), Error::MiscError, this);
+    emit errorOccurred(err);
     return;
   }
 
@@ -178,7 +190,10 @@ void QueueRemote::inputFilesCopied()
   conn->deleteLater();
 
   if (!job) {
-    qWarning() << Q_FUNC_INFO << "sender does not have an associated job!";
+    Error err (tr("Internal error: %1\n%2").arg(Q_FUNC_INFO)
+               .arg("Sender does not have an associated job!"),
+               Error::MiscError, this);
+    emit errorOccurred(err);
     return;
   }
 
@@ -205,7 +220,9 @@ void QueueRemote::jobSubmittedToRemoteQueue()
 {
   SshConnection *conn = qobject_cast<SshConnection*>(this->sender());
   if (!conn) {
-    qWarning() << Q_FUNC_INFO << "sender is not an SshConnection";
+    Error err (tr("Internal error: %1\n%2").arg(Q_FUNC_INFO)
+               .arg("Sender is not an SshConnection!"), Error::MiscError, this);
+    emit errorOccurred(err);
     return;
   }
 
@@ -217,7 +234,10 @@ void QueueRemote::jobSubmittedToRemoteQueue()
   conn->deleteLater();
 
   if (!job) {
-    qWarning() << Q_FUNC_INFO << "sender does not have an associated job!";
+    Error err (tr("Internal error: %1\n%2").arg(Q_FUNC_INFO)
+               .arg("Sender does not have an associated job!"),
+               Error::MiscError, this);
+    emit errorOccurred(err);
     return;
   }
 
@@ -258,7 +278,9 @@ void QueueRemote::handleQueueUpdate()
 {
   SshConnection *conn = qobject_cast<SshConnection*>(this->sender());
   if (!conn) {
-    qWarning() << Q_FUNC_INFO << "sender is not an SshConnection";
+    Error err (tr("Internal error: %1\n%2").arg(Q_FUNC_INFO)
+               .arg("Sender is not an SshConnection!"), Error::MiscError, this);
+    emit errorOccurred(err);
     return;
   }
 
@@ -322,7 +344,9 @@ void QueueRemote::finishedJobOutputCopied()
 {
   SshConnection *conn = qobject_cast<SshConnection*>(this->sender());
   if (!conn) {
-    qWarning() << Q_FUNC_INFO << "sender is not an SshConnection";
+    Error err (tr("Internal error: %1\n%2").arg(Q_FUNC_INFO)
+               .arg("Sender is not an SshConnection!"), Error::MiscError, this);
+    emit errorOccurred(err);
     return;
   }
 
@@ -331,7 +355,10 @@ void QueueRemote::finishedJobOutputCopied()
   conn->deleteLater();
 
   if (!job) {
-    qWarning() << Q_FUNC_INFO << "sender does not have an associated job!";
+    Error err (tr("Internal error: %1\n%2").arg(Q_FUNC_INFO)
+               .arg("Sender does not have an associated job!"),
+               Error::MiscError, this);
+    emit errorOccurred(err);
     return;
   }
 

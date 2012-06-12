@@ -52,6 +52,10 @@ public slots:
   void readSettings();
   void writeSettings();
 
+  void trayIconActivated(QSystemTrayIcon::ActivationReason);
+
+  void notifyUserOfError(const QString &title, const QString &message);
+
 protected slots:
   void showQueueManager();
   void handleServerConnectionError(QAbstractSocket::SocketError,
