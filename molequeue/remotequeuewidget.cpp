@@ -35,7 +35,8 @@ RemoteQueueWidget::RemoteQueueWidget(QueueRemote *queue,
                                      QWidget *parentObject) :
   QWidget(parentObject),
   ui(new Ui::RemoteQueueWidget),
-  m_queue(queue)
+  m_queue(queue),
+  m_client(NULL)
 {
   ui->setupUi(this);
 
@@ -67,6 +68,7 @@ RemoteQueueWidget::RemoteQueueWidget(QueueRemote *queue,
 RemoteQueueWidget::~RemoteQueueWidget()
 {
   delete ui;
+  delete m_client;
 }
 
 void RemoteQueueWidget::updateGuiFromQueue()
@@ -178,14 +180,17 @@ void RemoteQueueWidget::sleepTest()
     m_queue->addProgram(sleepProgram);
   }
 
-  Client client;
-  Job *sleepJob = client.newJobRequest();
+  if (!m_client) {
+    m_client = new Client (this);
+    m_client->connectToServer();
+  }
+
+  Job *sleepJob = m_client->newJobRequest();
   sleepJob->setQueue(m_queue->name());
   sleepJob->setProgram(sleepProgram->name());
   sleepJob->setDescription("sleep 30 (test)");
 
-  client.connectToServer();
-  client.submitJobRequest(sleepJob);
+  m_client->submitJobRequest(sleepJob);
 }
 
 void RemoteQueueWidget::updateSubmissionCommand(const QString &command)

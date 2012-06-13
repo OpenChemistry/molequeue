@@ -12,6 +12,7 @@ set(mq_srcs
   abstractrpcinterface.cpp
   addqueuedialog.cpp
   client.cpp
+  error.cpp
   job.cpp
   jobitemmodel.cpp
   jobmanager.cpp
@@ -20,6 +21,7 @@ set(mq_srcs
   jsonrpc.cpp
   mainwindow.cpp
   molequeueglobal.h
+  object.cpp
   program.cpp
   programconfiguredialog.cpp
   queue.cpp
@@ -49,6 +51,7 @@ set(mq_moc
   jobview.h
   jsonrpc.h
   mainwindow.h
+  object.h
   program.h
   programconfiguredialog.h
   queue.h

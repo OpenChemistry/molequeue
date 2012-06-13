@@ -25,6 +25,7 @@ class RemoteQueueWidget;
 
 namespace MoleQueue
 {
+class Client;
 class QueueRemote;
 
 /**
@@ -61,6 +62,7 @@ protected slots:
 private:
   Ui::RemoteQueueWidget *ui;
   QueueRemote *m_queue;
+  Client *m_client; // Used for submitting test jobs.
 };
 
 } // end namespace MoleQueue

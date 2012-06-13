@@ -16,6 +16,7 @@
 
 #include "local.h"
 
+#include "../error.h"
 #include "../job.h"
 #include "../jobmanager.h"
 #include "../program.h"
@@ -212,23 +213,25 @@ bool QueueLocal::startJob(IdType moleQueueId)
 {
   // Get pointers to job, server, etc
   if (!m_server) {
-    qWarning() << Q_FUNC_INFO << "Error: Cannot locate server.";
+    Error err (tr("Queue '%1' cannot locate Server instance!")
+               .arg(m_name), Error::QueueError, this, moleQueueId);
+    emit errorOccurred(err);
     return false;
   }
   const Job *job = m_server->jobManager()->lookupMoleQueueId(moleQueueId);
   if (!job) {
-    qWarning() << Q_FUNC_INFO << "Error: Unrecognized MoleQueue id:"
-               << moleQueueId;
+    Error err (tr("Queue '%1' cannot locate Job with MoleQueue id %2.")
+               .arg(m_name).arg(moleQueueId),
+               Error::QueueError, this, moleQueueId);
+    emit errorOccurred(err);
     return false;
   }
-  const Queue *queue = m_server->queueManager()->lookupQueue(job->queue());
-  if (!queue) {
-    qWarning() << Q_FUNC_INFO << "Error: Unknown queue:" << job->queue();
-    return false;
-  }
-  const Program *program = queue->lookupProgram(job->program());
-  if (!queue) {
-    qWarning() << Q_FUNC_INFO << "Error: Unknown program:" << job->program();
+  const Program *program = this->lookupProgram(job->program());
+  if (!program) {
+    Error err (tr("Queue '%1' cannot locate Program '%2'.")
+               .arg(m_name).arg(job->program()),
+               Error::QueueError, this, moleQueueId);
+    emit errorOccurred(err);
     return false;
   }
 
@@ -272,8 +275,10 @@ bool QueueLocal::startJob(IdType moleQueueId)
     break;
   case Program::SYNTAX_COUNT:
   default:
-    qWarning() << Q_FUNC_INFO << "Error: Unknown launch syntax:"
-               << program->launchSyntax();
+    Error err (tr("Unknown launcher syntax for program %1: %2.")
+               .arg(job->program()).arg(program->launchSyntax()),
+               Error::ProgramError, this, moleQueueId);
+    emit errorOccurred(err);
     return false;
   }
 

@@ -17,7 +17,7 @@
 #ifndef QUEUEMANAGER_H
 #define QUEUEMANAGER_H
 
-#include <QtCore/QObject>
+#include "object.h"
 
 #include "molequeueglobal.h"
 
@@ -30,7 +30,7 @@ namespace MoleQueue
 class Queue;
 class Server;
 
-class QueueManager : public QObject
+class QueueManager : public Object
 {
   Q_OBJECT
 
