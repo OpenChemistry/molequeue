@@ -17,7 +17,7 @@
 #ifndef SERVER_H
 #define SERVER_H
 
-#include <QtCore/QObject>
+#include "object.h"
 
 #include "molequeueglobal.h"
 
@@ -43,7 +43,7 @@ class ServerConnection;
  * a ServerConnection instance for each.
  * @author David C. Lonie
  */
-class Server : public QObject
+class Server : public Object
 {
   Q_OBJECT
 public:
@@ -100,13 +100,21 @@ signals:
   void newConnection(MoleQueue::ServerConnection *conn);
 
   /**
-   * Emitted when an error occurs.
+   * Emitted when an error starting the transport server occurs.
    *
    * @param error
    * @param message
    */
   void connectionError(QAbstractSocket::SocketError error,
                        const QString &message);
+
+  /**
+   * Emitted when a non-critical error occurs that the user should be notified
+   * of.
+   * @param title Title of the error message
+   * @param message Details of the error.
+   */
+  void errorNotification(const QString &title, const QString &message);
 
 public slots:
 
@@ -140,6 +148,12 @@ public slots:
   void dispatchJobStateChange(const MoleQueue::Job *job,
                               MoleQueue::JobState oldState,
                               MoleQueue::JobState newState);
+
+  /**
+   * Reimplemented from Object. Emits errorNotification.
+   * @param err Error object describing the error.
+   */
+  virtual void handleError(const Error &err);
 
 protected slots:
 
