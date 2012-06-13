@@ -194,6 +194,8 @@ void SshCommand::initializeProcess()
 QStringList SshCommand::sshArgs()
 {
   QStringList args;
+  // Suppress login banners
+  args << "-q";
   if (!m_identityFile.isEmpty())
     args << "-i" << m_identityFile;
   if (m_portNumber >= 0)
@@ -204,6 +206,8 @@ QStringList SshCommand::sshArgs()
 QStringList SshCommand::scpArgs()
 {
   QStringList args;
+  // Suppress login banners
+  args << "-q";
   if (!m_identityFile.isEmpty())
     args << "-i" << m_identityFile;
   if (m_portNumber >= 0)
