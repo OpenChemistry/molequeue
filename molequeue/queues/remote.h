@@ -135,6 +135,9 @@ protected slots:
   virtual void copyFinishedJobOutputFromHost(MoleQueue::IdType queueId);
   virtual void finishedJobOutputCopied();
 
+  virtual void cleanRemoteDirectory(const MoleQueue::Job *job);
+  virtual void remoteDirectoryCleaned();
+
 protected:
   SshConnection *newSshConnection();
 

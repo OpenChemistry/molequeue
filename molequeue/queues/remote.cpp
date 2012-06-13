@@ -457,9 +457,77 @@ void QueueRemote::finishedJobOutputCopied()
     return;
   }
 
-  /// @todo clean remote directory, etc
+  if (job->cleanRemoteFiles())
+    this->cleanRemoteDirectory(job);
 
   emit jobStateUpdate(job->moleQueueId(), MoleQueue::Finished);
+}
+
+void QueueRemote::cleanRemoteDirectory(const Job *job)
+{
+  QString remoteDir =
+      QString("%1/%2").arg(m_workingDirectoryBase).arg(job->moleQueueId());
+
+  // Check that the remoteDir is not just "/" due to another bug.
+  if (remoteDir.simplified() == "/") {
+    Error err (tr("Refusing to clean remote directory %1 -- an internal error "
+                  "has occurred.").arg(remoteDir), Error::MiscError, this,
+               job->moleQueueId());
+    emit errorOccurred(err);
+    return;
+  }
+
+  QString command = QString ("rm -rf %1").arg(remoteDir);
+
+  SshConnection *conn = this->newSshConnection();
+  conn->setData(QVariant::fromValue(job));
+  connect(conn, SIGNAL(requestComplete()),
+          this, SLOT(remoteDirectoryCleaned()));
+
+  if (!conn->execute(command)) {
+    Error err (tr("Could not initialize ssh resources. Attempting to use\n"
+                  "user= '%1'\nhost = '%2'\nport = '%3'"), Error::NetworkError,
+               this, job->moleQueueId());
+    emit errorOccurred(err);
+    conn->deleteLater();
+    return;
+  }
+}
+
+void QueueRemote::remoteDirectoryCleaned()
+{
+  SshConnection *conn = qobject_cast<SshConnection*>(this->sender());
+  if (!conn) {
+    Error err (tr("Internal error: %1\n%2").arg(Q_FUNC_INFO)
+               .arg("Sender is not an SshConnection!"), Error::MiscError, this);
+    emit errorOccurred(err);
+    return;
+  }
+  conn->deleteLater();
+
+  const Job *job = conn->data().value<const Job*>();
+
+  if (!job) {
+    Error err (tr("Internal error: %1\n%2").arg(Q_FUNC_INFO)
+               .arg("Sender does not have an associated job!"),
+               Error::MiscError, this);
+    emit errorOccurred(err);
+    return;
+  }
+
+  if (conn->exitCode() != 0) {
+    Error err (tr("Error clearing remote directory '%1@%2:%3/%4'.\n"
+                  "Exit code (%5) %6")
+               .arg(conn->userName()).arg(conn->hostName())
+               .arg(m_workingDirectoryBase).arg(job->moleQueueId())
+               .arg(conn->exitCode()).arg(conn->output()), Error::NetworkError,
+               this, job->moleQueueId());
+    emit errorOccurred(err);
+    // Retry submission:
+    m_pendingSubmission.append(job->moleQueueId());
+    emit jobStateUpdate(job->moleQueueId(), MoleQueue::ErrorState);
+    return;
+  }
 }
 
 SshConnection * QueueRemote::newSshConnection()
