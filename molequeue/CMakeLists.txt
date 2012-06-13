@@ -30,6 +30,7 @@ set(mq_srcs
   queuemanageritemmodel.cpp
   queueprogramitemmodel.cpp
   queues/local.cpp
+  queues/pbs.cpp
   queues/remote.cpp
   queues/sge.cpp
   queuesettingsdialog.cpp
@@ -60,6 +61,7 @@ set(mq_moc
   queuemanageritemmodel.h
   queueprogramitemmodel.h
   queues/local.h
+  queues/pbs.h
   queues/remote.h
   queues/sge.h
   queuesettingsdialog.h
