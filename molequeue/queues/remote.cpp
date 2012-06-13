@@ -373,14 +373,13 @@ void QueueRemote::handleQueueUpdate()
   }
 
   // Now copy back any jobs that have left the queue
-  foreach (IdType queueId, queueIds) {
-    this->copyFinishedJobOutputFromHost(queueId);
-  }
+  foreach (IdType queueId, queueIds)
+    this->beginFinalizeJob(queueId);
 
   m_isCheckingQueue = false;
 }
 
-void QueueRemote::copyFinishedJobOutputFromHost(IdType queueId)
+void QueueRemote::beginFinalizeJob(IdType queueId)
 {
   IdType moleQueueId = m_jobs.value(queueId, 0);
   if (moleQueueId == 0)
@@ -395,26 +394,40 @@ void QueueRemote::copyFinishedJobOutputFromHost(IdType queueId)
   if (!job)
     return;
 
+  this->finalizeJobCopyFromServer(job);
+
+}
+
+void QueueRemote::finalizeJobCopyFromServer(const Job *job)
+{
+  if (!job->retrieveOutput() ||
+      (job->cleanLocalWorkingDirectory() && job->outputDirectory().isEmpty())
+      ) {
+    // Jump to next step
+    this->finalizeJobCopyToCustomDestination(job);
+    return;
+  }
+
   QString localDir = job->localWorkingDirectory() + "/..";
   QString remoteDir =
       QString("%1/%2").arg(m_workingDirectoryBase).arg(job->moleQueueId());
-
   SshConnection *conn = this->newSshConnection();
   conn->setData(QVariant::fromValue(job));
   connect(conn, SIGNAL(requestComplete()),
-          this, SLOT(finishedJobOutputCopied()));
+          this, SLOT(finishedJobOutputCopiedFromServer()));
 
   if (!conn->copyDirFrom(remoteDir, localDir)) {
     Error err (tr("Could not initialize ssh resources. Attempting to use\n"
                   "user= '%1'\nhost = '%2'\nport = '%3'"), Error::NetworkError,
                this, job->moleQueueId());
     emit errorOccurred(err);
+    emit jobStateUpdate(job->moleQueueId(), MoleQueue::ErrorState);
     conn->deleteLater();
     return;
   }
 }
 
-void QueueRemote::finishedJobOutputCopied()
+void QueueRemote::finishedJobOutputCopiedFromServer()
 {
   SshConnection *conn = qobject_cast<SshConnection*>(this->sender());
   if (!conn) {
@@ -447,10 +460,41 @@ void QueueRemote::finishedJobOutputCopied()
     return;
   }
 
+  this->finalizeJobCopyToCustomDestination(job);
+}
+
+void QueueRemote::finalizeJobCopyToCustomDestination(const Job *job)
+{
+  // Skip to next step if needed
+  if (job->outputDirectory().isEmpty()) {
+    this->finalizeJobCleanup(job);
+    return;
+  }
+
+  // The copy function will throw errors if needed.
+  if (!this->recursiveCopyDirectory(job->localWorkingDirectory(),
+                                    job->outputDirectory())) {
+    emit jobStateUpdate(job->moleQueueId(), MoleQueue::ErrorState);
+    return;
+  }
+
+  this->finalizeJobCleanup(job);
+}
+
+void QueueRemote::finalizeJobCleanup(const Job *job)
+{
+  if (job->cleanLocalWorkingDirectory())
+    this->cleanLocalDirectory(job);
+
   if (job->cleanRemoteFiles())
     this->cleanRemoteDirectory(job);
 
   emit jobStateUpdate(job->moleQueueId(), MoleQueue::Finished);
+}
+
+void QueueRemote::cleanLocalDirectory(const Job *job)
+{
+  this->recursiveRemoveDirectory(job->localWorkingDirectory());
 }
 
 void QueueRemote::cleanRemoteDirectory(const Job *job)
@@ -528,6 +572,99 @@ SshConnection * QueueRemote::newSshConnection()
   command->setPortNumber(m_sshPort);
 
   return command;
+}
+
+bool QueueRemote::recursiveRemoveDirectory(const QString &path)
+{
+  if (path.isEmpty() || path.simplified() == "/") {
+    Error err (tr("Refusing to remove directory '%1'.").arg(path),
+               Error::MiscError, this);
+    emit errorOccurred(err);
+    return false;
+  }
+
+  bool result = true;
+  QDir dir;
+  dir.setPath(path);
+
+  if (dir.exists()) {
+    foreach (QFileInfo info, dir.entryInfoList(
+               QDir::NoDotAndDotDot | QDir::System | QDir::Hidden |
+               QDir::AllDirs | QDir::Files, QDir::DirsFirst)) {
+      if (info.isDir())
+        result = this->recursiveRemoveDirectory(info.absoluteFilePath());
+      else
+        result = QFile::remove(info.absoluteFilePath());
+
+      if (!result) {
+        Error err (tr("Cannot remove '%1' from local filesystem.")
+                   .arg(info.absoluteFilePath()), Error::FileSystemError, this);
+        emit errorOccurred(err);
+        return false;
+      }
+    }
+    result = dir.rmdir(path);
+  }
+
+  if (!result) {
+    Error err (tr("Cannot remove '%1' from local filesystem.").arg(path),
+               Error::FileSystemError, this);
+    emit errorOccurred(err);
+    return false;
+  }
+
+  return true;
+}
+
+bool QueueRemote::recursiveCopyDirectory(const QString &from, const QString &to)
+{
+  bool result = true;
+
+  QDir fromDir;
+  fromDir.setPath(from);
+  if (!fromDir.exists()) {
+    Error err (tr("Cannot copy '%1' --> '%2': source directory does not exist.")
+               .arg(from, to), Error::FileSystemError, this);
+    emit errorOccurred(err);
+    return false;
+  }
+
+  QDir toDir;
+  toDir.setPath(to);
+  if (toDir.exists()) {
+    if (!toDir.mkdir(toDir.absolutePath())) {
+      Error err (tr("Cannot copy '%1' --> '%2': cannot mkdir target directory.")
+                 .arg(from, to), Error::FileSystemError, this);
+      emit errorOccurred(err);
+      return false;
+    }
+  }
+
+  foreach (QFileInfo info, fromDir.entryInfoList(
+             QDir::NoDotAndDotDot | QDir::System | QDir::Hidden |
+             QDir::AllDirs | QDir::Files, QDir::DirsFirst)) {
+    QString newTargetPath = QString ("%1/%2")
+    .arg(toDir.absolutePath(),
+         fromDir.relativeFilePath(info.absoluteFilePath()));
+    if (info.isDir()) {
+      result = this->recursiveCopyDirectory(info.absoluteFilePath(),
+                                            newTargetPath);
+    }
+    else {
+      result = QFile::copy(info.absoluteFilePath(),
+                           newTargetPath);
+    }
+
+    if (!result) {
+      Error err (tr("Cannot copy '%1' --> '%2'.")
+                 .arg(info.absoluteFilePath(), newTargetPath),
+                 Error::FileSystemError, this);
+      emit errorOccurred(err);
+      return false;
+    }
+  }
+
+  return true;
 }
 
 QString QueueRemote::generateQueueRequestCommand()

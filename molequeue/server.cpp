@@ -155,7 +155,7 @@ void Server::handleError(const MoleQueue::Error &err)
 {
   qWarning() << "Server::handleError: Error received:\n"
                 "\tType: " << err.type() << "\n"
-                "\tTMessage: " << err.message() << "\n"
+                "\tMessage: " << err.message() << "\n"
                 "\tSender: " << err.sender() << "\n"
                 "\tMoleQueueId: " << err.moleQueueId();
 
