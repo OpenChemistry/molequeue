@@ -132,14 +132,22 @@ protected slots:
 
   virtual void requestQueueUpdate();
   virtual void handleQueueUpdate();
-  virtual void copyFinishedJobOutputFromHost(MoleQueue::IdType queueId);
-  virtual void finishedJobOutputCopied();
+
+  virtual void beginFinalizeJob(MoleQueue::IdType queueId);
+  virtual void finalizeJobCopyFromServer(const MoleQueue::Job* job);
+  virtual void finishedJobOutputCopiedFromServer();
+  virtual void finalizeJobCopyToCustomDestination(const MoleQueue::Job* job);
+  virtual void finalizeJobCleanup(const MoleQueue::Job* job);
+
+  virtual void cleanLocalDirectory(const MoleQueue::Job *job);
 
   virtual void cleanRemoteDirectory(const MoleQueue::Job *job);
   virtual void remoteDirectoryCleaned();
 
 protected:
   SshConnection *newSshConnection();
+  bool recursiveRemoveDirectory(const QString &path);
+  bool recursiveCopyDirectory(const QString &from, const QString &to);
 
   /**
    * Extract the job id from the submission output. Reimplement this in derived

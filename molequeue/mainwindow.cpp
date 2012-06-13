@@ -159,6 +159,9 @@ void MainWindow::handleServerConnectionError(QAbstractSocket::SocketError err,
 void MainWindow::notifyJobStateChanged(const Job *job, JobState,
                                        JobState newState)
 {
+  if (!job->popupOnStateChange())
+    return;
+
   QString notification;
   if (newState == MoleQueue::Accepted)
     notification = tr("Job accepted: '%1'").arg(job->description());
