@@ -57,6 +57,9 @@ MainWindow::MainWindow()
   connect(m_server, SIGNAL(connectionError(QAbstractSocket::SocketError,QString)),
           this, SLOT(handleServerConnectionError(QAbstractSocket::SocketError, QString)));
 
+  connect(m_server, SIGNAL(errorNotification(QString,QString)),
+          this, SLOT(notifyUserOfError(QString,QString)));
+
   m_server->setDebug(true);
   m_server->start();
 
@@ -97,6 +100,20 @@ void MainWindow::writeSettings()
   settings.setValue("windowState", this->saveState());
 
   m_server->writeSettings(settings);
+}
+
+void MainWindow::trayIconActivated(QSystemTrayIcon::ActivationReason reason)
+{
+  if (reason != QSystemTrayIcon::Context)
+    this->show();
+}
+
+void MainWindow::notifyUserOfError(const QString &title, const QString &message)
+{
+  if (m_trayIcon->supportsMessages())
+    m_trayIcon->showMessage(title, message, QSystemTrayIcon::Warning);
+  else
+    QMessageBox::warning(this, title, message);
 }
 
 void MainWindow::showQueueManager()
@@ -200,10 +217,10 @@ void MainWindow::createTrayIcon()
   m_icon = new QIcon(":/icons/avogadro.png");
   m_trayIcon->setIcon(*m_icon);
 
-  if (m_trayIcon->supportsMessages())
-    m_trayIcon->setToolTip("Queue manager...");
-  else
-    m_trayIcon->setToolTip("Queue manager (no message support)...");
+  connect(m_trayIcon, SIGNAL(messageClicked()),
+          this, SLOT(show()));
+  connect(m_trayIcon, SIGNAL(activated(QSystemTrayIcon::ActivationReason)),
+          this, SLOT(trayIconActivated(QSystemTrayIcon::ActivationReason)));
 }
 
 void MainWindow::createJobTable()

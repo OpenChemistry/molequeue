@@ -28,7 +28,7 @@
 namespace MoleQueue {
 
 QueueManager::QueueManager(Server *parentServer)
-  : QObject(parentServer),
+  : Object(parentServer),
     m_server(parentServer)
 {
   qRegisterMetaType<Queue*>("MoleQueue::Queue*");
