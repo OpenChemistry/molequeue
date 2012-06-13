@@ -60,7 +60,9 @@ enum JobState {
   /// Job has completed.
   Finished,
   /// Job has been terminated at a user request.
-  Killed
+  Killed,
+  /// Job has been terminated due to an error.
+  ErrorState
 };
 
 /**
@@ -89,6 +91,10 @@ inline const char * jobStateToString(JobState state)
     return "RunningRemote";
   case Finished:
     return "Finished";
+  case Killed:
+    return "Killed";
+  case ErrorState:
+    return "Error";
   default:
   case Unknown:
     return "Unknown";
@@ -119,6 +125,10 @@ inline JobState stringToJobState(const char *str)
     return RunningRemote;
   else if (qstrcmp(str, "Finished") == 0)
     return Finished;
+  else if (qstrcmp(str, "Killed") == 0)
+    return Killed;
+  else if (qstrcmp(str, "Error") == 0 || qstrcmp(str, "ErrorState") == 0)
+    return ErrorState;
   else
     return Unknown;
 }

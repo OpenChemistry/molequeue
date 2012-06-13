@@ -16,6 +16,7 @@
 
 #include "remote.h"
 
+#include "../error.h"
 #include "../job.h"
 #include "../jobmanager.h"
 #include "../program.h"
@@ -97,7 +98,10 @@ void QueueRemote::submitPendingJobs()
     jobManager = m_server->jobManager();
 
   if (!jobManager) {
-    qWarning() << Q_FUNC_INFO << "Cannot locate jobmanager.";
+    Error err (tr("Internal error: %1\n%2").arg(Q_FUNC_INFO)
+               .arg("Cannot locate server JobManager!"),
+               Error::MiscError, this);
+    emit errorOccurred(err);
     return;
   }
 
@@ -112,7 +116,8 @@ void QueueRemote::submitPendingJobs()
 
 void QueueRemote::beginJobSubmission(const Job *job)
 {
-  this->writeInputFiles(job);
+  if (!this->writeInputFiles(job))
+    return;
 
   this->createRemoteDirectory(job);
 }
@@ -127,26 +132,51 @@ void QueueRemote::createRemoteDirectory(const Job *job)
   conn->setData(QVariant::fromValue(job));
   connect(conn, SIGNAL(requestComplete()), this, SLOT(remoteDirectoryCreated()));
 
-  conn->execute(QString("mkdir -p %1").arg(remoteDir));
+  if (!conn->execute(QString("mkdir -p %1").arg(remoteDir))) {
+    Error err (tr("Could not initialize ssh resources. Attempting to use\n"
+                  "user= '%1'\nhost = '%2'\nport = '%3'"), Error::NetworkError,
+               this, job->moleQueueId());
+    emit errorOccurred(err);
+    emit jobStateUpdate(job->moleQueueId(), MoleQueue::ErrorState);
+    conn->deleteLater();
+    return;
+  }
 }
 
 void QueueRemote::remoteDirectoryCreated()
 {
   SshConnection *conn = qobject_cast<SshConnection*>(this->sender());
   if (!conn) {
-    qWarning() << Q_FUNC_INFO << "sender is not an SshConnection";
+    Error err (tr("Internal error: %1\n%2").arg(Q_FUNC_INFO)
+               .arg("Sender is not an SshConnection!"), Error::MiscError, this);
+    emit errorOccurred(err);
     return;
   }
+  conn->deleteLater();
 
   const Job *job = conn->data().value<const Job*>();
 
   if (!job) {
-    qWarning() << Q_FUNC_INFO << "sender does not have an associated job!";
+    Error err (tr("Internal error: %1\n%2").arg(Q_FUNC_INFO)
+               .arg("Sender does not have an associated job!"),
+               Error::MiscError, this);
+    emit errorOccurred(err);
     return;
   }
 
-  /// @todo Check for errors
-  conn->deleteLater();
+  if (conn->exitCode() != 0) {
+    Error err (tr("Cannot create remote directory '%1@%2:%3'. Retrying soon.\n"
+                  "Exit code (%4) %5")
+               .arg(conn->userName()).arg(conn->hostName())
+               .arg(m_workingDirectoryBase).arg(conn->exitCode())
+               .arg(conn->output()), Error::NetworkError, this,
+               job->moleQueueId());
+    errorOccurred(err);
+    // Retry submission:
+    m_pendingSubmission.append(job->moleQueueId());
+    emit jobStateUpdate(job->moleQueueId(), MoleQueue::ErrorState);
+    return;
+  }
 
   this->copyInputFilesToHost(job);
 }
@@ -161,24 +191,49 @@ void QueueRemote::copyInputFilesToHost(const Job *job)
   conn->setData(QVariant::fromValue(job));
   connect(conn, SIGNAL(requestComplete()), this, SLOT(inputFilesCopied()));
 
-  conn->copyDirTo(localDir, remoteDir);
+  if (!conn->copyDirTo(localDir, remoteDir)) {
+    Error err (tr("Could not initialize ssh resources. Attempting to use\n"
+                  "user= '%1'\nhost = '%2'\nport = '%3'"), Error::NetworkError,
+               this, job->moleQueueId());
+    emit errorOccurred(err);
+    emit jobStateUpdate(job->moleQueueId(), MoleQueue::ErrorState);
+    conn->deleteLater();
+    return;
+  }
 }
 
 void QueueRemote::inputFilesCopied()
 {
   SshConnection *conn = qobject_cast<SshConnection*>(this->sender());
   if (!conn) {
-    qWarning() << Q_FUNC_INFO << "sender is not an SshConnection";
+    Error err (tr("Internal error: %1\n%2").arg(Q_FUNC_INFO)
+               .arg("Sender is not an SshConnection!"), Error::MiscError, this);
+    emit errorOccurred(err);
     return;
   }
+  conn->deleteLater();
 
   const Job *job = conn->data().value<const Job*>();
 
-  /// @todo Check for errors
-  conn->deleteLater();
-
   if (!job) {
-    qWarning() << Q_FUNC_INFO << "sender does not have an associated job!";
+    Error err (tr("Internal error: %1\n%2").arg(Q_FUNC_INFO)
+               .arg("Sender does not have an associated job!"),
+               Error::MiscError, this);
+    emit errorOccurred(err);
+    return;
+  }
+
+  if (conn->exitCode() != 0) {
+    Error err (tr("Error while copying input files to remote host:\n"
+                  "'%1' --> '%2/%3'\nExit code (%4) %5\n\nRetrying soon.")
+               .arg(job->localWorkingDirectory()).arg(m_workingDirectoryBase)
+               .arg(job->moleQueueId()).arg(conn->exitCode())
+               .arg(conn->output()), Error::NetworkError, this,
+               job->moleQueueId());
+    emit errorOccurred(err);
+    // Retry submission:
+    m_pendingSubmission.append(job->moleQueueId());
+    emit jobStateUpdate(job->moleQueueId(), MoleQueue::ErrorState);
     return;
   }
 
@@ -198,26 +253,53 @@ void QueueRemote::submitJobToRemoteQueue(const Job *job)
   connect(conn, SIGNAL(requestComplete()),
           this, SLOT(jobSubmittedToRemoteQueue()));
 
-  conn->execute(command);
+  if (!conn->execute(command)) {
+    Error err (tr("Could not initialize ssh resources. Attempting to use\n"
+                  "user= '%1'\nhost = '%2'\nport = '%3'"), Error::NetworkError,
+               this, job->moleQueueId());
+    emit errorOccurred(err);
+    emit jobStateUpdate(job->moleQueueId(), MoleQueue::ErrorState);
+    conn->deleteLater();
+    return;
+  }
 }
 
 void QueueRemote::jobSubmittedToRemoteQueue()
 {
   SshConnection *conn = qobject_cast<SshConnection*>(this->sender());
   if (!conn) {
-    qWarning() << Q_FUNC_INFO << "sender is not an SshConnection";
+    Error err (tr("Internal error: %1\n%2").arg(Q_FUNC_INFO)
+               .arg("Sender is not an SshConnection!"), Error::MiscError, this);
+    emit errorOccurred(err);
     return;
   }
+  conn->deleteLater();
 
-  /// @todo Check for errors
   IdType queueId;
   this->parseQueueId(conn->output(), &queueId);
   const Job *job = conn->data().value<const Job*>();
 
-  conn->deleteLater();
-
   if (!job) {
-    qWarning() << Q_FUNC_INFO << "sender does not have an associated job!";
+    Error err (tr("Internal error: %1\n%2").arg(Q_FUNC_INFO)
+               .arg("Sender does not have an associated job!"),
+               Error::MiscError, this);
+    emit errorOccurred(err);
+    return;
+  }
+
+  if (conn->exitCode() != 0) {
+    Error err (tr("Could not submit job to remote queue on %1@%2:%3\n"
+                  "%4 %5/%6/%7\nExit code (%8) %9\n\nRetrying soon.")
+               .arg(conn->userName()).arg(conn->hostName())
+               .arg(conn->portNumber()).arg(m_submissionCommand)
+               .arg(m_workingDirectoryBase).arg(job->moleQueueId())
+               .arg(m_launchScriptName).arg(conn->exitCode())
+               .arg(conn->output()), Error::NetworkError, this,
+               job->moleQueueId());
+    emit errorOccurred(err);
+    // Retry submission:
+    m_pendingSubmission.append(job->moleQueueId());
+    emit jobStateUpdate(job->moleQueueId(), MoleQueue::ErrorState);
     return;
   }
 
@@ -251,21 +333,38 @@ void QueueRemote::requestQueueUpdate()
   connect(conn, SIGNAL(requestComplete()),
           this, SLOT(handleQueueUpdate()));
 
-  conn->execute(command);
+  if (!conn->execute(command)) {
+    Error err (tr("Could not initialize ssh resources. Attempting to use\n"
+                  "user= '%1'\nhost = '%2'\nport = '%3'"), Error::NetworkError,
+               this);
+    emit errorOccurred(err);
+    conn->deleteLater();
+    return;
+  }
 }
 
 void QueueRemote::handleQueueUpdate()
 {
   SshConnection *conn = qobject_cast<SshConnection*>(this->sender());
   if (!conn) {
-    qWarning() << Q_FUNC_INFO << "sender is not an SshConnection";
+    Error err (tr("Internal error: %1\n%2").arg(Q_FUNC_INFO)
+               .arg("Sender is not an SshConnection!"), Error::MiscError, this);
+    emit errorOccurred(err);
+    return;
+  }
+  conn->deleteLater();
+
+  if (conn->exitCode() != 0) {
+    Error err (tr("Error requesting queue data (%1 -u %2) on remote host"
+                  "%3@%4:%5. Exit code (%6) %7").arg(m_requestQueueCommand)
+               .arg(m_userName).arg(conn->userName()).arg(conn->hostName())
+               .arg(conn->portNumber()).arg(conn->exitCode())
+               .arg(conn->output()), Error::NetworkError, this);
+    emit errorOccurred(err);
     return;
   }
 
   QStringList output = conn->output().split("\n", QString::SkipEmptyParts);
-
-  /// @todo handle error
-  conn->deleteLater();
 
   // Get list of submitted queue ids so that we detect when jobs have left
   // the queue.
@@ -315,23 +414,46 @@ void QueueRemote::copyFinishedJobOutputFromHost(IdType queueId)
   connect(conn, SIGNAL(requestComplete()),
           this, SLOT(finishedJobOutputCopied()));
 
-  conn->copyDirFrom(remoteDir, localDir);
+  if (!conn->copyDirFrom(remoteDir, localDir)) {
+    Error err (tr("Could not initialize ssh resources. Attempting to use\n"
+                  "user= '%1'\nhost = '%2'\nport = '%3'"), Error::NetworkError,
+               this, job->moleQueueId());
+    emit errorOccurred(err);
+    conn->deleteLater();
+    return;
+  }
 }
 
 void QueueRemote::finishedJobOutputCopied()
 {
   SshConnection *conn = qobject_cast<SshConnection*>(this->sender());
   if (!conn) {
-    qWarning() << Q_FUNC_INFO << "sender is not an SshConnection";
+    Error err (tr("Internal error: %1\n%2").arg(Q_FUNC_INFO)
+               .arg("Sender is not an SshConnection!"), Error::MiscError, this);
+    emit errorOccurred(err);
     return;
   }
+  conn->deleteLater();
 
   const Job *job = conn->data().value<const Job*>();
 
-  conn->deleteLater();
-
   if (!job) {
-    qWarning() << Q_FUNC_INFO << "sender does not have an associated job!";
+    Error err (tr("Internal error: %1\n%2").arg(Q_FUNC_INFO)
+               .arg("Sender does not have an associated job!"),
+               Error::MiscError, this);
+    emit errorOccurred(err);
+    return;
+  }
+
+  if (conn->exitCode() != 0) {
+    Error err (tr("Error while copying job output from remote server:\n"
+                  "%1@%2:%3 --> %4\nExit code (%5) %6")
+               .arg(conn->userName()).arg(conn->hostName())
+               .arg(conn->portNumber()).arg(job->localWorkingDirectory())
+               .arg(conn->exitCode()).arg(conn->output()), Error::NetworkError,
+               this, job->moleQueueId());
+    emit errorOccurred(err);
+    emit jobStateUpdate(job->moleQueueId(), MoleQueue::ErrorState);
     return;
   }
 
