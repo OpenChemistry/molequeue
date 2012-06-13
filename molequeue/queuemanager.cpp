@@ -18,6 +18,7 @@
 
 #include "queue.h"
 #include "queues/local.h"
+#include "queues/pbs.h"
 #include "queues/remote.h"
 #include "queues/sge.h"
 #include "server.h"
@@ -57,6 +58,8 @@ void QueueManager::readSettings(QSettings &settings)
       queue = new QueueLocal (this);
     else if (queueType == "Sun Grid Engine")
       queue = new QueueSge (this);
+    else if (queueType == "PBS/Torque")
+      queue = new QueuePbs (this);
     else
       qWarning() << Q_FUNC_INFO << "Unrecognized Queue type:" << queueType;
 

@@ -42,6 +42,9 @@ QueueRemote::QueueRemote(const QString &queueName, QueueManager *parentObject)
 
   // Check for jobs to submit every 5 seconds
   m_checkForPendingJobsTimerId = this->startTimer(5000);
+
+  // Always allow m_requestQueueCommand to return 0
+  m_allowedQueueRequestExitCodes.append(0);
 }
 
 QueueRemote::~QueueRemote()
@@ -185,7 +188,7 @@ void QueueRemote::copyInputFilesToHost(const Job *job)
 {
   QString localDir = job->localWorkingDirectory();
   QString remoteDir =
-      QString("%1/%2").arg(m_workingDirectoryBase).arg(job->moleQueueId());
+      QString("%1/").arg(m_workingDirectoryBase);
 
   SshConnection *conn = this->newSshConnection();
   conn->setData(QVariant::fromValue(job));
@@ -225,11 +228,10 @@ void QueueRemote::inputFilesCopied()
 
   if (conn->exitCode() != 0) {
     Error err (tr("Error while copying input files to remote host:\n"
-                  "'%1' --> '%2/%3'\nExit code (%4) %5\n\nRetrying soon.")
+                  "'%1' --> '%2/'\nExit code (%3) %4\n\nRetrying soon.")
                .arg(job->localWorkingDirectory()).arg(m_workingDirectoryBase)
-               .arg(job->moleQueueId()).arg(conn->exitCode())
-               .arg(conn->output()), Error::NetworkError, this,
-               job->moleQueueId());
+               .arg(conn->exitCode()).arg(conn->output()), Error::NetworkError,
+               this, job->moleQueueId());
     emit errorOccurred(err);
     // Retry submission:
     m_pendingSubmission.append(job->moleQueueId());
@@ -242,10 +244,10 @@ void QueueRemote::inputFilesCopied()
 
 void QueueRemote::submitJobToRemoteQueue(const Job *job)
 {
-  const QString command = QString("%1 %2/%3/%4")
-      .arg(m_submissionCommand)
+  const QString command = QString("cd %1/%2 && %3 %4")
       .arg(m_workingDirectoryBase)
       .arg(job->moleQueueId())
+      .arg(m_submissionCommand)
       .arg(m_launchScriptName);
 
   SshConnection *conn = this->newSshConnection();
@@ -315,19 +317,7 @@ void QueueRemote::requestQueueUpdate()
 
   m_isCheckingQueue = true;
 
-  // Checking by job ids doesn't work with e.g. SGE. Use -u instead.
-//  QList<IdType> queueIds = m_jobs.keys();
-//  QString queueIdString;
-//  foreach (IdType id, queueIds) {
-//    queueIdString += QString::number(id) + " ";
-//  }
-
-//  const QString command = QString ("%1 %2")
-//      .arg(m_requestQueueCommand)
-//      .arg(queueIdString);
-    const QString command = QString ("%1 -u %2")
-        .arg(m_requestQueueCommand)
-        .arg(m_userName);
+  const QString command = this->generateQueueRequestCommand();
 
   SshConnection *conn = this->newSshConnection();
   connect(conn, SIGNAL(requestComplete()),
@@ -354,7 +344,7 @@ void QueueRemote::handleQueueUpdate()
   }
   conn->deleteLater();
 
-  if (conn->exitCode() != 0) {
+  if (!m_allowedQueueRequestExitCodes.contains(conn->exitCode())) {
     Error err (tr("Error requesting queue data (%1 -u %2) on remote host"
                   "%3@%4:%5. Exit code (%6) %7").arg(m_requestQueueCommand)
                .arg(m_userName).arg(conn->userName()).arg(conn->hostName())
@@ -405,7 +395,7 @@ void QueueRemote::copyFinishedJobOutputFromHost(IdType queueId)
   if (!job)
     return;
 
-  QString localDir = job->localWorkingDirectory();
+  QString localDir = job->localWorkingDirectory() + "/..";
   QString remoteDir =
       QString("%1/%2").arg(m_workingDirectoryBase).arg(job->moleQueueId());
 
@@ -538,6 +528,17 @@ SshConnection * QueueRemote::newSshConnection()
   command->setPortNumber(m_sshPort);
 
   return command;
+}
+
+QString QueueRemote::generateQueueRequestCommand()
+{
+  QList<IdType> queueIds = m_jobs.keys();
+  QString queueIdString;
+  foreach (IdType id, queueIds) {
+    queueIdString += QString::number(id) + " ";
+  }
+
+  return QString ("%1 %2").arg(m_requestQueueCommand).arg(queueIdString);
 }
 
 void QueueRemote::timerEvent(QTimerEvent *theEvent)

@@ -18,6 +18,7 @@ set(MyTests
   client
   jobmanager
   jsonrpc
+  pbs
   program
   queue
   queuemanager

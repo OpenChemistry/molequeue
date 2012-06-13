@@ -2,7 +2,7 @@
 
   This source file is part of the MoleQueue project.
 
-  Copyright 2011-2012 Kitware, Inc.
+  Copyright 2012 Kitware, Inc.
 
   This source code is released under the New BSD License, (the "License").
 
@@ -14,30 +14,29 @@
 
 ******************************************************************************/
 
-#ifndef QUEUESGE_H
-#define QUEUESGE_H
+#ifndef QUEUEPBS_H
+#define QUEUEPBS_H
 
 #include "remote.h"
 
-class QueueSgeTest;
+class QueuePbsTest;
 
 namespace MoleQueue
 {
 
-class QueueSge : public QueueRemote
+class QueuePbs : public QueueRemote
 {
   Q_OBJECT
 public:
-  explicit QueueSge(QueueManager *parentManager = 0);
-  ~QueueSge();
+  explicit QueuePbs(QueueManager *parentManager = 0);
+  ~QueuePbs();
 
-  QString typeName() const { return "Sun Grid Engine"; }
+  QString typeName() const { return "PBS/Torque"; }
 
-  friend class ::QueueSgeTest;
+  friend class ::QueuePbsTest;
 
 protected:
   virtual bool parseQueueId(const QString &submissionOutput, IdType *queueId);
-  virtual QString generateQueueRequestCommand();
   virtual bool parseQueueLine(const QString &queueListOutput, IdType *queueId,
                               JobState *state);
 
@@ -45,4 +44,4 @@ protected:
 
 } // End namespace
 
-#endif // QueueSGE_H
+#endif // QUEUEPBS_H

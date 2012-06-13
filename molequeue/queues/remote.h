@@ -151,6 +151,13 @@ protected:
   virtual bool parseQueueId(const QString &submissionOutput, IdType *queueId) = 0;
 
   /**
+   * Prepare the command to check the remote queue. The default implementation
+   * is m_requestQueueCommand followed by the owned job ids separated by
+   * spaces.
+   */
+  virtual QString generateQueueRequestCommand();
+
+  /**
    * Extract the queueId and JobState from a single line of the the queue list
    * output. Reimplement this in derived classes.
    * @param queueListOutput Single line of output from m_requestQueueCommand
@@ -175,6 +182,11 @@ protected:
 
   QString m_submissionCommand;
   QString m_requestQueueCommand;
+
+  /// List of allowed exit codes for m_requestQueueCommand. This is required for
+  /// e.g. PBS/Torque, which return 153 if you request the status of a job that
+  /// has completed.
+  QList<int> m_allowedQueueRequestExitCodes;
 
   QString m_workingDirectoryBase;
 };

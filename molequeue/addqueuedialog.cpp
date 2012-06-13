@@ -20,6 +20,7 @@
 #include "queue.h"
 #include "queuemanager.h"
 #include "queues/local.h"
+#include "queues/pbs.h"
 #include "queues/remote.h"
 #include "queues/sge.h"
 
@@ -36,6 +37,7 @@ AddQueueDialog::AddQueueDialog(QueueManager *queueManager,
     /// @todo Find a more scalable way to handle this...
     ui->typeComboBox->addItem(tr("Local"));
     ui->typeComboBox->addItem(tr("Sun Grid Engine"));
+    ui->typeComboBox->addItem(tr("PBS/Torque"));
 
     connect(this, SIGNAL(accepted()), SLOT(addQueue()));
 }
@@ -50,12 +52,12 @@ void AddQueueDialog::addQueue()
   const QString queueType = ui->typeComboBox->currentText();
   /// @todo Find a more scalable way to handle this...
   Queue *queue = NULL;
-  if (queueType == tr("Local")) {
+  if (queueType == tr("Local"))
     queue = new QueueLocal (m_queueManager);
-  }
-  else if (queueType == tr("Sun Grid Engine")) {
+  else if (queueType == tr("Sun Grid Engine"))
     queue = new QueueSge (m_queueManager);
-  }
+  else if (queueType == tr("PBS/Torque"))
+    queue = new QueuePbs (m_queueManager);
 
   if(queue){
     queue->setName(ui->nameLineEdit->text());
