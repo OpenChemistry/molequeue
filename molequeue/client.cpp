@@ -18,8 +18,7 @@
 
 #include "jobmanager.h"
 #include "jsonrpc.h"
-
-#include <QtNetwork/QLocalSocket>
+#include "transport/localsocketconnection.h"
 
 #include <QtCore/QDateTime>
 #include <QtCore/QDebug>
@@ -45,9 +44,6 @@ Client::Client(QObject *parentObject) :
   qRegisterMetaType<const Job*>("const MoleQueue::Job*");
   qRegisterMetaType<JobState>("MoleQueue::JobState");
   qRegisterMetaType<QueueListType>("MoleQueue::QueueListType");
-
-  QLocalSocket *socket = new QLocalSocket ();
-  this->setSocket(socket);
 
   connect(m_jsonrpc, SIGNAL(queueListReceived(MoleQueue::IdType,MoleQueue::QueueListType)),
           this, SLOT(queueListReceived(MoleQueue::IdType,MoleQueue::QueueListType)));
@@ -93,7 +89,7 @@ void Client::submitJobRequest(const Job *req)
   const IdType id = this->nextPacketId();
   const PacketType packet = m_jsonrpc->generateJobRequest(req, id);
   m_submittedLUT->insert(id, req->clientId());
-  this->sendPacket(packet);
+  m_connection->send(packet);
 }
 
 void Client::cancelJob(const Job *req)
@@ -101,7 +97,7 @@ void Client::cancelJob(const Job *req)
   const IdType id = this->nextPacketId();
   const PacketType packet = m_jsonrpc->generateJobCancellation(req, id);
   m_canceledLUT->insert(id, req->clientId());
-  this->sendPacket(packet);
+  m_connection->send(packet);
 }
 
 void Client::jobAboutToBeAdded(Job *job)
@@ -209,21 +205,27 @@ void Client::jobStateChangeReceived(IdType moleQueueId,
 
 void Client::connectToServer(const QString &serverName)
 {
-  if (m_socket == NULL) {
+  LocalSocketConnection *connection = new LocalSocketConnection(this, serverName);
+  this->setConnection(connection);
+  connection->open();
+  connection->start();
+
+  if (m_connection == NULL) {
     qWarning() << Q_FUNC_INFO << "Cannot connect to server at" << serverName
-               << ", socket is not set.";
+               << ", connection is not set.";
     return;
   }
 
-  if (m_socket->isOpen()) {
-    if (m_socket->serverName() == serverName) {
+  if (m_connection->isOpen()) {
+    if (m_connection->connectionString() == serverName) {
       DEBUGOUT("connectToServer") "Socket already connected to" << serverName;
       return;
     }
     else {
       DEBUGOUT("connectToServer") "Disconnecting from server"
-          << m_socket->serverName();
-      m_socket->disconnectFromServer();
+          << m_connection->connectionString();
+      m_connection->close();
+      delete m_connection;
     }
   }
   if (serverName.isEmpty()) {
@@ -231,9 +233,10 @@ void Client::connectToServer(const QString &serverName)
     return;
   }
   else {
-    m_socket->connectToServer(serverName);
+    m_connection = new LocalSocketConnection(this, serverName);
+    connection->open();
     DEBUGOUT("connectToServer") "Client connected to server"
-        << m_socket->serverName();
+        << m_connection->connectionString();
   }
 }
 
@@ -241,7 +244,7 @@ void Client::requestQueueListUpdate()
 {
   PacketType packet = m_jsonrpc->generateQueueListRequest(
         this->nextPacketId());
-  this->sendPacket(packet);
+  m_connection->send(packet);
 }
 
 Job *Client::newJobRequest()

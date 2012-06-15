@@ -25,13 +25,12 @@
 
 class ServerConnectionTest;
 
-class QLocalSocket;
-
 namespace MoleQueue
 {
 class Job;
 class QueueManager;
 class Server;
+class Connection;
 
 class ServerConnection : public AbstractRpcInterface
 {
@@ -43,7 +42,7 @@ public:
    *
    * @param parentObject parent
    */
-  explicit ServerConnection(Server *parentServer, QLocalSocket *theSocket);
+  explicit ServerConnection(Server *parentServer, Connection *conn);
 
   /**
    * Destructor.
@@ -94,6 +93,11 @@ signals:
    * @param moleQueueId MoleQueue identifier
    */
   void jobCancellationRequested(MoleQueue::IdType moleQueueId);
+
+  /**
+   * Emitted when the connection is disconnected.
+   */
+  void disconnected();
 
 public slots:
 
@@ -167,11 +171,6 @@ protected slots:
    */
   void startProcessing();
 
-  /**
-   * Reimplemented from AbstractRpcInterface to respect m_holdRequests.
-   */
-  void readSocket();
-
 protected:
   /// The parent server instance
   Server *m_server;
@@ -187,12 +186,6 @@ protected:
 
   /// Tracks job cancellation requests: moleQueueId --> packetId
   PacketLookupTable m_cancellationLUT;
-
-  /// If true, do not read incoming packets from the socket. This is to let
-  /// the parent server create connections prior to processing requests.
-  /// @sa startProcessing
-  bool m_holdRequests;
-
 };
 
 } // end namespace MoleQueue
