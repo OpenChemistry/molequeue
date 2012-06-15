@@ -38,10 +38,8 @@ LocalSocketConnectionListener::~LocalSocketConnectionListener()
   // Make sure we are stopped
   this->stop();
 
-  if(m_server) {
-    delete m_server;
-    m_server = NULL;
-  }
+  delete m_server;
+  m_server = NULL;
 }
 
 void LocalSocketConnectionListener::start()

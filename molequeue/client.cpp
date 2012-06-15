@@ -205,18 +205,8 @@ void Client::jobStateChangeReceived(IdType moleQueueId,
 
 void Client::connectToServer(const QString &serverName)
 {
-  LocalSocketConnection *connection = new LocalSocketConnection(this, serverName);
-  this->setConnection(connection);
-  connection->open();
-  connection->start();
 
-  if (m_connection == NULL) {
-    qWarning() << Q_FUNC_INFO << "Cannot connect to server at" << serverName
-               << ", connection is not set.";
-    return;
-  }
-
-  if (m_connection->isOpen()) {
+  if (m_connection && m_connection->isOpen()) {
     if (m_connection->connectionString() == serverName) {
       DEBUGOUT("connectToServer") "Socket already connected to" << serverName;
       return;
@@ -226,17 +216,24 @@ void Client::connectToServer(const QString &serverName)
           << m_connection->connectionString();
       m_connection->close();
       delete m_connection;
+      m_connection = NULL;
     }
   }
-  if (serverName.isEmpty()) {
-    DEBUGOUT("connectToServer") "No server specified. Not attempting connection.";
-    return;
-  }
-  else {
-    m_connection = new LocalSocketConnection(this, serverName);
-    connection->open();
-    DEBUGOUT("connectToServer") "Client connected to server"
-        << m_connection->connectionString();
+
+  // New connection
+  if (m_connection == NULL) {
+    if (serverName.isEmpty()) {
+      DEBUGOUT("connectToServer") "No server specified. Not attempting connection.";
+      return;
+    }
+    else {
+      LocalSocketConnection *connection = new LocalSocketConnection(this, serverName);
+      this->setConnection(connection);
+      connection->open();
+      connection->start();
+      DEBUGOUT("connectToServer") "Client connected to server"
+          << m_connection->connectionString();
+    }
   }
 }
 

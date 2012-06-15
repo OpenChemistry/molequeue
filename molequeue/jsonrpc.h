@@ -68,7 +68,7 @@ public:
     *
     * @param req The Job of interest.
     * @param packetId The JSON-RPC id for the request.
-    * @return A PacketType, ready to send to a QLocalSocket.
+    * @return A PacketType, ready to send to a Connection.
     */
   PacketType generateJobRequest(const Job *req, IdType packetId);
 
@@ -80,7 +80,7 @@ public:
     * @param workingDir Local working directory where files are stored during
     * job execution
     * @param packetId The JSON-RPC id for the request.
-    * @return A PacketType, ready to send to a QLocalSocket.
+    * @return A PacketType, ready to send to a Connection.
     */
   PacketType generateJobSubmissionConfirmation(IdType moleQueueJobId,
                                                IdType queueJobId,
@@ -93,7 +93,7 @@ public:
     * @param errorCode Error code
     * @param message Single sentence describing the error that occurred.
     * @param packetId The JSON-RPC id for the packet.
-    * @return A PacketType, ready to send to a QLocalSocket.
+    * @return A PacketType, ready to send to a Connection.
     */
   PacketType generateErrorResponse(int errorCode,
                                    const QString &message,
@@ -106,7 +106,7 @@ public:
     * @param message Single sentence describing the error that occurred.
     * @param data a Json::Value to be used as the error object's data member
     * @param packetId The JSON-RPC id for the packet.
-    * @return A PacketType, ready to send to a QLocalSocket.
+    * @return A PacketType, ready to send to a Connection.
     * @overload
     */
   PacketType generateErrorResponse(int errorCode,
@@ -120,7 +120,7 @@ public:
     * @param errorCode Error code
     * @param message Single sentence describing the error that occurred.
     * @param packetId The JSON-RPC id for the packet.
-    * @return A PacketType, ready to send to a QLocalSocket.
+    * @return A PacketType, ready to send to a Connection.
     * @overload
     */
   PacketType generateErrorResponse(int errorCode,
@@ -134,7 +134,7 @@ public:
     * @param message Single sentence describing the error that occurred.
     * @param data a Json::Value to be used as the error object's data member
     * @param packetId The JSON-RPC id for the packet.
-    * @return A PacketType, ready to send to a QLocalSocket.
+    * @return A PacketType, ready to send to a Connection.
     * @overload
     */
   PacketType generateErrorResponse(int errorCode,
@@ -147,7 +147,7 @@ public:
     *
     * @param req The Job to cancel.
     * @param packetId The JSON-RPC id for the request.
-    * @return A PacketType, ready to send to a QLocalSocket.
+    * @return A PacketType, ready to send to a Connection.
     */
   PacketType generateJobCancellation(const Job *req,
                                      IdType packetId);
@@ -157,7 +157,7 @@ public:
     *
     * @param moleQueueId MoleQueue internal identifer for the canceled job.
     * @param packetId The JSON-RPC id for the request.
-    * @return A PacketType, ready to send to a QLocalSocket.
+    * @return A PacketType, ready to send to a Connection.
     */
   PacketType generateJobCancellationConfirmation(IdType moleQueueId,
                                                  IdType packetId);
@@ -167,7 +167,7 @@ public:
     * Programs.
     *
     * @param packetId The JSON-RPC id for the request.
-    * @return A PacketType, ready to send to a QLocalSocket.
+    * @return A PacketType, ready to send to a Connection.
     */
   PacketType generateQueueListRequest(IdType packetId);
 
@@ -177,7 +177,7 @@ public:
     *
     * @param qmanager The QueueManager to send.
     * @param packetId The JSON-RPC id for the request.
-    * @return A PacketType, ready to send to a QLocalSocket.
+    * @return A PacketType, ready to send to a Connection.
     */
   PacketType generateQueueList(const QueueListType &queueList,
                                IdType packetId);
@@ -189,7 +189,7 @@ public:
     * @param moleQueueJobId Internal MoleQueue job id of job.
     * @param oldState Old state of the job.
     * @param newState New state of the job.
-    * @return A PacketType, ready to send to a QLocalSocket.
+    * @return A PacketType, ready to send to a Connection.
     */
   PacketType generateJobStateChangeNotification(IdType moleQueueJobId,
                                                 JobState oldState,

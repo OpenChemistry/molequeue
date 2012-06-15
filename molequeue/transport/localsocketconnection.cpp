@@ -63,10 +63,8 @@ LocalSocketConnection::~LocalSocketConnection()
   // Make sure we are closed
   this->close();
 
-  if (m_socket) {
-    delete m_socket;
-    m_socket = NULL;
-  }
+  delete m_socket;
+  m_socket = NULL;
 
   delete m_dataStream;
   m_dataStream = NULL;
@@ -194,9 +192,7 @@ void LocalSocketConnection::open()
 
     m_socket->connectToServer(m_connectionString);
 
-    DEBUG("open") "Connected to" << ((m_socket == NULL)
-                                   ? QString("Nothing!")
-                                   : m_socket->serverName());
+    DEBUG("open") "Connected to" << m_socket->serverName();
   }
 }
 
