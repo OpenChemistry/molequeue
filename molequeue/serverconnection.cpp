@@ -20,11 +20,11 @@
 #include "jobmanager.h"
 #include "jsonrpc.h"
 #include "server.h"
+#include "connection.h"
 
 #include <QtCore/QDateTime>
 #include <QtCore/QMap>
-
-#include <QtNetwork/QLocalSocket>
+#include <QtCore/QDebug>
 
 #define DEBUGOUT(title) \
   if (this->m_debug)    \
@@ -35,15 +35,14 @@ namespace MoleQueue
 {
 
 ServerConnection::ServerConnection(Server *parentServer,
-                                   QLocalSocket *theSocket)
-  : m_server(parentServer),
-    m_holdRequests(true)
+                                   Connection *connection)
+  : m_server(parentServer)
 {
   qRegisterMetaType<Job*>("MoleQueue::Job*");
   qRegisterMetaType<const Job*>("const MoleQueue::Job*");
   qRegisterMetaType<QueueListType>("MoleQueue::QueueListType");
 
-  this->setSocket(theSocket);
+  this->setConnection(connection);
 
   connect(m_jsonrpc, SIGNAL(queueListRequestReceived(MoleQueue::IdType)),
           this, SLOT(queueListRequestReceived(MoleQueue::IdType)));
@@ -51,6 +50,8 @@ ServerConnection::ServerConnection(Server *parentServer,
           this, SLOT(jobSubmissionRequestReceived(MoleQueue::IdType,QVariantHash)));
   connect(m_jsonrpc, SIGNAL(jobCancellationRequestReceived(MoleQueue::IdType,MoleQueue::IdType)),
           this, SLOT(jobCancellationRequestReceived(MoleQueue::IdType,MoleQueue::IdType)));
+  connect(m_connection, SIGNAL(disconnected()),
+          this, SIGNAL(disconnected()));
 }
 
 ServerConnection::~ServerConnection()
@@ -67,7 +68,7 @@ void ServerConnection::sendQueueList(const QueueListType &queueList)
 
   IdType packetId = m_listQueuesLUT.takeFirst();
   PacketType packet = m_jsonrpc->generateQueueList(queueList, packetId);
-  this->sendPacket(packet);
+  m_connection->send(packet);
 }
 
 void ServerConnection::sendSuccessfulSubmissionResponse(const Job *req)
@@ -84,7 +85,7 @@ void ServerConnection::sendSuccessfulSubmissionResponse(const Job *req)
   PacketType packet =  m_jsonrpc->generateJobSubmissionConfirmation(
         req->moleQueueId(), req->queueJobId(), req->localWorkingDirectory(),
         packetId);
-  this->sendPacket(packet);
+  m_connection->send(packet);
 }
 
 void ServerConnection::sendFailedSubmissionResponse(const Job *req,
@@ -104,7 +105,7 @@ void ServerConnection::sendFailedSubmissionResponse(const Job *req,
   PacketType packet = m_jsonrpc->generateErrorResponse(static_cast<int>(ec),
                                                        errorMessage,
                                                        packetId);
-  this->sendPacket(packet);
+  m_connection->send(packet);
 }
 
 void ServerConnection::sendSuccessfulCancellationResponse(const Job *req)
@@ -120,7 +121,7 @@ void ServerConnection::sendSuccessfulCancellationResponse(const Job *req)
   const IdType packetId = m_cancellationLUT.take(moleQueueId);
   PacketType packet =  m_jsonrpc->generateJobCancellationConfirmation(
         req->moleQueueId(), packetId);
-  this->sendPacket(packet);
+  m_connection->send(packet);
 }
 
 void ServerConnection::sendJobStateChangeNotification(const Job *req,
@@ -129,7 +130,7 @@ void ServerConnection::sendJobStateChangeNotification(const Job *req,
 {
   PacketType packet = m_jsonrpc->generateJobStateChangeNotification(
         req->moleQueueId(), oldState, newState);
-  this->sendPacket(packet);
+  m_connection->send(packet);
 }
 
 void ServerConnection::queueListRequestReceived(IdType packetId)
@@ -158,22 +159,7 @@ void ServerConnection::jobCancellationRequestReceived(IdType packetId,
 
 void ServerConnection::startProcessing()
 {
-  m_holdRequests = false;
-  DEBUGOUT("startProcessing") "Started handling requests.";
-  while (m_socket->bytesAvailable() != 0) {
-    DEBUGOUT("startProcessing") "Flushing request backlog...";
-    this->readSocket();
-  }
-}
-
-void ServerConnection::readSocket()
-{
-  if (m_holdRequests) {
-    DEBUGOUT("readSocket") "Skipping socket read; requests are currently held.";
-    return;
-  }
-
-  this->AbstractRpcInterface::readSocket();
+  m_connection->start();
 }
 
 } // end namespace MoleQueue

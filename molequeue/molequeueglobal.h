@@ -23,6 +23,13 @@
 #include <QtCore/QMetaType>
 #include <QtCore/QString>
 #include <QtCore/QStringList>
+#include <QtCore/QDateTime>
+#include <QtCore/QDebug>
+
+#define DEBUG(method) \
+  qDebug() << QDateTime::currentDateTime().toString() \
+           << method \
+           << "(" << __FILE__ << ":" << __LINE__ << ")" <<
 
 namespace MoleQueue
 {

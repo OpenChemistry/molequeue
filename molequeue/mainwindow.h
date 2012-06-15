@@ -20,6 +20,7 @@
 #include <QtGui/QMainWindow>
 
 #include "molequeueglobal.h"
+#include "connectionlistener.h"
 
 #include <QtGui/QSystemTrayIcon>
 
@@ -54,7 +55,7 @@ public slots:
 
 protected slots:
   void showQueueManager();
-  void handleServerConnectionError(QAbstractSocket::SocketError,
+  void handleServerConnectionError(ConnectionListener::Error,
                                    const QString &);
 
   void notifyJobStateChanged(const MoleQueue::Job *job,
