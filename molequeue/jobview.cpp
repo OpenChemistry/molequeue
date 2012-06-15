@@ -20,11 +20,13 @@
 #include "jobitemmodel.h"
 
 #include <QtGui/QContextMenuEvent>
+#include <QtGui/QDesktopServices>
 #include <QtGui/QMenu>
 #include <QtGui/QMessageBox>
 
-#include <QtCore/QProcess>
 #include <QtCore/QDebug>
+#include <QtCore/QProcess>
+#include <QtCore/QUrl>
 
 Q_DECLARE_METATYPE(QList<int>)
 
@@ -57,13 +59,27 @@ void JobView::contextMenuEvent(QContextMenuEvent *e)
     menu->addSeparator();
 
     if (job) {
-      QAction *action = menu->addAction(tr("Open '%1' in &Avogadro...")
+      // Open in file browser
+      QAction *action = menu->addAction(tr("View files for '%1'...")
+                               .arg(job->description()));
+      action->setData(QVariant::fromValue(job));
+      connect(action, SIGNAL(triggered()), this, SLOT(openInFileBrowser()));
+
+      // Open in avogadro
+      action = menu->addAction(tr("Open '%1' in &Avogadro...")
                                         .arg(job->description()));
       action->setData(QVariant::fromValue(job));
       connect(action, SIGNAL(triggered()), this, SLOT(openInAvogadro()));
-    }
+     }
     if (numSelectedRows > 1) {
-      QAction *action = menu->addAction(tr("Open %n jobs in A&vogadro",
+      // Open in file browser
+      QAction *action = menu->addAction(tr("View files for %n job(s)...",
+                                           "", numSelectedRows));
+      action->setData(QVariant::fromValue(selectedRows));
+      connect(action, SIGNAL(triggered()), this, SLOT(openInFileBrowser()));
+
+      // Open in avogadro
+      action = menu->addAction(tr("Open %n job(s) in A&vogadro...",
                                            "", numSelectedRows));
       action->setData(QVariant::fromValue(selectedRows));
       connect(action, SIGNAL(triggered()), this, SLOT(openInAvogadro()));
@@ -147,6 +163,39 @@ void JobView::openInAvogadro(const Job *job)
   QProcess::startDetached(QString("/ssd/src/avogadro/build/bin/avogadro %1/%2")
                           .arg(job->localWorkingDirectory(), "job.out"));
 
+}
+
+void JobView::openInFileBrowser(const Job *job)
+{
+  // If no job was passed, check that the sender is a QAction.
+  if (job == NULL) {
+    QAction *action = qobject_cast<QAction*>(this->sender());
+    if (!action)
+      return;
+
+    // The sender was a QAction. Is its data a list of rows, or a specific job?
+    QList<int> rows = action->data().value<QList<int> >();
+    if (rows.size()) {
+      // It's a list of rows -- open each row's job in avogadro.
+      foreach (int row, rows) {
+        const Job *dataJob =
+            this->model()->data(this->model()->index(row, 0),
+                                JobItemModel::FetchJobRole).value<const Job*>();
+        if (dataJob)
+          this->openInFileBrowser(dataJob);
+      }
+    }
+    else {
+      // The data is not a list of rows. Is is a pointer to a job?
+      const Job *dataJob = action->data().value<const Job*>();
+      if (dataJob)
+        this->openInFileBrowser(dataJob);
+    }
+    return;
+  }
+
+  // We have a job -- open it.
+  QDesktopServices::openUrl(QUrl::fromLocalFile(job->localWorkingDirectory()));
 }
 
 } // End of namespace
