@@ -109,7 +109,6 @@ private slots:
     m_socket = m_server->nextPendingConnection();
     connect(m_socket, SIGNAL(disconnected()), m_socket, SLOT(deleteLater()));
     connect(m_socket, SIGNAL(readyRead()), this, SLOT(readyRead()));
-//    qDebug() << "New connection!";
   }
 
   void readyRead()

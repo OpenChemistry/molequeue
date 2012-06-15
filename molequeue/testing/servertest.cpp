@@ -20,6 +20,8 @@
 
 #include "molequeueglobal.h"
 #include "serverconnection.h"
+#include "connectionlistener.h"
+#include "transport/localsocketconnectionlistener.h"
 
 #include <QtGui/QApplication>
 
@@ -28,6 +30,8 @@
 
 #include <QtCore/QVariantList>
 
+#include <assert.h>
+
 class ServerTest : public QObject
 {
   Q_OBJECT
@@ -35,6 +39,8 @@ class ServerTest : public QObject
 private:
   QLocalSocket m_testSocket;
   MoleQueue::Server m_server;
+
+  MoleQueue::LocalSocketConnectionListener * localSocketConnectionListener();
 
 private slots:
   /// Called before the first test function is executed.
@@ -72,16 +78,30 @@ void ServerTest::cleanup()
 {
 }
 
+MoleQueue::LocalSocketConnectionListener * ServerTest::localSocketConnectionListener()
+{
+
+  MoleQueue::LocalSocketConnectionListener *localListener =
+      static_cast<MoleQueue::LocalSocketConnectionListener *>(
+          m_server.m_connectionListener);
+
+   assert(localListener != NULL);
+
+   return localListener;
+}
+
 void ServerTest::testStart()
 {
   m_server.start();
-  QCOMPARE(m_server.m_server->serverName(), QString("MoleQueue-testing"));
+  QCOMPARE(m_server.m_connectionListener->connectionString(),
+           QString("MoleQueue-testing"));
 }
 
 void ServerTest::testStop()
 {
   m_server.stop();
-  QVERIFY(!m_server.m_server->isListening());
+
+  QVERIFY(m_server.m_connectionListener == NULL);
 }
 
 void ServerTest::testForceStart()
@@ -94,15 +114,15 @@ void ServerTest::testForceStart()
 
   // Attempt to start the server. Check that the AddressInUseError is emitted.
   QSignalSpy spy (&m_server,
-                  SIGNAL(connectionError(QAbstractSocket::SocketError,QString)));
+                  SIGNAL(connectionError(MoleQueue::ConnectionListener::Error,const QString&)));
   m_server.start();
   qApp->processEvents(QEventLoop::AllEvents, 1000);
   QCOMPARE(spy.count(), 1);
   QCOMPARE(spy.first().size(), 2);
-  QAbstractSocket::SocketError err =
-      spy.first()[0].value<QAbstractSocket::SocketError>();
+  MoleQueue::ConnectionListener::Error err =
+      spy.first()[0].value<MoleQueue::ConnectionListener::Error>();
   QString errString = spy.first()[1].toString();
-  QCOMPARE(err, QAbstractSocket::AddressInUseError);
+  QCOMPARE(err, MoleQueue::ConnectionListener::AddressInUseError);
   QCOMPARE(errString, QString("QLocalServer::listen: Address in use"));
   spy.clear();
 
@@ -111,7 +131,7 @@ void ServerTest::testForceStart()
   QVERIFY(spy.isEmpty());
 
   // Check that m_server is now listening.
-  QVERIFY(m_server.m_server->isListening());
+  QVERIFY(this->localSocketConnectionListener()->m_server->isListening());
 
   dupServer.stop();
 }
