@@ -16,12 +16,8 @@
 
 #include "client.h"
 
-#include "job.h"
-#include "jobrequest.h"
 #include "jobmanager.h"
 #include "jsonrpc.h"
-
-#include <QtNetwork/QLocalSocket>
 
 #include <QtCore/QDateTime>
 #include <QtCore/QDebug>

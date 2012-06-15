@@ -57,7 +57,7 @@ public:
   ~LocalSocketConnection();
 
   /**
-   * Opens the connection the server i.e. QLocalSock::connectToServer(...)
+   * Opens the connection the server i.e. QLocalSocket::connectToServer(...)
    *
    * @see Connection::open()
    */

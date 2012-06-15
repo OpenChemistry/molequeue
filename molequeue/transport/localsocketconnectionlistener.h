@@ -55,7 +55,7 @@ public:
   ~LocalSocketConnectionListener();
 
   /**
-   * Start listening for incoming connecitons.
+   * Start listening for incoming connections.
    *
    * @see ConnectionListener::start()
    */
