@@ -53,6 +53,8 @@ set(mq_srcs
   sshcommand.cpp
   sshconnection.cpp
   terminalprocess.cpp
+  transport/localsocketconnection.cpp
+  transport/localsocketconnectionlistener.cpp
 )
 
 set(mq_moc
@@ -96,6 +98,8 @@ set(mq_moc
   sshcommand.h
   sshconnection.h
   terminalprocess.h
+  transport/localsocketconnection.h
+  transport/localsocketconnectionlistener.h
 )
 qt4_wrap_cpp(moc_srcs ${mq_moc})
 
@@ -166,6 +170,7 @@ set(mqclient_srcs
   jobrequest.cpp
   jsonrpc.cpp
   molequeueglobal.h
+  transport/localsocketconnection.cpp
   ${jsoncpp_srcs}
 )
 
@@ -175,6 +180,7 @@ set(mqclient_moc
   connection.h
   jobmanager.h
   jsonrpc.h
+  transport/localsocketconnection.h
 )
 
 #TODO need to install these

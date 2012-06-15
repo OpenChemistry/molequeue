@@ -2,7 +2,7 @@
 
   This source file is part of the MoleQueue project.
 
-  Copyright 2011-2012 Kitware, Inc.
+  Copyright 2011 Kitware, Inc.
 
   This source code is released under the New BSD License, (the "License").
 
@@ -60,12 +60,11 @@ MainWindow::MainWindow()
           this, SLOT(notifyJobStateChanged(const MoleQueue::Job &,
                                            MoleQueue::JobState,
                                            MoleQueue::JobState)));
-  connect(m_server, SIGNAL(connectionError(QAbstractSocket::SocketError,QString)),
-          this, SLOT(handleServerConnectionError(QAbstractSocket::SocketError, QString)));
+  connect(m_server, SIGNAL(connectionError(ConnectionListener::Error,QString)),
+          this, SLOT(handleServerConnectionError(ConnectionListener::Error, QString)));
 
   connect(m_server, SIGNAL(errorNotification(QString,QString)),
           this, SLOT(notifyUserOfError(QString,QString)));
-
   m_server->setDebug(true);
   m_server->start();
 
@@ -130,17 +129,11 @@ void MainWindow::showQueueManager()
   dialog.exec();
 }
 
-void MainWindow::showOpenWithManager()
-{
-  OpenWithManagerDialog dialog(this);
-  dialog.exec();
-}
-
-void MainWindow::handleServerConnectionError(QAbstractSocket::SocketError err,
+void MainWindow::handleServerConnectionError(ConnectionListener::Error err,
                                              const QString &str)
 {
   // handle AddressInUseError by giving user option to replace current socket
-  if (err == QAbstractSocket::AddressInUseError) {
+  if (err == ConnectionListener::AddressInUseError) {
     QStringList choices;
     choices << tr("There is no other server running. Continue running.")
             << tr("Oops -- there is an existing server. Terminate the new server.");

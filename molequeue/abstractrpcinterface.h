@@ -24,12 +24,10 @@
 
 class AbstractRpcInterfaceTest;
 
-class QDataStream;
-class QLocalSocket;
-
 namespace MoleQueue
 {
 class JsonRpc;
+class Connection;
 
 /**
  * @class AbstractRpcInterface abstractrpcinterface.h <molequeue/abstractrpcinterface.h>
@@ -54,31 +52,13 @@ public:
 
   friend class ::AbstractRpcInterfaceTest;
 
-signals:
-  /**
-   * Emitted when a complete packet has been read from the socket.
-   *
-   * @param packet The packet
-   */
-  void newPacketReady(const MoleQueue::PacketType &packet);
-
-  /**
-   * Emitted when the socket is disconnected.
-   */
-  void disconnected();
-
 protected slots:
 
   /**
-   * Sets this AbstractRpcInterface to use the passed socket.
-   * @param socket The QLocalSocket to use
+   * Sets this AbstractRpcInterface to use the passed connection.
+   * @param socket The Connection to use
    */
-  virtual void setSocket(QLocalSocket *socket);
-
-  /**
-   * Read data from the local socket until a complete packet has been obtained.
-   */
-  virtual void readSocket();
+  virtual void setConnection(Connection *conn);
 
   /**
    * Interpret a newly received packet.
@@ -86,19 +66,6 @@ protected slots:
    * @param packet The packet
    */
   void readPacket(const MoleQueue::PacketType &packet);
-
-  /**
-   * Write a packet to the local socket.
-   *
-   * @param packet The packet
-   */
-  void sendPacket(const MoleQueue::PacketType &packet);
-
-  /**
-   * Called when a local socket disconnects. This emits the disconnected()
-   * signal.
-   */
-  void socketDisconnected();
 
   /**
    * Send a response indicating that an invalid packet (unparsable) has been
@@ -155,44 +122,8 @@ protected:
    */
   IdType nextPacketId();
 
-  /**
-   * Write a data header containing the packet size and protocol version to the
-   * socket.
-   *
-   * @param packet The packet
-   */
-  void writePacketHeader(const PacketType &packet);
-
-  /**
-   * @return Whether or not the socket header is complete and ready to read.
-   */
-  bool canReadPacketHeader();
-
-  /**
-   * Read the data header containing the packet size and protocol version from
-   * the socket.
-   *
-   * @return The size of incoming packet in bytes.
-   */
-  quint32 readPacketHeader();
-
-  /// Current version of the packet header
-  quint32 m_headerVersion;
-
-  /// Size of the packet header
-  const quint32 m_headerSize;
-
-  /// The size of the currently read packet
-  quint32 m_currentPacketSize;
-
-  /// The packet currently being read
-  PacketType m_currentPacket;
-
-  /// The local socket used for interprocess communication
-  QLocalSocket *m_socket;
-
-  /// The data stream used to interface with the local socket
-  QDataStream *m_dataStream;
+  /// The connection used for interprocess communication
+  Connection *m_connection;
 
   /// The internal JsonRpc object
   JsonRpc *m_jsonrpc;

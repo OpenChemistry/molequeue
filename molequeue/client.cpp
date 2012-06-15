@@ -100,8 +100,8 @@ void Client::submitJobRequest(const JobRequest &req)
 {
   const IdType id = this->nextPacketId();
   const PacketType packet = m_jsonrpc->generateJobRequest(req, id);
-  m_submittedLUT->insert(id, req);
-  this->sendPacket(packet);
+  m_submittedLUT->insert(id, req->clientId());
+  m_connection->send(packet);
 }
 
 void Client::cancelJob(const JobRequest &req)
@@ -109,7 +109,7 @@ void Client::cancelJob(const JobRequest &req)
   const IdType id = this->nextPacketId();
   const PacketType packet = m_jsonrpc->generateJobCancellation(req, id);
   m_canceledLUT->insert(id, req);
-  this->sendPacket(packet);
+  m_connection->send(packet);
 }
 
 void Client::queueListReceived(IdType, const QueueListType &list)
@@ -211,45 +211,14 @@ void Client::jobStateChangeReceived(IdType moleQueueId,
   emit jobStateChanged(JobRequest(req), oldState, newState);
 }
 
-void Client::connectToServer(const QString &serverName)
-{
-  /// @todo This should return a bool indicating whether the connection was successful...
-  if (m_socket == NULL) {
-    qWarning() << Q_FUNC_INFO << "Cannot connect to server at" << serverName
-               << ", socket is not set.";
-    return;
-  }
-
-  if (m_socket->isOpen()) {
-    if (m_socket->serverName() == serverName) {
-      DEBUGOUT("connectToServer") "Socket already connected to" << serverName;
-      return;
-    }
-    else {
-      DEBUGOUT("connectToServer") "Disconnecting from server"
-          << m_socket->serverName();
-      m_socket->disconnectFromServer();
-    }
-  }
-  if (serverName.isEmpty()) {
-    DEBUGOUT("connectToServer") "No server specified. Not attempting connection.";
-    return;
-  }
-  else {
-    m_socket->connectToServer(serverName);
-    DEBUGOUT("connectToServer") "Client connected to server"
-        << m_socket->serverName();
-  }
-}
-
 void Client::requestQueueListUpdate()
 {
   PacketType packet = m_jsonrpc->generateQueueListRequest(
         this->nextPacketId());
-  this->sendPacket(packet);
+  m_connection->send(packet);
 }
 
-JobRequest Client::newJobRequest()
+Job *Client::newJobRequest()
 {
   return m_jobManager->newJob();
 }

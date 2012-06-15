@@ -22,9 +22,7 @@
 #include "queue.h"
 #include "queuemanager.h"
 #include "serverconnection.h"
-
-#include <QtNetwork/QLocalServer>
-#include <QtNetwork/QLocalSocket>
+#include "transport/localsocketconnectionlistener.h"
 
 #include <QtCore/QDateTime>
 #include <QtCore/QDebug>
@@ -41,20 +39,17 @@ namespace MoleQueue
 {
 
 Server::Server(QObject *parentObject)
-  : Object(parentObject),
-    m_server(new QLocalServer (this)),
+  : QObject(parentObject),
+    m_connectionListener(NULL),
     m_jobManager(new JobManager (this)),
     m_queueManager(new QueueManager (this)),
     m_isTesting(false),
     m_moleQueueIdCounter(0),
     m_debug(false)
 {
-  qRegisterMetaType<QAbstractSocket::SocketError>("QAbstractSocket::SocketError");
+  qRegisterMetaType<ConnectionListener::Error>("ConnectionListener::Error");
   qRegisterMetaType<ServerConnection*>("MoleQueue::ServerConnection*");
   qRegisterMetaType<const ServerConnection*>("const MoleQueue::ServerConnection*");
-
-  connect(m_server, SIGNAL(newConnection()),
-          this, SLOT(newConnectionAvailable()));
 
   connect(m_jobManager, SIGNAL(jobAboutToBeAdded(MoleQueue::Job)),
           this, SLOT(jobAboutToBeAdded(MoleQueue::Job)),
@@ -79,14 +74,25 @@ Server::~Server()
   qDeleteAll(m_connections);
   m_connections.clear();
 
-  delete m_server;
-  m_server = NULL;
-
   delete m_jobManager;
   m_jobManager = NULL;
 
   delete m_queueManager;
   m_queueManager = NULL;
+}
+
+void Server::createConnectionListener()
+{
+  m_serverName = (!m_isTesting) ? "MoleQueue" : "MoleQueue-testing";
+  m_connectionListener = new LocalSocketConnectionListener(this, m_serverName);
+
+  connect(m_connectionListener, SIGNAL(newConnection(MoleQueue::Connection *)),
+          this, SLOT(newConnectionAvailable(MoleQueue::Connection *)));
+
+  connect(m_connectionListener,
+          SIGNAL(connectionError(MoleQueue::ConnectionListener::Error, const QString&)),
+          this, SIGNAL(connectionError(MoleQueue::ConnectionListener::Error,const QString&)));
+
 }
 
 void Server::readSettings(QSettings &settings)
@@ -112,43 +118,40 @@ void Server::writeSettings(QSettings &settings) const
 
 void Server::start()
 {
-  const QString serverName = (!m_isTesting) ? "MoleQueue"
-                                            : "MoleQueue-testing";
-  if (!m_server->listen(serverName)) {
-    DEBUGOUT("start") "Error starting local socket server. Error type:"
-        << m_server->serverError() << m_server->errorString();
-    emit connectionError(m_server->serverError(), m_server->errorString());
-    return;
-  }
+  if(m_connectionListener == NULL)
+    createConnectionListener();
 
-  DEBUGOUT("start") "Local socket server started listening on address:"
-      << m_server->serverName();
+  m_connectionListener->start();
+
+  DEBUGOUT("start") "Connection listener started listening on address:"
+      << m_serverName;
 }
 
 void Server::forceStart()
 {
-  const QString serverName = (!m_isTesting) ? "MoleQueue"
-                                            : "MoleQueue-testing";
-  DEBUGOUT("forceStart") "Attempting to remove existing servers...";
-  if (m_server->removeServer(serverName)) {
-    DEBUGOUT("forceStart") "Servers removed.";
-  }
-  else {
-    DEBUGOUT("forceStart") "Failed to remove existing servers.";
-  }
+  // Try a new connection listener
+  if(m_connectionListener)
+    m_connectionListener->stop(true);
+
+  delete m_connectionListener;
+  createConnectionListener();
 
   this->start();
 }
 
 void Server::stop()
 {
-  m_server->close();
+  if (m_connectionListener) {
+    m_connectionListener->stop();
+    delete m_connectionListener;
+    m_connectionListener = NULL;
+  }
 }
 
-void Server::dispatchJobStateChange(const Job &job,
+void Server::dispatchJobStateChange(const Job *job,
                                     JobState oldState, JobState newState)
 {
-  ServerConnection *conn = this->lookupConnection(job.moleQueueId());
+  ServerConnection *conn = this->lookupConnection(job->moleQueueId());
   if (!conn)
     return;
 
@@ -266,16 +269,9 @@ void Server::jobAboutToBeAdded(Job job)
     job.setOutputDirectory(job.localWorkingDirectory());
 }
 
-void Server::newConnectionAvailable()
+void Server::newConnectionAvailable(Connection *connection)
 {
-  if (!m_server->hasPendingConnections()) {
-    DEBUGOUT("newConnectionAvailable") "Aborting -- no pending connections "
-        "available.";
-    return;
-  }
-
-  QLocalSocket *socket = m_server->nextPendingConnection();
-  ServerConnection *conn = new ServerConnection (this, socket);
+  ServerConnection *conn = new ServerConnection (this, connection);
 
   connect(conn, SIGNAL(queueListRequested()), this, SLOT(queueListRequested()));
   connect(conn, SIGNAL(jobSubmissionRequested(const MoleQueue::Job&)),

@@ -1,0 +1,110 @@
+/******************************************************************************
+
+ This source file is part of the MoleQueue project.
+
+ Copyright 2012 Kitware, Inc.
+
+ This source code is released under the New BSD License, (the "License").
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+
+ ******************************************************************************/
+
+#ifndef LOCALSOCKETCONNECTIONLISTENER_H_
+#define LOCALSOCKETCONNECTIONLISTENER_H_
+
+#include "../connectionlistener.h"
+
+#include <QtNetwork/qabstractsocket.h>
+
+class QLocalServer;
+class ServerTest;
+
+namespace MoleQueue
+{
+
+/**
+ * @class LocalSocketConnectionListener localsocketconnectionlistener.h
+ * <molequeue/ipc/localsocketconnectionlistener.h>
+ * @brief Provides a implementation of ConnectionListener using QLocalServer.
+ * Each connection made is emitted as a LocalSocketConnection.
+ *
+ * @see ConnectionListener
+ */
+class LocalSocketConnectionListener: public ConnectionListener
+{
+  Q_OBJECT
+public:
+
+  /**
+   * Constructor.
+   *
+   * @param parentObject parent
+   * @param connectionString The address that the QLocalServer should listen on.
+   */
+  explicit LocalSocketConnectionListener(QObject *parentObject,
+                                         const QString &connectionString);
+
+  /**
+   * Destructor.
+   */
+  ~LocalSocketConnectionListener();
+
+  /**
+   * Start listening for incoming connecitons.
+   *
+   * @see ConnectionListener::start()
+   */
+  void start();
+
+  /**
+   * Stops the connection listener.
+   *
+   * @param force If true use QLocalServer::removeServer(...) to remove server
+   * instance.
+   *
+   * @see ConnectionListener::stop(bool)
+   */
+  void stop(bool force);
+
+  /**
+   * Calls stop(false)
+   *
+   * @see stop(bool)
+   * @see ConnectionListener::stop()
+   */
+  void stop();
+
+  /**
+   * @return the address the QLocalServer is listening on.
+   */
+  QString connectionString() { return m_connectionString; };
+
+  /// Used for unit testing
+  friend class ::ServerTest;
+
+private slots:
+  /**
+   * Called when a new connection is established by the QLocalServer.
+   */
+  void newConnectionAvailable();
+
+private:
+  // Method to map implementation specific error to generic errors.
+  ConnectionListener::Error toConnectionListenerError(
+      QAbstractSocket::SocketError error);
+
+  /// The address the QLocalServer is listening on.
+  QString m_connectionString;
+
+  /// The internal local socket server
+  QLocalServer *m_server;
+};
+
+} /* namespace MoleQueue */
+
+#endif /* LOCALSOCKETCONNECTIONLISTENER_H_ */
