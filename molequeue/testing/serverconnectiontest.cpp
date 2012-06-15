@@ -26,6 +26,7 @@
 #include "queue.h"
 #include "queuemanager.h"
 #include "server.h"
+#include "transport/localsocketconnection.h"
 
 #include <QtNetwork/QLocalSocket>
 
@@ -95,9 +96,11 @@ void ServerConnectionTest::initTestCase()
   m_testServer = new TestServer(&m_packet);
 
   m_server = new MoleQueue::Server ();
-  QLocalSocket *serverSocket = new QLocalSocket ();
-  serverSocket->connectToServer(m_testServer->socketName());
-  m_serverConnection = new MoleQueue::ServerConnection(m_server, serverSocket);
+  MoleQueue::LocalSocketConnection *conn =
+      new MoleQueue::LocalSocketConnection(this, m_testServer->socketName());
+  m_serverConnection = new MoleQueue::ServerConnection(m_server, conn);
+  conn->open();
+
   m_serverConnection->startProcessing();
   // Let the event loop run a bit to handle the connections
   qApp->processEvents(QEventLoop::AllEvents, 1000);
