@@ -153,8 +153,10 @@ public:
   /// depending on the value of launchSyntax.
   QString launchTemplate() const;
 
-  static QString generateFormattedExecutionString(const QString &executableName_, const QString &arguments_, const QString &inputFilename_,
-      const QString &outputFilename_, const QString &executablePath_,
+  static QString generateFormattedExecutionString(
+      const QString &executableName_, const QString &arguments_,
+      const QString &inputFilename_, const QString &outputFilename_,
+      const QString &executablePath_,
       bool useExecutablePath_, LaunchSyntax syntax_);
 
 protected:
