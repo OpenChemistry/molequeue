@@ -68,7 +68,7 @@ RemoteQueueWidget::RemoteQueueWidget(QueueRemote *queue,
 RemoteQueueWidget::~RemoteQueueWidget()
 {
   delete ui;
-  delete m_client;
+  m_client->deleteLater();
 }
 
 void RemoteQueueWidget::updateGuiFromQueue()
