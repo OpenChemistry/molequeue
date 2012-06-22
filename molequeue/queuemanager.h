@@ -58,25 +58,39 @@ public:
   }
 
   /**
-   * Add a new Queue to the QueueManager. The new object must have a unique name.
-   * The QueueManager takes ownership of the Queue unless removeQueue is called.
-   * @param queue The new Queue object.
-   * @param replace Defaults to false; if true, replace any existing queues with
-   * the same name. The old queue with the same name will be deleted.
-   * @return True on success, false if a Queue already exists with the same name
-   * and replace is set to false.
+   * @return A list of available queues types (e.g. PBS/Torque, SGE, etc.)
    */
-  bool addQueue(Queue *queue, bool replace = false);
+  static const QStringList & availableQueues();
 
   /**
-   * Remove a queue from the collection.
+   * @param queueType Type of Queue (SGE, PBS/Torque, Local, etc)
+   * @return True if the queue can be instantiated, false otherwise.
+   */
+  static bool queueTypeIsValid(const QString &queueType);
+
+  /**
+   * Add a new Queue to the QueueManager. The new queueName must be unique name.
+   * The QueueManager maintains ownership of the Queue.
+   * @param queueName Unique, user-visible name of the new Queue object.
+   * @param queueType The type of the new Queue object, e.g. PBS/Torque, SGE, etc/
+   * @param replace Defaults to false; if true, replace any existing queues with
+   * the same name. The old queue with the same name will be deleted.
+   * @return A pointer to the new queue if successful, NULL otherwise.
+   * @sa queueTypeIsKnown
+   * @sa availableQueueTypes
+   */
+  Queue * addQueue(const QString &queueName, const QString &queueType,
+                   bool replace = false);
+
+  /**
+   * Remove and delete a queue from the collection.
    * @param queue Queue to remove.
    * @return True if queue exists, false otherwise.
    */
   bool removeQueue(const Queue *queue);
 
   /**
-   * Remove a queue from the collection.
+   * Remove and delete a queue from the collection.
    * @param queueName Name of queue to remove.
    * @return True if queue exists, false otherwise.
    */

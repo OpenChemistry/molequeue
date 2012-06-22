@@ -78,15 +78,11 @@ void QueueManagerTest::cleanup()
 void QueueManagerTest::testAddQueue()
 {
   QSignalSpy spy (&m_queueManager, SIGNAL(queueAdded(QString,MoleQueue::Queue*)));
-  MoleQueue::Queue *q1 = new QueueDummy(NULL);
-  q1->setName("First Queue");
-  MoleQueue::Queue *q2 = new QueueDummy (&m_queueManager);
-  q2->setName("Second Queue");
-  MoleQueue::Queue *q2a = new QueueDummy (NULL);
-  q2a->setName("Second Queue");
-  QCOMPARE(m_queueManager.addQueue(q1), true);
-  QCOMPARE(m_queueManager.addQueue(q2), true);
-  QCOMPARE(m_queueManager.addQueue(q2a), false); // duplicate name
+  const QStringList & queues = m_queueManager.availableQueues();
+  QVERIFY(queues.size());
+  QVERIFY(m_queueManager.addQueue("First Queue", queues.first()) != NULL);
+  QVERIFY(m_queueManager.addQueue("Second Queue", queues.first()) != NULL);
+  QVERIFY(m_queueManager.addQueue("Second Queue", queues.first()) == NULL); // duplicate name
 
   QCOMPARE(spy.count(), 2);
 }
@@ -131,9 +127,10 @@ void QueueManagerTest::testRemoveQueue()
 void QueueManagerTest::testCleanup()
 {
   MoleQueue::QueueManager *manager = new MoleQueue::QueueManager ();
+  const QStringList & queues = manager->availableQueues();
+  QVERIFY(queues.size());
 
-  QPointer<MoleQueue::Queue> q = new QueueDummy (NULL);
-  manager->addQueue(q.data());
+  QPointer<MoleQueue::Queue> q = manager->addQueue("", queues.first());
   delete manager;
   manager = NULL;
 
