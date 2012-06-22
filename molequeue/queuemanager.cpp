@@ -17,9 +17,6 @@
 #include "queuemanager.h"
 
 #include "queue.h"
-#include "queues/local.h"
-#include "queues/remote.h"
-#include "queues/sge.h"
 #include "server.h"
 
 #include <QtCore/QDebug>
@@ -52,19 +49,17 @@ void QueueManager::readSettings(QSettings &settings)
 
     QString queueType = settings.value("type").toString();
 
-    Queue *queue = NULL;
-    if (queueType == "Local")
-      queue = new QueueLocal (this);
-    else if (queueType == "Sun Grid Engine")
-      queue = new QueueSge (this);
-    else
-      qWarning() << Q_FUNC_INFO << "Unrecognized Queue type:" << queueType;
+    Queue *queue = Queue::createQueue(queueType, this);
 
     if (queue != NULL) {
       queue->setName(queueName);
       queue->readSettings(settings);
       this->addQueue(queue);
     }
+    else {
+      qWarning() << Q_FUNC_INFO << "Unrecognized Queue type:" << queueType;
+    }
+
     settings.endGroup(); // queueName
   }
   settings.endGroup(); // "Queues"

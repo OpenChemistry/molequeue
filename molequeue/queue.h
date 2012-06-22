@@ -51,9 +51,31 @@ class Server;
 class Queue : public QObject
 {
   Q_OBJECT
-public:
+protected:
+  /**
+   * Protected constructor. Use createQueue() method to create a queue using a
+   * queueName taken from the list returned by availableQueues().
+   * @sa createQueue
+   * @sa availableQueues
+   */
   explicit Queue(const QString &queueName = "Undefined",
                  QueueManager *parentManager = 0);
+
+public:
+  /**
+   * Factory method to create a queue with the given @a queueName and @a
+   * parentManager. The caller is responsible for managing the lifetime of the
+   * created object (if any).
+   * @return A concrete Queue object, or NULL if queueName is not recognized.
+   */
+  static Queue * createQueue(const QString &queueName,
+                             QueueManager *parentManager);
+
+  /**
+   * @return A list of available queues types (e.g. PBS/Torque, SGE, etc.)
+   */
+  static const QStringList &availableQueues();
+
   ~Queue();
 
   /// @return The parent Server

@@ -24,6 +24,10 @@
 #include "queuemanager.h"
 #include "server.h"
 
+// Concrete queue implementations:
+#include "queues/local.h"
+#include "queues/sge.h"
+
 #include <QtCore/QDebug>
 #include <QtCore/QDir>
 #include <QtCore/QSettings>
@@ -49,6 +53,25 @@ Queue::Queue(const QString &queueName, QueueManager *parentManager) :
                                                        MoleQueue::IdType)));
   }
 
+}
+
+Queue *Queue::createQueue(const QString &queueName,
+                          QueueManager *parentManager)
+{
+  if (queueName == "Local")
+    return new QueueLocal (parentManager);
+  else if (queueName == "Sun Grid Engine")
+    return new QueueSge (parentManager);
+  else
+    return NULL;
+}
+
+const QStringList & Queue::availableQueues()
+{
+  static QStringList result;
+  if (result.isEmpty())
+    result << "Local" << "Sun Grid Engine";
+  return result;
 }
 
 Queue::~Queue()
