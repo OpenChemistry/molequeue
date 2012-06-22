@@ -113,9 +113,8 @@ void JsonRpcTest::initTestCase()
 {
 //  m_rpc.setDebug(true);
 
-  Queue *queueTmp = new QueueSge(&m_qmanager);
-  m_qmanager.addQueue(queueTmp);
-  queueTmp->setName("Some big ol' cluster");
+  Queue *queueTmp = m_qmanager.addQueue("Some big ol' cluster",
+                                        "Sun Grid Engine");
   Program *progTmp = new Program (NULL);
   progTmp->setName("Quantum Tater");
   queueTmp->addProgram(progTmp);
@@ -125,9 +124,8 @@ void JsonRpcTest::initTestCase()
   progTmp = new Program (*progTmp);
   progTmp->setName("Nebulous Nucleus");
   queueTmp->addProgram(progTmp);
-  queueTmp = new QueueLocal(&m_qmanager);
-  m_qmanager.addQueue(queueTmp);
-  queueTmp->setName("Puny local queue");
+
+  queueTmp = m_qmanager.addQueue("Puny local queue", "Local");
   progTmp = new Program (NULL);
   progTmp->setName("SpectroCrunch");
   queueTmp->addProgram(progTmp);

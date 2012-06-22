@@ -49,9 +49,15 @@ class Server;
 class Queue : public Object
 {
   Q_OBJECT
-public:
+protected:
+  /**
+   * Protected constructor. Use QueueManager:::addQueue() method to create new
+   * Queue objects.
+   */
   explicit Queue(const QString &queueName = "Undefined",
                  QueueManager *parentManager = 0);
+
+public:
   ~Queue();
 
   /// @return The parent Server
@@ -171,6 +177,9 @@ public:
    * queues this will be a shell script (unix) or batch script (windows).
    */
   QString launchScriptName() const { return m_launchScriptName; }
+
+  /// For queue creation
+  friend class MoleQueue::QueueManager;
 
 signals:
   /**

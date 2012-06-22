@@ -35,8 +35,8 @@ public:
     explicit AddQueueDialog(QueueManager *queueManager, QWidget *parentObject = 0);
     ~AddQueueDialog();
 
-private slots:
-  void addQueue();
+public slots:
+  virtual void accept();
 
 private:
     Ui::AddQueueDialog *ui;

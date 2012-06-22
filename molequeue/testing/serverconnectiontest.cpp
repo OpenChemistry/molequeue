@@ -123,9 +123,8 @@ void ServerConnectionTest::testSendQueueList()
 {
   // Create phony queue
   MoleQueue::QueueManager qmanager;
-  MoleQueue::Queue *queueTmp = new QueueDummy (&qmanager);
-  queueTmp->setName("Some big ol' cluster");
-  qmanager.addQueue(queueTmp);
+  MoleQueue::Queue *queueTmp = qmanager.addQueue("Some big ol' cluster",
+                                                 "Sun Grid Engine");
   MoleQueue::Program *progTmp = new MoleQueue::Program (NULL);
   progTmp->setName("Quantum Tater");
   queueTmp->addProgram(progTmp);
@@ -135,9 +134,8 @@ void ServerConnectionTest::testSendQueueList()
   progTmp = new MoleQueue::Program (*progTmp);
   progTmp->setName("Nebulous Nucleus");
   queueTmp->addProgram(progTmp);
-  queueTmp = new QueueDummy (&qmanager);
-  queueTmp->setName("Puny local queue");
-  qmanager.addQueue(queueTmp);
+
+  queueTmp = qmanager.addQueue("Puny local queue", "Local");
   progTmp = new MoleQueue::Program (NULL);
   progTmp->setName("SpectroCrunch");
   queueTmp->addProgram(progTmp);
