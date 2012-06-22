@@ -17,11 +17,12 @@
 #include "queuemanager.h"
 
 #include "queue.h"
+#include "server.h"
+
+// Concrete queue classes
 #include "queues/local.h"
 #include "queues/pbs.h"
-#include "queues/remote.h"
 #include "queues/sge.h"
-#include "server.h"
 
 #include <QtCore/QDebug>
 #include <QtCore/QSettings>
@@ -53,21 +54,13 @@ void QueueManager::readSettings(QSettings &settings)
 
     QString queueType = settings.value("type").toString();
 
-    Queue *queue = NULL;
-    if (queueType == "Local")
-      queue = new QueueLocal (this);
-    else if (queueType == "Sun Grid Engine")
-      queue = new QueueSge (this);
-    else if (queueType == "PBS/Torque")
-      queue = new QueuePbs (this);
+    Queue *queue = this->addQueue(queueName, queueType, this);
+
+    if (queue != NULL)
+      queue->readSettings(settings);
     else
       qWarning() << Q_FUNC_INFO << "Unrecognized Queue type:" << queueType;
 
-    if (queue != NULL) {
-      queue->setName(queueName);
-      queue->readSettings(settings);
-      this->addQueue(queue);
-    }
     settings.endGroup(); // queueName
   }
   settings.endGroup(); // "Queues"
@@ -87,30 +80,49 @@ void QueueManager::writeSettings(QSettings &settings) const
   settings.endGroup(); // "Queues"
 }
 
-bool QueueManager::addQueue(Queue *queue, bool replace)
+QStringList QueueManager::availableQueues()
 {
-  if (m_queues.contains(queue->name())) {
+  QStringList result;
+  result << "Local" << "Sun Grid Engine" << "PBS/Torque";
+  return result;
+}
+
+bool QueueManager::queueTypeIsValid(const QString &queueType)
+{
+  return QueueManager::availableQueues().contains(queueType);
+}
+
+Queue * QueueManager::addQueue(
+    const QString &queueName, const QString &queueType, bool replace)
+{
+  if (m_queues.contains(queueName)) {
     if (replace == true)
-      m_queues.take(queue->name())->deleteLater();
+      m_queues.take(queueName)->deleteLater();
     else
-      return false;
+      return NULL;
   }
 
-  m_queues.insert(queue->name(), queue);
+  Queue * newQueue = NULL;
+  if (queueType== "Local")
+    newQueue = new QueueLocal(this);
+  else if (queueType== "Sun Grid Engine")
+    newQueue = new QueueSge(this);
+  else if (queueType== "PBS/Torque")
+    newQueue = new QueuePbs(this);
 
-  emit queueAdded(queue->name(), queue);
-  return true;
+  if (!newQueue)
+    return NULL;
+
+  newQueue->setName(queueName);
+
+  m_queues.insert(newQueue->name(), newQueue);
+  emit queueAdded(newQueue->name(), newQueue);
+  return newQueue;
 }
 
 bool QueueManager::removeQueue(const Queue *queue)
 {
-  if (!m_queues.contains(queue->name()))
-    return false;
-
-  Queue *mutableQueue = m_queues.take(queue->name());
-
-  emit queueRemoved(queue->name(), mutableQueue);
-  return true;
+  return removeQueue(queue->name());
 }
 
 bool QueueManager::removeQueue(const QString &name)
@@ -121,6 +133,7 @@ bool QueueManager::removeQueue(const QString &name)
   Queue *queue = m_queues.take(name);
 
   emit queueRemoved(name, queue);
+  queue->deleteLater();
   return true;
 }
 
