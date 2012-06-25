@@ -39,6 +39,10 @@
 
 #include <QtCore/QDebug>
 
+#ifdef WIN32
+#include <Windows.h> // For _PROCESS_INFORMATION (PID parsing)
+#endif
+
 namespace MoleQueue {
 
 QueueLocal::QueueLocal(QueueManager *parentManager) :
