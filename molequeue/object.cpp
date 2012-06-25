@@ -2,7 +2,7 @@
 
   This source file is part of the MoleQueue project.
 
-  Copyright 2011-2012 Kitware, Inc.
+  Copyright 2012 Kitware, Inc.
 
   This source code is released under the New BSD License, (the "License").
 
@@ -14,35 +14,34 @@
 
 ******************************************************************************/
 
-#ifndef QUEUESGE_H
-#define QUEUESGE_H
+#include "object.h"
 
-#include "remote.h"
+#include "error.h"
 
-class QueueSgeTest;
+#include <QtCore/QMetaType>
 
 namespace MoleQueue
 {
 
-class QueueSge : public QueueRemote
+Object::Object(QObject *parent_) :
+  QObject(parent_),
+  m_objectParent(qobject_cast<Object*>(parent_))
 {
-  Q_OBJECT
-public:
-  explicit QueueSge(QueueManager *parentManager = 0);
-  ~QueueSge();
+  qRegisterMetaType<Error>("MoleQueue::Error");
 
-  QString typeName() const { return "Sun Grid Engine"; }
+  if (m_objectParent) {
+    connect(this, SIGNAL(errorOccurred(MoleQueue::Error)),
+            m_objectParent, SLOT(handleError(MoleQueue::Error)));
+  }
+}
 
-  friend class ::QueueSgeTest;
+Object::~Object()
+{
+}
 
-protected:
-  virtual bool parseQueueId(const QString &submissionOutput, IdType *queueId);
-  virtual QString generateQueueRequestCommand();
-  virtual bool parseQueueLine(const QString &queueListOutput, IdType *queueId,
-                              JobState *state);
+void Object::handleError(const Error &err)
+{
+  emit errorOccurred(err);
+}
 
-};
-
-} // End namespace
-
-#endif // QueueSGE_H
+} // end namespace MoleQueue

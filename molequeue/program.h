@@ -17,7 +17,7 @@
 #ifndef PROGRAM_H
 #define PROGRAM_H
 
-#include <QtCore/QObject>
+#include "object.h"
 
 #include <QtCore/QMap>
 #include <QtCore/QMetaType>
@@ -42,7 +42,7 @@ class Server;
  * if the executable, and options etc remain unchanged.
  */
 
-class Program : public QObject
+class Program : public Object
 {
   Q_OBJECT
 public:

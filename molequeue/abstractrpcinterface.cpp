@@ -139,12 +139,18 @@ void AbstractRpcInterface::readSocket()
 
 void AbstractRpcInterface::readPacket(const PacketType &packet)
 {
+  if (!m_socket->isValid())
+    return;
+
   DEBUGOUT("readPacket") "Interpreting new packet.";
   m_jsonrpc->interpretIncomingPacket(packet);
 }
 
 void AbstractRpcInterface::sendPacket(const PacketType &packet)
 {
+  if (!m_socket->isValid())
+    return;
+
   DEBUGOUT("sendPacket") "Sending new packet. Size:" << packet.size();
   this->writePacketHeader(packet);
   m_dataStream->writeBytes(packet.constData(),

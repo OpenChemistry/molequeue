@@ -17,7 +17,7 @@
 #ifndef QUEUE_H
 #define QUEUE_H
 
-#include <QtCore/QObject>
+#include "object.h"
 
 #include "molequeueglobal.h"
 
@@ -48,7 +48,7 @@ class Server;
  * more sophisticated job management, balancing, etc.
  */
 
-class Queue : public QObject
+class Queue : public Object
 {
   Q_OBJECT
 public:

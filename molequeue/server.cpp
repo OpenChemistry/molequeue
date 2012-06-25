@@ -16,6 +16,7 @@
 
 #include "server.h"
 
+#include "error.h"
 #include "job.h"
 #include "jobmanager.h"
 #include "queue.h"
@@ -40,7 +41,7 @@ namespace MoleQueue
 {
 
 Server::Server(QObject *parentObject)
-  : QObject(parentObject),
+  : Object(parentObject),
     m_server(new QLocalServer (this)),
     m_jobManager(new JobManager (this)),
     m_queueManager(new QueueManager (this)),
@@ -61,6 +62,10 @@ Server::Server(QObject *parentObject)
 
   connect(m_jobManager, SIGNAL(jobStateChanged(const MoleQueue::Job*,MoleQueue::JobState,MoleQueue::JobState)),
           this, SLOT(dispatchJobStateChange(const MoleQueue::Job*,MoleQueue::JobState,MoleQueue::JobState)));
+
+  // Route error messages back into this object's handler:
+  connect(this, SIGNAL(errorOccurred(MoleQueue::Error)),
+          this, SLOT(handleError(MoleQueue::Error)));
 }
 
 Server::~Server()
@@ -144,6 +149,40 @@ void Server::dispatchJobStateChange(const Job *job,
     return;
 
   conn->sendJobStateChangeNotification(job, oldState, newState);
+}
+
+void Server::handleError(const MoleQueue::Error &err)
+{
+  qWarning() << "Server::handleError: Error received:\n"
+                "\tType: " << err.type() << "\n"
+                "\tMessage: " << err.message() << "\n"
+                "\tSender: " << err.sender() << "\n"
+                "\tMoleQueueId: " << err.moleQueueId();
+
+  QString title;
+  switch (err.type()) {
+  default:
+  case Error::MiscError:
+    title = tr("MoleQueue Warning");
+    break;
+  case Error::NetworkError:
+    title = tr("MoleQueue Network Error");
+    break;
+  case Error::IPCError:
+    title = tr("MoleQueue Client Communication Error");
+    break;
+  case Error::FileSystemError:
+    title = tr("MoleQueue Error");
+    break;
+  case Error::QueueError:
+    title = tr("MoleQueue Error");
+    break;
+  case Error::ProgramError:
+    title = tr("MoleQueue Error");
+    break;
+  }
+
+  emit errorNotification(title, err.message());
 }
 
 void Server::queueListRequested()

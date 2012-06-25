@@ -35,7 +35,8 @@ RemoteQueueWidget::RemoteQueueWidget(QueueRemote *queue,
                                      QWidget *parentObject) :
   QWidget(parentObject),
   ui(new Ui::RemoteQueueWidget),
-  m_queue(queue)
+  m_queue(queue),
+  m_client(NULL)
 {
   ui->setupUi(this);
 
@@ -163,6 +164,26 @@ void RemoteQueueWidget::testConnection()
 
 void RemoteQueueWidget::sleepTest()
 {
+  // Check that important variables are set:
+  QString missingVariable = "";
+  if (m_queue->hostName().isEmpty())
+    missingVariable = tr("server hostname");
+  else if (m_queue->userName().isEmpty())
+    missingVariable = tr("server username");
+  else if (m_queue->submissionCommand().isEmpty())
+    missingVariable = tr("job submission command");
+  else if (m_queue->requestQueueCommand().isEmpty())
+    missingVariable = tr("queue request command");
+  else if (m_queue->workingDirectoryBase().isEmpty())
+    missingVariable = tr("remote working directory");
+
+  if (!missingVariable.isEmpty()) {
+    QMessageBox::critical(this, tr("Missing information"),
+                          tr("Refusing to test job submission: %1 not set.")
+                          .arg(missingVariable));
+    return;
+  }
+
   Program *sleepProgram = m_queue->lookupProgram("sleep (testing)");
 
   if (sleepProgram == NULL) {
@@ -178,14 +199,17 @@ void RemoteQueueWidget::sleepTest()
     m_queue->addProgram(sleepProgram);
   }
 
-  Client client;
-  Job *sleepJob = client.newJobRequest();
+  if (!m_client) {
+    m_client = new Client (this);
+    m_client->connectToServer();
+  }
+
+  Job *sleepJob = m_client->newJobRequest();
   sleepJob->setQueue(m_queue->name());
   sleepJob->setProgram(sleepProgram->name());
   sleepJob->setDescription("sleep 30 (test)");
 
-  client.connectToServer();
-  client.submitJobRequest(sleepJob);
+  m_client->submitJobRequest(sleepJob);
 }
 
 void RemoteQueueWidget::updateSubmissionCommand(const QString &command)
