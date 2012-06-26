@@ -26,6 +26,7 @@ class JobTableWidget;
 namespace MoleQueue
 {
 class Job;
+class JobActionFactory;
 class JobManager;
 class JobItemModel;
 
@@ -38,6 +39,7 @@ public:
   ~JobTableWidget();
 
   void setJobManager(JobManager *jobManager);
+  JobManager * jobManager() const;
 
   QList<const Job*> getSelectedJobs();
 
@@ -49,7 +51,6 @@ protected:
   QList<int> getSelectedRows();
 
   Ui::JobTableWidget *ui;
-
   JobItemModel *m_jobItemModel;
 };
 

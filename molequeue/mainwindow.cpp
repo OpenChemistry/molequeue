@@ -2,7 +2,7 @@
 
   This source file is part of the MoleQueue project.
 
-  Copyright 2011 Kitware, Inc.
+  Copyright 2011-2012 Kitware, Inc.
 
   This source code is released under the New BSD License, (the "License").
 
@@ -17,8 +17,13 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
+#include "actionfactorymanager.h"
 #include "job.h"
+#include "jobactionfactories/programmableopenwithactionfactory.h"
+#include "jobactionfactories/opendirectoryactionfactory.h"
+#include "jobactionfactories/removejobactionfactory.h"
 #include "jobmanager.h"
+#include "openwithmanagerdialog.h"
 #include "queuemanagerdialog.h"
 #include "server.h"
 
@@ -43,6 +48,7 @@ MainWindow::MainWindow()
   m_ui->setupUi(this);
 
   createActions();
+  createActionFactories();
   createMainMenu();
   createTrayIcon();
   readSettings();
@@ -90,6 +96,7 @@ void MainWindow::readSettings()
   this->restoreState(settings.value("windowState").toByteArray());
 
   m_server->readSettings(settings);
+  ActionFactoryManager::getInstance()->readSettings(settings);
 }
 
 void MainWindow::writeSettings()
@@ -100,6 +107,7 @@ void MainWindow::writeSettings()
   settings.setValue("windowState", this->saveState());
 
   m_server->writeSettings(settings);
+  ActionFactoryManager::getInstance()->writeSettings(settings);
 }
 
 void MainWindow::trayIconActivated(QSystemTrayIcon::ActivationReason reason)
@@ -122,6 +130,12 @@ void MainWindow::showQueueManager()
   dialog.exec();
 }
 
+void MainWindow::showOpenWithManager()
+{
+  OpenWithManagerDialog dialog (this);
+  dialog.exec();
+}
+
 void MainWindow::handleServerConnectionError(QAbstractSocket::SocketError err,
                                              const QString &str)
 {
@@ -141,7 +155,7 @@ void MainWindow::handleServerConnectionError(QAbstractSocket::SocketError err,
     // Terminate
     if (!ok || index == 1) {
       this->hide();
-      qApp->exit(0);
+      qApp->quit();
     }
     // Take over connection
     else {
@@ -201,8 +215,12 @@ void MainWindow::createActions()
 
 void MainWindow::createMainMenu()
 {
-  connect(m_ui->actionQueueManager, SIGNAL(triggered()), this, SLOT(showQueueManager()));
-  connect(m_ui->actionQuit, SIGNAL(triggered()), qApp, SLOT(quit()));
+  connect(m_ui->actionQueueManager, SIGNAL(triggered()),
+          this, SLOT(showQueueManager()));
+  connect(m_ui->actionOpenWithManager, SIGNAL(triggered()),
+          this, SLOT(showOpenWithManager()));
+  connect(m_ui->actionQuit, SIGNAL(triggered()),
+          qApp, SLOT(quit()));
 }
 
 void MainWindow::createTrayIcon()
@@ -229,6 +247,23 @@ void MainWindow::createTrayIcon()
 void MainWindow::createJobTable()
 {
   m_ui->jobTableWidget->setJobManager(m_server->jobManager());
+}
+
+void MainWindow::createActionFactories()
+{
+  ActionFactoryManager *manager = ActionFactoryManager::getInstance();
+  manager->setServer(m_server);
+
+  // Create default factories:
+  OpenDirectoryActionFactory *dirActionFactory =
+      new OpenDirectoryActionFactory();
+  dirActionFactory->setServer(m_server);
+  manager->addFactory(dirActionFactory);
+
+  RemoveJobActionFactory *removeActionFactory =
+      new RemoveJobActionFactory();
+  removeActionFactory->setServer(m_server);
+  manager->addFactory(removeActionFactory);
 }
 
 } // End namespace
