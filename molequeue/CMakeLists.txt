@@ -85,8 +85,11 @@ qt4_wrap_ui(ui_srcs
 )
 qt4_add_resources(rcc_srcs queuetray.qrc)
 
-# Pull in JsonCpp
+# Pull in JsonCpp, disable build warnings for its sources
 aux_source_directory(${JSONCPP_SOURCE_DIR} jsoncpp_srcs)
+set_property(SOURCE ${jsoncpp_srcs}
+  PROPERTY
+  COMPILE_FLAGS "-w")
 set(mq_srcs ${mq_srcs} ${jsoncpp_srcs})
 
 add_library(molequeue_static STATIC
