@@ -148,6 +148,7 @@ protected:
   SshConnection *newSshConnection();
   bool recursiveRemoveDirectory(const QString &path);
   bool recursiveCopyDirectory(const QString &from, const QString &to);
+  virtual void removeStaleJobs();
 
   /**
    * Extract the job id from the submission output. Reimplement this in derived

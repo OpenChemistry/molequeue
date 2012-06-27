@@ -667,6 +667,24 @@ bool QueueRemote::recursiveCopyDirectory(const QString &from, const QString &to)
   return true;
 }
 
+void QueueRemote::removeStaleJobs()
+{
+  if (m_server) {
+    if (JobManager *jobManager = m_server->jobManager()) {
+      QList<IdType> staleQueueIds;
+      for (QMap<IdType, IdType>::const_iterator it = m_jobs.constBegin(),
+           it_end = m_jobs.constEnd(); it != it_end; ++it) {
+        if (jobManager->lookupMoleQueueId(it.value()))
+          continue;
+        staleQueueIds << it.key();
+      }
+      foreach (IdType queueId, staleQueueIds) {
+        m_jobs.remove(queueId);
+      }
+    }
+  }
+}
+
 QString QueueRemote::generateQueueRequestCommand()
 {
   QList<IdType> queueIds = m_jobs.keys();
@@ -682,6 +700,7 @@ void QueueRemote::timerEvent(QTimerEvent *theEvent)
 {
   if (theEvent->timerId() == m_checkQueueTimerId) {
     theEvent->accept();
+    this->removeStaleJobs();
     if (m_jobs.size())
       this->requestQueueUpdate();
     return;
