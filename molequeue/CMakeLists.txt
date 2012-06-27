@@ -89,6 +89,17 @@ qt4_add_resources(rcc_srcs queuetray.qrc)
 aux_source_directory(${JSONCPP_SOURCE_DIR} jsoncpp_srcs)
 set(mq_srcs ${mq_srcs} ${jsoncpp_srcs})
 
+# Disable JsonCpp warnings for most platforms
+if(BORLAND)
+  set_property(SOURCE ${jsoncpp_srcs}
+    PROPERTY
+    COMPILE_FLAGS "-w-")
+else()
+  set_property(SOURCE ${jsoncpp_srcs}
+    PROPERTY
+    COMPILE_FLAGS "-w")
+endif()
+
 add_library(molequeue_static STATIC
   ${mq_srcs} ${moc_srcs} ${ui_srcs})
 
