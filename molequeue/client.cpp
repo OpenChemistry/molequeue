@@ -209,6 +209,7 @@ void Client::jobStateChangeReceived(IdType moleQueueId,
 
 void Client::connectToServer(const QString &serverName)
 {
+  /// @todo This should return a bool indicating whether the connection was successful...
   if (m_socket == NULL) {
     qWarning() << Q_FUNC_INFO << "Cannot connect to server at" << serverName
                << ", socket is not set.";

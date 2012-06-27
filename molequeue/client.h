@@ -38,7 +38,26 @@ class JobManager;
  * @brief The Client class is used to submit jobs to the MoleQueue application
  * @author David C. Lonie
  *
- * @todo Detail usage
+ * Programmatic access to the MoleQueue application is provided via the Client
+ * class. To use this class, include the molequeue/client.h header and link to
+ * the molequeueclient library.
+ *
+ * An example of simple job submission:
+@code
+MoleQueue::Client client;
+client.connectToServer();
+MoleQueue::Job *job = client.newJobRequest();
+job->setQueue("QueueName");
+job->setProgram("ProgramName");
+job->setDescription("Description of job");
+job->setInputAsString("[input file contents]");
+
+client.submitJobRequest(job);
+@endcode
+ *
+ * A list of available Queue and Program names can be obtained by calling
+ * Client::requestQueueListUpdate(), waiting for the Client::queueListUpdated
+ * signal, and taking the output of Client::queueList().
  */
 class Client : public AbstractRpcInterface
 {

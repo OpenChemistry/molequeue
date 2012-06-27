@@ -33,6 +33,7 @@ class Job;
 class QueueManager;
 class Server;
 
+/** This class will be removed during the transport refactor. Not documenting.*/
 class ServerConnection : public AbstractRpcInterface
 {
   Q_OBJECT

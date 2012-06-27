@@ -32,16 +32,15 @@ class QueueManager;
 class Server;
 
 /**
- * Class to represent a computer program. Embodies how to execute the program,
- * possibly logic to set the number of cores (if specified on the command line)
- * as well as letting the queue know how many cores the job requires. Once the
- * program is finished, indicates the expected output files that should be
- * produced after a successful run.
+ * @class Program program.h <molequeue/program.h>
+ * @brief A class defining interactions with an executable accessible by a Queue.
+ * @author Marcus D. Hanwell, David C. Lonie
  *
- * The Program object is usually specific to the queue, but may be identical
- * if the executable, and options etc remain unchanged.
+ * The Program class describes an executable which runs a Job on a particular
+ * Queue. Each Program object is unique to the Queue, and contains details
+ * for running the executable, any arguments it needs, and the names of files
+ * it reads/produces.
  */
-
 class Program : public Object
 {
   Q_OBJECT

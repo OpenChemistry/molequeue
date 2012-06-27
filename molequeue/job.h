@@ -36,7 +36,7 @@ class Server;
 
 /**
  * @class Job job.h <molequeue/job.h>
- * @brief Container for client-side job request details
+ * @brief Container for information particular to a given job submission.
  * @author David C. Lonie
  */
 class Job

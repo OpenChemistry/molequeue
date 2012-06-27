@@ -23,6 +23,15 @@ namespace MoleQueue
 {
 class Error;
 
+/**
+ * @class Object object.h <molequeue/object.h>
+ * @brief Base class for certain large server-side objects.
+ * @author David C. Lonie
+ *
+ * The Object class provides an interface for passing errors up the server-side
+ * heirarchy (Server <-- QueueManager <-- Queue <-- Program).
+ *
+ */
 class Object : public QObject
 {
   Q_OBJECT
