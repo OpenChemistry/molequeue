@@ -564,6 +564,12 @@ void QueueRemote::remoteDirectoryCleaned()
   }
 }
 
+void QueueRemote::jobAboutToBeRemoved(const Job *job)
+{
+  m_pendingSubmission.removeOne(job->moleQueueId());
+  this->Queue::jobAboutToBeRemoved(job);
+}
+
 SshConnection * QueueRemote::newSshConnection()
 {
   SshCommand *command = new SshCommand (this);
@@ -667,6 +673,29 @@ bool QueueRemote::recursiveCopyDirectory(const QString &from, const QString &to)
   return true;
 }
 
+void QueueRemote::removeStaleJobs()
+{
+  if (m_server) {
+    if (JobManager *jobManager = m_server->jobManager()) {
+      QList<IdType> staleQueueIds;
+      for (QMap<IdType, IdType>::const_iterator it = m_jobs.constBegin(),
+           it_end = m_jobs.constEnd(); it != it_end; ++it) {
+        if (jobManager->lookupMoleQueueId(it.value()))
+          continue;
+        staleQueueIds << it.key();
+        Error err (tr("Job with MoleQueue id %1 is missing, but the Queue '%2' "
+                      "is still holding a reference to it. The job may need to "
+                      "be resubmitted.").arg(it.value()).arg(this->name()),
+                   Error::QueueError, this);
+        emit errorOccurred(err);
+      }
+      foreach (IdType queueId, staleQueueIds) {
+        m_jobs.remove(queueId);
+      }
+    }
+  }
+}
+
 QString QueueRemote::generateQueueRequestCommand()
 {
   QList<IdType> queueIds = m_jobs.keys();
@@ -682,6 +711,7 @@ void QueueRemote::timerEvent(QTimerEvent *theEvent)
 {
   if (theEvent->timerId() == m_checkQueueTimerId) {
     theEvent->accept();
+    this->removeStaleJobs();
     if (m_jobs.size())
       this->requestQueueUpdate();
     return;
