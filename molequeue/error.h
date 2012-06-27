@@ -27,6 +27,14 @@
 namespace MoleQueue
 {
 
+/**
+ * @class Error error.h <molequeue/error.h>
+ * @brief Encapsulation of non-fatal error messages.
+ * @author David C. Lonie
+ *
+ * The Error class is used by subclasses of Object to pass errors to a handler,
+ * which will inform the user of the error that occured.
+ */
 class Error
 {
 public:
@@ -67,19 +75,34 @@ public:
    */
   Error(const Error &other);
 
+  /** A user-friendly message describing the error. */
   void setMessage(const QString &message_) { m_message = message_; }
+
+  /** A user-friendly message describing the error. */
   QString message() const { return m_message; }
 
+  /** The type of error that occurred. */
   void setType(ErrorType type_) { m_type = type_; }
+
+  /** The type of error that occurred. */
   ErrorType type() const { return m_type; }
 
+  /** The Object which originated the error. */
   void setSender(Object *sender_) { m_sender = sender_; }
+
+  /** The Object which originated the error. */
   Object * sender() const { return m_sender; }
 
+  /** The MoleQueue id of the associated job (if any, 0 otherwise). */
   void setMoleQueueId(IdType moleQueueId_) { m_moleQueueId = moleQueueId_; }
+
+  /** The MoleQueue id of the associated job (if any, 0 otherwise). */
   IdType moleQueueId() const { return m_moleQueueId; }
 
+  /** Optional supplimental data. */
   void setData(const QVariant data_) { m_data = data_; }
+
+  /** Optional supplimental data. */
   QVariant data() const { return m_data; }
 
 protected:

@@ -42,6 +42,12 @@ class ServerConnection;
  * @brief The Server class handles incoming Client connections and spawns
  * a ServerConnection instance for each.
  * @author David C. Lonie
+ *
+ * The Server class is the root of the server-side heirarchy. It is responsible
+ * for listening for incoming connections and owns the JobManager and
+ * QueueManager used to track Job and Queue objects. It also routes client
+ * requests to the appropriate server-side objects.
+ *
  */
 class Server : public Object
 {

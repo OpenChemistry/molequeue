@@ -2,7 +2,7 @@
 
   This source file is part of the MoleQueue project.
 
-  Copyright 2011 Kitware, Inc.
+  Copyright 2011-2012 Kitware, Inc.
 
   This source code is released under the New BSD License, (the "License").
 
@@ -25,11 +25,18 @@ namespace MoleQueue {
 
 class TerminalProcess;
 
-/**
- * Concrete implementation of the SshConnection class using the command line
- * SSH command. It is executed using TerminalProcess.
- */
 
+/**
+ * @class SshCommand sshcommand.h <molequeue/sshcommand.h>
+ * @brief Concrete implementation of SshConnection using commandline ssh/scp.
+ * @author Marcus D. Hanwell, David C. Lonie
+ *
+ * The SshCommand provides an implementation of the SshConnection interface
+ * that calls the commandline ssh and scp executables in a TerminalProcess.
+ *
+ * When writing code that needs ssh functionality, the code should use the
+ * SshConnection interface instead.
+ */
 class SshCommand : public SshConnection
 {
   Q_OBJECT

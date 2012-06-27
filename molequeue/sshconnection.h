@@ -2,7 +2,7 @@
 
   This source file is part of the MoleQueue project.
 
-  Copyright 2011 Kitware, Inc.
+  Copyright 2011-2012 Kitware, Inc.
 
   This source code is released under the New BSD License, (the "License").
 
@@ -22,6 +22,17 @@
 
 namespace MoleQueue {
 
+/**
+ * @class SshConnection sshconnection.h <molequeue/sshconnection.h>
+ * @brief Abstract base class defining remote execution and file transfer
+ * operations over the ssh protocol.
+ * @author Marcus D. Hanwell, David C. Lonie
+ *
+ * The SshConnection is the interface to use when writing code that requires
+ * interactions with a remote host. Subclasses provide concrete implementations
+ * of the interface, e.g. SshCommand, which calls the ssh and scp commands in a
+ * TerminalProcess.
+ */
 class SshConnection : public QObject
 {
   Q_OBJECT

@@ -37,17 +37,15 @@ class QueueManager;
 class Server;
 
 /**
- * Abstract queue, generally want QueueLocal, or QueueRemote derived classes
- * as they will provide the facilities required. The queue instances
- * themselves refer to the Program classes to actually run jobs with a
- * particular code.
+ * @class Queue queue.h <molequeue/queue.h>
+ * @brief Abstract interface for queuing systems.
+ * @author Marcus D. Hanwell, David C. Lonie
  *
- * Some of the states are skipped for local jobs where there is no separate
- * queue manager such as SGE or PBS. This queue class is a simple FIFO approach
- * and it is assumed that the remote job management system will implement any
- * more sophisticated job management, balancing, etc.
+ * The Queue interface defines interactions with a distributed resource
+ * management system, such as job submission and job status updates. Each
+ * Queue object manages a set of Program instances, which contain information
+ * about the related task of actually running an executable to do work.
  */
-
 class Queue : public Object
 {
   Q_OBJECT
