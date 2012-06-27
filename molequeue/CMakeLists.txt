@@ -10,10 +10,16 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR}
 
 set(mq_srcs
   abstractrpcinterface.cpp
+  actionfactorymanager.cpp
   addqueuedialog.cpp
   client.cpp
   error.cpp
   job.cpp
+  jobactionfactory.cpp
+  jobactionfactories/opendirectoryactionfactory.cpp
+  jobactionfactories/openwithactionfactory.cpp
+  jobactionfactories/programmableopenwithactionfactory.cpp
+  jobactionfactories/removejobactionfactory.cpp
   jobitemmodel.cpp
   jobmanager.cpp
   jobtablewidget.cpp
@@ -22,6 +28,10 @@ set(mq_srcs
   mainwindow.cpp
   molequeueglobal.h
   object.cpp
+  openwithmanagerdialog.cpp
+  openwithexecutablemodel.cpp
+  openwithpatternmodel.cpp
+  patterntypedelegate.cpp
   program.cpp
   programconfiguredialog.cpp
   queue.cpp
@@ -44,8 +54,14 @@ set(mq_srcs
 
 set(mq_moc
   abstractrpcinterface.h
+  actionfactorymanager.h
   addqueuedialog.h
   client.h
+  jobactionfactory.h
+  jobactionfactories/opendirectoryactionfactory.h
+  jobactionfactories/openwithactionfactory.h
+  jobactionfactories/programmableopenwithactionfactory.h
+  jobactionfactories/removejobactionfactory.h
   jobitemmodel.h
   jobmanager.h
   jobtablewidget.h
@@ -53,6 +69,10 @@ set(mq_moc
   jsonrpc.h
   mainwindow.h
   object.h
+  openwithmanagerdialog.h
+  openwithexecutablemodel.h
+  openwithpatternmodel.h
+  patterntypedelegate.h
   program.h
   programconfiguredialog.h
   queue.h
@@ -78,6 +98,7 @@ qt4_wrap_ui(ui_srcs
   ui/addqueuedialog.ui
   ui/jobtablewidget.ui
   ui/mainwindow.ui
+  ui/openwithmanagerdialog.ui
   ui/programconfiguredialog.ui
   ui/queuemanagerdialog.ui
   ui/queuesettingsdialog.ui

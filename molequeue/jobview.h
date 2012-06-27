@@ -2,7 +2,7 @@
 
   This source file is part of the MoleQueue project.
 
-  Copyright 2011 Kitware, Inc.
+  Copyright 2011-2012 Kitware, Inc.
 
   This source code is released under the New BSD License, (the "License").
 
@@ -29,17 +29,12 @@ class JobView : public QTableView
 
 public:
   JobView(QWidget *theParent = 0);
+  virtual ~JobView();
 
   /** Custom context menu for this view. */
   void contextMenuEvent(QContextMenuEvent *e);
 
   QList<int> getSelectedRows();
-
-protected slots:
-  void removeSelectedRows();
-  void openInAvogadro(const MoleQueue::Job *job = NULL);
-  void openInFileBrowser(const MoleQueue::Job *job = NULL);
-
 };
 
 } // End of namespace

@@ -466,7 +466,8 @@ void QueueRemote::finishedJobOutputCopiedFromServer()
 void QueueRemote::finalizeJobCopyToCustomDestination(const Job *job)
 {
   // Skip to next step if needed
-  if (job->outputDirectory().isEmpty()) {
+  if (job->outputDirectory().isEmpty() ||
+      job->outputDirectory() == job->localWorkingDirectory()) {
     this->finalizeJobCleanup(job);
     return;
   }
@@ -557,8 +558,6 @@ void QueueRemote::remoteDirectoryCleaned()
                .arg(conn->exitCode()).arg(conn->output()), Error::NetworkError,
                this, job->moleQueueId());
     emit errorOccurred(err);
-    // Retry submission:
-    m_pendingSubmission.append(job->moleQueueId());
     emit jobStateUpdate(job->moleQueueId(), MoleQueue::ErrorState);
     return;
   }

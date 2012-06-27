@@ -58,6 +58,7 @@ public slots:
 
 protected slots:
   void showQueueManager();
+  void showOpenWithManager();
   void handleServerConnectionError(QAbstractSocket::SocketError,
                                    const QString &);
 
@@ -72,6 +73,7 @@ protected:
   void createMainMenu();
   void createTrayIcon();
   void createJobTable();
+  void createActionFactories();
 
   /** Our MainWindow GUI. */
   Ui::MainWindow *m_ui;

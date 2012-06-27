@@ -14,46 +14,31 @@
 
 ******************************************************************************/
 
-#ifndef JOBTABLEWIDGET_H
-#define JOBTABLEWIDGET_H
+#ifndef OPENDIRECTORYACTIONFACTORY_H
+#define OPENDIRECTORYACTIONFACTORY_H
 
-#include <QtGui/QWidget>
-
-namespace Ui {
-class JobTableWidget;
-}
+#include "../jobactionfactory.h"
 
 namespace MoleQueue
 {
-class Job;
-class JobActionFactory;
-class JobManager;
-class JobItemModel;
 
-class JobTableWidget : public QWidget
+class OpenDirectoryActionFactory : public JobActionFactory
 {
   Q_OBJECT
-
 public:
-  explicit JobTableWidget(QWidget *parentObject = 0);
-  ~JobTableWidget();
+  OpenDirectoryActionFactory();
+  ~OpenDirectoryActionFactory();
 
-  void setJobManager(JobManager *jobManager);
-  JobManager * jobManager() const;
+  bool isValidForJob(const Job *job) const;
 
-  QList<const Job*> getSelectedJobs();
+  QList<QAction*> createActions();
 
-public slots:
-  void clearFinishedJobs();
+  unsigned int usefulness() const { return 300; }
 
-protected:
-  // Row indices, ascending order
-  QList<int> getSelectedRows();
-
-  Ui::JobTableWidget *ui;
-  JobItemModel *m_jobItemModel;
+protected slots:
+  void actionTriggered();
 };
 
 } // end namespace MoleQueue
 
-#endif // JOBTABLEWIDGET_H
+#endif // OPENDIRECTORYACTIONFACTORY_H
