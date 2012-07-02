@@ -2,8 +2,6 @@ find_package(Qt4 4.8.0 COMPONENTS QtCore QtGui QtNetwork)
 
 include(${QT_USE_FILE})
 
-set(JSONCPP_SOURCE_DIR "${MoleQueue_SOURCE_DIR}/thirdparty/jsoncpp/")
-
 include_directories(${CMAKE_CURRENT_BINARY_DIR}
   ${JSONCPP_SOURCE_DIR}
 )
@@ -85,12 +83,9 @@ qt4_wrap_ui(ui_srcs
 )
 qt4_add_resources(rcc_srcs queuetray.qrc)
 
-# Pull in JsonCpp
-aux_source_directory(${JSONCPP_SOURCE_DIR} jsoncpp_srcs)
-set(mq_srcs ${mq_srcs} ${jsoncpp_srcs})
-
 add_library(molequeue_static STATIC
   ${mq_srcs} ${moc_srcs} ${ui_srcs})
+target_link_libraries(molequeue_static jsoncpp ${QT_LIBRARIES})
 
 add_executable(molequeue MACOSX_BUNDLE main.cpp ${rcc_srcs})
 target_link_libraries(molequeue molequeue_static ${QT_LIBRARIES})
@@ -126,7 +121,6 @@ set(mqclient_srcs
   jobmanager.cpp
   jsonrpc.cpp
   molequeueglobal.h
-  ${jsoncpp_srcs}
 )
 
 set(mqclient_moc
@@ -147,5 +141,5 @@ set(mqclient_headers
 
 qt4_wrap_cpp(mqclient_moc_srcs ${mqclient_moc})
 add_library(molequeueclient SHARED ${mqclient_srcs} ${mqclient_moc_srcs})
-target_link_libraries(molequeueclient ${QT_LIBRARIES})
+target_link_libraries(molequeueclient jsoncpp ${QT_LIBRARIES})
 install(TARGETS molequeueclient DESTINATION lib)

@@ -15,6 +15,10 @@ if(ENABLE_TESTING)
   enable_testing()
 endif()
 
+# Pull in JsonCpp:
+set(JSONCPP_SOURCE_DIR "${MoleQueue_SOURCE_DIR}/thirdparty/jsoncpp/")
+add_subdirectory(${JSONCPP_SOURCE_DIR})
+
 # This is necessary for tests, includes etc.
 include_directories("${MoleQueue_SOURCE_DIR}")
 add_subdirectory(molequeue)
