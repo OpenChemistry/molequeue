@@ -144,10 +144,22 @@ protected slots:
   virtual void cleanRemoteDirectory(const MoleQueue::Job *job);
   virtual void remoteDirectoryCleaned();
 
+  /// Reimplemented from Queue
+  void jobAboutToBeRemoved(const MoleQueue::Job *job);
+
 protected:
   SshConnection *newSshConnection();
   bool recursiveRemoveDirectory(const QString &path);
   bool recursiveCopyDirectory(const QString &from, const QString &to);
+
+  /**
+   * Check for any jobs that are not present in the JobManager but
+   * are still in this object's internal data structures. This may be the result
+   * of an improper shut down when state is serialized inconsistently. If any
+   * such jobs are found, they are removed from the internal structures and an
+   * Error is emitted.
+   */
+  virtual void removeStaleJobs();
 
   /**
    * Extract the job id from the submission output. Reimplement this in derived
