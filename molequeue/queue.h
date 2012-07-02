@@ -238,6 +238,14 @@ public slots:
     m_launchScriptName = scriptName;
   }
 
+protected slots:
+  /**
+   * Called when the JobManager::jobAboutToBeRemoved signal is emitted to
+   * remove any internal references to the job. Subclasses should reimplement
+   * if they hold any state about owned jobs.
+   */
+  virtual void jobAboutToBeRemoved(const MoleQueue::Job *job);
+
 protected:
   /// Write the input files for @a job to the local working directory.
   bool writeInputFiles(const Job *job);
