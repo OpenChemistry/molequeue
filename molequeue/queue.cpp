@@ -48,6 +48,9 @@ Queue::Queue(const QString &queueName, QueueManager *parentManager) :
     connect(this, SIGNAL(queueIdUpdate(MoleQueue::IdType,MoleQueue::IdType)),
             m_server->jobManager(), SLOT(updateQueueId(MoleQueue::IdType,
                                                        MoleQueue::IdType)));
+    connect(m_server->jobManager(),
+            SIGNAL(jobAboutToBeRemoved(const MoleQueue::Job*)),
+            this, SLOT(jobAboutToBeRemoved(const MoleQueue::Job*)));
   }
 
 }
@@ -257,6 +260,11 @@ bool Queue::writeInputFiles(const Job *job)
   }
 
   return true;
+}
+
+void Queue::jobAboutToBeRemoved(const Job *job)
+{
+  m_jobs.remove(job->queueJobId());
 }
 
 } // End namespace
