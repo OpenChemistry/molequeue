@@ -2,7 +2,7 @@
 
   This source file is part of the MoleQueue project.
 
-  Copyright 2011-2012 Kitware, Inc.
+  Copyright 2012 Kitware, Inc.
 
   This source code is released under the New BSD License, (the "License").
 
@@ -14,30 +14,32 @@
 
 ******************************************************************************/
 
-#ifndef JOBVIEW_H
-#define JOBVIEW_H
+#ifndef OPENDIRECTORYACTIONFACTORY_H
+#define OPENDIRECTORYACTIONFACTORY_H
 
-#include <QtGui/QTableView>
+#include "../jobactionfactory.h"
 
 namespace MoleQueue
 {
-class Job;
 
-/// MVC item view for the job table.
-class JobView : public QTableView
+/// JobActionFactory subclass to open job output in a file browser.
+class OpenDirectoryActionFactory : public JobActionFactory
 {
   Q_OBJECT
-
 public:
-  JobView(QWidget *theParent = 0);
-  ~JobView();
+  OpenDirectoryActionFactory();
+  ~OpenDirectoryActionFactory();
 
-  /** Custom context menu for this view. */
-  void contextMenuEvent(QContextMenuEvent *e);
+  bool isValidForJob(const Job *job) const;
 
-  QList<int> getSelectedRows();
+  QList<QAction*> createActions();
+
+  unsigned int usefulness() const { return 300; }
+
+protected slots:
+  void actionTriggered();
 };
 
-} // End of namespace
+} // end namespace MoleQueue
 
-#endif
+#endif // OPENDIRECTORYACTIONFACTORY_H

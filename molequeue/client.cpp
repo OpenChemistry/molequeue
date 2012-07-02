@@ -137,6 +137,8 @@ void Client::successfulSubmissionReceived(IdType packetId,
   mutableJob->setMolequeueId(moleQueueId);
   mutableJob->setQueueJobId(queueJobId);
   mutableJob->setLocalWorkingDirectory(workingDir.absolutePath());
+  if (mutableJob->outputDirectory().isEmpty())
+    mutableJob->setOutputDirectory(mutableJob->localWorkingDirectory());
   m_jobManager->jobIdsChanged(req);
 
   emit jobSubmitted(req, true, QString());

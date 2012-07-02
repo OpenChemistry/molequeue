@@ -34,6 +34,7 @@
      <string>&amp;File</string>
     </property>
     <addaction name="actionQueueManager"/>
+    <addaction name="actionOpenWithManager"/>
     <addaction name="actionQuit"/>
    </widget>
    <addaction name="fileMenu"/>
@@ -65,6 +66,14 @@
   <action name="actionQueueManager">
    <property name="text">
     <string>Queue &amp;Manager</string>
+   </property>
+  </action>
+  <action name="actionOpenWithManager">
+   <property name="text">
+    <string>&quot;Open With&quot; Manager...</string>
+   </property>
+   <property name="toolTip">
+    <string>Configure &quot;Open with&quot; applications</string>
    </property>
   </action>
  </widget>
