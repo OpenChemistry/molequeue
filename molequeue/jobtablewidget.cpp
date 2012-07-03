@@ -45,9 +45,14 @@ JobTableWidget::~JobTableWidget()
 }
 
 
-void JobTableWidget::setJobManager(MoleQueue::JobManager *jobManager)
+void JobTableWidget::setJobManager(MoleQueue::JobManager *jobMan)
 {
-  m_jobItemModel->setJobManager(jobManager);
+  m_jobItemModel->setJobManager(jobMan);
+}
+
+JobManager *JobTableWidget::jobManager() const
+{
+  return m_jobItemModel->jobManager();
 }
 
 QList<const Job *> JobTableWidget::getSelectedJobs()
@@ -68,12 +73,12 @@ QList<const Job *> JobTableWidget::getSelectedJobs()
 
 void JobTableWidget::clearFinishedJobs()
 {
-  JobManager *jobManager = m_jobItemModel->jobManager();
-  if (!jobManager)
+  JobManager *jobMan = m_jobItemModel->jobManager();
+  if (!jobMan)
     return;
 
   QList<const Job*> finishedJobs =
-      jobManager->jobsWithJobState(MoleQueue::Finished);
+      jobMan->jobsWithJobState(MoleQueue::Finished);
 
   QMessageBox::StandardButton confirm =
       QMessageBox::question(this, tr("Really remove jobs?"),
@@ -85,7 +90,7 @@ void JobTableWidget::clearFinishedJobs()
   if (confirm != QMessageBox::Yes)
     return;
 
-  jobManager->removeJobs(finishedJobs);
+  jobMan->removeJobs(finishedJobs);
 }
 
 } // end namespace MoleQueue

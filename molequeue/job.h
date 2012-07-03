@@ -42,6 +42,9 @@ class Server;
 class Job
 {
 public:
+  /// @todo refactor MoleQueue to use job references instead of pointers.
+  Job();
+  Job(const Job &);
 
   /// @param newQueue name of the queue.
   void setQueue(const QString &newQueue) {m_queue = newQueue;}
@@ -205,18 +208,6 @@ protected:
   IdType m_queueJobId;
   /// Internal identifier used by Client
   IdType m_clientId;
-
-  /**
-    * Hidden constructor.
-    * @sa JobManager::newJob
-    */
-  Job();
-
-  /**
-    * Hidden constructor.
-    * @sa JobManager::newJob
-    */
-  Job(const Job &);
 };
 
 } // end namespace MoleQueue
