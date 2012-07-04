@@ -30,6 +30,11 @@ namespace MoleQueue
 class Queue;
 class Server;
 
+/**
+ * @class QueueManager queuemanager.h <molequeue/queuemanager.h>
+ * @brief Manage a collection of Queue instances.
+ * @author David C. Lonie
+ */
 class QueueManager : public Object
 {
   Q_OBJECT
