@@ -20,7 +20,9 @@
 #include <QtCore/QObject>
 
 #include "molequeueglobal.h"
+#include "job.h"
 
+#include <QtCore/QMap>
 #include <QtCore/QVariantHash>
 
 class QSettings;
@@ -29,17 +31,18 @@ class ClientTest;
 
 namespace MoleQueue
 {
-class Job;
+class JobData;
+class JobReferenceBase;
 
 /**
  * @class JobManager jobmanager.h <molequeue/jobmanager.h>
- * @brief Owns and manages Job objects.
+ * @brief Owns and manages JobData objects.
  * @author David C. Lonie
  *
- * The JobManager class owns all Job objects. At least two JobManager objects
- * exist during normal operation; the Client class holds a JobManager to track
- * all jobs belonging to that client, and the MainWindow class of the MoleQueue
- * server holds a JobManager to track all jobs that it is managing.
+ * The JobManager class owns all JobData objects. At least two JobManager
+ * objects exist during normal operation; the Client class holds a JobManager to
+ * track all jobs belonging to that client, and the Server class of the
+ * MoleQueue server holds a JobManager to track all jobs that it is managing.
  */
 class JobManager : public QObject
 {
@@ -54,21 +57,29 @@ public:
   void writeSettings(QSettings &settings) const;
 
   /**
-   * @return A new Job object, set to default values.
+   * @name Job Management
+   * Functions to add, remove, or locate jobs.
+   * @{
    */
-  Job * newJob();
+
+  /**
+   * @return Insert a new JobData object into the JobManager's jobMap. The
+   * JobData is set to default values and a Job reference to it is returned.
+   */
+  Job newJob();
 
   /**
    * @param jobState A QVariantHash describing the state of the new Job.
    * @return A new Job object, initialized to the state in @a jobState.
    * @sa Job::hash() Job::setFromHash()
    */
-  Job * newJob(const QVariantHash &jobState);
+  Job newJob(const QVariantHash &jobState);
 
   /**
-   * Remove the specified @a job from this manager and delete it.
+   * Remove the specified @a jobdata from this manager and delete it. All Job
+   * objects with @a job's MoleQueue id will be invalidated.
    */
-  void removeJob(const Job* job);
+  void removeJob(JobData* jobdata);
 
   /**
    * Remove the job with the specified @a moleQueueId from this manager and
@@ -77,9 +88,15 @@ public:
   void removeJob(IdType moleQueueId);
 
   /**
+   * Remove the specified @a job from this manager and delete it. All Job
+   * objects with @a job's MoleQueue id will be invalidated.
+   */
+  void removeJob(const Job &job);
+
+  /**
    * Remove the specified @a jobs from this manager and delete them.
    */
-  void removeJobs(const QList<const Job*> &jobsToRemove);
+  void removeJobs(const QList<Job> &jobsToRemove);
 
   /**
    * Remove the jobs with the specified @a moleQueueIds from this manager and
@@ -88,77 +105,74 @@ public:
   void removeJobs(const QList<IdType> &moleQueueIds);
 
   /**
-   * @param clientId The Client Id of the requested Job.
-   * @return The Job with the requested client id, or NULL if none found.
-   * @warning This function is intended to be used from client-side only, as
-   * the server may contain multiple clients with redundant ids.
-   */
-  const Job * lookupClientId(IdType clientId) const;
-
-  /**
    * @param moleQueueId The MoleQueue Id of the requested Job.
-   * @return The Job with the requested MoleQueue Id, or NULL if none found.
+   * @return The Job with the requested MoleQueue Id.
+  * @note If no such Job exists, Job::isValid() will return false;
    */
-  const Job * lookupMoleQueueId(IdType moleQueueId) const;
-
-  /**
-   * @return A list of all Job objects owned by this JobManager.
-   */
-  QList<const Job*> jobs() const {return m_jobs;}
+  Job lookupJobByMoleQueueId(IdType moleQueueId) const;
 
   /**
    * Return a list of Job objects that have JobState @a state.
    * @param state JobState of interests
    * @return List of Job objects with JobState @a state
    */
-  QList<const Job*> jobsWithJobState(MoleQueue::JobState state);
-
-  /**
-   * Return the job at the specified index.
-   * @param index Index of Job.
-   * @return Requested Job object.
-   */
-  const Job * jobAt(int index) const
-  {
-    if (index >= m_jobs.size() || index < 0)
-      return NULL;
-    return m_jobs[index];
-  }
+  QList<Job> jobsWithJobState(MoleQueue::JobState state);
 
   /**
    * @return Number of Job objects held by this manager.
    */
-  int count() const {return m_jobs.size();}
-
-  /// Used for unit tests
-  friend class ::ClientTest;
-
-public slots:
+  int count() const { return m_jobs.size(); }
 
   /**
-   * Inform the QueueManager that the MoleQueue id or Client id of @a job have
+   * Index based job look up. Use with count() to iterate over all Jobs in the
+   * manager. Jobs are not sorted in any particular order.
+   * @return The job with index @a i
+   */
+  Job jobAt(int i) const;
+
+  /**
+   * Lookup iteratible index of Job &job. Compatible with count() and jobAt().
+   * @return index of @a job, or -1 if @a job is invalid.
+   */
+  int indexOf(const Job &job) const;
+
+  friend class JobReferenceBase;
+
+public slots:
+  /**
+   * Inform the QueueManager that the MoleQueue id of @a job has
    * changed so that it may update its internal lookup tables.
    * @param job The Job object.
    */
-  void jobIdsChanged(const MoleQueue::Job *job);
+  void moleQueueIdChanged(const MoleQueue::Job &job);
+
+  // End Job Management group:
+  /**
+   * @}
+   */
 
   /**
-   * Called when a job enters a new state. If the new state differs from the
-   * previous state, the Job object is updated and the jobStateChanged signal
-   * is emitted.
-   * @param moleQueueId
-   * @param newState
+   * @name Job Modification
+   * Methods to change properties of jobs.
+   * @{
    */
-  void updateJobState(MoleQueue::IdType moleQueueId,
-                      MoleQueue::JobState newState);
 
   /**
-   * Called when a job is assigned a QueueId by the queue
-   * @param moleQueueId
-   * @param queueId
+   * Set the JobState for the job with the specified MoleQueue id
    */
-  void updateQueueId(MoleQueue::IdType moleQueueId,
+  void setJobState(MoleQueue::IdType jobManagerId,
+                   MoleQueue::JobState newState);
+
+  /**
+   * Set the QueueId for the job with the specified MoleQueue id
+   */
+  void setJobQueueId(MoleQueue::IdType jobManagerIdId,
                      MoleQueue::IdType queueId);
+
+  // End Job Modification group
+  /**
+   * @}
+   */
 
 signals:
 
@@ -167,13 +181,13 @@ signals:
    * directly connect slots to this signal which will set the client or
    * molequeue ids.
    */
-  void jobAboutToBeAdded(MoleQueue::Job *);
+  void jobAboutToBeAdded(MoleQueue::Job job);
 
   /**
    * Emitted when a Job has been added to this JobManager.
    * @param job The new Job object.
    */
-  void jobAdded(const MoleQueue::Job *job);
+  void jobAdded(const MoleQueue::Job &job);
 
   /**
    * Emitted when a Job changes JobState.
@@ -181,7 +195,7 @@ signals:
    * @param oldState Previous state of @a job
    * @param newState New state of @a job
    */
-  void jobStateChanged(const MoleQueue::Job *job,
+  void jobStateChanged(const MoleQueue::Job &job,
                        MoleQueue::JobState oldState,
                        MoleQueue::JobState newState);
 
@@ -190,35 +204,33 @@ signals:
    * @param job
    * @param queueId
    */
-  void queueIdChanged(const MoleQueue::Job *job,
-                      MoleQueue::IdType queueId);
+  void jobQueueIdChanged(const MoleQueue::Job &job);
 
   /**
    * Emitted when the @a job is about to be removed and deleted.
    */
-  void jobAboutToBeRemoved(const MoleQueue::Job *job);
+  void jobAboutToBeRemoved(const MoleQueue::Job &job);
 
   /**
-   * Emitted when the @a job with the specified @a moleQueueId has been removed
+   * Emitted when the job with the specified @a moleQueueId has been removed
    * and deleted.
-   *
-   * @warning Do not dereference @a job, as it no longer points to allocated
-   * memory.
    */
-  void jobRemoved(MoleQueue::IdType moleQueueId, const MoleQueue::Job *job);
+  void jobRemoved(MoleQueue::IdType moleQueueId);
 
 protected:
-  /// @param job Job to insert into the internal lookup structures.
-  void insertJob(Job *job);
+  JobData *lookupJobDataByMoleQueueId(IdType moleQueueId) const
+  {
+    return m_moleQueueMap.value(moleQueueId, NULL);
+  }
 
-  /// List of all jobs.
-  QList<const Job*> m_jobs;
+  /// @param jobdata Job to insert into the internal lookup structures.
+  void insertJobData(JobData *jobdata);
 
-  /// Lookup table for client ids
-  QMap<IdType, const Job*> m_clientMap;
+  /// "Master" list of JobData
+  QList<JobData*> m_jobs;
 
   /// Lookup table for MoleQueue ids
-  QMap<IdType, const Job*> m_moleQueueMap;
+  QMap<IdType, JobData*> m_moleQueueMap;
 };
 
 }

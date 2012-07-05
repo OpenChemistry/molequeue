@@ -19,6 +19,7 @@
 
 #include "object.h"
 
+#include "job.h"
 #include "molequeueglobal.h"
 
 #include <QtCore/QList>
@@ -145,7 +146,7 @@ public slots:
    * @param oldState Previous state of @a job.
    * @param newState New state of @a job.
    */
-  void dispatchJobStateChange(const MoleQueue::Job *job,
+  void dispatchJobStateChange(const MoleQueue::Job &job,
                               MoleQueue::JobState oldState,
                               MoleQueue::JobState newState);
 
@@ -153,7 +154,7 @@ public slots:
    * Reimplemented from Object. Emits errorNotification.
    * @param err Error object describing the error.
    */
-  virtual void handleError(const Error &err);
+  void handleError(const MoleQueue::Error &err);
 
 protected slots:
 
@@ -166,7 +167,7 @@ protected slots:
    * Called when a Client submits a new job.
    * @param req The new Job request.
    */
-  void jobSubmissionRequested(const MoleQueue::Job *req);
+  void jobSubmissionRequested(const MoleQueue::Job &job);
 
   /**
    * @brief Called when a Client requests a job be canceled.
@@ -178,7 +179,7 @@ protected slots:
    * Set the MoleQueue Id of a job before it is added to the manager.
    * @param job The new Job.
    */
-  void jobAboutToBeAdded(MoleQueue::Job *job);
+  void jobAboutToBeAdded(MoleQueue::Job job);
 
   /**
    * Called when the internal socket server has a new connection ready.

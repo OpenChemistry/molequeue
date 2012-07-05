@@ -114,34 +114,34 @@ public:
 
 public slots:
 
-  virtual bool submitJob(const MoleQueue::Job *job);
+  virtual bool submitJob(MoleQueue::Job job);
 
 protected slots:
   virtual void submitPendingJobs();
 
   /// Main entry point into the job submission pipeline
-  virtual void beginJobSubmission(const MoleQueue::Job *job);
+  virtual void beginJobSubmission(MoleQueue::Job job);
 
-  virtual void createRemoteDirectory(const MoleQueue::Job *job);
+  virtual void createRemoteDirectory(MoleQueue::Job job);
   virtual void remoteDirectoryCreated();
 
-  virtual void copyInputFilesToHost(const MoleQueue::Job *job);
+  virtual void copyInputFilesToHost(MoleQueue::Job job);
   virtual void inputFilesCopied();
-  virtual void submitJobToRemoteQueue(const MoleQueue::Job *job);
+  virtual void submitJobToRemoteQueue(MoleQueue::Job job);
   virtual void jobSubmittedToRemoteQueue();
 
   virtual void requestQueueUpdate();
   virtual void handleQueueUpdate();
 
   virtual void beginFinalizeJob(MoleQueue::IdType queueId);
-  virtual void finalizeJobCopyFromServer(const MoleQueue::Job* job);
+  virtual void finalizeJobCopyFromServer(MoleQueue::Job job);
   virtual void finishedJobOutputCopiedFromServer();
-  virtual void finalizeJobCopyToCustomDestination(const MoleQueue::Job* job);
-  virtual void finalizeJobCleanup(const MoleQueue::Job* job);
+  virtual void finalizeJobCopyToCustomDestination(MoleQueue::Job job);
+  virtual void finalizeJobCleanup(MoleQueue::Job job);
 
-  virtual void cleanLocalDirectory(const MoleQueue::Job *job);
+  virtual void cleanLocalDirectory(MoleQueue::Job job);
 
-  virtual void cleanRemoteDirectory(const MoleQueue::Job *job);
+  virtual void cleanRemoteDirectory(MoleQueue::Job job);
   virtual void remoteDirectoryCleaned();
 
 protected:

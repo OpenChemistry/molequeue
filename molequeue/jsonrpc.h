@@ -70,20 +70,20 @@ public:
     * @param packetId The JSON-RPC id for the request.
     * @return A PacketType, ready to send to a QLocalSocket.
     */
-  PacketType generateJobRequest(const Job *req, IdType packetId);
+  PacketType generateJobRequest(const Job &req, IdType packetId);
 
   /**
     * Generate a JSON-RPC packet to confirm a successful job submission.
     *
-    * @param moleQueueJobId The MoleQueue internal job identifier
-    * @param queueJobId The Queue job id (if applicable, 0 otherwise)
+    * @param moleQueueId The MoleQueue internal job identifier
+    * @param queueId The Queue job id (if applicable, 0 otherwise)
     * @param workingDir Local working directory where files are stored during
     * job execution
     * @param packetId The JSON-RPC id for the request.
     * @return A PacketType, ready to send to a QLocalSocket.
     */
-  PacketType generateJobSubmissionConfirmation(IdType moleQueueJobId,
-                                               IdType queueJobId,
+  PacketType generateJobSubmissionConfirmation(IdType moleQueueId,
+                                               IdType queueId,
                                                const QString &workingDir,
                                                IdType packetId);
 
@@ -149,7 +149,7 @@ public:
     * @param packetId The JSON-RPC id for the request.
     * @return A PacketType, ready to send to a QLocalSocket.
     */
-  PacketType generateJobCancellation(const Job *req,
+  PacketType generateJobCancellation(const Job &req,
                                      IdType packetId);
 
   /**
@@ -186,12 +186,12 @@ public:
     * Generate a JSON-RPC packet to notify listeners that a job has changed
     * states.
     *
-    * @param moleQueueJobId Internal MoleQueue job id of job.
+    * @param moleQueueId Internal MoleQueue job id of job.
     * @param oldState Old state of the job.
     * @param newState New state of the job.
     * @return A PacketType, ready to send to a QLocalSocket.
     */
-  PacketType generateJobStateChangeNotification(IdType moleQueueJobId,
+  PacketType generateJobStateChangeNotification(IdType moleQueueId,
                                                 JobState oldState,
                                                 JobState newState);
 

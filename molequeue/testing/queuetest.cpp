@@ -26,7 +26,7 @@ public:
   DummyQueue(const QString &queueName = "Dummy")
     : MoleQueue::Queue(queueName, NULL) {};
 public slots:
-  virtual bool submitJob(const MoleQueue::Job *) {return false;}
+  bool submitJob(MoleQueue::Job) { return false; }
 };
 
 class QueueTest : public QObject

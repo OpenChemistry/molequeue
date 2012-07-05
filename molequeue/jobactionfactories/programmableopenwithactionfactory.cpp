@@ -81,13 +81,16 @@ void ProgrammableOpenWithActionFactory::writeSettings(QSettings &settings) const
   this->OpenWithActionFactory::writeSettings(settings);
 }
 
-bool ProgrammableOpenWithActionFactory::isValidForJob(const Job *job) const
+bool ProgrammableOpenWithActionFactory::isValidForJob(const Job &job) const
 {
+  if (!job.isValid())
+    return false;
+
   // Attempt to lookup program for output filenames
   QueueManager *queueManager = m_server ? m_server->queueManager() : NULL;
-  Queue *queue = queueManager ? queueManager->lookupQueue(job->queue())
+  Queue *queue = queueManager ? queueManager->lookupQueue(job.queue())
                               : NULL;
-  Program *program = queue ? queue->lookupProgram(job->program()) : NULL;
+  Program *program = queue ? queue->lookupProgram(job.program()) : NULL;
   if (!program)
     return false;
 

@@ -54,12 +54,12 @@ void JobView::contextMenuEvent(QContextMenuEvent *)
   // Get selected jobs
   QList<int> selectedRows = getSelectedRows();
   int numSelectedRows = selectedRows.size();
-  QList<const Job*> jobs;
+  QList<Job> jobs;
   jobs.reserve(numSelectedRows);
   foreach (int row, selectedRows) {
     jobs.push_back(
           model()->data(model()->index(row, 0),
-                        JobItemModel::FetchJobRole).value<const Job*>());
+                        JobItemModel::FetchJobRole).value<Job>());
   }
 
   QMenu *menu = new QMenu(this);
@@ -71,7 +71,7 @@ void JobView::contextMenuEvent(QContextMenuEvent *)
     factory->clearJobs();
     if ((numSelectedRows > 1 && factory->isMultiJob()) ||
         numSelectedRows == 1) {
-      foreach (const Job *job, jobs)
+      foreach (const Job &job, jobs)
         factory->addJobIfValid(job);
 
       if (factory->hasValidActions()) {

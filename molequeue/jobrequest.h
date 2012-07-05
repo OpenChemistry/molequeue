@@ -14,73 +14,52 @@
 
 ******************************************************************************/
 
-#ifndef JOB_H
-#define JOB_H
+#ifndef MOLEQUEUE_JOBREQUEST_H
+#define MOLEQUEUE_JOBREQUEST_H
 
-#include "molequeue/jobreferencebase.h"
-
-#include "molequeueglobal.h"
-
-#include <QtCore/QMetaType>
-#include <QtCore/QString>
-#include <QtCore/QVariantHash>
+#include "jobreferencebase.h"
 
 namespace MoleQueue
 {
-class JobManager;
 
 /**
- * @class Job job.h <molequeue/job.h>
- * @brief Server-side interface to JobData properties.
+ * @class JobRequest jobrequest.h <molequeue/jobrequest.h>
+ * @brief Client-side interface to JobData properties.
  * @author David C. Lonie
  *
- * The Job class provides a lightweight interface to a specific instance of
- * JobData. Since JobData contains dynamic information that changes during its
- * lifetime, the Job interface forwards requests to a JobData instance, which
- * ensures that all references to job information are synced throughout the
- * application.
+ * The JobRequest class provides a lightweight interface to a specific instance
+ * of JobData. Since JobData contains dynamic information that changes during
+ * its lifetime, the JobRequest interface forwards requests to a JobData
+ * instance, which ensures that all references to job information are synced
+ * throughout the application.
  *
- * The Job class also ensures that JobData is modified in a consistent way. For
- * example, calling the Job::setQueueId method will cause JobManager to emit the
- * JobManager::jobQueueIdChanged signal, so that listeners (e.g. GUI elements)
- * can be made aware of the change.
+ * The JobRequest interface differs from the closely related Job class by
+ * providing a restricted set of operations suitable for use by clients. For
+ * instance, the MoleQueue id of a job cannot be changed through the JobRequest
+ * interface, as this should only be modified internally by MoleQueue.
  *
  * This class holds a guarded pointer to JobData which will be set to NULL in
- * the event that the associated JobData object is destroyed (such as when the
- * user deletes a job from the job table). To check the validity of the JobData
- * pointer, use Job::isValid(), defined in JobReferenceBase.
- *
- * To serialize a collection of valid Job objects as references (e.g., to
- * maintain state in a Queue implementation between sessions), store the
- * identifier returned from Job::moleQueueId() in the data store, and then
- * deserialize the Job using JobManager::lookupJobByMoleQueueId.
- *
- * Full serialization of all Job details can be performed by saving and
- * restoring the JobData state via the Job::hash() and Job::setFromHash()
- * methods. However, this should not need to be performed outside of the
- * JobManager's serialization methods.
+ * the event that the associated JobData object is destroyed. To check the
+ * validity of the JobData pointer, use JobRequest::isValid(), defined in
+ * JobReferenceBase.
  */
-class Job : public JobReferenceBase
+class JobRequest : public JobReferenceBase
 {
 public:
-  /// Construct a new Job object with the specified JobData
-  Job(JobData *jobdata = NULL);
+  /// Construct a new JobRequest object with the specified JobData
+  explicit JobRequest(JobData *jobdata = NULL);
 
-  /// Construct a new Job object for the job with the MoleQueueId
+  /// Construct a new JobRequest object for the job with the MoleQueueId
   /// in the indicated JobManager
-  Job(JobManager *jobManager, IdType mQId);
+  JobRequest(JobManager *jobManager, IdType mQId);
 
-  /// Construct a new Job object with the same JobData as @a other.
-  Job(const JobReferenceBase &other);
+  /// Construct a new JobRequest object with the same JobData as @a other.
+  JobRequest(const JobReferenceBase &other);
 
-  ~Job();
+  ~JobRequest();
 
   /// @return The JobData's internal state as a QVariantHash
   QVariantHash hash() const;
-
-  /// Update the JobData's internal state from a QVariantHash
-  /// @param hash The Job
-  void setFromHash(const QVariantHash &state);
 
   /// @param newQueue name of the queue.
   void setQueue(const QString &newQueue);
@@ -93,12 +72,6 @@ public:
 
   /// @return Name of program to run.
   QString program() const;
-
-  /// Set the current JobState for the job. Calling this function with a
-  /// different JobState will cause the JobManager::jobStateChanged signal
-  /// to be emitted.
-  /// @param state Status of job
-  void setJobState(JobState state);
 
   /// @return Status of job
   JobState jobState() const;
@@ -134,13 +107,6 @@ public:
   /// @return String containing a location to copy the output files to after
   /// the job completes. Ignored if empty.
   QString outputDirectory() const;
-
-  /**
-   * @param path Temporary working directory where files are stored during job
-   * execution
-   * @warning This is set internally by MoleQueue, do not modify.
-   */
-  void setLocalWorkingDirectory(const QString &path);
 
   /// @return Temporary working directory where files are stored during job
   /// execution.
@@ -183,25 +149,15 @@ public:
   /// notification from the MoleQueue system tray icon. Default: true
   bool popupOnStateChange() const;
 
-  /// @param id The new MoleQueue id for this job.
-  /// @warning Do not call this function except in Server or Client as a
-  ///   response to the JobManager::jobAboutToBeAdded signal.
-  void setMoleQueueId(IdType id);
-
   /// @return Internal MoleQueue identifier
   IdType moleQueueId() const;
-
-  /// Set the job's queue id. Calling this function will cause the
-  // JobManager::jobQueueIdChanged signal to be emitted.
-  /// @param id Queue Job ID.
-  void setQueueId(IdType id);
 
   /// @return Queue Job ID
   IdType queueId() const;
 };
 
-} // end namespace MoleQueue
+} // namespace MoleQueue
 
-Q_DECLARE_METATYPE(MoleQueue::Job)
+Q_DECLARE_METATYPE(MoleQueue::JobRequest)
 
-#endif // JOB_H
+#endif // MOLEQUEUE_JOBREQUEST_H

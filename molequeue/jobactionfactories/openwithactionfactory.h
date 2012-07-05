@@ -68,7 +68,7 @@ public:
    * Return true if the Job @a job can be opened by the application, false
    * otherwise.
    */
-  virtual bool isValidForJob(const Job *job) const = 0;
+  virtual bool isValidForJob(const Job &job) const = 0;
 
   /**
    * Return a list of new QActions. The QActions will be preconfigured and must
@@ -99,7 +99,7 @@ protected slots:
    * This slot is connected to new the QAction::triggered() signal of new
    * actions returned from createActions. This function must only be called as
    * a response to the action's signal (i.e. this->sender() must be a QAction)
-   * and the sender's QAction::data() method must return a QList<const Job*>
+   * and the sender's QAction::data() method must return a QList<Job>
    * containing the jobs to be opened by the target application.
    *
    * The default implementation launches the external application for each job

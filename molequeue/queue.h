@@ -19,6 +19,7 @@
 
 #include "object.h"
 
+#include "job.h"
 #include "molequeueglobal.h"
 
 #include <QtCore/QMap>
@@ -191,23 +192,6 @@ signals:
    */
   void programRemoved(const QString &name, MoleQueue::Program *program);
 
-  /**
-   * Emitted when either a job changes state, or the queue updates. The job
-   * may or may not have changed state. The Server's JobManager will notify
-   * of job state changes.
-   *
-   * @param moleQueueId MoleQueue identifier for job.
-   * @param state JobState of job.
-   */
-  void jobStateUpdate(MoleQueue::IdType moleQueueId, MoleQueue::JobState state);
-
-  /**
-   * Emitted when a job is assigned a QueueId by the queuing system.
-   * @param moleQueueId MoleQueue identifier for job.
-   * @param queueId Queuing system's identifier for job.
-   */
-  void queueIdUpdate(MoleQueue::IdType moleQueueId, MoleQueue::IdType queueId);
-
 public slots:
   /**
    * Writes input files and submits a new job to the queue.
@@ -215,7 +199,7 @@ public slots:
    * @return True on success, false on failure.
    * @sa jobSubmitted
    */
-  virtual bool submitJob(const MoleQueue::Job *job) = 0;
+  virtual bool submitJob(MoleQueue::Job job) = 0;
 
   /**
    * Update the launch script template.
@@ -240,7 +224,7 @@ public slots:
 
 protected:
   /// Write the input files for @a job to the local working directory.
-  bool writeInputFiles(const Job *job);
+  bool writeInputFiles(const Job &job);
 
   QueueManager *m_queueManager;
   Server *m_server;

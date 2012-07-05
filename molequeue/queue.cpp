@@ -40,16 +40,6 @@ Queue::Queue(const QString &queueName, QueueManager *parentManager) :
   qRegisterMetaType<const Program*>("const MoleQueue::Program*");
   qRegisterMetaType<IdType>("MoleQueue::IdType");
   qRegisterMetaType<JobState>("MoleQueue::JobState");
-
-  if (m_server) {
-    connect(this, SIGNAL(jobStateUpdate(MoleQueue::IdType,MoleQueue::JobState)),
-            m_server->jobManager(), SLOT(updateJobState(MoleQueue::IdType,
-                                                        MoleQueue::JobState)));
-    connect(this, SIGNAL(queueIdUpdate(MoleQueue::IdType,MoleQueue::IdType)),
-            m_server->jobManager(), SLOT(updateQueueId(MoleQueue::IdType,
-                                                       MoleQueue::IdType)));
-  }
-
 }
 
 Queue::~Queue()
@@ -154,24 +144,22 @@ bool Queue::removeProgram(const QString &programName)
   return true;
 }
 
-bool Queue::writeInputFiles(const Job *job)
+bool Queue::writeInputFiles(const Job &job)
 {
-  /// @todo Emit job error signals instead of qWarnings
-
-  QString workdir = job->localWorkingDirectory();
+  QString workdir = job.localWorkingDirectory();
 
   // Lookup program.
   if (!m_server) {
     Error err (tr("Queue '%1' cannot locate Server instance!").arg(m_name),
-               Error::QueueError, this, job->moleQueueId());
+               Error::QueueError, this, job.moleQueueId());
     emit errorOccurred(err);
     return false;
   }
-  const Program *program = this->lookupProgram(job->program());
+  const Program *program = this->lookupProgram(job.program());
   if (!program) {
     Error err (tr("Queue '%1' cannot locate program '%2'!")
-               .arg(m_name).arg(job->program()),
-               Error::QueueError, this, job->moleQueueId());
+               .arg(m_name).arg(job.program()),
+               Error::QueueError, this, job.moleQueueId());
     emit errorOccurred(err);
     return false;
   }
@@ -183,14 +171,14 @@ bool Queue::writeInputFiles(const Job *job)
   if (dir.exists()) {
     Error err (tr("Warning: Directory already exists: %1")
                .arg(dir.absolutePath()),
-               Error::FileSystemError, this, job->moleQueueId());
+               Error::FileSystemError, this, job.moleQueueId());
     emit errorOccurred(err);
   }
   else {
     if (!dir.mkpath(dir.absolutePath())) {
       Error err (tr("Cannot create directory: %1")
                  .arg(dir.absolutePath()),
-                 Error::FileSystemError, this, job->moleQueueId());
+                 Error::FileSystemError, this, job.moleQueueId());
       emit errorOccurred(err);
       return false;
     }
@@ -199,25 +187,25 @@ bool Queue::writeInputFiles(const Job *job)
   // Create input files
   if (!program->inputFilename().isEmpty()) {
     QString inputFilePath = dir.absoluteFilePath(program->inputFilename());
-    if (job->inputAsPath().isEmpty()) {
+    if (job.inputAsPath().isEmpty()) {
       // Open a file and write the input string to it.
       QFile inputFile (inputFilePath);
       if (!inputFile.open(QFile::WriteOnly | QFile::Text)) {
         Error err (tr("Cannot open file for writing: %1")
                    .arg(inputFilePath),
-                   Error::FileSystemError, this, job->moleQueueId());
+                   Error::FileSystemError, this, job.moleQueueId());
         emit errorOccurred(err);
         return false;
       }
-      inputFile.write(job->inputAsString().toLatin1());
+      inputFile.write(job.inputAsString().toLatin1());
       inputFile.close();
     }
     else {
       // Copy the input file to the input path
-      if (!QFile::copy(job->inputAsPath(), inputFilePath)) {
+      if (!QFile::copy(job.inputAsPath(), inputFilePath)) {
         Error err (tr("Cannot copy file '%1' --> '%2'.")
-                   .arg(job->inputAsPath()).arg(inputFilePath),
-                   Error::FileSystemError, this, job->moleQueueId());
+                   .arg(job.inputAsPath()).arg(inputFilePath),
+                   Error::FileSystemError, this, job.moleQueueId());
         emit errorOccurred(err);
         return false;
       }
@@ -235,21 +223,21 @@ bool Queue::writeInputFiles(const Job *job)
     if (!launcherFile.open(QFile::WriteOnly | QFile::Text)) {
       Error err (tr("Cannot open file for writing: %1.")
                  .arg(launcherFile.fileName()),
-                 Error::FileSystemError, this, job->moleQueueId());
+                 Error::FileSystemError, this, job.moleQueueId());
       emit errorOccurred(err);
       return false;
     }
     QString launchString = program->launchTemplate();
     if (launchString.contains("$$moleQueueId$$")) {
       launchString.replace("$$moleQueueId$$",
-                           QString::number(job->moleQueueId()));
+                           QString::number(job.moleQueueId()));
     }
     launcherFile.write(launchString.toLatin1());
     if (!launcherFile.setPermissions(
           launcherFile.permissions() | QFile::ExeUser)) {
       Error err (tr("Cannot set executable permissions on file: %1.")
                  .arg(launcherFile.fileName()),
-                 Error::FileSystemError, this, job->moleQueueId());
+                 Error::FileSystemError, this, job.moleQueueId());
       emit errorOccurred(err);
       return false;
     }

@@ -29,6 +29,7 @@ namespace MoleQueue
 
 /// Type for various ids
 typedef quint32 IdType;
+const IdType InvalidId = static_cast<IdType>(-1);
 
 /// Type for RPC packets
 typedef QByteArray PacketType;

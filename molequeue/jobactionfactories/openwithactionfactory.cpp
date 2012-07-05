@@ -34,7 +34,7 @@
 #include <QtCore/QUrl>
 #include <QtCore/QVariant>
 
-Q_DECLARE_METATYPE(QList<const MoleQueue::Job*>)
+Q_DECLARE_METATYPE(QList<MoleQueue::Job>)
 
 namespace MoleQueue
 {
@@ -42,7 +42,7 @@ namespace MoleQueue
 OpenWithActionFactory::OpenWithActionFactory()
   : JobActionFactory()
 {
-  qRegisterMetaType<QList<const Job*> >("QList<const Job*>");
+  qRegisterMetaType<QList<Job> >("QList<Job>");
   m_isMultiJob = true;
   m_flags |= JobActionFactory::ContextItem;
 }
@@ -85,9 +85,9 @@ QList<QAction *> OpenWithActionFactory::createActions()
 {
   QList<QAction*> result;
 
-  if (m_attemptedJobAdditions == 1) {
+  if (m_attemptedJobAdditions == 1 && m_jobs.size() == 1) {
     QAction *newAction = new QAction (
-          tr("Open '%1' in %2...").arg(m_jobs.first()->description())
+          tr("Open '%1' in %2...").arg(m_jobs.first().description())
           .arg(m_executableName), NULL);
     newAction->setData(QVariant::fromValue(m_jobs));
     connect(newAction, SIGNAL(triggered()), this, SLOT(actionTriggered()));
@@ -122,7 +122,7 @@ void OpenWithActionFactory::actionTriggered()
     return;
 
   // The sender was a QAction. Is its data a list of jobs?
-  QList<const Job *> jobs = action->data().value<QList<const Job*> >();
+  QList<Job> jobs = action->data().value<QList<Job> >();
   if (!jobs.size())
     return;
 
@@ -168,12 +168,15 @@ void OpenWithActionFactory::actionTriggered()
   // Attempt to lookup program for output filenames
   QueueManager *queueManager = m_server ? m_server->queueManager() : NULL;
 
-  foreach (const Job *job, jobs) {
-    QString outputFile = job->outputDirectory();
+  foreach (const Job &job, jobs) {
+    if (!job.isValid())
+      continue;
 
-    Queue *queue = queueManager ? queueManager->lookupQueue(job->queue())
+    QString outputFile = job.outputDirectory();
+
+    Queue *queue = queueManager ? queueManager->lookupQueue(job.queue())
                                   : NULL;
-    Program *program = queue ? queue->lookupProgram(job->program()) : NULL;
+    Program *program = queue ? queue->lookupProgram(job.program()) : NULL;
 
     if (program) {
       outputFile = QUrl::fromLocalFile(

@@ -87,7 +87,7 @@ signals:
    * Emitted when the client sends a request for a new job submission.
    * @param req The Job
    */
-  void jobSubmissionRequested(const MoleQueue::Job *req);
+  void jobSubmissionRequested(const MoleQueue::Job &req);
 
   /**
    * Emitted when the client sends a request to cancel a submitted job.
@@ -109,7 +109,7 @@ public slots:
    * successful.
    * @param req The Job
    */
-  void sendSuccessfulSubmissionResponse(const MoleQueue::Job *req);
+  void sendSuccessfulSubmissionResponse(const Job &req);
 
   /**
    * Sends a reply to the client informing them that the job submission failed.
@@ -117,7 +117,7 @@ public slots:
    * @param ec Error code
    * @param errorMessage Descriptive string
    */
-  void sendFailedSubmissionResponse(const MoleQueue::Job *req,
+  void sendFailedSubmissionResponse(const MoleQueue::Job &req,
                                     MoleQueue::JobSubmissionErrorCode ec,
                                     const QString &errorMessage);
 
@@ -126,7 +126,7 @@ public slots:
    * successful.
    * @param req The Job
    */
-  void sendSuccessfulCancellationResponse(const MoleQueue::Job *req);
+  void sendSuccessfulCancellationResponse(const Job &req);
 
   /**
    * Sends a notification to the connected client informing them that a job
@@ -135,7 +135,7 @@ public slots:
    * @param oldState
    * @param newState
    */
-  void sendJobStateChangeNotification(const MoleQueue::Job *req,
+  void sendJobStateChangeNotification(const MoleQueue::Job &req,
                                       MoleQueue::JobState oldState,
                                       MoleQueue::JobState newState);
 
