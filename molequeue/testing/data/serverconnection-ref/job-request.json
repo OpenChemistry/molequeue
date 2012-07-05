@@ -17,7 +17,7 @@
       "popupOnStateChange" : true,
       "program" : "Quantum Tater",
       "queue" : "Some big ol' cluster",
-      "queueJobId" : 0,
+      "queueId" : 0,
       "retrieveOutput" : true
    }
 }

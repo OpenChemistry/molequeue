@@ -84,7 +84,7 @@ public:
    * Compare the output file from Job against the list of recognized file
    * patterns. Returns true if a match is found, false otherwise.
    */
-  bool isValidForJob(const Job *job) const;
+  bool isValidForJob(const Job &job) const;
 
 protected:
   QList<QRegExp> m_recognizedFilePatterns;

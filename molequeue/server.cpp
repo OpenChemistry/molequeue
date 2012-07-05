@@ -56,12 +56,16 @@ Server::Server(QObject *parentObject)
   connect(m_server, SIGNAL(newConnection()),
           this, SLOT(newConnectionAvailable()));
 
-  connect(m_jobManager, SIGNAL(jobAboutToBeAdded(MoleQueue::Job*)),
-          this, SLOT(jobAboutToBeAdded(MoleQueue::Job*)),
+  connect(m_jobManager, SIGNAL(jobAboutToBeAdded(MoleQueue::Job)),
+          this, SLOT(jobAboutToBeAdded(MoleQueue::Job)),
           Qt::DirectConnection);
 
-  connect(m_jobManager, SIGNAL(jobStateChanged(const MoleQueue::Job*,MoleQueue::JobState,MoleQueue::JobState)),
-          this, SLOT(dispatchJobStateChange(const MoleQueue::Job*,MoleQueue::JobState,MoleQueue::JobState)));
+  connect(m_jobManager, SIGNAL(jobStateChanged(const MoleQueue::Job &,
+                                               MoleQueue::JobState,
+                                               MoleQueue::JobState)),
+          this, SLOT(dispatchJobStateChange(const MoleQueue::Job &,
+                                            MoleQueue::JobState,
+                                            MoleQueue::JobState)));
 
   // Route error messages back into this object's handler:
   connect(this, SIGNAL(errorOccurred(MoleQueue::Error)),
@@ -141,10 +145,10 @@ void Server::stop()
   m_server->close();
 }
 
-void Server::dispatchJobStateChange(const Job *job,
+void Server::dispatchJobStateChange(const Job &job,
                                     JobState oldState, JobState newState)
 {
-  ServerConnection *conn = this->lookupConnection(job->moleQueueId());
+  ServerConnection *conn = this->lookupConnection(job.moleQueueId());
   if (!conn)
     return;
 
@@ -197,7 +201,7 @@ void Server::queueListRequested()
   conn->sendQueueList(m_queueManager->toQueueList());
 }
 
-void Server::jobSubmissionRequested(const Job *req)
+void Server::jobSubmissionRequested(const Job &job)
 {
   ServerConnection *conn = qobject_cast<ServerConnection*>(this->sender());
   if (conn == NULL) {
@@ -206,23 +210,23 @@ void Server::jobSubmissionRequested(const Job *req)
     return;
   }
 
-  qDebug() << "Job submission requested:\n" << req->hash();
+  qDebug() << "Job submission requested:\n" << job.hash();
 
   // Lookup queue and submit job.
-  Queue *queue = m_queueManager->lookupQueue(req->queue());
+  Queue *queue = m_queueManager->lookupQueue(job.queue());
   if (!queue) {
-    conn->sendFailedSubmissionResponse(req, MoleQueue::InvalidQueue,
+    conn->sendFailedSubmissionResponse(job, MoleQueue::InvalidQueue,
                                        tr("Unknown queue: %1")
-                                       .arg(req->queue()));
+                                       .arg(job.queue()));
     return;
   }
 
   // Send the submission confirmation first so that the client can update the
   // MoleQueue id and properly handle packets sent during job submission.
-  conn->sendSuccessfulSubmissionResponse(req);
+  conn->sendSuccessfulSubmissionResponse(job);
 
   /// @todo Handle submission failures better -- return JobSubErrCode?
-  bool ok = queue->submitJob(req);
+  bool ok = queue->submitJob(job);
   qDebug() << "Submission ok?" << ok;
 }
 
@@ -237,7 +241,7 @@ void Server::jobCancellationRequested(IdType moleQueueId)
 
   qDebug() << "Job cancellation requested: MoleQueueId:" << moleQueueId;
 
-  const Job *req = m_jobManager->lookupMoleQueueId(moleQueueId);
+  const Job req = m_jobManager->lookupJobByMoleQueueId(moleQueueId);
 
   /// @todo actually handle the cancellation
   /// @todo Handle NULL req
@@ -245,21 +249,21 @@ void Server::jobCancellationRequested(IdType moleQueueId)
   conn->sendSuccessfulCancellationResponse(req);
 }
 
-void Server::jobAboutToBeAdded(Job *job)
+void Server::jobAboutToBeAdded(Job job)
 {
   IdType nextMoleQueueId = ++m_moleQueueIdCounter;
 
   QSettings settings;
   settings.setValue("moleQueueIdCounter", m_moleQueueIdCounter);
 
-  job->setMolequeueId(nextMoleQueueId);
-  job->setLocalWorkingDirectory(m_workingDirectoryBase + "/" +
-                                QString::number(nextMoleQueueId));
+  job.setMoleQueueId(nextMoleQueueId);
+  job.setLocalWorkingDirectory(m_workingDirectoryBase + "/" +
+                               QString::number(nextMoleQueueId));
 
   // If the outputDirectory is blank, set it now
   /// @todo Have queues check that outputdir is different from LWD before copying/cleaning.
-  if (job->outputDirectory().isEmpty())
-    job->setOutputDirectory(job->localWorkingDirectory());
+  if (job.outputDirectory().isEmpty())
+    job.setOutputDirectory(job.localWorkingDirectory());
 }
 
 void Server::newConnectionAvailable()
@@ -274,8 +278,8 @@ void Server::newConnectionAvailable()
   ServerConnection *conn = new ServerConnection (this, socket);
 
   connect(conn, SIGNAL(queueListRequested()), this, SLOT(queueListRequested()));
-  connect(conn, SIGNAL(jobSubmissionRequested(const MoleQueue::Job*)),
-          this, SLOT(jobSubmissionRequested(const MoleQueue::Job*)));
+  connect(conn, SIGNAL(jobSubmissionRequested(const MoleQueue::Job&)),
+          this, SLOT(jobSubmissionRequested(const MoleQueue::Job&)));
   connect(conn, SIGNAL(jobCancellationRequested(MoleQueue::IdType)),
           this, SLOT(jobCancellationRequested(MoleQueue::IdType)));
 

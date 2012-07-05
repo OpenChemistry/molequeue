@@ -49,8 +49,8 @@
          "data" : ["Some", "data"]
       },
       "result" : {
-         "moleQueueJobId" : 12,
-         "queueJobId" : 789123,
+         "moleQueueId" : 12,
+         "queueId" : 789123,
          "workingDirectory" : "/tmp/myjob/test.potato"
       }
    }

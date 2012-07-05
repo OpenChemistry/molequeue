@@ -31,7 +31,7 @@ public:
   {
   }
 public slots:
-  bool submitJob(const MoleQueue::Job *) {return false;}
+  bool submitJob(MoleQueue::Job) { return false; }
 };
 
 class QueueManagerTest : public QObject

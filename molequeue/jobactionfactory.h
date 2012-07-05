@@ -76,12 +76,12 @@ public:
    * added to m_jobs.
    * @sa isValidForJob
    */
-  virtual bool addJobIfValid(const Job *job);
+  virtual bool addJobIfValid(const Job &job);
 
   /**
    * @return true if the factory's actions are appropriate for @a job.
    */
-  virtual bool isValidForJob(const Job *job) const = 0;
+  virtual bool isValidForJob(const Job &job) const = 0;
 
   /**
    * @return true if addJobIfValid has been called with any appropriate jobs
@@ -121,7 +121,7 @@ protected:
   unsigned int m_attemptedJobAdditions;
   bool m_isMultiJob;
   Server *m_server;
-  QList<const Job*> m_jobs;
+  QList<Job> m_jobs;
   Flags m_flags;
 };
 

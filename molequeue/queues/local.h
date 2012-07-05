@@ -58,7 +58,7 @@ public:
   QWidget* settingsWidget();
 
 public slots:
-  virtual bool submitJob(const MoleQueue::Job *job);
+  virtual bool submitJob(MoleQueue::Job job);
 
 protected slots:
   /**
@@ -66,7 +66,7 @@ protected slots:
    * @param job The Job.
    * @return True on success, false otherwise.
    */
-  bool prepareJobForSubmission(const MoleQueue::Job *job);
+  bool prepareJobForSubmission(const MoleQueue::Job &job);
 
   /**
    * Called when a process starts.
@@ -85,7 +85,7 @@ protected:
   int cores() const;
 
   /// Insert the job into the queue.
-  bool addJobToQueue(const Job *job);
+  bool addJobToQueue(const Job &job);
 
   /// Connect @a proc to handlers prior to submitting job
   void connectProcess(QProcess *proc);

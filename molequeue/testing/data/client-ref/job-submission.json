@@ -4,19 +4,18 @@
    "params" : {
       "cleanLocalWorkingDirectory" : false,
       "cleanRemoteFiles" : false,
-      "clientId" : 1,
       "description" : "Test job",
-      "hideFromQueue" : false,
+      "hideFromGui" : false,
       "inputAsPath" : "",
       "inputAsString" : "I'm a sample input text!",
       "jobState" : 0,
       "localWorkingDirectory" : "",
-      "molequeueId" : 0,
+      "moleQueueId" : 4294967295,
       "outputDirectory" : "",
       "popupOnStateChange" : true,
       "program" : "Some program",
       "queue" : "Some queue",
-      "queueJobId" : 0,
+      "queueId" : 4294967295,
       "retrieveOutput" : true
    }
 }

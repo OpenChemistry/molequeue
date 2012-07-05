@@ -2,6 +2,6 @@
    "jsonrpc" : "2.0",
    "method" : "cancelJob",
    "params" : {
-      "moleQueueJobId" : 0
+      "moleQueueId" : 4294967295
    }
 }

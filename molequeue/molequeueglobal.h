@@ -24,11 +24,14 @@
 #include <QtCore/QString>
 #include <QtCore/QStringList>
 
+#include <limits>
+
 namespace MoleQueue
 {
 
 /// Type for various ids
 typedef quint32 IdType;
+const IdType InvalidId = std::numeric_limits<IdType>::max();
 
 /// Type for RPC packets
 typedef QByteArray PacketType;

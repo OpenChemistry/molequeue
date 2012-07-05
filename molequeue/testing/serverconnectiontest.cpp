@@ -20,6 +20,7 @@
 #include "serverconnection.h"
 
 #include "job.h"
+#include "jobdata.h"
 #include "jobmanager.h"
 #include "molequeueglobal.h"
 #include "program.h"
@@ -38,7 +39,7 @@ public:
   {
   }
 public slots:
-  bool submitJob(const MoleQueue::Job *) {return false;}
+  bool submitJob(MoleQueue::Job) { return false; }
 };
 
 class ServerConnectionTest : public QObject
@@ -161,18 +162,18 @@ void ServerConnectionTest::testSendQueueList()
 
 void ServerConnectionTest::testSendSuccessfulSubmissionResponse()
 {
-  MoleQueue::Job req;
+  MoleQueue::JobManager jobManager;
+  MoleQueue::Job req = jobManager.newJob();
 
   req.setLocalWorkingDirectory("/tmp/some/path");
-  req.setMolequeueId(1);
-  req.setClientId(2);
-  req.setQueueJobId(1439932);
+  req.setMoleQueueId(1);
+  req.setQueueId(1439932);
 
   // Fake the request
   m_serverConnection->jobSubmissionRequestReceived(92, req.hash());
 
   // Send the reply
-  m_serverConnection->sendSuccessfulSubmissionResponse(&req);
+  m_serverConnection->sendSuccessfulSubmissionResponse(req);
 
   QVERIFY2(m_testServer->waitForPacket(), "Timeout waiting for reply.");
 
@@ -184,18 +185,22 @@ void ServerConnectionTest::testSendSuccessfulSubmissionResponse()
 
 void ServerConnectionTest::testSendFailedSubmissionResponse()
 {
-  MoleQueue::Job req;
+  MoleQueue::JobManager jobManager;
+  MoleQueue::Job req = jobManager.newJob();
 
   // Fake the request
   m_serverConnection->jobSubmissionRequestReceived(92, req.hash());
 
   // Get the molequeue id of the submitted job
-  MoleQueue::IdType mqId =
-      m_serverConnection->m_server->jobManager()->jobs().last()->moleQueueId();
-  req.setMolequeueId(mqId);
+  MoleQueue::JobManager *serverJobManager =
+      m_serverConnection->m_server->jobManager();
+  QVERIFY(serverJobManager->count() > 0);
+  MoleQueue::IdType mqId = serverJobManager->jobAt(
+        serverJobManager->count() - 1).moleQueueId();
+  req.setMoleQueueId(mqId);
 
   // Send the reply
-  m_serverConnection->sendFailedSubmissionResponse(&req, MoleQueue::Success,
+  m_serverConnection->sendFailedSubmissionResponse(req, MoleQueue::Success,
                                                    "Not a real error!");
 
   QVERIFY2(m_testServer->waitForPacket(), "Timeout waiting for reply.");
@@ -208,14 +213,15 @@ void ServerConnectionTest::testSendFailedSubmissionResponse()
 
 void ServerConnectionTest::testSendSuccessfulCancellationResponse()
 {
-  MoleQueue::Job req;
-  req.setMolequeueId(21);
+  MoleQueue::JobManager jobManager;
+  MoleQueue::Job req = jobManager.newJob();
+  req.setMoleQueueId(21);
 
   // Fake the request
   m_serverConnection->jobCancellationRequestReceived(93, req.moleQueueId());
 
   // Send the reply
-  m_serverConnection->sendSuccessfulCancellationResponse(&req);
+  m_serverConnection->sendSuccessfulCancellationResponse(req);
 
   QVERIFY2(m_testServer->waitForPacket(), "Timeout waiting for reply.");
 
@@ -227,11 +233,12 @@ void ServerConnectionTest::testSendSuccessfulCancellationResponse()
 
 void ServerConnectionTest::testJobStateChangeNotification()
 {
-  MoleQueue::Job req;
-  req.setMolequeueId(15);
+  MoleQueue::JobManager jobManager;
+  MoleQueue::Job req = jobManager.newJob();
+  req.setMoleQueueId(15);
 
   m_serverConnection->sendJobStateChangeNotification(
-        &req, MoleQueue::RunningLocal, MoleQueue::Finished);
+        req, MoleQueue::RunningLocal, MoleQueue::Finished);
 
 
   QVERIFY2(m_testServer->waitForPacket(), "Timeout waiting for reply.");
@@ -258,7 +265,7 @@ void ServerConnectionTest::testQueueListRequested()
 void ServerConnectionTest::testJobSubmissionRequested()
 {
   QSignalSpy spy (m_serverConnection,
-                  SIGNAL(jobSubmissionRequested(const MoleQueue::Job*)));
+                  SIGNAL(jobSubmissionRequested(const MoleQueue::Job &)));
 
   MoleQueue::PacketType response =
       this->readReferenceString("serverconnection-ref/job-request.json");
@@ -269,8 +276,8 @@ void ServerConnectionTest::testJobSubmissionRequested()
   QCOMPARE(spy.count(), 1);
   QCOMPARE(spy.first().size(), 1);
 
-  const MoleQueue::Job *req = spy.first().first().value<const MoleQueue::Job*>();
-  QCOMPARE(req->description(), QString("spud slicer 28"));
+  const MoleQueue::Job req = spy.first().first().value<MoleQueue::Job>();
+  QCOMPARE(req.description(), QString("spud slicer 28"));
 }
 
 void ServerConnectionTest::testJobCancellationRequested()

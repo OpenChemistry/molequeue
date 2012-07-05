@@ -119,14 +119,17 @@ QWidget* QueueLocal::settingsWidget()
   return widget;
 }
 
-bool QueueLocal::submitJob(const Job *job)
+bool QueueLocal::submitJob(Job job)
 {
-  emit jobStateUpdate(job->moleQueueId(), MoleQueue::Accepted);
-  this->prepareJobForSubmission(job);
-  return true;
+  if (job.isValid()) {
+    Job(job).setJobState(MoleQueue::Accepted);
+    this->prepareJobForSubmission(job);
+    return true;
+  }
+  return false;
 }
 
-bool QueueLocal::prepareJobForSubmission(const Job *job)
+bool QueueLocal::prepareJobForSubmission(const Job &job)
 {
   if (!this->writeInputFiles(job))
     return false;
@@ -153,8 +156,22 @@ void QueueLocal::processStarted()
   queueId = static_cast<IdType>(process->pid());
 #endif // WIN32
 
-  emit queueIdUpdate(moleQueueId, queueId);
-  emit jobStateUpdate(moleQueueId, MoleQueue::RunningLocal);
+  // Get pointer to jobmanager to lookup job
+  if (!m_server) {
+    Error err (tr("Queue '%1' cannot locate Server instance!")
+               .arg(m_name), Error::QueueError, this, moleQueueId);
+    emit errorOccurred(err);
+    return;
+  }
+  Job job = m_server->jobManager()->lookupJobByMoleQueueId(moleQueueId);
+  if (!job.isValid()) {
+    Error err (tr("Queue '%1' Cannot update invalid Job reference!")
+               .arg(m_name), Error::QueueError, this, moleQueueId);
+    emit errorOccurred(err);
+    return;
+  }
+  job.setQueueId(queueId);
+  job.setJobState(MoleQueue::RunningLocal);
 }
 
 void QueueLocal::processFinished(int exitCode, QProcess::ExitStatus exitStatus)
@@ -173,7 +190,21 @@ void QueueLocal::processFinished(int exitCode, QProcess::ExitStatus exitStatus)
   // Remove and delete QProcess from queue
   m_runningJobs.take(moleQueueId)->deleteLater();
 
-  emit jobStateUpdate(moleQueueId, MoleQueue::Finished);
+  // Get pointer to jobmanager to lookup job
+  if (!m_server) {
+    Error err (tr("Queue '%1' cannot locate Server instance!")
+               .arg(m_name), Error::QueueError, this, moleQueueId);
+    emit errorOccurred(err);
+    return;
+  }
+  Job job = m_server->jobManager()->lookupJobByMoleQueueId(moleQueueId);
+  if (!job.isValid()) {
+    Error err (tr("Queue '%1' Cannot update invalid Job reference!")
+               .arg(m_name), Error::QueueError, this, moleQueueId);
+    emit errorOccurred(err);
+    return;
+  }
+  job.setJobState(MoleQueue::Finished);
 }
 
 int QueueLocal::cores() const
@@ -185,11 +216,11 @@ int QueueLocal::cores() const
 }
 
 
-bool QueueLocal::addJobToQueue(const Job *job)
+bool QueueLocal::addJobToQueue(const Job &job)
 {
-  m_pendingJobQueue.append(job->moleQueueId());
+  m_pendingJobQueue.append(job.moleQueueId());
 
-  emit jobStateUpdate(job->moleQueueId(), MoleQueue::LocalQueued);
+  Job(job).setJobState(MoleQueue::LocalQueued);
 
   return true;
 }
@@ -222,18 +253,18 @@ bool QueueLocal::startJob(IdType moleQueueId)
     emit errorOccurred(err);
     return false;
   }
-  const Job *job = m_server->jobManager()->lookupMoleQueueId(moleQueueId);
-  if (!job) {
+  const Job job = m_server->jobManager()->lookupJobByMoleQueueId(moleQueueId);
+  if (!job.isValid()) {
     Error err (tr("Queue '%1' cannot locate Job with MoleQueue id %2.")
                .arg(m_name).arg(moleQueueId),
                Error::QueueError, this, moleQueueId);
     emit errorOccurred(err);
     return false;
   }
-  const Program *program = this->lookupProgram(job->program());
+  const Program *program = this->lookupProgram(job.program());
   if (!program) {
     Error err (tr("Queue '%1' cannot locate Program '%2'.")
-               .arg(m_name).arg(job->program()),
+               .arg(m_name).arg(job.program()),
                Error::QueueError, this, moleQueueId);
     emit errorOccurred(err);
     return false;
@@ -241,7 +272,7 @@ bool QueueLocal::startJob(IdType moleQueueId)
 
   // Create and setup process
   QProcess *proc = new QProcess (this);
-  QDir dir (job->localWorkingDirectory());
+  QDir dir (job.localWorkingDirectory());
   proc->setWorkingDirectory(dir.absolutePath());
 
   QStringList arguments;
@@ -280,7 +311,7 @@ bool QueueLocal::startJob(IdType moleQueueId)
   case Program::SYNTAX_COUNT:
   default:
     Error err (tr("Unknown launcher syntax for program %1: %2.")
-               .arg(job->program()).arg(program->launchSyntax()),
+               .arg(job.program()).arg(program->launchSyntax()),
                Error::ProgramError, this, moleQueueId);
     emit errorOccurred(err);
     return false;
@@ -293,7 +324,7 @@ bool QueueLocal::startJob(IdType moleQueueId)
   // This next line *should* work, but doesn't....?
 //  proc->start(command, arguments);
   proc->start(command + arguments.join(" "));
-  m_runningJobs.insert(job->moleQueueId(), proc);
+  m_runningJobs.insert(job.moleQueueId(), proc);
 
   return true;
 }
