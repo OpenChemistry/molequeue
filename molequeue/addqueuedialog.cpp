@@ -19,10 +19,8 @@
 
 #include "queue.h"
 #include "queuemanager.h"
-#include "queues/local.h"
-#include "queues/pbs.h"
-#include "queues/remote.h"
-#include "queues/sge.h"
+
+#include <QtGui/QMessageBox>
 
 namespace MoleQueue {
 
@@ -32,37 +30,33 @@ AddQueueDialog::AddQueueDialog(QueueManager *queueManager,
     ui(new Ui::AddQueueDialog),
     m_queueManager(queueManager)
 {
-    ui->setupUi(this);
+  ui->setupUi(this);
 
-    /// @todo Find a more scalable way to handle this...
-    ui->typeComboBox->addItem(tr("Local"));
-    ui->typeComboBox->addItem(tr("Sun Grid Engine"));
-    ui->typeComboBox->addItem(tr("PBS/Torque"));
-
-    connect(this, SIGNAL(accepted()), SLOT(addQueue()));
+  foreach (const QString &queueName, QueueManager::availableQueues())
+    ui->typeComboBox->addItem(queueName);
 }
 
 AddQueueDialog::~AddQueueDialog()
 {
-    delete ui;
+  delete ui;
 }
 
-void AddQueueDialog::addQueue()
+void AddQueueDialog::accept()
 {
-  const QString queueType = ui->typeComboBox->currentText();
-  /// @todo Find a more scalable way to handle this...
-  Queue *queue = NULL;
-  if (queueType == tr("Local"))
-    queue = new QueueLocal (m_queueManager);
-  else if (queueType == tr("Sun Grid Engine"))
-    queue = new QueueSge (m_queueManager);
-  else if (queueType == tr("PBS/Torque"))
-    queue = new QueuePbs (m_queueManager);
+  const QString name = ui->nameLineEdit->text();
+  const QString type = ui->typeComboBox->currentText();
+  Queue *queue = m_queueManager->addQueue(name, type);
 
-  if(queue){
-    queue->setName(ui->nameLineEdit->text());
-    m_queueManager->addQueue(queue);
+  if (queue) {
+    QDialog::accept();
+    return;
   }
+
+  // Queue could not be added. Inform user:
+  QMessageBox::critical(this, tr("Cannot add queue"),
+                        tr("Cannot add queue with queue name '%1', as an "
+                           "existing queue already has this name. Please rename"
+                           " it and try again.").arg(name));
 }
 
 } // end MoleQueue namespace
