@@ -17,12 +17,15 @@
 #ifndef CONNECTION_H
 #define CONNECTION_H
 
+#include "mqconnectionexport.h"
 #include "molequeueglobal.h"
+#include "message.h"
 
 #include <QtCore/QObject>
 
 namespace MoleQueue
 {
+
 
 /**
  * @class Connection connection.h <molequeue/connection.h>
@@ -30,7 +33,7 @@ namespace MoleQueue
  * communicate between MoleQueue processes. Subclasses provide concrete
  * implements for example based on local socket @see LocalSocketConnection
  */
-class Connection : public QObject
+class MQCONNECTION_EXPORT Connection : public QObject
 {
   Q_OBJECT
 public:
@@ -55,7 +58,7 @@ public:
   /**
    * Send a message on the connection
    */
-  virtual void send(const PacketType &packet) = 0;
+  virtual void send(MoleQueue::Message msg) = 0;
 
   /**
    * Close the connection. Once a conneciton is closed if can't reused.
@@ -72,15 +75,15 @@ public:
    * @return the connect string description the endpoint the connection is
    * connected to.
    */
-  virtual QString connectionString() = 0;
+  virtual QString connectionString() const = 0;
 
 signals:
   /**
    * Emitted when a new message has been received on this connection.
    *
-   * @param packet The message received.
+   * @param msg The message received.
    */
-  void newMessage(const MoleQueue::PacketType &packet);
+  void newMessage(const MoleQueue::Message msg);
 
   /**
    * Emited when the connection is disconnected.

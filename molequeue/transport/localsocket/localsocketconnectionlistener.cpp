@@ -70,6 +70,11 @@ void LocalSocketConnectionListener::stop()
   this->stop(false);
 }
 
+QString LocalSocketConnectionListener::connectionString() const
+{
+  return m_connectionString;
+}
+
 void LocalSocketConnectionListener::newConnectionAvailable()
 {
   if (!m_server->hasPendingConnections()) {

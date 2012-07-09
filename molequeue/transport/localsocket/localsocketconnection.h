@@ -17,7 +17,7 @@
 #ifndef LOCALSOCKETCONNECTION_H_
 #define LOCALSOCKETCONNECTION_H_
 
-#include "../connection.h"
+#include "transport/connection.h"
 
 class QLocalSocket;
 
@@ -78,7 +78,7 @@ public:
    *
    * @see Connection::send()
    */
-  void send(const PacketType &packet);
+  void send(Message msg);
 
   /**
    * Close the underlying socket. Once closed the connection can longer be used
@@ -100,7 +100,7 @@ public:
    *
    * @see Connection::connectionString()
    */
-  QString connectionString();
+  QString connectionString() const;
 
 private slots:
 

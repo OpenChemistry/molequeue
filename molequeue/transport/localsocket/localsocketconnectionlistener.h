@@ -17,9 +17,9 @@
 #ifndef LOCALSOCKETCONNECTIONLISTENER_H_
 #define LOCALSOCKETCONNECTIONLISTENER_H_
 
-#include "../connectionlistener.h"
+#include "transport/connectionlistener.h"
 
-#include <QtNetwork/qabstractsocket.h>
+#include <QtNetwork/QAbstractSocket>
 
 class QLocalServer;
 class ServerTest;
@@ -82,7 +82,7 @@ public:
   /**
    * @return the address the QLocalServer is listening on.
    */
-  QString connectionString() { return m_connectionString; };
+  QString connectionString() const;
 
   /// Used for unit testing
   friend class ::ServerTest;

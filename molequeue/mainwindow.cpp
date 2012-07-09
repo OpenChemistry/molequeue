@@ -60,8 +60,8 @@ MainWindow::MainWindow()
           this, SLOT(notifyJobStateChanged(const MoleQueue::Job &,
                                            MoleQueue::JobState,
                                            MoleQueue::JobState)));
-  connect(m_server, SIGNAL(connectionError(ConnectionListener::Error,QString)),
-          this, SLOT(handleServerConnectionError(ConnectionListener::Error, QString)));
+  connect(m_server, SIGNAL(connectionError(MoleQueue::ConnectionListener::Error,QString)),
+          this, SLOT(handleServerConnectionError(MoleQueue::ConnectionListener::Error, QString)));
 
   connect(m_server, SIGNAL(errorNotification(QString,QString)),
           this, SLOT(notifyUserOfError(QString,QString)));
