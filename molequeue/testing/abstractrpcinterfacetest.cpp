@@ -19,7 +19,7 @@
 #include "abstractrpcinterface.h"
 #include "molequeueglobal.h"
 #include "testserver.h"
-#include "transport/localsocketconnection.h"
+#include "transport/localsocket/localsocketconnection.h"
 
 #include <QtNetwork/QLocalSocket>
 
@@ -29,6 +29,7 @@ class AbstractRpcInterfaceTest : public QObject
 
 private:
   TestServer *m_server;
+  MoleQueue::LocalSocketConnection *m_connection;
   MoleQueue::AbstractRpcInterface *m_rpc;
   MoleQueue::PacketType m_packet;
 
@@ -70,11 +71,15 @@ void AbstractRpcInterfaceTest::initTestCase()
 {
   m_server = new TestServer(&m_packet);
   m_rpc = new MoleQueue::AbstractRpcInterface();
-  MoleQueue::LocalSocketConnection *conn =
+  m_connection =
       new MoleQueue::LocalSocketConnection(this, m_server->socketName());
-  conn->open();
-  conn->start();
-  m_rpc->setConnection(conn);
+  m_connection->open();
+  m_connection->start();
+
+  connect(m_connection, SIGNAL(newMessage(const MoleQueue::Message)),
+          m_rpc, SLOT(readPacket(const MoleQueue::Message)));
+
+
   // Let the event loop run a bit to handle the connections
   qApp->processEvents(QEventLoop::AllEvents, 1000);
 }
@@ -83,6 +88,7 @@ void AbstractRpcInterfaceTest::cleanupTestCase()
 {
   delete m_server;
   delete m_rpc;
+  delete m_connection;
 }
 
 void AbstractRpcInterfaceTest::init()

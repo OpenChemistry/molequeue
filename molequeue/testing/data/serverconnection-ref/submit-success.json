@@ -1,9 +1,0 @@
-{
-   "id" : 92,
-   "jsonrpc" : "2.0",
-   "result" : {
-      "moleQueueId" : 1,
-      "queueId" : 1439932,
-      "workingDirectory" : "/tmp/some/path"
-   }
-}
