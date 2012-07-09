@@ -81,13 +81,14 @@ QWidget* QueueRemote::settingsWidget()
   return widget;
 }
 
-bool QueueRemote::submitJob(const Job *job)
+bool QueueRemote::submitJob(Job job)
 {
-  m_pendingSubmission.append(job->moleQueueId());
-
-  emit jobStateUpdate(job->moleQueueId(), MoleQueue::Accepted);
-
-  return true;
+  if (job.isValid()) {
+    m_pendingSubmission.append(job.moleQueueId());
+    job.setJobState(MoleQueue::Accepted);
+    return true;
+  }
+  return false;
 }
 
 void QueueRemote::submitPendingJobs()
@@ -109,7 +110,7 @@ void QueueRemote::submitPendingJobs()
   }
 
   foreach (const IdType moleQueueId, m_pendingSubmission) {
-    const Job *job = jobManager->lookupMoleQueueId(moleQueueId);
+    Job job = jobManager->lookupJobByMoleQueueId(moleQueueId);
     // Kick off the submission process...
     this->beginJobSubmission(job);
   }
@@ -117,7 +118,7 @@ void QueueRemote::submitPendingJobs()
   m_pendingSubmission.clear();
 }
 
-void QueueRemote::beginJobSubmission(const Job *job)
+void QueueRemote::beginJobSubmission(Job job)
 {
   if (!this->writeInputFiles(job))
     return;
@@ -125,7 +126,7 @@ void QueueRemote::beginJobSubmission(const Job *job)
   this->createRemoteDirectory(job);
 }
 
-void QueueRemote::createRemoteDirectory(const Job *job)
+void QueueRemote::createRemoteDirectory(Job job)
 {
   // Note that this is just the working directory base -- the job folder is
   // created by scp.
@@ -138,9 +139,9 @@ void QueueRemote::createRemoteDirectory(const Job *job)
   if (!conn->execute(QString("mkdir -p %1").arg(remoteDir))) {
     Error err (tr("Could not initialize ssh resources. Attempting to use\n"
                   "user= '%1'\nhost = '%2'\nport = '%3'"), Error::NetworkError,
-               this, job->moleQueueId());
+               this, job.moleQueueId());
     emit errorOccurred(err);
-    emit jobStateUpdate(job->moleQueueId(), MoleQueue::ErrorState);
+    job.setJobState(MoleQueue::ErrorState);
     conn->deleteLater();
     return;
   }
@@ -157,9 +158,9 @@ void QueueRemote::remoteDirectoryCreated()
   }
   conn->deleteLater();
 
-  const Job *job = conn->data().value<const Job*>();
+  Job job = conn->data().value<Job>();
 
-  if (!job) {
+  if (!job.isValid()) {
     Error err (tr("Internal error: %1\n%2").arg(Q_FUNC_INFO)
                .arg("Sender does not have an associated job!"),
                Error::MiscError, this);
@@ -173,20 +174,20 @@ void QueueRemote::remoteDirectoryCreated()
                .arg(conn->userName()).arg(conn->hostName())
                .arg(m_workingDirectoryBase).arg(conn->exitCode())
                .arg(conn->output()), Error::NetworkError, this,
-               job->moleQueueId());
+               job.moleQueueId());
     emit errorOccurred(err);
     // Retry submission:
-    m_pendingSubmission.append(job->moleQueueId());
-    emit jobStateUpdate(job->moleQueueId(), MoleQueue::ErrorState);
+    m_pendingSubmission.append(job.moleQueueId());
+    job.setJobState(MoleQueue::ErrorState);
     return;
   }
 
   this->copyInputFilesToHost(job);
 }
 
-void QueueRemote::copyInputFilesToHost(const Job *job)
+void QueueRemote::copyInputFilesToHost(Job job)
 {
-  QString localDir = job->localWorkingDirectory();
+  QString localDir = job.localWorkingDirectory();
   QString remoteDir =
       QString("%1/").arg(m_workingDirectoryBase);
 
@@ -197,9 +198,9 @@ void QueueRemote::copyInputFilesToHost(const Job *job)
   if (!conn->copyDirTo(localDir, remoteDir)) {
     Error err (tr("Could not initialize ssh resources. Attempting to use\n"
                   "user= '%1'\nhost = '%2'\nport = '%3'"), Error::NetworkError,
-               this, job->moleQueueId());
+               this, job.moleQueueId());
     emit errorOccurred(err);
-    emit jobStateUpdate(job->moleQueueId(), MoleQueue::ErrorState);
+    job.setJobState(MoleQueue::ErrorState);
     conn->deleteLater();
     return;
   }
@@ -216,9 +217,9 @@ void QueueRemote::inputFilesCopied()
   }
   conn->deleteLater();
 
-  const Job *job = conn->data().value<const Job*>();
+  Job job = conn->data().value<Job>();
 
-  if (!job) {
+  if (!job.isValid()) {
     Error err (tr("Internal error: %1\n%2").arg(Q_FUNC_INFO)
                .arg("Sender does not have an associated job!"),
                Error::MiscError, this);
@@ -229,24 +230,24 @@ void QueueRemote::inputFilesCopied()
   if (conn->exitCode() != 0) {
     Error err (tr("Error while copying input files to remote host:\n"
                   "'%1' --> '%2/'\nExit code (%3) %4\n\nRetrying soon.")
-               .arg(job->localWorkingDirectory()).arg(m_workingDirectoryBase)
+               .arg(job.localWorkingDirectory()).arg(m_workingDirectoryBase)
                .arg(conn->exitCode()).arg(conn->output()), Error::NetworkError,
-               this, job->moleQueueId());
+               this, job.moleQueueId());
     emit errorOccurred(err);
     // Retry submission:
-    m_pendingSubmission.append(job->moleQueueId());
-    emit jobStateUpdate(job->moleQueueId(), MoleQueue::ErrorState);
+    m_pendingSubmission.append(job.moleQueueId());
+    job.setJobState(MoleQueue::ErrorState);
     return;
   }
 
   this->submitJobToRemoteQueue(job);
 }
 
-void QueueRemote::submitJobToRemoteQueue(const Job *job)
+void QueueRemote::submitJobToRemoteQueue(Job job)
 {
   const QString command = QString("cd %1/%2 && %3 %4")
       .arg(m_workingDirectoryBase)
-      .arg(job->moleQueueId())
+      .arg(job.moleQueueId())
       .arg(m_submissionCommand)
       .arg(m_launchScriptName);
 
@@ -258,9 +259,9 @@ void QueueRemote::submitJobToRemoteQueue(const Job *job)
   if (!conn->execute(command)) {
     Error err (tr("Could not initialize ssh resources. Attempting to use\n"
                   "user= '%1'\nhost = '%2'\nport = '%3'"), Error::NetworkError,
-               this, job->moleQueueId());
+               this, job.moleQueueId());
     emit errorOccurred(err);
-    emit jobStateUpdate(job->moleQueueId(), MoleQueue::ErrorState);
+    job.setJobState(MoleQueue::ErrorState);
     conn->deleteLater();
     return;
   }
@@ -279,9 +280,9 @@ void QueueRemote::jobSubmittedToRemoteQueue()
 
   IdType queueId;
   this->parseQueueId(conn->output(), &queueId);
-  const Job *job = conn->data().value<const Job*>();
+  Job job = conn->data().value<Job>();
 
-  if (!job) {
+  if (!job.isValid()) {
     Error err (tr("Internal error: %1\n%2").arg(Q_FUNC_INFO)
                .arg("Sender does not have an associated job!"),
                Error::MiscError, this);
@@ -294,20 +295,20 @@ void QueueRemote::jobSubmittedToRemoteQueue()
                   "%4 %5/%6/%7\nExit code (%8) %9\n\nRetrying soon.")
                .arg(conn->userName()).arg(conn->hostName())
                .arg(conn->portNumber()).arg(m_submissionCommand)
-               .arg(m_workingDirectoryBase).arg(job->moleQueueId())
+               .arg(m_workingDirectoryBase).arg(job.moleQueueId())
                .arg(m_launchScriptName).arg(conn->exitCode())
                .arg(conn->output()), Error::NetworkError, this,
-               job->moleQueueId());
+               job.moleQueueId());
     emit errorOccurred(err);
     // Retry submission:
-    m_pendingSubmission.append(job->moleQueueId());
-    emit jobStateUpdate(job->moleQueueId(), MoleQueue::ErrorState);
+    m_pendingSubmission.append(job.moleQueueId());
+    job.setJobState(MoleQueue::ErrorState);
     return;
   }
 
-  emit jobStateUpdate(job->moleQueueId(), MoleQueue::Submitted);
-  emit queueIdUpdate(job->moleQueueId(), queueId);
-  m_jobs.insert(queueId, job->moleQueueId());
+  job.setJobState(MoleQueue::Submitted);
+  job.setQueueId(queueId);
+  m_jobs.insert(queueId, job.moleQueueId());
 }
 
 void QueueRemote::requestQueueUpdate()
@@ -340,6 +341,7 @@ void QueueRemote::handleQueueUpdate()
     Error err (tr("Internal error: %1\n%2").arg(Q_FUNC_INFO)
                .arg("Sender is not an SshConnection!"), Error::MiscError, this);
     emit errorOccurred(err);
+    m_isCheckingQueue = false;
     return;
   }
   conn->deleteLater();
@@ -351,6 +353,7 @@ void QueueRemote::handleQueueUpdate()
                .arg(conn->portNumber()).arg(conn->exitCode())
                .arg(conn->output()), Error::NetworkError, this);
     emit errorOccurred(err);
+    m_isCheckingQueue = false;
     return;
   }
 
@@ -364,10 +367,25 @@ void QueueRemote::handleQueueUpdate()
   foreach (QString line, output) {
     IdType queueId;
     if (this->parseQueueLine(line, &queueId, &state)) {
-      IdType moleQueueId = m_jobs.value(queueId, 0);
-      if (moleQueueId != 0) {
+      IdType moleQueueId = m_jobs.value(queueId, InvalidId);
+      if (moleQueueId != InvalidId) {
         queueIds.removeOne(queueId);
-        emit jobStateUpdate(moleQueueId, state);
+        // Get pointer to jobmanager to lookup job
+        if (!m_server) {
+          Error err (tr("Queue '%1' cannot locate Server instance!")
+                     .arg(m_name), Error::QueueError, this, moleQueueId);
+          emit errorOccurred(err);
+          m_isCheckingQueue = false;
+          return;
+        }
+        Job job = m_server->jobManager()->lookupJobByMoleQueueId(moleQueueId);
+        if (!job.isValid()) {
+          Error err (tr("Queue '%1' Cannot update invalid Job reference!")
+                     .arg(m_name), Error::QueueError, this, moleQueueId);
+          emit errorOccurred(err);
+          continue;
+        }
+        job.setJobState(state);
       }
     }
   }
@@ -390,27 +408,27 @@ void QueueRemote::beginFinalizeJob(IdType queueId)
   // Lookup job
   if (!m_server)
     return;
-  const Job *job = m_server->jobManager()->lookupMoleQueueId(moleQueueId);
-  if (!job)
+  Job job = m_server->jobManager()->lookupJobByMoleQueueId(moleQueueId);
+  if (!job.isValid())
     return;
 
   this->finalizeJobCopyFromServer(job);
 
 }
 
-void QueueRemote::finalizeJobCopyFromServer(const Job *job)
+void QueueRemote::finalizeJobCopyFromServer(Job job)
 {
-  if (!job->retrieveOutput() ||
-      (job->cleanLocalWorkingDirectory() && job->outputDirectory().isEmpty())
+  if (!job.retrieveOutput() ||
+      (job.cleanLocalWorkingDirectory() && job.outputDirectory().isEmpty())
       ) {
     // Jump to next step
     this->finalizeJobCopyToCustomDestination(job);
     return;
   }
 
-  QString localDir = job->localWorkingDirectory() + "/..";
+  QString localDir = job.localWorkingDirectory() + "/..";
   QString remoteDir =
-      QString("%1/%2").arg(m_workingDirectoryBase).arg(job->moleQueueId());
+      QString("%1/%2").arg(m_workingDirectoryBase).arg(job.moleQueueId());
   SshConnection *conn = this->newSshConnection();
   conn->setData(QVariant::fromValue(job));
   connect(conn, SIGNAL(requestComplete()),
@@ -419,9 +437,9 @@ void QueueRemote::finalizeJobCopyFromServer(const Job *job)
   if (!conn->copyDirFrom(remoteDir, localDir)) {
     Error err (tr("Could not initialize ssh resources. Attempting to use\n"
                   "user= '%1'\nhost = '%2'\nport = '%3'"), Error::NetworkError,
-               this, job->moleQueueId());
+               this, job.moleQueueId());
     emit errorOccurred(err);
-    emit jobStateUpdate(job->moleQueueId(), MoleQueue::ErrorState);
+    job.setJobState(MoleQueue::ErrorState);
     conn->deleteLater();
     return;
   }
@@ -438,9 +456,9 @@ void QueueRemote::finishedJobOutputCopiedFromServer()
   }
   conn->deleteLater();
 
-  const Job *job = conn->data().value<const Job*>();
+  Job job = conn->data().value<Job>();
 
-  if (!job) {
+  if (!job.isValid()) {
     Error err (tr("Internal error: %1\n%2").arg(Q_FUNC_INFO)
                .arg("Sender does not have an associated job!"),
                Error::MiscError, this);
@@ -452,62 +470,62 @@ void QueueRemote::finishedJobOutputCopiedFromServer()
     Error err (tr("Error while copying job output from remote server:\n"
                   "%1@%2:%3 --> %4\nExit code (%5) %6")
                .arg(conn->userName()).arg(conn->hostName())
-               .arg(conn->portNumber()).arg(job->localWorkingDirectory())
+               .arg(conn->portNumber()).arg(job.localWorkingDirectory())
                .arg(conn->exitCode()).arg(conn->output()), Error::NetworkError,
-               this, job->moleQueueId());
+               this, job.moleQueueId());
     emit errorOccurred(err);
-    emit jobStateUpdate(job->moleQueueId(), MoleQueue::ErrorState);
+    job.setJobState(MoleQueue::ErrorState);
     return;
   }
 
   this->finalizeJobCopyToCustomDestination(job);
 }
 
-void QueueRemote::finalizeJobCopyToCustomDestination(const Job *job)
+void QueueRemote::finalizeJobCopyToCustomDestination(Job job)
 {
   // Skip to next step if needed
-  if (job->outputDirectory().isEmpty() ||
-      job->outputDirectory() == job->localWorkingDirectory()) {
+  if (job.outputDirectory().isEmpty() ||
+      job.outputDirectory() == job.localWorkingDirectory()) {
     this->finalizeJobCleanup(job);
     return;
   }
 
   // The copy function will throw errors if needed.
-  if (!this->recursiveCopyDirectory(job->localWorkingDirectory(),
-                                    job->outputDirectory())) {
-    emit jobStateUpdate(job->moleQueueId(), MoleQueue::ErrorState);
+  if (!this->recursiveCopyDirectory(job.localWorkingDirectory(),
+                                    job.outputDirectory())) {
+    job.setJobState(MoleQueue::ErrorState);
     return;
   }
 
   this->finalizeJobCleanup(job);
 }
 
-void QueueRemote::finalizeJobCleanup(const Job *job)
+void QueueRemote::finalizeJobCleanup(Job job)
 {
-  if (job->cleanLocalWorkingDirectory())
+  if (job.cleanLocalWorkingDirectory())
     this->cleanLocalDirectory(job);
 
-  if (job->cleanRemoteFiles())
+  if (job.cleanRemoteFiles())
     this->cleanRemoteDirectory(job);
 
-  emit jobStateUpdate(job->moleQueueId(), MoleQueue::Finished);
+  job.setJobState(MoleQueue::Finished);
 }
 
-void QueueRemote::cleanLocalDirectory(const Job *job)
+void QueueRemote::cleanLocalDirectory(Job job)
 {
-  this->recursiveRemoveDirectory(job->localWorkingDirectory());
+  this->recursiveRemoveDirectory(job.localWorkingDirectory());
 }
 
-void QueueRemote::cleanRemoteDirectory(const Job *job)
+void QueueRemote::cleanRemoteDirectory(Job job)
 {
   QString remoteDir =
-      QString("%1/%2").arg(m_workingDirectoryBase).arg(job->moleQueueId());
+      QString("%1/%2").arg(m_workingDirectoryBase).arg(job.moleQueueId());
 
   // Check that the remoteDir is not just "/" due to another bug.
   if (remoteDir.simplified() == "/") {
     Error err (tr("Refusing to clean remote directory %1 -- an internal error "
                   "has occurred.").arg(remoteDir), Error::MiscError, this,
-               job->moleQueueId());
+               job.moleQueueId());
     emit errorOccurred(err);
     return;
   }
@@ -522,7 +540,7 @@ void QueueRemote::cleanRemoteDirectory(const Job *job)
   if (!conn->execute(command)) {
     Error err (tr("Could not initialize ssh resources. Attempting to use\n"
                   "user= '%1'\nhost = '%2'\nport = '%3'"), Error::NetworkError,
-               this, job->moleQueueId());
+               this, job.moleQueueId());
     emit errorOccurred(err);
     conn->deleteLater();
     return;
@@ -540,9 +558,9 @@ void QueueRemote::remoteDirectoryCleaned()
   }
   conn->deleteLater();
 
-  const Job *job = conn->data().value<const Job*>();
+  Job job = conn->data().value<Job>();
 
-  if (!job) {
+  if (!job.isValid()) {
     Error err (tr("Internal error: %1\n%2").arg(Q_FUNC_INFO)
                .arg("Sender does not have an associated job!"),
                Error::MiscError, this);
@@ -554,18 +572,18 @@ void QueueRemote::remoteDirectoryCleaned()
     Error err (tr("Error clearing remote directory '%1@%2:%3/%4'.\n"
                   "Exit code (%5) %6")
                .arg(conn->userName()).arg(conn->hostName())
-               .arg(m_workingDirectoryBase).arg(job->moleQueueId())
+               .arg(m_workingDirectoryBase).arg(job.moleQueueId())
                .arg(conn->exitCode()).arg(conn->output()), Error::NetworkError,
-               this, job->moleQueueId());
+               this, job.moleQueueId());
     emit errorOccurred(err);
-    emit jobStateUpdate(job->moleQueueId(), MoleQueue::ErrorState);
+    job.setJobState(MoleQueue::ErrorState);
     return;
   }
 }
 
-void QueueRemote::jobAboutToBeRemoved(const Job *job)
+void QueueRemote::jobAboutToBeRemoved(const Job &job)
 {
-  m_pendingSubmission.removeOne(job->moleQueueId());
+  m_pendingSubmission.removeOne(job.moleQueueId());
   Queue::jobAboutToBeRemoved(job);
 }
 
@@ -679,7 +697,7 @@ void QueueRemote::removeStaleJobs()
       QList<IdType> staleQueueIds;
       for (QMap<IdType, IdType>::const_iterator it = m_jobs.constBegin(),
            it_end = m_jobs.constEnd(); it != it_end; ++it) {
-        if (jobManager->lookupMoleQueueId(it.value()))
+        if (jobManager->lookupJobByMoleQueueId(it.value()).isValid())
           continue;
         staleQueueIds << it.key();
         Error err (tr("Job with MoleQueue id %1 is missing, but the Queue '%2' "
@@ -711,13 +729,13 @@ void QueueRemote::timerEvent(QTimerEvent *theEvent)
   if (theEvent->timerId() == m_checkQueueTimerId) {
     theEvent->accept();
     removeStaleJobs();
-    if (m_jobs.size())
-      this->requestQueueUpdate();
+    if (!m_jobs.isEmpty())
+      requestQueueUpdate();
     return;
   }
   else if (theEvent->timerId() == m_checkForPendingJobsTimerId) {
     theEvent->accept();
-    this->submitPendingJobs();
+    submitPendingJobs();
     return;
   }
 

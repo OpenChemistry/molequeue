@@ -2,7 +2,7 @@
    {
       "jsonrpc" : "2.0",
       "params" : {
-         "moleQueueJobId" : 12,
+         "moleQueueId" : 12,
          "newState" : 7,
          "oldState" : 6
       }

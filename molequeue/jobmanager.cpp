@@ -17,6 +17,7 @@
 #include "jobmanager.h"
 
 #include "job.h"
+#include "jobdata.h"
 
 #include <QtCore/QSettings>
 
@@ -26,13 +27,11 @@ namespace MoleQueue
 JobManager::JobManager(QObject *parentObject) :
   QObject(parentObject)
 {
-  qRegisterMetaType<Job*>("MoleQueue::Job*");
-  qRegisterMetaType<const Job*>("const MoleQueue::Job*");
+  qRegisterMetaType<Job>("MoleQueue::Job");
 }
 
 JobManager::~JobManager()
 {
-  m_clientMap.clear();
   m_moleQueueMap.clear();
   qDeleteAll(m_jobs);
   m_jobs.clear();
@@ -43,10 +42,11 @@ void JobManager::readSettings(QSettings &settings)
   int numJobs = settings.beginReadArray("Jobs");
   for (int i = 0; i < numJobs; ++i) {
     settings.setArrayIndex(i);
-    QVariantHash hash = settings.value("hash", QVariantHash ()).toHash();
-    Job *job = new Job ();
-    job->setFromHash(hash);
-    this->insertJob(job);
+    QVariantHash hash = settings.value("hash").toHash();
+    JobData *jobdata = new JobData(this);
+    jobdata->setFromHash(hash);
+    m_jobs.append(jobdata);
+    insertJobData(jobdata);
   }
   settings.endArray();
 }
@@ -61,146 +61,156 @@ void JobManager::writeSettings(QSettings &settings) const
   settings.endArray(); // Jobs
 }
 
-Job *JobManager::newJob()
+Job JobManager::newJob()
 {
-  Job *job = new Job();
+  JobData *jobdata = new JobData(this);
 
-  emit jobAboutToBeAdded(job);
+  m_jobs.append(jobdata);
+  emit jobAboutToBeAdded(Job(jobdata));
 
-  this->insertJob(job);
-  return job;
+  insertJobData(jobdata);
+  return Job(jobdata);
 }
 
-Job *JobManager::newJob(const QVariantHash &jobState)
+Job JobManager::newJob(const QVariantHash &jobState)
 {
-  Job *job = new Job();
-  job->setFromHash(jobState);
+  JobData *jobdata = new JobData(this);
+  jobdata->setFromHash(jobState);
+  jobdata->setMoleQueueId(InvalidId);
 
-  emit jobAboutToBeAdded(job);
+  m_jobs.append(jobdata);
+  emit jobAboutToBeAdded(Job(jobdata));
 
-  this->insertJob(job);
-  return job;
+  insertJobData(jobdata);
+  return Job(jobdata);
 }
 
-void JobManager::removeJob(const Job *job)
+void JobManager::removeJob(JobData *jobdata)
 {
-  if (!job || !m_jobs.contains(job))
+  if (!jobdata || !m_jobs.contains(jobdata))
     return;
 
-  emit jobAboutToBeRemoved(job);
+  emit jobAboutToBeRemoved(Job(jobdata));
 
-  IdType moleQueueId = job->moleQueueId();
+  IdType moleQueueId = jobdata->moleQueueId();
 
-  m_jobs.removeOne(job);
-  m_clientMap.remove(job->clientId());
+  m_jobs.removeOne(jobdata);
   m_moleQueueMap.remove(moleQueueId);
 
-  delete const_cast<Job*>(job);
+  delete jobdata;
 
-  emit jobRemoved(moleQueueId, job);
+  emit jobRemoved(moleQueueId);
 }
 
 void JobManager::removeJob(IdType moleQueueId)
 {
-  const Job *job = this->lookupMoleQueueId(moleQueueId);
+  JobData *jobdata = lookupJobDataByMoleQueueId(moleQueueId);
 
-  if (job)
-    this->removeJob(job);
+  if (jobdata)
+    removeJob(jobdata);
 }
 
-void JobManager::removeJobs(const QList<const Job *> &jobsToRemove)
+void JobManager::removeJob(const Job &job)
 {
-  foreach (const Job* job, jobsToRemove)
-    this->removeJob(job);
+  if (job.isValid())
+    removeJob(job.jobData());
+}
+
+void JobManager::removeJobs(const QList<Job> &jobsToRemove)
+{
+  foreach (const Job &job, jobsToRemove)
+    removeJob(job);
 }
 
 void JobManager::removeJobs(const QList<IdType> &moleQueueIds)
 {
   foreach(IdType moleQueueId, moleQueueIds)
-    this->removeJob(moleQueueId);
+    removeJob(moleQueueId);
 }
 
-const Job *JobManager::lookupClientId(IdType clientId) const
+Job JobManager::lookupJobByMoleQueueId(IdType moleQueueId) const
 {
-  return m_clientMap.value(clientId, NULL);
+  return Job(lookupJobDataByMoleQueueId(moleQueueId));
 }
 
-const Job *JobManager::lookupMoleQueueId(IdType moleQueueId) const
+QList<Job> JobManager::jobsWithJobState(JobState state)
 {
-  return m_moleQueueMap.value(moleQueueId, NULL);
-}
+  QList<Job> result;
 
-QList<const Job *> JobManager::jobsWithJobState(JobState state)
-{
-  QList<const Job*> result;
-
-  foreach (const Job *job, m_jobs) {
-    if (job->jobState() == state)
-      result << job;
+  foreach (JobData *jobdata, m_jobs) {
+    if (jobdata->jobState() == state)
+      result << Job(jobdata);
   }
 
   return result;
 }
 
-void JobManager::jobIdsChanged(const Job *job)
+Job JobManager::jobAt(int i) const
 {
-  if (!m_jobs.contains(job))
+  if (Q_LIKELY(i >= 0 && i < m_jobs.size()))
+    return Job(m_jobs.at(i));
+  return Job();
+}
+
+int JobManager::indexOf(const Job &job) const
+{
+  JobData *jobdata = job.jobData();
+  if (jobdata)
+    return m_jobs.indexOf(jobdata);
+
+  return -1;
+}
+
+void JobManager::moleQueueIdChanged(const Job &job)
+{
+  JobData *jobdata = job.jobData();
+  if (!m_jobs.contains(jobdata))
     return;
 
-  if (m_clientMap.value(job->clientId(), NULL) != job) {
-    IdType oldClientId = m_clientMap.key(job, 0);
-    if (oldClientId != 0)
-      m_clientMap.remove(oldClientId);
-    m_clientMap.insert(job->clientId(), job);
-  }
-
-  if (m_moleQueueMap.value(job->moleQueueId(), NULL) != job) {
-    IdType oldMoleQueueId = m_moleQueueMap.key(job, 0);
-    if (oldMoleQueueId != 0)
+  if (lookupJobDataByMoleQueueId(jobdata->moleQueueId()) != jobdata) {
+    IdType oldMoleQueueId = m_moleQueueMap.key(jobdata, InvalidId);
+    if (oldMoleQueueId != InvalidId)
       m_moleQueueMap.remove(oldMoleQueueId);
-    m_moleQueueMap.insert(job->moleQueueId(), job);
+    m_moleQueueMap.insert(jobdata->moleQueueId(), jobdata);
   }
 }
 
-void JobManager::updateJobState(IdType moleQueueId, JobState newState)
+void JobManager::setJobState(IdType moleQueueId, JobState newState)
 {
-  const Job *job = this->lookupMoleQueueId(moleQueueId);
-  if (!job)
+  JobData *jobdata = lookupJobDataByMoleQueueId(moleQueueId);
+  if (!jobdata)
     return;
 
-  const JobState oldState = job->jobState();
+  const JobState oldState = jobdata->jobState();
 
   if (oldState == newState)
     return;
 
-  const_cast<Job*>(job)->setJobState(newState);
+  jobdata->setJobState(newState);
 
-  emit jobStateChanged(job, oldState, newState);
+  emit jobStateChanged(jobdata, oldState, newState);
 }
 
-void JobManager::updateQueueId(IdType moleQueueId, IdType queueId)
+void JobManager::setJobQueueId(IdType moleQueueId, IdType queueId)
 {
-  const Job *job = this->lookupMoleQueueId(moleQueueId);
-  if (!job)
+  JobData *jobdata = lookupJobDataByMoleQueueId(moleQueueId);
+  if (!jobdata)
     return;
 
-  if (job->queueJobId() == queueId)
+  if (jobdata->queueId() == queueId)
     return;
 
-  const_cast<Job*>(job)->setQueueJobId(queueId);
+  jobdata->setQueueId(queueId);
 
-  emit queueIdChanged(job, queueId);
+  emit jobQueueIdChanged(jobdata);
 }
 
-void JobManager::insertJob(Job *job)
+void JobManager::insertJobData(JobData *jobdata)
 {
-  m_jobs.append(job);
-  if (job->clientId() != 0)
-    m_clientMap.insert(job->clientId(), job);
-  if (job->moleQueueId() != 0)
-    m_moleQueueMap.insert(job->moleQueueId(), job);
+  if (jobdata->moleQueueId() != MoleQueue::InvalidId)
+    m_moleQueueMap.insert(jobdata->moleQueueId(), jobdata);
 
-  emit jobAdded(job);
+  emit jobAdded(Job(jobdata));
 }
 
 } // end namespace MoleQueue

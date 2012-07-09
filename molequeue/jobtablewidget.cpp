@@ -55,18 +55,16 @@ JobManager *JobTableWidget::jobManager() const
   return m_jobItemModel->jobManager();
 }
 
-QList<const Job *> JobTableWidget::getSelectedJobs()
+QList<Job> JobTableWidget::getSelectedJobs()
 {
-  QList<const Job *> result;
+  QList<Job> result;
 
   if (!m_jobItemModel->jobManager()) {
     return result;
   }
 
-  QList<const Job *> allJobs = m_jobItemModel->jobManager()->jobs();
-
   foreach (int row, ui->table->getSelectedRows())
-    result << allJobs.at(row);
+    result << m_jobItemModel->jobManager()->jobAt(row);
 
   return result;
 }
@@ -77,7 +75,7 @@ void JobTableWidget::clearFinishedJobs()
   if (!jobMan)
     return;
 
-  QList<const Job*> finishedJobs =
+  QList<Job> finishedJobs =
       jobMan->jobsWithJobState(MoleQueue::Finished);
 
   QMessageBox::StandardButton confirm =

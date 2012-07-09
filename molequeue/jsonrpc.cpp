@@ -30,7 +30,7 @@
 
 #define DEBUGOUT(title) \
   if (this->m_debug)    \
-    qDebug() << QDateTime::currentDateTime().toString() << title <<
+  qDebug() << QDateTime::currentDateTime().toString() << title <<
 
 namespace MoleQueue
 {
@@ -60,7 +60,7 @@ JsonRpc::~JsonRpc()
   }
 }
 
-PacketType JsonRpc::generateJobRequest(const Job *req,
+PacketType JsonRpc::generateJobRequest(const Job &job,
                                        IdType packetId)
 {
   Json::Value packet = generateEmptyRequest(packetId);
@@ -69,7 +69,7 @@ PacketType JsonRpc::generateJobRequest(const Job *req,
 
   Json::Value paramsObject (Json::objectValue);
 
-  const QVariantHash reqHash = req->hash();
+  const QVariantHash reqHash = job.hash();
 
   for (QVariantHash::const_iterator it = reqHash.constBegin(),
        it_end = reqHash.constEnd(); it != it_end; ++it) {
@@ -172,16 +172,16 @@ PacketType JsonRpc::generateJobRequest(const Job *req,
 }
 
 PacketType
-JsonRpc::generateJobSubmissionConfirmation(IdType moleQueueJobId,
-                                           IdType queueJobId,
+JsonRpc::generateJobSubmissionConfirmation(IdType moleQueueId,
+                                           IdType queueId,
                                            const QString &workingDirectory,
                                            IdType packetId)
 {
   Json::Value packet = generateEmptyResponse(packetId);
 
   Json::Value resultObject (Json::objectValue);
-  resultObject["moleQueueJobId"] = moleQueueJobId;
-  resultObject["queueJobId"] = queueJobId;
+  resultObject["moleQueueId"] = moleQueueId;
+  resultObject["queueId"] = queueId;
   resultObject["workingDirectory"] = workingDirectory.toStdString();
 
   packet["result"] = resultObject;
@@ -197,8 +197,8 @@ JsonRpc::generateJobSubmissionConfirmation(IdType moleQueueJobId,
 }
 
 PacketType JsonRpc::generateErrorResponse(int errorCode,
-                                            const QString &message,
-                                            IdType packetId)
+                                          const QString &message,
+                                          IdType packetId)
 {
   Json::Value packet = generateEmptyError(packetId);
 
@@ -216,9 +216,9 @@ PacketType JsonRpc::generateErrorResponse(int errorCode,
 }
 
 PacketType JsonRpc::generateErrorResponse(int errorCode,
-                                            const QString &message,
-                                            const Json::Value &data,
-                                            IdType packetId)
+                                          const QString &message,
+                                          const Json::Value &data,
+                                          IdType packetId)
 {
   Json::Value packet = generateEmptyError(packetId);
 
@@ -237,8 +237,8 @@ PacketType JsonRpc::generateErrorResponse(int errorCode,
 }
 
 PacketType JsonRpc::generateErrorResponse(int errorCode,
-                                            const QString &message,
-                                            const Json::Value &packetId)
+                                          const QString &message,
+                                          const Json::Value &packetId)
 {
   Json::Value packet = generateEmptyError(packetId);
 
@@ -256,9 +256,9 @@ PacketType JsonRpc::generateErrorResponse(int errorCode,
 }
 
 PacketType JsonRpc::generateErrorResponse(int errorCode,
-                                            const QString &message,
-                                            const Json::Value &data,
-                                            const Json::Value &packetId)
+                                          const QString &message,
+                                          const Json::Value &data,
+                                          const Json::Value &packetId)
 {
   Json::Value packet = generateEmptyError(packetId);
 
@@ -276,7 +276,7 @@ PacketType JsonRpc::generateErrorResponse(int errorCode,
   return ret;
 }
 
-PacketType JsonRpc::generateJobCancellation(const Job *req,
+PacketType JsonRpc::generateJobCancellation(const Job &job,
                                             IdType packetId)
 {
   Json::Value packet = generateEmptyRequest(packetId);
@@ -284,7 +284,7 @@ PacketType JsonRpc::generateJobCancellation(const Job *req,
   packet["method"] = "cancelJob";
 
   Json::Value paramsObject (Json::objectValue);
-  paramsObject["moleQueueJobId"] = req->moleQueueId();
+  paramsObject["moleQueueId"] = job.moleQueueId();
 
   packet["params"] = paramsObject;
 
@@ -300,7 +300,7 @@ PacketType JsonRpc::generateJobCancellation(const Job *req,
 }
 
 PacketType JsonRpc::generateJobCancellationConfirmation(IdType moleQueueId,
-                                                          IdType packetId)
+                                                        IdType packetId)
 {
   Json::Value packet = generateEmptyResponse(packetId);
 
@@ -361,7 +361,7 @@ PacketType JsonRpc::generateQueueList(const QueueListType &queueList,
 }
 
 PacketType
-JsonRpc::generateJobStateChangeNotification(IdType moleQueueJobId,
+JsonRpc::generateJobStateChangeNotification(IdType moleQueueId,
                                             JobState oldState,
                                             JobState newState)
 {
@@ -370,7 +370,7 @@ JsonRpc::generateJobStateChangeNotification(IdType moleQueueJobId,
   packet["method"] = "jobStateChanged";
 
   Json::Value paramsObject (Json::objectValue);
-  paramsObject["moleQueueJobId"]      = moleQueueJobId;
+  paramsObject["moleQueueId"]         = moleQueueId;
   paramsObject["oldState"]            = jobStateToString(oldState);
   paramsObject["newState"]            = jobStateToString(newState);
 
@@ -590,11 +590,11 @@ bool JsonRpc::validateRequest(const Json::Value &packet, bool strict)
     DEBUGOUT("validateRequest") "Invalid: 'method' not found!";
     return false;
   }
-// Params are optional.
-//  if (!found_params) {
-//    DEBUGOUT("validateRequest") "Invalid: 'params' not found!";
-//    return false;
-//  }
+  // Params are optional.
+  //  if (!found_params) {
+  //    DEBUGOUT("validateRequest") "Invalid: 'params' not found!";
+  //    return false;
+  //  }
   if (!found_id) {
     DEBUGOUT("validateRequest") "Invalid: 'id' not found!";
     return false;
@@ -823,11 +823,11 @@ bool JsonRpc::validateNotification(const Json::Value &packet, bool strict)
     DEBUGOUT("validateNotification") "Invalid: 'method' not found!";
     return false;
   }
-// Params are optional.
-//  if (!found_params) {
-//    DEBUGOUT("validateNotification") "Invalid: 'params' not found!";
-//    return false;
-//  }
+  // Params are optional.
+  //  if (!found_params) {
+  //    DEBUGOUT("validateNotification") "Invalid: 'params' not found!";
+  //    return false;
+  //  }
   if (found_id) {
     DEBUGOUT("validateNotification") "Invalid: 'id' found!";
     return false;
@@ -1174,8 +1174,8 @@ void JsonRpc::handleSubmitJobResult(const Json::Value &root) const
   IdType jobId;
   QDir workingDirectory;
 
-  if (!resultObject["moleQueueJobId"].isIntegral() ||
-      !resultObject["queueJobId"].isIntegral() ||
+  if (!resultObject["moleQueueId"].isIntegral() ||
+      !resultObject["queueId"].isIntegral() ||
       !resultObject["workingDirectory"].isString()) {
     Json::StyledWriter writer;
     const std::string responseString = writer.write(root);
@@ -1185,8 +1185,8 @@ void JsonRpc::handleSubmitJobResult(const Json::Value &root) const
   }
 
   moleQueueId = static_cast<IdType>(
-        resultObject["moleQueueJobId"].asLargestUInt());
-  jobId = static_cast<IdType>(resultObject["queueJobId"].asLargestUInt());
+        resultObject["moleQueueId"].asLargestUInt());
+  jobId = static_cast<IdType>(resultObject["queueId"].asLargestUInt());
   workingDirectory = QDir(QString(
                             resultObject["workingDirectory"].asCString()));
 
@@ -1226,7 +1226,7 @@ void JsonRpc::handleCancelJobRequest(const Json::Value &root) const
   const Json::Value &paramsObject = root["params"];
 
   if (!paramsObject.isObject() ||
-      !paramsObject["moleQueueJobId"].isIntegral()) {
+      !paramsObject["moleQueueId"].isIntegral()) {
     Json::StyledWriter writer;
     const std::string responseString = writer.write(root);
     qWarning() << "Job cancellation request is ill-formed:\n"
@@ -1234,10 +1234,10 @@ void JsonRpc::handleCancelJobRequest(const Json::Value &root) const
     return;
   }
 
-  const IdType moleQueueJobId = static_cast<IdType>(
-        paramsObject["moleQueueJobId"].asLargestUInt());
+  const IdType moleQueueId = static_cast<IdType>(
+        paramsObject["moleQueueId"].asLargestUInt());
 
-  emit jobCancellationRequestReceived(id, moleQueueJobId);
+  emit jobCancellationRequestReceived(id, moleQueueId);
 }
 
 void JsonRpc::handleCancelJobResult(const Json::Value &root) const
@@ -1276,7 +1276,7 @@ void JsonRpc::handleJobStateChangedNotification(const Json::Value &root) const
   JobState newState;
 
   if (!paramsObject.isObject() ||
-      !paramsObject["moleQueueJobId"].isIntegral() ||
+      !paramsObject["moleQueueId"].isIntegral() ||
       !paramsObject["oldState"].isString() ||
       !paramsObject["newState"].isString() ){
     Json::StyledWriter writer;
@@ -1287,7 +1287,7 @@ void JsonRpc::handleJobStateChangedNotification(const Json::Value &root) const
   }
 
   moleQueueId = static_cast<IdType>(
-        paramsObject["moleQueueJobId"].asLargestUInt());
+        paramsObject["moleQueueId"].asLargestUInt());
   oldState = stringToJobState(paramsObject["oldState"].asCString());
   newState = stringToJobState(paramsObject["newState"].asCString());
 

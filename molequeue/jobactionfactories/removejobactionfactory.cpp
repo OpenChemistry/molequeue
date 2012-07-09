@@ -23,14 +23,14 @@
 #include <QtGui/QAction>
 #include <QtGui/QMessageBox>
 
-Q_DECLARE_METATYPE(QList<const MoleQueue::Job*>)
+Q_DECLARE_METATYPE(QList<MoleQueue::Job>)
 
 namespace MoleQueue {
 
 RemoveJobActionFactory::RemoveJobActionFactory() :
   JobActionFactory()
 {
-  qRegisterMetaType<QList<const Job*> >("QList<const Job*>");
+  qRegisterMetaType<QList<Job> >("QList<Job>");
   m_isMultiJob = true;
   m_flags |= JobActionFactory::ContextItem;
 }
@@ -39,18 +39,18 @@ RemoveJobActionFactory::~RemoveJobActionFactory()
 {
 }
 
-bool RemoveJobActionFactory::isValidForJob(const Job *job) const
+bool RemoveJobActionFactory::isValidForJob(const Job &job) const
 {
-  return m_server->jobManager()->jobs().contains(job);
+  return job.isValid() && m_server->jobManager()->indexOf(job) != -1;
 }
 
 QList<QAction *> RemoveJobActionFactory::createActions()
 {
   QList<QAction*> result;
 
-  if (m_attemptedJobAdditions == 1) {
+  if (m_attemptedJobAdditions == 1 && m_jobs.size() == 1) {
     QAction *newAction = new QAction (
-          tr("Remove '%1'...").arg(m_jobs.first()->description()), NULL);
+          tr("Remove '%1'...").arg(m_jobs.first().description()), NULL);
     newAction->setData(QVariant::fromValue(m_jobs));
     connect(newAction, SIGNAL(triggered()), this, SLOT(actionTriggered()));
     result << newAction;
@@ -79,7 +79,7 @@ void RemoveJobActionFactory::actionTriggered()
     return;
 
   // The sender was a QAction. Is its data a list of jobs?
-  QList<const Job *> jobs = action->data().value<QList<const Job*> >();
+  QList<Job> jobs = action->data().value<QList<Job> >();
   if (!jobs.size())
     return;
 

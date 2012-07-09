@@ -39,8 +39,7 @@ ServerConnection::ServerConnection(Server *parentServer,
   : m_server(parentServer),
     m_holdRequests(true)
 {
-  qRegisterMetaType<Job*>("MoleQueue::Job*");
-  qRegisterMetaType<const Job*>("const MoleQueue::Job*");
+  qRegisterMetaType<Job>("MoleQueue::Job");
   qRegisterMetaType<QueueListType>("MoleQueue::QueueListType");
 
   this->setSocket(theSocket);
@@ -70,10 +69,10 @@ void ServerConnection::sendQueueList(const QueueListType &queueList)
   this->sendPacket(packet);
 }
 
-void ServerConnection::sendSuccessfulSubmissionResponse(const Job *req)
+void ServerConnection::sendSuccessfulSubmissionResponse(const Job &job)
 {
   // Lookup the moleQueueId in the hash so that we can send the correct packetId
-  const IdType moleQueueId = req->moleQueueId();
+  const IdType moleQueueId = job.moleQueueId();
   if (!m_submissionLUT.contains(moleQueueId)) {
     qWarning() << "Refusing to confirm job submission; unrecognized MoleQueue id:"
                << moleQueueId;
@@ -82,17 +81,17 @@ void ServerConnection::sendSuccessfulSubmissionResponse(const Job *req)
 
   const IdType packetId = m_submissionLUT.take(moleQueueId);
   PacketType packet =  m_jsonrpc->generateJobSubmissionConfirmation(
-        req->moleQueueId(), req->queueJobId(), req->localWorkingDirectory(),
+        job.moleQueueId(), job.queueId(), job.localWorkingDirectory(),
         packetId);
   this->sendPacket(packet);
 }
 
-void ServerConnection::sendFailedSubmissionResponse(const Job *req,
+void ServerConnection::sendFailedSubmissionResponse(const Job &job,
                                                     JobSubmissionErrorCode ec,
                                                     const QString &errorMessage)
 {
   // Lookup the moleQueueId in the hash so that we can send the correct packetId
-  const IdType moleQueueId = req->moleQueueId();
+  const IdType moleQueueId = job.moleQueueId();
   if (!m_submissionLUT.contains(moleQueueId)) {
     qWarning() << "Refusing to send job failure; unrecognized MoleQueue id:"
                << moleQueueId;
@@ -107,10 +106,10 @@ void ServerConnection::sendFailedSubmissionResponse(const Job *req,
   this->sendPacket(packet);
 }
 
-void ServerConnection::sendSuccessfulCancellationResponse(const Job *req)
+void ServerConnection::sendSuccessfulCancellationResponse(const Job &job)
 {
   // Lookup the moleQueueId in the hash so that we can send the correct packetId
-  const IdType moleQueueId = req->moleQueueId();
+  const IdType moleQueueId = job.moleQueueId();
   if (!m_cancellationLUT.contains(moleQueueId)) {
     qWarning() << "Refusing to confirm job cancellation; unrecognized id:"
                << moleQueueId;
@@ -119,16 +118,16 @@ void ServerConnection::sendSuccessfulCancellationResponse(const Job *req)
 
   const IdType packetId = m_cancellationLUT.take(moleQueueId);
   PacketType packet =  m_jsonrpc->generateJobCancellationConfirmation(
-        req->moleQueueId(), packetId);
+        job.moleQueueId(), packetId);
   this->sendPacket(packet);
 }
 
-void ServerConnection::sendJobStateChangeNotification(const Job *req,
+void ServerConnection::sendJobStateChangeNotification(const Job &job,
                                                       JobState oldState,
                                                       JobState newState)
 {
   PacketType packet = m_jsonrpc->generateJobStateChangeNotification(
-        req->moleQueueId(), oldState, newState);
+        job.moleQueueId(), oldState, newState);
   this->sendPacket(packet);
 }
 
@@ -141,12 +140,12 @@ void ServerConnection::queueListRequestReceived(IdType packetId)
 void ServerConnection::jobSubmissionRequestReceived(IdType packetId,
                                                     const QVariantHash &options)
 {
-  Job *req = m_server->jobManager()->newJob(options);
+  Job job = m_server->jobManager()->newJob(options);
 
-  m_submissionLUT.insert(req->moleQueueId(), packetId);
-  m_ownedJobMoleQueueIds.append(req->moleQueueId());
+  m_submissionLUT.insert(job.moleQueueId(), packetId);
+  m_ownedJobMoleQueueIds.append(job.moleQueueId());
 
-  emit jobSubmissionRequested(req);
+  emit jobSubmissionRequested(job);
 }
 
 void ServerConnection::jobCancellationRequestReceived(IdType packetId,

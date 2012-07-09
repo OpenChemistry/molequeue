@@ -20,8 +20,11 @@ set(mq_srcs
   jobactionfactories/openwithactionfactory.cpp
   jobactionfactories/programmableopenwithactionfactory.cpp
   jobactionfactories/removejobactionfactory.cpp
+  jobdata.cpp
   jobitemmodel.cpp
   jobmanager.cpp
+  jobreferencebase.cpp
+  jobrequest.cpp
   jobtablewidget.cpp
   jobview.cpp
   jsonrpc.cpp
@@ -155,7 +158,10 @@ set(mqclient_srcs
   abstractrpcinterface.cpp
   client.cpp
   job.cpp
+  jobdata.cpp
   jobmanager.cpp
+  jobreferencebase.cpp
+  jobrequest.cpp
   jsonrpc.cpp
   molequeueglobal.h
   ${jsoncpp_srcs}
@@ -172,7 +178,7 @@ set(mqclient_moc
 set(mqclient_headers
   abstractrpcinterface.h
   client.h
-  job.h
+  jobrequest.h
   molequeueglobal.h
   ${JSONCPP_SOURCE_DIR}/json/json-forwards.h
 )

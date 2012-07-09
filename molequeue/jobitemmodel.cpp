@@ -40,18 +40,17 @@ void JobItemModel::setJobManager(JobManager *newJobManager)
   m_jobManager = newJobManager;
 
   if (m_jobManager) {
-    connect(m_jobManager, SIGNAL(jobAdded(const MoleQueue::Job*)),
+    /// @todo these should reset the model, not change the layout
+    connect(m_jobManager, SIGNAL(jobAdded(const MoleQueue::Job &)),
             this, SIGNAL(layoutChanged()));
-    connect(m_jobManager, SIGNAL(jobRemoved(MoleQueue::IdType,
-                                            const MoleQueue::Job*)),
+    connect(m_jobManager, SIGNAL(jobRemoved(MoleQueue::IdType)),
             this, SIGNAL(layoutChanged()));
-    connect(m_jobManager, SIGNAL(jobStateChanged(const MoleQueue::Job*,
+    connect(m_jobManager, SIGNAL(jobStateChanged(const MoleQueue::Job &,
                                                  MoleQueue::JobState,
                                                  MoleQueue::JobState)),
-            this, SLOT(jobUpdated(const MoleQueue::Job*)));
-    connect(m_jobManager, SIGNAL(queueIdChanged(const MoleQueue::Job*,
-                                                MoleQueue::IdType)),
-            this, SLOT(jobUpdated(const MoleQueue::Job*)));
+            this, SLOT(jobUpdated(const MoleQueue::Job &)));
+    connect(m_jobManager, SIGNAL(jobQueueIdChanged(const MoleQueue::Job &)),
+            this, SLOT(jobUpdated(const MoleQueue::Job &)));
   }
 
   emit layoutChanged();
@@ -99,25 +98,25 @@ QVariant JobItemModel::data(const QModelIndex &modelIndex, int role) const
       modelIndex.column() + 1 > COLUMN_COUNT)
     return QVariant();
 
-  const Job *job = m_jobManager->jobAt(modelIndex.row());
-  if (job) {
+  Job job = m_jobManager->jobAt(modelIndex.row());
+  if (job.isValid()) {
     if (role == Qt::DisplayRole) {
       switch (modelIndex.column()) {
       case MOLEQUEUE_ID:
-        return QVariant(QString::number(job->moleQueueId()));
+        return QVariant(QString::number(job.moleQueueId()));
       case JOB_TITLE:
-        return QVariant(job->description());
+        return QVariant(job.description());
       case QUEUE_NAME: {
-        if (IdType jobId = job->queueJobId())
-          return QVariant(QString("%1 (%2)").arg(job->queue())
+        if (IdType jobId = job.queueId())
+          return QVariant(QString("%1 (%2)").arg(job.queue())
                           .arg(QString::number(jobId)));
         else
-          return QVariant(job->queue());
+          return QVariant(job.queue());
       }
       case PROGRAM_NAME:
-        return QVariant(job->program());
+        return QVariant(job.program());
       case JOB_STATE:
-        return MoleQueue::jobStateToString(job->jobState());
+        return MoleQueue::jobStateToString(job.jobState());
       default:
         return QVariant();
       }
@@ -136,18 +135,19 @@ bool JobItemModel::removeRows(int row, int count, const QModelIndex &)
 
   this->beginRemoveRows(QModelIndex(), row, row + count - 1);
 
-  QList<const Job*> jobs = m_jobManager->jobs().mid(row, count);
+  QList<Job> jobs;
+  for (int i = row; i < row + count; ++i)
+    jobs << m_jobManager->jobAt(i);
 
+  /// @todo These signals should reset the model, not change the layout
   // Disconnect the layoutChanged signal from the manager and reattach it when
   // finished, otherwise the table will mistakenly pop off the last item in the
   // list. Don't block signals here -- other receivers may need to handle the
   // removal signals.
-  disconnect(m_jobManager, SIGNAL(jobRemoved(MoleQueue::IdType,
-                                             const MoleQueue::Job*)),
+  disconnect(m_jobManager, SIGNAL(jobRemoved(MoleQueue::IdType)),
              this, SIGNAL(layoutChanged()));
   m_jobManager->removeJobs(jobs);
-  connect(m_jobManager, SIGNAL(jobRemoved(MoleQueue::IdType,
-                                          const MoleQueue::Job*)),
+  connect(m_jobManager, SIGNAL(jobRemoved(MoleQueue::IdType)),
           this, SIGNAL(layoutChanged()));
 
   this->endRemoveRows();
@@ -168,24 +168,14 @@ QModelIndex JobItemModel::index(int row, int column,
     return QModelIndex();
 }
 
-void JobItemModel::jobUpdated(const Job *job)
+void JobItemModel::jobUpdated(const Job &job)
 {
   if (!m_jobManager)
     return;
 
-  int row = m_jobManager->jobs().indexOf(job);
+  int row = m_jobManager->indexOf(job);
   if (row >= 0)
     emit dataChanged(this->index(row, 0), this->index(row, COLUMN_COUNT));
-}
-
-void JobItemModel::jobUpdated(const IdType moleQueueId)
-{
-  if (!m_jobManager)
-    return;
-
-  const Job *job = m_jobManager->lookupMoleQueueId(moleQueueId);
-  if (job != NULL)
-    this->jobUpdated(job);
 }
 
 } // End of namespace
