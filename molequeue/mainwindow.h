@@ -17,10 +17,10 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include <QtGui/QMainWindow>
-
 #include "molequeueglobal.h"
-#include "connectionlistener.h"
+#include "transport/connectionlistener.h"
+
+#include <QtGui/QMainWindow>
 
 #include <QtGui/QSystemTrayIcon>
 

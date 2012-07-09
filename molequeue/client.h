@@ -84,11 +84,14 @@ public:
    */
   QueueListType queueList() const;
 
+  void setConnection(Connection *connecton);
+
   /// Used for internal lookup structures
   typedef QMap<IdType, JobRequest> PacketLookupTable;
 
   /// Used for unit testing
   friend class ::ClientTest;
+  friend class ::ConnectionTest;
 
 signals:
 
@@ -140,7 +143,7 @@ public slots:
    * @param serverName Name of the socket to connect through. Typically
    * "MoleQueue" -- do not change this unless you know what you are doing.
    */
-  void connectToServer(const QString &serverName = "MoleQueue");
+  virtual void connectToServer(const QString &serverName = "MoleQueue") = 0;
 
   /**
    * Request a list of Queues and Programs from the server.
@@ -172,8 +175,7 @@ protected slots:
    * Called when the JsonRpc instance handles a listQueues response.
    * @param list List of supported Queues/Programs
    */
-  void queueListReceived(MoleQueue::IdType,
-                         const MoleQueue::QueueListType &list);
+  void queueListReceived(MoleQueue::IdType, const MoleQueue::QueueListType &list);
 
   /**
    * Called when the JsonRpc instance handles a successful submitJob response.
@@ -229,6 +231,8 @@ protected:
 
   /// Cached list of queues/programs
   QueueListType m_queueList;
+
+  Connection *m_connection;
 };
 
 } // end namespace MoleQueue

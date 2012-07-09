@@ -50,6 +50,9 @@ Server::Server(QObject *parentObject, QString serverName)
   qRegisterMetaType<ConnectionListener::Error>("ConnectionListener::Error");
   qRegisterMetaType<ServerConnection*>("MoleQueue::ServerConnection*");
   qRegisterMetaType<const ServerConnection*>("const MoleQueue::ServerConnection*");
+  qRegisterMetaType<Job*>("MoleQueue::Job*");
+  qRegisterMetaType<const Job*>("const MoleQueue::Job*");
+  qRegisterMetaType<QueueListType>("MoleQueue::QueueListType");
 
   connect(m_jobManager, SIGNAL(jobAboutToBeAdded(MoleQueue::Job*)),
           this, SLOT(jobAboutToBeAdded(MoleQueue::Job*)),
@@ -113,18 +116,26 @@ Server::~Server()
   m_queueManager = NULL;
 }
 
-void Server::createConnectionListener()
+void Server::createConnectionListeners()
 {
-  m_serverName = (!m_isTesting) ? "MoleQueue" : "MoleQueue-testing";
-  m_connectionListener = new LocalSocketConnectionListener(this, m_serverName);
+  PluginManager *pluginManager = PluginManager::instance();
+  QList<ConnectionListenerFactory *> factories =
+    pluginManager->connectionListenerFactories();
 
-  connect(m_connectionListener, SIGNAL(newConnection(MoleQueue::Connection *)),
-          this, SLOT(newConnectionAvailable(MoleQueue::Connection *)));
+  foreach(ConnectionListenerFactory *factory, factories) {
+    ConnectionListener *listener = factory->createConnectionListener(this,
+                                                                     m_serverName);
+    connect(listener, SIGNAL(connectionError(MoleQueue::ConnectionListener::Error,
+                                             const QString&)),
+            this, SIGNAL(connectionError(MoleQueue::ConnectionListener::Error,
+                                             const QString&)));
 
-  connect(m_connectionListener,
-          SIGNAL(connectionError(MoleQueue::ConnectionListener::Error, const QString&)),
-          this, SIGNAL(connectionError(MoleQueue::ConnectionListener::Error,const QString&)));
+    connect(listener, SIGNAL(newConnection(MoleQueue::Connection*)),
+            this, SLOT(newConnectionAvailable(MoleQueue::Connection*)));
 
+    m_connectionListeners.append(listener);
+
+  }
 }
 
 void Server::readSettings(QSettings &settings)
@@ -193,11 +204,12 @@ void Server::stop()
 void Server::dispatchJobStateChange(const Job *job, JobState oldState,
                                     JobState newState)
 {
-  ServerConnection *conn = this->lookupConnection(job->moleQueueId());
-  if (!conn)
-    return;
+  Connection *connection = m_connectionLUT.value(job->moleQueueId());
+  EndpointId replyTo = m_endpointLUT.value(job->moleQueueId());
 
-  conn->sendJobStateChangeNotification(job, oldState, newState);
+  sendJobStateChangeNotification(connection,
+                                 replyTo,
+                                 job, oldState, newState);
 }
 
 void Server::handleError(const MoleQueue::Error &err)
@@ -238,57 +250,19 @@ void Server::queueListRequestReceived(MoleQueue::Connection *connection,
                                       MoleQueue::EndpointId replyTo,
                                       MoleQueue::IdType id)
 {
-  ServerConnection *conn = qobject_cast<ServerConnection*>(this->sender());
-  if (conn == NULL) {
-    qWarning() << Q_FUNC_INFO << "called with a sender which is not a "
-                  "ServerConnection.";
-    return;
-  }
-
-  conn->sendQueueList(m_queueManager->toQueueList());
+  sendQueueList(connection, replyTo, id, m_queueManager->toQueueList());
 }
 
-void Server::jobSubmissionRequested(const Job &job)
+void Server::jobCancellationRequestReceived(MoleQueue::Connection *connection,
+                                            MoleQueue::EndpointId replyTo,
+                                            MoleQueue::IdType packetId,
+                                            IdType moleQueueId)
 {
-  ServerConnection *conn = qobject_cast<ServerConnection*>(this->sender());
-  if (conn == NULL) {
-    qWarning() << Q_FUNC_INFO << "called with a sender which is not a "
-                  "ServerConnection.";
-    return;
-  }
-
-  qDebug() << "Job submission requested:\n" << req->hash();
-
-  // Lookup queue and submit job.
-  Queue *queue = m_queueManager->lookupQueue(req->queue());
-  if (!queue) {
-    conn->sendFailedSubmissionResponse(req, MoleQueue::InvalidQueue,
-                                       tr("Unknown queue: %1")
-                                       .arg(req->queue()));
-    return;
-  }
-
-  // Send the submission confirmation first so that the client can update the
-  // MoleQueue id and properly handle packets sent during job submission.
-  conn->sendSuccessfulSubmissionResponse(req);
-
-  /// @todo Handle submission failures better -- return JobSubErrCode?
-  bool ok = queue->submitJob(req);
-  qDebug() << "Submission ok?" << ok;
-}
-
-void Server::jobCancellationRequested(IdType moleQueueId)
-{
-  ServerConnection *conn = qobject_cast<ServerConnection*>(this->sender());
-  if (conn == NULL) {
-    qWarning() << Q_FUNC_INFO << "called with a sender which is not a "
-                  "ServerConnection.";
-    return;
-  }
+  m_cancellationLUT.insert(moleQueueId, packetId);
 
   qDebug() << "Job cancellation requested: MoleQueueId:" << moleQueueId;
 
-  const Job req = m_jobManager->lookupJobByMoleQueueId(moleQueueId);
+  const Job *req = m_jobManager->lookupMoleQueueId(moleQueueId);
 
   /// @todo actually handle the cancellation
   /// @todo Handle NULL req
@@ -296,7 +270,7 @@ void Server::jobCancellationRequested(IdType moleQueueId)
   sendSuccessfulCancellationResponse(connection, replyTo, req);
 }
 
-void Server::jobAboutToBeAdded(Job job)
+void Server::jobAboutToBeAdded(Job *job)
 {
   IdType nextMoleQueueId = ++m_moleQueueIdCounter;
 

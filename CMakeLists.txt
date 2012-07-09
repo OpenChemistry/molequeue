@@ -10,6 +10,8 @@ include(CompilerFlags)
 
 option(ENABLE_TESTING "Enable testing" OFF)
 
+option(BUILD_SHARED_LIBS "Build with shared libraries" ON)
+
 if(ENABLE_TESTING)
   include(CTest)
   enable_testing()
@@ -34,3 +36,5 @@ if(ENABLE_TESTING)
   include(BuildPackageTest)
   BuildPackageTest_Add("MoleQueue" "${CMAKE_CURRENT_BINARY_DIR}")
 endif()
+
+option(USE_ZERO_MQ "Build molequeue with ZeroMQ support" OFF)

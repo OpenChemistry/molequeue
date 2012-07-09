@@ -17,9 +17,11 @@
 #ifndef ABSTRACTRPCINTERFACE_H
 #define ABSTRACTRPCINTERFACE_H
 
-#include <QObject>
+#include <QtCore/QObject>
 
+#include "object.h"
 #include "molequeueglobal.h"
+#include "transport/message.h"
 #include "thirdparty/jsoncpp/json/json-forwards.h"
 
 class AbstractRpcInterfaceTest;
@@ -28,6 +30,7 @@ namespace MoleQueue
 {
 class JsonRpc;
 class Connection;
+class Message;
 
 /**
  * @class AbstractRpcInterface abstractrpcinterface.h <molequeue/abstractrpcinterface.h>
@@ -55,17 +58,11 @@ public:
 protected slots:
 
   /**
-   * Sets this AbstractRpcInterface to use the passed connection.
-   * @param socket The Connection to use
-   */
-  virtual void setConnection(Connection *conn);
-
-  /**
    * Interpret a newly received packet.
    *
    * @param packet The packet
    */
-  void readPacket(const MoleQueue::PacketType &packet);
+  void readPacket(const MoleQueue::Message msg);
 
   /**
    * Send a response indicating that an invalid packet (unparsable) has been
@@ -74,7 +71,9 @@ protected slots:
    * @param packetId The packet identifier
    * @param errorDataObject The Json::Value to be used as the error data.
    */
-  void replyToInvalidPacket(const Json::Value &packetId,
+  void replyToInvalidPacket(MoleQueue::Connection *connection,
+                            const MoleQueue::EndpointId replyTo,
+                            const Json::Value &packetId,
                             const Json::Value &errorDataObject);
 
   /**
@@ -84,7 +83,9 @@ protected slots:
    * @param packetId The packet identifier
    * @param errorDataObject The Json::Value to be used as the error data.
    */
-  void replyToInvalidRequest(const Json::Value &packetId,
+  void replyToInvalidRequest(MoleQueue::Connection *connection,
+                             const MoleQueue::EndpointId replyTo,
+                             const Json::Value &packetId,
                              const Json::Value &errorDataObject);
 
   /**
@@ -93,7 +94,9 @@ protected slots:
    * @param packetId The packet identifier
    * @param errorDataObject The Json::Value to be used as the error data.
    */
-  void replyToUnrecognizedRequest(const Json::Value &packetId,
+  void replyToUnrecognizedRequest(MoleQueue::Connection *connection,
+                                  const MoleQueue::EndpointId replyTo,
+                                  const Json::Value &packetId,
                                   const Json::Value &errorDataObject);
 
   /**
@@ -103,7 +106,9 @@ protected slots:
    * @param packetId The packet identifier
    * @param errorDataObject The Json::Value to be used as the error data.
    */
-  void replyToinvalidRequestParams(const Json::Value &packetId,
+  void replyToinvalidRequestParams(MoleQueue::Connection *connection,
+                                   const MoleQueue::EndpointId replyTo,
+                                   const Json::Value &packetId,
                                    const Json::Value &errorDataObject);
 
   /**
@@ -112,24 +117,23 @@ protected slots:
    * @param packetId The packet identifier
    * @param errorDataObject The Json::Value to be used as the error data.
    */
-  void replyWithInternalError(const Json::Value &packetId,
+  void replyWithInternalError(MoleQueue::Connection *connection,
+                              const MoleQueue::EndpointId replyTo,
+                              const Json::Value &packetId,
                               const Json::Value &errorDataObject);
 
 protected:
 
   /**
-   * @return The next packet id.
+   * @return The next packet id. TODO This is only needed on the client side?
    */
   IdType nextPacketId();
-
-  /// The connection used for interprocess communication
-  Connection *m_connection;
 
   /// The internal JsonRpc object
   JsonRpc *m_jsonrpc;
 
 private:
-  /// Counter for packet requests
+  /// Counter for packet requests TODO client side only? But what about notifications?
   IdType m_packetCounter;
 
 public:

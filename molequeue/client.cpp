@@ -18,7 +18,7 @@
 
 #include "jobmanager.h"
 #include "jsonrpc.h"
-
+#include "transport/connection.h"
 #include <QtCore/QDateTime>
 #include <QtCore/QDebug>
 #include <QtCore/QDir>
@@ -37,14 +37,12 @@ Client::Client(QObject *parentObject) :
   AbstractRpcInterface(parentObject),
   m_jobManager(new JobManager(this)),
   m_submittedLUT(new PacketLookupTable ()),
-  m_canceledLUT(new PacketLookupTable ())
+  m_canceledLUT(new PacketLookupTable ()),
+  m_connection(NULL)
 {
   qRegisterMetaType<JobRequest>("MoleQueue::JobRequest");
   qRegisterMetaType<JobState>("MoleQueue::JobState");
   qRegisterMetaType<QueueListType>("MoleQueue::QueueListType");
-
-  QLocalSocket *socket = new QLocalSocket ();
-  this->setSocket(socket);
 
   connect(m_jsonrpc, SIGNAL(queueListReceived(MoleQueue::IdType,
                                               MoleQueue::QueueListType)),
@@ -80,6 +78,9 @@ Client::Client(QObject *parentObject) :
 
 Client::~Client()
 {
+  delete m_jobManager;
+  m_jobManager = NULL;
+
   delete m_submittedLUT;
   m_submittedLUT = NULL;
 

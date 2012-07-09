@@ -17,7 +17,7 @@
 #include "remotequeuewidget.h"
 #include "ui_remotequeuewidget.h"
 
-#include "client.h"
+#include "transport/localsocket/localsocketclient.h"
 #include "program.h"
 #include "queues/remote.h"
 #include "sshcommand.h"
@@ -200,7 +200,7 @@ void RemoteQueueWidget::sleepTest()
   }
 
   if (!m_client) {
-    m_client = new Client (this);
+    m_client = new LocalSocketClient (this);
     m_client->connectToServer();
   }
 
