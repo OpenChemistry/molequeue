@@ -60,6 +60,7 @@ public slots:
 
 protected slots:
   void showQueueManager();
+  void showOpenWithManager();
   void handleServerConnectionError(MoleQueue::ConnectionListener::Error,
                                    const QString &);
 

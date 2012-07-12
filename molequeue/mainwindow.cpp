@@ -2,7 +2,7 @@
 
   This source file is part of the MoleQueue project.
 
-  Copyright 2011 Kitware, Inc.
+  Copyright 2011-2012 Kitware, Inc.
 
   This source code is released under the New BSD License, (the "License").
 
@@ -65,6 +65,7 @@ MainWindow::MainWindow()
 
   connect(m_server, SIGNAL(errorNotification(QString,QString)),
           this, SLOT(notifyUserOfError(QString,QString)));
+
   m_server->setDebug(true);
   m_server->start();
 
@@ -126,6 +127,12 @@ void MainWindow::notifyUserOfError(const QString &title, const QString &message)
 void MainWindow::showQueueManager()
 {
   QueueManagerDialog dialog(m_server->queueManager(), this);
+  dialog.exec();
+}
+
+void MainWindow::showOpenWithManager()
+{
+  OpenWithManagerDialog dialog(this);
   dialog.exec();
 }
 
