@@ -61,6 +61,7 @@ private slots:
   void testSuccessfulJobSubmission();
   void testFailedSubmission();
   void testSuccessfulJobCancellation();
+  void testJobStateChangeNotification();
 
 };
 
