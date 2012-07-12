@@ -60,7 +60,7 @@ public slots:
 
 protected slots:
   void showQueueManager();
-  void handleServerConnectionError(ConnectionListener::Error,
+  void handleServerConnectionError(MoleQueue::ConnectionListener::Error,
                                    const QString &);
 
   void notifyJobStateChanged(const MoleQueue::Job &job,
