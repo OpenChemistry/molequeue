@@ -95,6 +95,9 @@ void LocalSocketConnection::setSocket(QLocalSocket *socket)
 
 void LocalSocketConnection::readSocket()
 {
+  if(!m_socket->isValid())
+    return;
+
   if (m_holdRequests) {
     DEBUG("readSocket") "Skipping socket read; requests are currently held.";
     return;
@@ -125,6 +128,11 @@ void LocalSocketConnection::readSocket()
     emit newMessage(msg);
     m_currentPacket.clear();
     m_currentPacketSize = 0;
+
+    // if there are more bytes available call again
+    if(m_socket->bytesAvailable())
+      readSocket();
+
   }
   else {
     DEBUG("readSocket") "Packet incomplete. Waiting for more data..."
