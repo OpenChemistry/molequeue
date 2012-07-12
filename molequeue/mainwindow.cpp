@@ -54,10 +54,10 @@ MainWindow::MainWindow()
   readSettings();
   createJobTable();
 
-  connect(m_server->jobManager(), SIGNAL(jobStateChanged(const MoleQueue::Job*,
+  connect(m_server->jobManager(), SIGNAL(jobStateChanged(const MoleQueue::Job &,
                                                          MoleQueue::JobState,
                                                          MoleQueue::JobState)),
-          this, SLOT(notifyJobStateChanged(const MoleQueue::Job*,
+          this, SLOT(notifyJobStateChanged(const MoleQueue::Job &,
                                            MoleQueue::JobState,
                                            MoleQueue::JobState)));
   connect(m_server, SIGNAL(connectionError(QAbstractSocket::SocketError,QString)),
@@ -170,17 +170,17 @@ void MainWindow::handleServerConnectionError(QAbstractSocket::SocketError err,
   }
 }
 
-void MainWindow::notifyJobStateChanged(const Job *job, JobState,
+void MainWindow::notifyJobStateChanged(const Job &job, JobState,
                                        JobState newState)
 {
-  if (!job->popupOnStateChange())
+  if (!job.popupOnStateChange())
     return;
 
   QString notification;
   if (newState == MoleQueue::Accepted)
-    notification = tr("Job accepted: '%1'").arg(job->description());
+    notification = tr("Job accepted: '%1'").arg(job.description());
   else if (newState == MoleQueue::Finished)
-    notification = tr("Job finished: '%1'").arg(job->description());
+    notification = tr("Job finished: '%1'").arg(job.description());
   else
     return;
 

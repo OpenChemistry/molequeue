@@ -63,7 +63,7 @@ protected slots:
   void handleServerConnectionError(QAbstractSocket::SocketError,
                                    const QString &);
 
-  void notifyJobStateChanged(const MoleQueue::Job *job,
+  void notifyJobStateChanged(const MoleQueue::Job &job,
                              MoleQueue::JobState oldState,
                              MoleQueue::JobState newState);
 

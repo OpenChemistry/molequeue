@@ -42,7 +42,7 @@ public:
   void setJobManager(JobManager *jobManager);
   JobManager * jobManager() const;
 
-  QList<const Job*> getSelectedJobs();
+  QList<Job> getSelectedJobs();
 
 public slots:
   void clearFinishedJobs();

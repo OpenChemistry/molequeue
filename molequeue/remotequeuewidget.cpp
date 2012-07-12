@@ -204,10 +204,10 @@ void RemoteQueueWidget::sleepTest()
     m_client->connectToServer();
   }
 
-  Job *sleepJob = m_client->newJobRequest();
-  sleepJob->setQueue(m_queue->name());
-  sleepJob->setProgram(sleepProgram->name());
-  sleepJob->setDescription("sleep 30 (test)");
+  JobRequest sleepJob = m_client->newJobRequest();
+  sleepJob.setQueue(m_queue->name());
+  sleepJob.setProgram(sleepProgram->name());
+  sleepJob.setDescription("sleep 30 (test)");
 
   m_client->submitJobRequest(sleepJob);
 }

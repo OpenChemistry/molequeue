@@ -16,6 +16,8 @@
 
 #include "jobactionfactory.h"
 
+#include "job.h"
+
 namespace MoleQueue
 {
 
@@ -71,7 +73,7 @@ bool JobActionFactory::isMultiJob() const
   return m_isMultiJob;
 }
 
-bool JobActionFactory::addJobIfValid(const Job *job)
+bool JobActionFactory::addJobIfValid(const Job &job)
 {
   ++m_attemptedJobAdditions;
   bool result = this->isValidForJob(job);

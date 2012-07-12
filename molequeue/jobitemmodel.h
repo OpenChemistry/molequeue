@@ -69,8 +69,7 @@ public:
                     const QModelIndex & modelIndex = QModelIndex()) const;
 
 public slots:
-  void jobUpdated(const MoleQueue::Job *job);
-  void jobUpdated(const MoleQueue::IdType moleQueueId);
+  void jobUpdated(const MoleQueue::Job &job);
 
 protected:
   JobManager *m_jobManager;

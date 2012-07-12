@@ -23,7 +23,7 @@
 
 #include <QtCore/QUrl>
 
-Q_DECLARE_METATYPE(QList<const MoleQueue::Job*>)
+Q_DECLARE_METATYPE(QList<MoleQueue::Job>)
 
 namespace MoleQueue
 {
@@ -31,7 +31,8 @@ namespace MoleQueue
 OpenDirectoryActionFactory::OpenDirectoryActionFactory() :
   JobActionFactory()
 {
-  qRegisterMetaType<QList<const Job*> >("QList<const Job*>");
+  qRegisterMetaType<QList<Job> >("QList<Job>");
+  qRegisterMetaType<QList<Job> >("QList<MoleQueue::Job>");
   m_isMultiJob = true;
   m_flags |= JobActionFactory::ContextItem;
 }
@@ -40,9 +41,9 @@ OpenDirectoryActionFactory::~OpenDirectoryActionFactory()
 {
 }
 
-bool OpenDirectoryActionFactory::isValidForJob(const Job *job) const
+bool OpenDirectoryActionFactory::isValidForJob(const Job &job) const
 {
-  return !job->outputDirectory().isEmpty();
+  return job.isValid() && !job.outputDirectory().isEmpty();
 }
 
 QList<QAction *> OpenDirectoryActionFactory::createActions()
@@ -50,7 +51,7 @@ QList<QAction *> OpenDirectoryActionFactory::createActions()
   QList<QAction *> result;
   if (m_attemptedJobAdditions == 1) {
     QAction *newAction = new QAction (
-          tr("Open '%1' in file browser...").arg(m_jobs.first()->description()),
+          tr("Open '%1' in file browser...").arg(m_jobs.first().description()),
           NULL);
     newAction->setData(QVariant::fromValue(m_jobs));
     connect(newAction, SIGNAL(triggered()), this, SLOT(actionTriggered()));
@@ -80,12 +81,14 @@ void OpenDirectoryActionFactory::actionTriggered()
     return;
 
   // The sender was a QAction. Is its data a list of jobs?
-  QList<const Job *> jobs = action->data().value<QList<const Job*> >();
+  QList<Job> jobs = action->data().value<QList<Job> >();
   if (!jobs.size())
     return;
 
-  foreach (const Job *job, jobs)
-    QDesktopServices::openUrl(QUrl::fromLocalFile(job->outputDirectory()));
+  foreach (const Job &job, jobs) {
+    if (job.isValid())
+      QDesktopServices::openUrl(QUrl::fromLocalFile(job.outputDirectory()));
+  }
 }
 
 } // end namespace MoleQueue

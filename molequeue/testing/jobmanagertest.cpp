@@ -40,19 +40,18 @@ private slots:
   /// Called after every test function.
   void cleanup();
 
-  // Set both MoleQueue and Client ids to the current count()+1
-  void setNewJobIds(MoleQueue::Job*);
+  // Set MoleQueue id to the current count()+1
+  void setNewJobIds(MoleQueue::Job);
 
   void testJobAboutToBeAdded();
-  void testlookupClientId();
-  void testlookupMoleQueueId();
+  void testLookupMoleQueueId();
 
 };
 
 void JobManagerTest::initTestCase()
 {
-  connect(&m_jobManager, SIGNAL(jobAboutToBeAdded(MoleQueue::Job*)),
-          this, SLOT(setNewJobIds(MoleQueue::Job*)),
+  connect(&m_jobManager, SIGNAL(jobAboutToBeAdded(MoleQueue::Job)),
+          this, SLOT(setNewJobIds(MoleQueue::Job)),
           Qt::DirectConnection);
 }
 
@@ -68,48 +67,37 @@ void JobManagerTest::cleanup()
 {
 }
 
-void JobManagerTest::setNewJobIds(MoleQueue::Job *job)
+void JobManagerTest::setNewJobIds(MoleQueue::Job job)
 {
-  MoleQueue::IdType id = static_cast<MoleQueue::IdType>(m_jobManager.count())+1;
-  job->setMolequeueId(id);
-  job->setClientId(id);
+  MoleQueue::IdType id = static_cast<MoleQueue::IdType>(m_jobManager.count());
+  job.setMoleQueueId(id);
 }
 
 void JobManagerTest::testJobAboutToBeAdded()
 {
-  QSignalSpy spy (&m_jobManager, SIGNAL(jobAboutToBeAdded(MoleQueue::Job*)));
+  QSignalSpy spy (&m_jobManager, SIGNAL(jobAboutToBeAdded(MoleQueue::Job)));
 
   m_jobManager.newJob();
   QCOMPARE(spy.count(), 1);
 
-  m_jobManager.newJob(m_jobManager.jobs().last()->hash());
+  m_jobManager.newJob(m_jobManager.jobAt(m_jobManager.count()-1).hash());
   QCOMPARE(spy.count(), 2);
 }
 
-void JobManagerTest::testlookupClientId()
+void JobManagerTest::testLookupMoleQueueId()
 {
-  if (m_jobManager.jobs().size() != 2) {
+  if (m_jobManager.count() != 2) {
     qDebug() << "Not enough jobs in the queuemanager. Skipping test.";
     return;
   }
-  const MoleQueue::Job *job1 = m_jobManager.jobs()[0];
-  const MoleQueue::Job *job2 = m_jobManager.jobs()[1];
+  const MoleQueue::Job job1 = m_jobManager.jobAt(0);
+  const MoleQueue::Job job2 = m_jobManager.jobAt(1);
 
-  QCOMPARE(job1, m_jobManager.lookupClientId(1));
-  QCOMPARE(job2, m_jobManager.lookupClientId(2));
-}
+  const MoleQueue::Job lookupJob1 = m_jobManager.lookupJobByMoleQueueId(1);
+  const MoleQueue::Job lookupJob2 = m_jobManager.lookupJobByMoleQueueId(2);
 
-void JobManagerTest::testlookupMoleQueueId()
-{
-  if (m_jobManager.jobs().size() != 2) {
-    qDebug() << "Not enough jobs in the queuemanager. Skipping test.";
-    return;
-  }
-  const MoleQueue::Job *job1 = m_jobManager.jobs()[0];
-  const MoleQueue::Job *job2 = m_jobManager.jobs()[1];
-
-  QCOMPARE(job1, m_jobManager.lookupMoleQueueId(1));
-  QCOMPARE(job2, m_jobManager.lookupMoleQueueId(2));
+  QCOMPARE(job1, lookupJob1);
+  QCOMPARE(job2, lookupJob2);
 }
 
 QTEST_MAIN(JobManagerTest)

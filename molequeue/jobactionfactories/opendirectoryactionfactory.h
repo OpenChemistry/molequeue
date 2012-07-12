@@ -30,7 +30,7 @@ public:
   OpenDirectoryActionFactory();
   ~OpenDirectoryActionFactory();
 
-  bool isValidForJob(const Job *job) const;
+  bool isValidForJob(const Job &job) const;
 
   QList<QAction*> createActions();
 
