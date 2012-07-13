@@ -53,7 +53,7 @@ void ZeroMqClient::connectToServer(const QString &serverName)
     else {
       qDebug() << serverName;
       ZeroMqConnection *connection = new ZeroMqConnection(this, "ipc://" + serverName);
-      this->setConnection(connection);
+      setConnection(connection);
       connection->open();
       connection->start();
       DEBUG("connectToServer") "Client connected to server"

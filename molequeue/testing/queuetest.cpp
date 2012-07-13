@@ -43,7 +43,7 @@ class C : public QObject
   Q_OBJECT
 public slots:
 
-  void slt() { qDebug() << this->sender(); };
+  void slt() { qDebug() << sender(); };
 };
 
 

@@ -42,7 +42,7 @@ LocalSocketConnection::LocalSocketConnection(QObject *parentObject,
     m_dataStream(new QDataStream ()),
     m_holdRequests(true)
 {
-  this->setSocket(socket);
+  setSocket(socket);
 }
 
 LocalSocketConnection::LocalSocketConnection(QObject *parentObject,
@@ -57,13 +57,13 @@ LocalSocketConnection::LocalSocketConnection(QObject *parentObject,
     m_dataStream(new QDataStream ()),
     m_holdRequests(true)
 {
-  this->setSocket(new QLocalSocket());
+  setSocket(new QLocalSocket());
 }
 
 LocalSocketConnection::~LocalSocketConnection()
 {
   // Make sure we are closed
-  this->close();
+  close();
 
   delete m_socket;
   m_socket = NULL;
@@ -78,7 +78,7 @@ void LocalSocketConnection::setSocket(QLocalSocket *socket)
   if (m_socket != NULL) {
     m_socket->abort();
     m_socket->disconnect(this);
-    this->disconnect(m_socket);
+    disconnect(m_socket);
     m_socket->deleteLater();
   }
   if (socket != NULL) {
@@ -109,8 +109,8 @@ void LocalSocketConnection::readSocket()
 
     // Read header info (e.g. packet size) if enough data is available.
     // Otherwise, wait for more data.
-    if (this->canReadPacketHeader())
-      m_currentPacketSize = this->readPacketHeader();
+    if (canReadPacketHeader())
+      m_currentPacketSize = readPacketHeader();
     else
       return;
   }
@@ -157,7 +157,7 @@ void LocalSocketConnection::writePacketHeader(const PacketType &packet)
 void LocalSocketConnection::send(Message msg)
 {
   DEBUG("sendPacket") "Sending new packet. Size:" << msg.data().size();
-  this->writePacketHeader(msg.data());
+  writePacketHeader(msg.data());
   m_dataStream->writeBytes(msg.data().constData(),
                            static_cast<unsigned int>(msg.data().size()));
   m_socket->flush();
@@ -214,7 +214,7 @@ void LocalSocketConnection::start()
     DEBUG("start") "Started handling requests.";
     while (m_socket->bytesAvailable() != 0) {
       DEBUG("start") "Flushing request backlog...";
-      this->readSocket();
+      readSocket();
     }
   }
 }

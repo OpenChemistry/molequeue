@@ -29,7 +29,7 @@
 #include <QtCore/QVariantHash>
 
 #define DEBUGOUT(title) \
-  if (this->m_debug)    \
+  if (m_debug)    \
     qDebug() << QDateTime::currentDateTime().toString() << title <<
 
 namespace MoleQueue
@@ -166,7 +166,7 @@ PacketType JsonRpc::generateJobRequest(const Job &job,
 
   DEBUGOUT("generateJobRequest") "New job request:\n" << ret;
 
-  this->registerRequest(packetId, SUBMIT_JOB);
+  registerRequest(packetId, SUBMIT_JOB);
 
   return ret;
 }
@@ -294,7 +294,7 @@ PacketType JsonRpc::generateJobCancellation(const Job &job,
 
   DEBUGOUT("generateJobCancellation") "New job cancellation request:\n" << ret;
 
-  this->registerRequest(packetId, CANCEL_JOB);
+  registerRequest(packetId, CANCEL_JOB);
 
   return ret;
 }
@@ -328,7 +328,7 @@ PacketType JsonRpc::generateQueueListRequest(IdType packetId)
 
   DEBUGOUT("generateQueueListRequest") "New queue list request:\n" << ret;
 
-  this->registerRequest(packetId, LIST_QUEUES);
+  registerRequest(packetId, LIST_QUEUES);
 
   return ret;
 }
@@ -397,12 +397,12 @@ void JsonRpc::interpretIncomingPacket(Connection* connection,
                     root, false)) {
 
     qDebug() << "msg:  " << msg.data();
-    this->handleUnparsablePacket(connection, msg);
+    handleUnparsablePacket(connection, msg);
     return;
   }
 
   // Submit the root node for processing
-  this->interpretIncomingJsonRpc(connection, msg.replyTo(), root);
+  interpretIncomingJsonRpc(connection, msg.replyTo(), root);
 }
 
 void JsonRpc::interpretIncomingJsonRpc(Connection *connection,
@@ -413,33 +413,33 @@ void JsonRpc::interpretIncomingJsonRpc(Connection *connection,
   if (data.isArray()) {
     for (Json::Value::const_iterator it = data.begin(), it_end = data.end();
          it != it_end; ++it) {
-      this->interpretIncomingJsonRpc(connection, replyTo, *it);
+      interpretIncomingJsonRpc(connection, replyTo, *it);
     }
 
     return;
   }
 
   if (!data.isObject()) {
-    this->handleInvalidRequest(connection, replyTo, data);
+    handleInvalidRequest(connection, replyTo, data);
     return;
   }
 
-  PacketForm   form   = this->guessPacketForm(data);
-  PacketMethod method = this->guessPacketMethod(data);
+  PacketForm   form   = guessPacketForm(data);
+  PacketMethod method = guessPacketMethod(data);
 
   // Validate detected type
   switch (form) {
   case REQUEST_PACKET:
-    if (!this->validateRequest(data, false))
+    if (!validateRequest(data, false))
       form = INVALID_PACKET;
     break;
   case RESULT_PACKET:
   case ERROR_PACKET:
-    if (!this->validateResponse(data, false))
+    if (!validateResponse(data, false))
       form = INVALID_PACKET;
     break;
   case NOTIFICATION_PACKET:
-    if (!this->validateNotification(data, false))
+    if (!validateNotification(data, false))
       form = INVALID_PACKET;
     break;
   default:
@@ -453,10 +453,10 @@ void JsonRpc::interpretIncomingJsonRpc(Connection *connection,
     break;
   default:
   case INVALID_METHOD:
-    this->handleInvalidRequest(connection, replyTo, data);
+    handleInvalidRequest(connection, replyTo, data);
     break;
   case UNRECOGNIZED_METHOD:
-    this->handleUnrecognizedRequest(connection, replyTo, data);
+    handleUnrecognizedRequest(connection, replyTo, data);
     break;
   case LIST_QUEUES:
   {
@@ -464,16 +464,16 @@ void JsonRpc::interpretIncomingJsonRpc(Connection *connection,
     default:
     case INVALID_PACKET:
     case NOTIFICATION_PACKET:
-      this->handleInvalidRequest(connection, replyTo, data);
+      handleInvalidRequest(connection, replyTo, data);
       break;
     case REQUEST_PACKET:
-      this->handleListQueuesRequest(connection, replyTo, data);
+      handleListQueuesRequest(connection, replyTo, data);
       break;
     case RESULT_PACKET:
-      this->handleListQueuesResult(data);
+      handleListQueuesResult(data);
       break;
     case ERROR_PACKET:
-      this->handleListQueuesError(connection, replyTo, data);
+      handleListQueuesError(connection, replyTo, data);
       break;
     }
     break;
@@ -484,16 +484,16 @@ void JsonRpc::interpretIncomingJsonRpc(Connection *connection,
     default:
     case INVALID_PACKET:
     case NOTIFICATION_PACKET:
-      this->handleInvalidRequest(connection, replyTo, data);
+      handleInvalidRequest(connection, replyTo, data);
       break;
     case REQUEST_PACKET:
-      this->handleSubmitJobRequest(connection, replyTo, data);
+      handleSubmitJobRequest(connection, replyTo, data);
       break;
     case RESULT_PACKET:
-      this->handleSubmitJobResult(data);
+      handleSubmitJobResult(data);
       break;
     case ERROR_PACKET:
-      this->handleSubmitJobError(data);
+      handleSubmitJobError(data);
       break;
     }
     break;
@@ -504,16 +504,16 @@ void JsonRpc::interpretIncomingJsonRpc(Connection *connection,
     default:
     case INVALID_PACKET:
     case NOTIFICATION_PACKET:
-      this->handleInvalidRequest(connection, replyTo, data);
+      handleInvalidRequest(connection, replyTo, data);
       break;
     case REQUEST_PACKET:
-      this->handleCancelJobRequest(connection, replyTo, data);
+      handleCancelJobRequest(connection, replyTo, data);
       break;
     case RESULT_PACKET:
-      this->handleCancelJobResult(data);
+      handleCancelJobResult(data);
       break;
     case ERROR_PACKET:
-      this->handleCancelJobError(data);
+      handleCancelJobError(data);
       break;
     }
     break;
@@ -526,10 +526,10 @@ void JsonRpc::interpretIncomingJsonRpc(Connection *connection,
     case REQUEST_PACKET:
     case RESULT_PACKET:
     case ERROR_PACKET:
-      this->handleInvalidRequest(connection, replyTo, data);
+      handleInvalidRequest(connection, replyTo, data);
       break;
     case NOTIFICATION_PACKET:
-      this->handleJobStateChangedNotification(data);
+      handleJobStateChangedNotification(data);
       break;
     }
     break;
@@ -549,7 +549,7 @@ bool JsonRpc::validateRequest(const PacketType &packet, bool strict)
   Json::Reader reader;
   reader.parse(packet.constData(), packet.constData() + packet.size(),
                root, false);
-  return this->validateRequest(root, strict);
+  return validateRequest(root, strict);
 }
 
 bool JsonRpc::validateRequest(const Json::Value &packet, bool strict)
@@ -637,7 +637,7 @@ bool JsonRpc::validateRequest(const Json::Value &packet, bool strict)
 
   // Print extra members
   if (extraMembers.size() != 0) {
-    if (this->m_debug) {
+    if (m_debug) {
       std::string extra;
       for (Json::Value::Members::const_iterator it = extraMembers.begin(),
            it_end = extraMembers.end(); it != it_end; ++it) {
@@ -662,7 +662,7 @@ bool JsonRpc::validateResponse(const PacketType &packet, bool strict)
   Json::Reader reader;
   reader.parse(packet.constData(), packet.constData() + packet.size(),
                root, false);
-  return this->validateResponse(root, strict);
+  return validateResponse(root, strict);
 }
 
 bool JsonRpc::validateResponse(const Json::Value &packet, bool strict)
@@ -756,7 +756,7 @@ bool JsonRpc::validateResponse(const Json::Value &packet, bool strict)
 
   // Print extra members
   if (extraMembers.size() != 0) {
-    if (this->m_debug) {
+    if (m_debug) {
       std::string extra;
       for (Json::Value::Members::const_iterator it = extraMembers.begin(),
            it_end = extraMembers.end(); it != it_end; ++it) {
@@ -782,7 +782,7 @@ bool JsonRpc::validateNotification(const PacketType &packet, bool strict)
   Json::Reader reader;
   reader.parse(packet.constData(), packet.constData() + packet.size(),
                root, false);
-  return this->validateNotification(root, strict);
+  return validateNotification(root, strict);
 }
 
 bool JsonRpc::validateNotification(const Json::Value &packet, bool strict)
@@ -856,7 +856,7 @@ bool JsonRpc::validateNotification(const Json::Value &packet, bool strict)
 
   // Print extra members
   if (extraMembers.size() != 0) {
-    if (this->m_debug) {
+    if (m_debug) {
       std::string extra;
       for (Json::Value::Members::const_iterator it = extraMembers.begin(),
            it_end = extraMembers.end(); it != it_end; ++it) {

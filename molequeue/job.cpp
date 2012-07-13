@@ -83,7 +83,7 @@ QString Job::program() const
 void Job::setJobState(JobState state)
 {
   if (warnIfInvalid())
-    m_jobData->jobManager()->setJobState(this->moleQueueId(), state);
+    m_jobData->jobManager()->setJobState(moleQueueId(), state);
 }
 
 JobState Job::jobState() const

@@ -53,7 +53,7 @@ void LocalSocketClient::connectToServer(const QString &serverName)
     }
     else {
       LocalSocketConnection *connection = new LocalSocketConnection(this, serverName);
-      this->setConnection(connection);
+      setConnection(connection);
       connection->open();
       connection->start();
       DEBUG("connectToServer") "Client connected to server"

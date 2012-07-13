@@ -100,7 +100,7 @@ QModelIndex QueueProgramItemModel::index(int row, int column,
                                   const QModelIndex &) const
 {
   if (row >= 0 && row < m_queue->numPrograms())
-    return this->createIndex(row, column);
+    return createIndex(row, column);
   else
     return QModelIndex();
 }

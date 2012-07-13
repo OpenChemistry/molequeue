@@ -26,7 +26,7 @@
 #include <QtCore/QVector>
 
 #define DEBUGOUT(title) \
-  if (this->m_debug)    \
+  if (m_debug)    \
     qDebug() << QDateTime::currentDateTime().toString() \
              << "Client" << title <<
 
@@ -95,7 +95,7 @@ QueueListType Client::queueList() const
 
 void Client::submitJobRequest(const JobRequest &req)
 {
-  const IdType id = this->nextPacketId();
+  const IdType id = nextPacketId();
   const PacketType packet = m_jsonrpc->generateJobRequest(req, id);
   m_submittedLUT->insert(id, req);
   m_connection->send(packet);
@@ -103,7 +103,7 @@ void Client::submitJobRequest(const JobRequest &req)
 
 void Client::cancelJob(const JobRequest &req)
 {
-  const IdType id = this->nextPacketId();
+  const IdType id = nextPacketId();
   const PacketType packet = m_jsonrpc->generateJobCancellation(req, id);
   m_canceledLUT->insert(id, req);
   m_connection->send(packet);
@@ -211,7 +211,7 @@ void Client::jobStateChangeReceived(IdType moleQueueId,
 void Client::requestQueueListUpdate()
 {
   PacketType packet = m_jsonrpc->generateQueueListRequest(
-        this->nextPacketId());
+        nextPacketId());
   m_connection->send(packet);
 }
 

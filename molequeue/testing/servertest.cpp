@@ -142,7 +142,7 @@ void ServerTest::testForceStart()
   QVERIFY(spy.isEmpty());
 
   // Check that m_server is now listening.
-  QVERIFY(this->localSocketConnectionListener()->m_server->isListening());
+  QVERIFY(localSocketConnectionListener()->m_server->isListening());
 
   dupServer.stop();
 }

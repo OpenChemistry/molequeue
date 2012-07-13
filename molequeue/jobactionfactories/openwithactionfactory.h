@@ -98,7 +98,7 @@ protected slots:
   /**
    * This slot is connected to new the QAction::triggered() signal of new
    * actions returned from createActions. This function must only be called as
-   * a response to the action's signal (i.e. this->sender() must be a QAction)
+   * a response to the action's signal (i.e. sender() must be a QAction)
    * and the sender's QAction::data() method must return a QList<Job>
    * containing the jobs to be opened by the target application.
    *
@@ -109,7 +109,7 @@ protected slots:
    *
    * An outline of this function's behavior:
    *
-   * -# Check that this->sender() is a QAction
+   * -# Check that sender() is a QAction
    * -# Extract the list of Job pointers from the sender's QVariant data.
    * -# Set m_executableFilePath using the following methods, until one finds a
    *    file that both exists and is executable:

@@ -40,7 +40,7 @@ RemoteQueueWidget::RemoteQueueWidget(QueueRemote *queue,
 {
   ui->setupUi(this);
 
-  this->updateGuiFromQueue();
+  updateGuiFromQueue();
 
   connect(ui->edit_submissionCommand, SIGNAL(textChanged(QString)),
           this, SLOT(updateSubmissionCommand(QString)));

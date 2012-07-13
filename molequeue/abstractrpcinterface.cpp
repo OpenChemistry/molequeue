@@ -26,7 +26,7 @@
 #include <QtGlobal>
 
 #define DEBUGOUT(title) \
-  if (this->m_debug)    \
+  if (m_debug)    \
     qDebug() << QDateTime::currentDateTime().toString() \
              << "AbstractRpcInterface" << title <<
 
@@ -83,9 +83,9 @@ AbstractRpcInterface::~AbstractRpcInterface()
 
 void AbstractRpcInterface::readPacket(const MoleQueue::Message msg)
 {
-  Connection *conn = qobject_cast<Connection*>(this->sender());
+  Connection *conn = qobject_cast<Connection*>(sender());
 
-  qDebug() << "sender:  " << this->sender();
+  qDebug() << "sender:  " << sender();
   qDebug() << "Conn: " << conn;
 
   DEBUGOUT("readPacket") "Interpreting new packet.";

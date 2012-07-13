@@ -43,7 +43,7 @@ public:
     : QObject(NULL), m_target(target), m_server(new QLocalServer),
       m_socket(NULL)
   {
-    if (!m_server->listen(this->getRandomSocketName())) {
+    if (!m_server->listen(getRandomSocketName())) {
       qWarning() << "Cannot start test server:" << m_server->errorString();
       return;
     }

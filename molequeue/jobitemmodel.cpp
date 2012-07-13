@@ -133,7 +133,7 @@ bool JobItemModel::removeRows(int row, int count, const QModelIndex &)
   if (!m_jobManager)
     return false;
 
-  this->beginRemoveRows(QModelIndex(), row, row + count - 1);
+  beginRemoveRows(QModelIndex(), row, row + count - 1);
 
   QList<Job> jobs;
   for (int i = row; i < row + count; ++i)
@@ -150,7 +150,7 @@ bool JobItemModel::removeRows(int row, int count, const QModelIndex &)
   connect(m_jobManager, SIGNAL(jobRemoved(MoleQueue::IdType)),
           this, SIGNAL(layoutChanged()));
 
-  this->endRemoveRows();
+  endRemoveRows();
   return true;
 }
 
@@ -163,7 +163,7 @@ QModelIndex JobItemModel::index(int row, int column,
                                 const QModelIndex &/*modelIndex*/) const
 {
   if (m_jobManager && row >= 0 && row < m_jobManager->count())
-    return this->createIndex(row, column);
+    return createIndex(row, column);
   else
     return QModelIndex();
 }
@@ -175,7 +175,7 @@ void JobItemModel::jobUpdated(const Job &job)
 
   int row = m_jobManager->indexOf(job);
   if (row >= 0)
-    emit dataChanged(this->index(row, 0), this->index(row, COLUMN_COUNT));
+    emit dataChanged(index(row, 0), index(row, COLUMN_COUNT));
 }
 
 } // End of namespace

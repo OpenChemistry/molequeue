@@ -67,27 +67,27 @@ void QueueManagerDialog::addQueue()
 
 void QueueManagerDialog::removeQueue()
 {
-  QList<Queue*> toRemove = this->getSelectedQueues();
+  QList<Queue*> toRemove = getSelectedQueues();
   foreach (Queue* queue, toRemove) {
     m_queueManager->removeQueue(queue);
     queue->deleteLater();
   }
   // reset selection and disable queue buttons
   ui->queueTable->selectionModel()->reset();
-  this->setEnabledQueueButtons(false);
+  setEnabledQueueButtons(false);
 }
 
 void QueueManagerDialog::configureQueue()
 {
-  QList<Queue*> sel = this->getSelectedQueues();
+  QList<Queue*> sel = getSelectedQueues();
   if (!sel.isEmpty())
-    this->showSettingsDialog(sel.first());
+    showSettingsDialog(sel.first());
 }
 
 void QueueManagerDialog::doubleClicked(const QModelIndex &index)
 {
   if (index.row() <= m_queueManager->numQueues())
-    this->showSettingsDialog(m_queueManager->queues().at(index.row()));
+    showSettingsDialog(m_queueManager->queues().at(index.row()));
 }
 
 void QueueManagerDialog::showSettingsDialog(Queue *queue)
@@ -115,7 +115,7 @@ QList<Queue *> QueueManagerDialog::getSelectedQueues()
   QList<Queue *> allQueues = m_queueManager->queues();
   QList<Queue *> selectedQueues;
 
-  foreach (int i, this->getSelectedRows())
+  foreach (int i, getSelectedRows())
     selectedQueues << allQueues.at(i);
 
   return selectedQueues;
@@ -129,7 +129,7 @@ void QueueManagerDialog::setEnabledQueueButtons(bool enabled)
 
 void QueueManagerDialog::enableQueueButtons(const QItemSelection &selected)
 {
-  this->setEnabledQueueButtons(!selected.isEmpty());
+  setEnabledQueueButtons(!selected.isEmpty());
 }
 
 } // end MoleQueue namespace

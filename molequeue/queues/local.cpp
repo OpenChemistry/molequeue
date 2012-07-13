@@ -60,7 +60,7 @@ QueueLocal::QueueLocal(QueueManager *parentManager) :
 #endif // WIN32
 
   // Check if new jobs need starting every 10 seconds
-  m_checkJobLimitTimerId = this->startTimer(10000);
+  m_checkJobLimitTimerId = startTimer(10000);
 }
 
 QueueLocal::~QueueLocal()
@@ -123,7 +123,7 @@ bool QueueLocal::submitJob(Job job)
 {
   if (job.isValid()) {
     Job(job).setJobState(MoleQueue::Accepted);
-    this->prepareJobForSubmission(job);
+    prepareJobForSubmission(job);
     return true;
   }
   return false;
@@ -131,9 +131,9 @@ bool QueueLocal::submitJob(Job job)
 
 bool QueueLocal::prepareJobForSubmission(const Job &job)
 {
-  if (!this->writeInputFiles(job))
+  if (!writeInputFiles(job))
     return false;
-  if (!this->addJobToQueue(job))
+  if (!addJobToQueue(job))
     return false;
 
   return true;
@@ -141,7 +141,7 @@ bool QueueLocal::prepareJobForSubmission(const Job &job)
 
 void QueueLocal::processStarted()
 {
-  QProcess *process = qobject_cast<QProcess*>(this->sender());
+  QProcess *process = qobject_cast<QProcess*>(sender());
   if (!process)
     return;
 
@@ -179,7 +179,7 @@ void QueueLocal::processFinished(int exitCode, QProcess::ExitStatus exitStatus)
   Q_UNUSED(exitCode);
   Q_UNUSED(exitStatus);
 
-  QProcess *process = qobject_cast<QProcess*>(this->sender());
+  QProcess *process = qobject_cast<QProcess*>(sender());
   if (!process)
     return;
 
@@ -236,7 +236,7 @@ void QueueLocal::connectProcess(QProcess *proc)
 bool QueueLocal::checkJobLimit()
 {
   if (m_runningJobs.isEmpty() && !m_pendingJobQueue.isEmpty()) {
-    if (!this->startJob(m_pendingJobQueue.takeFirst())) {
+    if (!startJob(m_pendingJobQueue.takeFirst())) {
       return false;
     }
   }
@@ -261,7 +261,7 @@ bool QueueLocal::startJob(IdType moleQueueId)
     emit errorOccurred(err);
     return false;
   }
-  const Program *program = this->lookupProgram(job.program());
+  const Program *program = lookupProgram(job.program());
   if (!program) {
     Error err (tr("Queue '%1' cannot locate Program '%2'.")
                .arg(m_name).arg(job.program()),
@@ -317,7 +317,7 @@ bool QueueLocal::startJob(IdType moleQueueId)
     return false;
   }
 
-  this->connectProcess(proc);
+  connectProcess(proc);
 
   qDebug() << "Starting process:" << command + arguments.join(" ");
   qDebug() << "workingdir:" <<  proc->workingDirectory();
@@ -332,7 +332,7 @@ bool QueueLocal::startJob(IdType moleQueueId)
 void QueueLocal::timerEvent(QTimerEvent *theEvent)
 {
   if (theEvent->timerId() == m_checkJobLimitTimerId) {
-    if (!this->checkJobLimit()) {
+    if (!checkJobLimit()) {
       qWarning() << Q_FUNC_INFO << "Error checking queue...";
     }
     theEvent->accept();

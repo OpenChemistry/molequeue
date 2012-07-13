@@ -76,7 +76,7 @@ bool JobActionFactory::isMultiJob() const
 bool JobActionFactory::addJobIfValid(const Job &job)
 {
   ++m_attemptedJobAdditions;
-  bool result = this->isValidForJob(job);
+  bool result = isValidForJob(job);
   if (result)
     m_jobs.append(job);
   return result;

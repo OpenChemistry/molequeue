@@ -112,7 +112,7 @@ void ZeroMqClientTest::testJobSubmission()
   QVERIFY2(m_server->waitForPacket(), "Timeout waiting for reply.");
 
   MoleQueue::PacketType refPacket =
-      this->readReferenceString("client-ref/job-submission.json");
+      readReferenceString("client-ref/job-submission.json");
 
   // Strip out the random ids in the packets
   QRegExp strip ("\\n\\s+\"id\"\\s+:\\s+\\d+\\s*,\\s*\\n");
@@ -133,7 +133,7 @@ void ZeroMqClientTest::testJobCancellation()
   QVERIFY2(m_server->waitForPacket(), "Timeout waiting for reply.");
 
   MoleQueue::PacketType refPacket =
-      this->readReferenceString("client-ref/job-cancellation.json");
+      readReferenceString("client-ref/job-cancellation.json");
 
   // Strip out the random ids in the packets
   QRegExp strip ("\\n\\s+\"id\"\\s+:\\s+\\d+\\s*,\\s*\\n");
@@ -153,7 +153,7 @@ void ZeroMqClientTest::testRequestQueueListUpdate()
   QVERIFY2(m_server->waitForPacket(), "Timeout waiting for reply.");
 
   MoleQueue::PacketType refPacket =
-      this->readReferenceString("client-ref/queue-list-request.json");
+      readReferenceString("client-ref/queue-list-request.json");
 
   // Strip out the random ids in the packets
   QRegExp strip ("\\n\\s+\"id\"\\s+:\\s+\\d+\\s*,\\s*\\n");
@@ -181,7 +181,7 @@ void ZeroMqClientTest::testQueueListReceived()
   QSignalSpy spy (m_client, SIGNAL(queueListUpdated(MoleQueue::QueueListType)));
 
   MoleQueue::PacketType queueList =
-      this->readReferenceString("client-ref/queue-list.json");
+      readReferenceString("client-ref/queue-list.json");
 
   queueList.replace("%id%", MoleQueue::PacketType::number(id));
 
@@ -213,7 +213,7 @@ void ZeroMqClientTest::testSuccessfulSubmissionReceived()
   QSignalSpy spy (m_client, SIGNAL(jobSubmitted(const MoleQueue::Job*,bool,QString)));
 
   MoleQueue::PacketType response =
-      this->readReferenceString("client-ref/successful-submission.json");
+      readReferenceString("client-ref/successful-submission.json");
 
   response.replace("%id%", MoleQueue::PacketType::number(id));
 
@@ -245,7 +245,7 @@ void ZeroMqClientTest::testFailedSubmissionReceived()
   QSignalSpy spy (m_client, SIGNAL(jobSubmitted(const MoleQueue::Job*,bool,QString)));
 
   MoleQueue::PacketType response =
-      this->readReferenceString("client-ref/failed-submission.json");
+      readReferenceString("client-ref/failed-submission.json");
 
   response.replace("%id%", MoleQueue::PacketType::number(id));
 
@@ -282,7 +282,7 @@ void ZeroMqClientTest::testJobCancellationConfirmationReceived()
   QSignalSpy spy (m_client, SIGNAL(jobCanceled(const MoleQueue::Job*,bool,QString)));
 
   MoleQueue::PacketType response =
-      this->readReferenceString("client-ref/job-canceled.json");
+      readReferenceString("client-ref/job-canceled.json");
 
   response.replace("%id%", MoleQueue::PacketType::number(id));
 
@@ -304,7 +304,7 @@ void ZeroMqClientTest::testJobStateChangeReceived()
                   SIGNAL(jobStateChanged(const MoleQueue::Job*,MoleQueue::JobState,MoleQueue::JobState)));
 
   MoleQueue::PacketType response =
-      this->readReferenceString("client-ref/jobstate-change.json");
+      readReferenceString("client-ref/jobstate-change.json");
 
   // Fake the molequeue id
   MoleQueue::Job *job = m_client->newJobRequest();

@@ -36,7 +36,7 @@ LocalSocketConnectionListener::LocalSocketConnectionListener(QObject *parentObje
 LocalSocketConnectionListener::~LocalSocketConnectionListener()
 {
   // Make sure we are stopped
-  this->stop();
+  stop();
 
   delete m_server;
   m_server = NULL;
@@ -67,7 +67,7 @@ void LocalSocketConnectionListener::stop(bool force)
 
 void LocalSocketConnectionListener::stop()
 {
-  this->stop(false);
+  stop(false);
 }
 
 QString LocalSocketConnectionListener::connectionString() const

@@ -92,8 +92,8 @@ void MainWindow::readSettings()
 {
   QSettings settings;
 
-  this->restoreGeometry(settings.value("geometry").toByteArray());
-  this->restoreState(settings.value("windowState").toByteArray());
+  restoreGeometry(settings.value("geometry").toByteArray());
+  restoreState(settings.value("windowState").toByteArray());
 
   m_server->readSettings(settings);
   ActionFactoryManager::getInstance()->readSettings(settings);
@@ -103,8 +103,8 @@ void MainWindow::writeSettings()
 {
   QSettings settings;
 
-  settings.setValue("geometry", this->saveGeometry());
-  settings.setValue("windowState", this->saveState());
+  settings.setValue("geometry", saveGeometry());
+  settings.setValue("windowState", saveState());
 
   m_server->writeSettings(settings);
   ActionFactoryManager::getInstance()->writeSettings(settings);
@@ -113,7 +113,7 @@ void MainWindow::writeSettings()
 void MainWindow::trayIconActivated(QSystemTrayIcon::ActivationReason reason)
 {
   if (reason != QSystemTrayIcon::Context)
-    this->show();
+    show();
 }
 
 void MainWindow::notifyUserOfError(const QString &title, const QString &message)
@@ -154,7 +154,7 @@ void MainWindow::handleServerConnectionError(ConnectionListener::Error err,
 
     // Terminate
     if (!ok || index == 1) {
-      this->hide();
+      hide();
       qApp->quit();
     }
     // Take over connection
@@ -192,8 +192,8 @@ void MainWindow::closeEvent(QCloseEvent *theEvent)
 {
   QSettings settings;
 
-  settings.setValue("geometry", this->saveGeometry());
-  settings.setValue("windowState", this->saveState());
+  settings.setValue("geometry", saveGeometry());
+  settings.setValue("windowState", saveState());
 
   if (m_trayIcon->isVisible()) {
     QMessageBox::information(this, tr("Systray"),

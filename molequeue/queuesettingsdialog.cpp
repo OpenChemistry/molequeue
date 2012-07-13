@@ -74,7 +74,7 @@ void QueueSettingsDialog::addProgramClicked()
   bool programAccepted = false;
 
   while (!programAccepted) {
-    DialogCode dialogCode = this->showProgramConfigDialog(prog);
+    DialogCode dialogCode = showProgramConfigDialog(prog);
 
     if (dialogCode == QDialog::Rejected)
       return;
@@ -93,7 +93,7 @@ void QueueSettingsDialog::addProgramClicked()
 void QueueSettingsDialog::doubleClicked(const QModelIndex &index)
 {
   if (index.row() <= m_queue->numPrograms())
-    this->showProgramConfigDialog(m_queue->programs().at(index.row()));
+    showProgramConfigDialog(m_queue->programs().at(index.row()));
 }
 
 QDialog::DialogCode QueueSettingsDialog::showProgramConfigDialog(Program *prog)

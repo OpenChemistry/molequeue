@@ -31,7 +31,7 @@
 #include <QtCore/QSettings>
 
 #define DEBUGOUT(title) \
-  if (this->m_debug)    \
+  if (m_debug)    \
     qDebug() << QDateTime::currentDateTime().toString() \
              << "Server" << title <<
 
@@ -100,7 +100,7 @@ Server::Server(QObject *parentObject, QString serverName)
 
 Server::~Server()
 {
-  this->stop();
+  stop();
 
   delete m_jobManager;
   m_jobManager = NULL;
@@ -169,7 +169,7 @@ void Server::forceStart()
 {
   // Force stop and restart
   stop(true);
-  this->start();
+  start();
 }
 
 void Server::stop(bool force) {
@@ -291,7 +291,7 @@ void Server::newConnectionAvailable(Connection *connection)
 
 void Server::clientDisconnected()
 {
-  Connection *conn = qobject_cast<Connection*>(this->sender());
+  Connection *conn = qobject_cast<Connection*>(sender());
   if (conn == NULL) {
     qWarning() << Q_FUNC_INFO << "called without a ServerConnection as sender.";
     return;

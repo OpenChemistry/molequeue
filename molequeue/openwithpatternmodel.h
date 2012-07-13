@@ -44,7 +44,7 @@ public:
 
   QModelIndex index(int row, int column, const QModelIndex &) const
   {
-    return this->createIndex(row, column);
+    return createIndex(row, column);
   }
 
   QModelIndex parent(const QModelIndex &) const
