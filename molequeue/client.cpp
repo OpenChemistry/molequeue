@@ -97,7 +97,7 @@ void Client::submitJobRequest(const JobRequest &req)
 {
   const IdType id = this->nextPacketId();
   const PacketType packet = m_jsonrpc->generateJobRequest(req, id);
-  m_submittedLUT->insert(id, req->clientId());
+  m_submittedLUT->insert(id, req);
   m_connection->send(packet);
 }
 
@@ -215,9 +215,18 @@ void Client::requestQueueListUpdate()
   m_connection->send(packet);
 }
 
-Job *Client::newJobRequest()
+JobRequest Client::newJobRequest()
 {
   return m_jobManager->newJob();
+}
+
+
+void Client::setConnection(Connection *connection)
+{
+  m_connection = connection;
+
+  connect(connection, SIGNAL(newMessage(const MoleQueue::Message)),
+          this, SLOT(readPacket(const MoleQueue::Message)));
 }
 
 }

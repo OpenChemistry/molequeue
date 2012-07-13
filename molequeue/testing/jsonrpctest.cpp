@@ -17,6 +17,8 @@
 #include "jsonrpc.h"
 
 #include "job.h"
+#include "jobdata.h"
+#include "jobmanager.h"
 #include "program.h"
 #include "queue.h"
 #include "queuemanager.h"
@@ -381,14 +383,16 @@ void JsonRpcTest::validateNotification()
 
 void JsonRpcTest::generateJobRequest()
 {
-  Job req;
+  JobManager jobManager;
+  Job req = jobManager.newJob();
+  req.setMoleQueueId(0);
   req.setQueue("Some big ol' cluster");
   req.setProgram("Quantum Tater");
   req.setDescription("spud slicer 28");
   req.setInputAsPath("/tmp/myjob/test.potato");
   req.setInputAsString("This string will get ignored!");
 
-  m_packet = m_rpc.generateJobRequest(&req, 14);
+  m_packet = m_rpc.generateJobRequest(req, 14);
   if (!m_rpc.validateRequest(m_packet, true)) {
     qDebug() << "Job request packet failed validation!";
     m_error = true;
@@ -647,7 +651,7 @@ void JsonRpcTest::interpretIncomingPacket_submitJobError()
                                          Json::nullValue, 15);
   // Register the packet id with this method for JsonRpc:
   MoleQueue::Job req;
-  m_rpc.generateJobRequest(&req, 15);
+  m_rpc.generateJobRequest(req, 15);
   m_rpc.interpretIncomingPacket(m_connection, m_packet);
 
   QCOMPARE(spy.count(), 1);
@@ -673,7 +677,7 @@ void JsonRpcTest::interpretIncomingPacket_cancelJobResult()
                                                         MoleQueue::IdType)));
   // Register the packet id with this method for JsonRpc:
   MoleQueue::Job req;
-  m_rpc.generateJobCancellation(&req, 15);
+  m_rpc.generateJobCancellation(req, 15);
   m_packet = readReferenceString("jsonrpc-ref/job-cancellation-confirm.json");
   m_rpc.interpretIncomingPacket(m_connection, m_packet);
 

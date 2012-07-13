@@ -27,6 +27,7 @@
 class QDir;
 
 class ClientTest;
+class ConnectionTest;
 
 namespace MoleQueue
 {

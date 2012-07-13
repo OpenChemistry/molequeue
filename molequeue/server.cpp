@@ -54,15 +54,15 @@ Server::Server(QObject *parentObject, QString serverName)
   qRegisterMetaType<const Job*>("const MoleQueue::Job*");
   qRegisterMetaType<QueueListType>("MoleQueue::QueueListType");
 
-  connect(m_jobManager, SIGNAL(jobAboutToBeAdded(MoleQueue::Job*)),
-          this, SLOT(jobAboutToBeAdded(MoleQueue::Job*)),
+  connect(m_jobManager, SIGNAL(jobAboutToBeAdded(MoleQueue::Job)),
+          this, SLOT(jobAboutToBeAdded(MoleQueue::Job)),
           Qt::DirectConnection);
 
-  connect(m_jobManager, SIGNAL(jobStateChanged(const MoleQueue::Job*,MoleQueue::JobState,MoleQueue::JobState)),
-          this, SLOT(dispatchJobStateChange(const MoleQueue::Job*,MoleQueue::JobState,MoleQueue::JobState)));
+  connect(m_jobManager, SIGNAL(jobStateChanged(const MoleQueue::Job&,MoleQueue::JobState,MoleQueue::JobState)),
+          this, SLOT(dispatchJobStateChange(const MoleQueue::Job&,MoleQueue::JobState,MoleQueue::JobState)));
 
-  connect(m_jobManager, SIGNAL(jobRemoved(MoleQueue::IdType, const MoleQueue::Job *)),
-          this, SLOT(jobRemoved(MoleQueue::IdType, const MoleQueue::Job*)));
+  connect(m_jobManager, SIGNAL(jobRemoved(MoleQueue::IdType)),
+          this, SLOT(jobRemoved(MoleQueue::IdType)));
 
   connect(m_jsonrpc, SIGNAL(queueListRequestReceived(MoleQueue::Connection*,
                                                      MoleQueue::EndpointId,
@@ -93,10 +93,6 @@ Server::Server(QObject *parentObject, QString serverName)
   //connect(m_connection, SIGNAL(disconnected()),
   //        this, SIGNAL(disconnected()));
 
-  // Route error messages back into this object's handler:
-  connect(this, SIGNAL(errorOccurred(MoleQueue::Error)),
-          this, SLOT(handleError(MoleQueue::Error)));
-
   // load the transport plugins so we know what to listener on
   PluginManager *pluginManager = PluginManager::instance();
   pluginManager->load();
@@ -105,9 +101,6 @@ Server::Server(QObject *parentObject, QString serverName)
 Server::~Server()
 {
   this->stop();
-
-  qDeleteAll(m_connections);
-  m_connections.clear();
 
   delete m_jobManager;
   m_jobManager = NULL;
@@ -201,11 +194,11 @@ void Server::stop()
   stop(false);
 }
 
-void Server::dispatchJobStateChange(const Job *job, JobState oldState,
+void Server::dispatchJobStateChange(const Job &job, JobState oldState,
                                     JobState newState)
 {
-  Connection *connection = m_connectionLUT.value(job->moleQueueId());
-  EndpointId replyTo = m_endpointLUT.value(job->moleQueueId());
+  Connection *connection = m_connectionLUT.value(job.moleQueueId());
+  EndpointId replyTo = m_endpointLUT.value(job.moleQueueId());
 
   sendJobStateChangeNotification(connection,
                                  replyTo,
@@ -262,15 +255,10 @@ void Server::jobCancellationRequestReceived(MoleQueue::Connection *connection,
 
   qDebug() << "Job cancellation requested: MoleQueueId:" << moleQueueId;
 
-  const Job *req = m_jobManager->lookupMoleQueueId(moleQueueId);
-
-  /// @todo actually handle the cancellation
-  /// @todo Handle NULL req
-
-  sendSuccessfulCancellationResponse(connection, replyTo, req);
+   sendSuccessfulCancellationResponse(connection, replyTo, moleQueueId);
 }
 
-void Server::jobAboutToBeAdded(Job *job)
+void Server::jobAboutToBeAdded(Job job)
 {
   IdType nextMoleQueueId = ++m_moleQueueIdCounter;
 
@@ -279,12 +267,13 @@ void Server::jobAboutToBeAdded(Job *job)
 
   job.setMoleQueueId(nextMoleQueueId);
   job.setLocalWorkingDirectory(m_workingDirectoryBase + "/" +
-                               QString::number(nextMoleQueueId));
+                                QString::number(nextMoleQueueId));
 
   // If the outputDirectory is blank, set it now
   /// @todo Have queues check that outputdir is different from LWD before copying/cleaning.
   if (job.outputDirectory().isEmpty())
     job.setOutputDirectory(job.localWorkingDirectory());
+
 }
 
 void Server::newConnectionAvailable(Connection *connection)
@@ -327,10 +316,10 @@ void Server::sendQueueList(Connection* connection,
 
 void Server::sendSuccessfulSubmissionResponse(MoleQueue::Connection *connection,
                                               MoleQueue::EndpointId replyTo,
-                                              const Job *req)
+                                              const Job &job)
 {
   // Lookup the moleQueueId in the hash so that we can send the correct packetId
-  const IdType moleQueueId = req->moleQueueId();
+  const IdType moleQueueId = job.moleQueueId();
   if (!m_submissionLUT.contains(moleQueueId)) {
     qWarning() << "Refusing to confirm job submission; unrecognized MoleQueue id:"
                << moleQueueId;
@@ -339,7 +328,7 @@ void Server::sendSuccessfulSubmissionResponse(MoleQueue::Connection *connection,
 
   const IdType packetId = m_submissionLUT.take(moleQueueId);
   PacketType packet =  m_jsonrpc->generateJobSubmissionConfirmation(
-        req->moleQueueId(), req->queueJobId(), req->localWorkingDirectory(),
+        moleQueueId, job.queueId(), job.localWorkingDirectory(),
         packetId);
 
   Message msg(replyTo, packet);
@@ -349,12 +338,12 @@ void Server::sendSuccessfulSubmissionResponse(MoleQueue::Connection *connection,
 
 void Server::sendFailedSubmissionResponse(MoleQueue::Connection *connection,
                                           MoleQueue::EndpointId replyTo,
-                                          const Job *req,
+                                          const Job &job,
                                           JobSubmissionErrorCode ec,
                                           const QString &errorMessage)
 {
   // Lookup the moleQueueId in the hash so that we can send the correct packetId
-  const IdType moleQueueId = req->moleQueueId();
+  const IdType moleQueueId = job.moleQueueId();
   if (!m_submissionLUT.contains(moleQueueId)) {
     qWarning() << "Refusing to send job failure; unrecognized MoleQueue id:"
                << moleQueueId;
@@ -373,19 +362,18 @@ void Server::sendFailedSubmissionResponse(MoleQueue::Connection *connection,
 
 void Server::sendSuccessfulCancellationResponse(MoleQueue::Connection *connection,
                                                 MoleQueue::EndpointId replyTo,
-                                                const Job *req)
+                                                IdType jobId)
 {
   // Lookup the moleQueueId in the hash so that we can send the correct packetId
-  const IdType moleQueueId = req->moleQueueId();
-  if (!m_cancellationLUT.contains(moleQueueId)) {
+  if (!m_cancellationLUT.contains(jobId)) {
     qWarning() << "Refusing to confirm job cancellation; unrecognized id:"
-               << moleQueueId;
+               << jobId;
     return;
   }
 
-  const IdType packetId = m_cancellationLUT.take(moleQueueId);
+  const IdType packetId = m_cancellationLUT.take(jobId);
   PacketType packet =  m_jsonrpc->generateJobCancellationConfirmation(
-        req->moleQueueId(), packetId);
+        jobId, packetId);
 
   Message msg(replyTo, packet);
 
@@ -394,11 +382,11 @@ void Server::sendSuccessfulCancellationResponse(MoleQueue::Connection *connectio
 
 void Server::sendJobStateChangeNotification(MoleQueue::Connection *connection,
                                             MoleQueue::EndpointId to,
-                                            const Job *req, JobState oldState,
+                                            const Job &job, JobState oldState,
                                             JobState newState)
 {
   PacketType packet = m_jsonrpc->generateJobStateChangeNotification(
-        req->moleQueueId(), oldState, newState);
+        job.moleQueueId(), oldState, newState);
 
   Message msg(to, packet);
 
@@ -410,37 +398,37 @@ void Server::jobSubmissionRequestReceived(MoleQueue::Connection *connection,
                                           IdType packetId,
                                           const QVariantHash &options)
 {
-  Job *req = jobManager()->newJob(options);
+  Job job = jobManager()->newJob(options);
 
-  m_submissionLUT.insert(req->moleQueueId(), packetId);
-  m_connectionLUT.insert(req->moleQueueId(), connection);
-  m_endpointLUT.insert(req->moleQueueId(), replyTo);
-  m_ownedJobMoleQueueIds.append(req->moleQueueId());
+  m_submissionLUT.insert(job.moleQueueId(), packetId);
+  m_connectionLUT.insert(job.moleQueueId(), connection);
+  m_endpointLUT.insert(job.moleQueueId(), replyTo);
+  m_ownedJobMoleQueueIds.append(job.moleQueueId());
 
-  jobSubmissionRequested(connection, replyTo, req);
+  jobSubmissionRequested(connection, replyTo, job);
 }
 
 void Server::jobSubmissionRequested(MoleQueue::Connection *connection,
                                     MoleQueue::EndpointId replyTo,
-                                    const Job *req)
+                                    const Job &job)
 {
-  qDebug() << "Job submission requested:\n" << req->hash();
+  qDebug() << "Job submission requested:\n" << job.hash();
 
   // Lookup queue and submit job.
-  Queue *queue = m_queueManager->lookupQueue(req->queue());
+  Queue *queue = m_queueManager->lookupQueue(job.queue());
   if (!queue) {
     sendFailedSubmissionResponse(connection, replyTo,
-                                 req, MoleQueue::InvalidQueue,
-                                 tr("Unknown queue: %1").arg(req->queue()));
+                                 job, MoleQueue::InvalidQueue,
+                                 tr("Unknown queue: %1").arg(job.queue()));
     return;
   }
 
   // Send the submission confirmation first so that the client can update the
   // MoleQueue id and properly handle packets sent during job submission.
-  sendSuccessfulSubmissionResponse(connection, replyTo, req);
+  sendSuccessfulSubmissionResponse(connection, replyTo, job);
 
   /// @todo Handle submission failures better -- return JobSubErrCode?
-  bool ok = queue->submitJob(req);
+  bool ok = queue->submitJob(job);
   qDebug() << "Submission ok?" << ok;
 }
 
@@ -448,9 +436,8 @@ void Server::jobSubmissionRequested(MoleQueue::Connection *connection,
  * @warning Do not dereference @a job, as it no longer points to allocated TODO clean this up
  * memory.
  */
-void Server::jobRemoved(MoleQueue::IdType moleQueueId, const MoleQueue::Job *job)
+void Server::jobRemoved(MoleQueue::IdType moleQueueId)
 {
-  Q_UNUSED(job);
   m_connectionLUT.remove(moleQueueId);
   m_endpointLUT.remove(moleQueueId);
 }

@@ -1239,7 +1239,9 @@ void JsonRpc::handleSubmitJobError(const Json::Value &root) const
   emit failedSubmissionReceived(id, errorCode, errorMessage);
 }
 
-void JsonRpc::handleCancelJobRequest(const Json::Value &root) const
+void JsonRpc::handleCancelJobRequest(MoleQueue::Connection *connection,
+                                     const EndpointId replyTo,
+                                     const Json::Value &root) const
 {
   const IdType id = static_cast<IdType>(root["id"].asLargestUInt());
 
@@ -1257,7 +1259,7 @@ void JsonRpc::handleCancelJobRequest(const Json::Value &root) const
   const IdType moleQueueId = static_cast<IdType>(
         paramsObject["moleQueueId"].asLargestUInt());
 
-  emit jobCancellationRequestReceived(connection, replyTo, id, moleQueueJobId);
+  emit jobCancellationRequestReceived(connection, replyTo, id, moleQueueId);
 }
 
 void JsonRpc::handleCancelJobResult(const Json::Value &root) const

@@ -98,6 +98,9 @@ public:
   /// The working directory where running job file are kept.
   QString workingDirectoryBase() const {return m_workingDirectoryBase;}
 
+  /// Used for internal lookup structures
+  typedef QMap<IdType, IdType> PacketLookupTable;
+
   /// Used for unit testing
   friend class ::ServerConnectionTest;
 
@@ -114,6 +117,11 @@ signals:
    */
   void connectionError(MoleQueue::ConnectionListener::Error error,
                        const QString &message);
+
+  /**
+   * Emitted when the connection is disconnected.
+   */
+  void disconnected();
 
   /**
    * Emitted when a non-critical error occurs that the user should be notified
@@ -197,11 +205,11 @@ public slots:
   /**
    * Sends a reply to the client informing them that the job cancellation was
    * successful.
-   * @param req The Job
+   * @param jobId The id of the job being cancelled
    */
   void sendSuccessfulCancellationResponse(MoleQueue::Connection *connection,
                                           MoleQueue::EndpointId replyTo,
-                                          const MoleQueue::Job *req);
+                                          IdType jobId);
 
   /**
    * Sends a notification to the connected client informing them that a job
@@ -273,7 +281,7 @@ private slots:
   /**
    * Called to clean up connection map when a job is removed ...
    */
-  void jobRemoved(MoleQueue::IdType moleQueueId, const MoleQueue::Job *job);
+  void jobRemoved(MoleQueue::IdType moleQueueId);
 
 protected:
   /**
@@ -304,6 +312,15 @@ protected:
 
   /// Counter for MoleQueue job ids.
   IdType m_moleQueueIdCounter;
+
+  /// Tracks MoleQueue ids belonging to this connection
+  QList<IdType> m_ownedJobMoleQueueIds;
+
+  /// Tracks job submission requests: moleQueueId --> packetId
+  PacketLookupTable m_submissionLUT;
+
+  /// Tracks job cancellation requests: moleQueueId --> packetId
+  PacketLookupTable m_cancellationLUT;
 
   // job id --> connection for notifications.
   QMap<IdType,Connection*> m_connectionLUT;

@@ -118,16 +118,15 @@ void ConnectionTest::testSuccessfulJobSubmission()
 
   m_client->connectToServer("MoleQueue-testing");
 
-  MoleQueue::Job *req = m_client->newJobRequest();
-  req->setLocalWorkingDirectory("/tmp/some/path");
-  req->setMolequeueId(1);
-  req->setClientId(2);
-  req->setQueueJobId(1439932);
-  req->setQueue(qn);
-  m_client->m_jobManager->jobIdsChanged(req);
+  MoleQueue::Job req = m_client->newJobRequest();
+  req.setLocalWorkingDirectory("/tmp/some/path");
+  req.setMoleQueueId(1);
+  req.setQueueId(1439932);
+  req.setQueue(qn);
+  m_client->m_jobManager->setJobQueueId(req.moleQueueId(), req.queueId());
 
   QSignalSpy spy (m_client,
-                    SIGNAL(jobSubmitted(const MoleQueue::Job*, bool,
+                    SIGNAL(jobSubmitted(const MoleQueue::JobRequest&, bool,
                                         const QString&)));
 
   m_client->submitJobRequest(req);
@@ -148,17 +147,16 @@ void ConnectionTest::testFailedSubmission()
 {
     m_client->connectToServer("MoleQueue-testing");
 
-    MoleQueue::Job *req = m_client->newJobRequest();
-    req->setLocalWorkingDirectory("/tmp/some/path");
-    req->setMolequeueId(1);
-    req->setClientId(2);
-    req->setQueueJobId(1439932);
-    req->setQueue("missingQueue");
-    m_client->m_jobManager->jobIdsChanged(req);
+    MoleQueue::Job req = m_client->newJobRequest();
+    req.setLocalWorkingDirectory("/tmp/some/path");
+    req.setMoleQueueId(1);
+    req.setQueueId(1439932);
+    req.setQueue("missingQueue");
+    m_client->m_jobManager->setJobQueueId(req.moleQueueId(), req.queueId());
 
     QSignalSpy spy (m_client,
-                    SIGNAL(jobSubmitted(const MoleQueue::Job *, bool,
-                                        const QString &)));
+                    SIGNAL(jobSubmitted(const MoleQueue::JobRequest&, bool,
+                                        const QString&)));
 
     m_client->submitJobRequest(req);
 
@@ -189,17 +187,16 @@ void ConnectionTest::testSuccessfulJobCancellation()
 
   m_client->connectToServer("MoleQueue-testing");
 
-  MoleQueue::Job *req = m_client->newJobRequest();
-  req->setLocalWorkingDirectory("/tmp/some/path");
-  req->setMolequeueId(1);
-  req->setClientId(2);
-  req->setQueueJobId(1439932);
-  req->setQueue(qn);
-  m_client->m_jobManager->jobIdsChanged(req);
+  MoleQueue::Job req = m_client->newJobRequest();
+  req.setLocalWorkingDirectory("/tmp/some/path");
+  req.setMoleQueueId(1);
+  req.setQueueId(1439932);
+  req.setQueue(qn);
+  m_client->m_jobManager->setJobQueueId(req.moleQueueId(), req.queueId());
 
   QSignalSpy jobSubmittedSpy (m_client,
-                              SIGNAL(jobSubmitted(const MoleQueue::Job*, bool,
-                              const QString&)));
+                              SIGNAL(jobSubmitted(const MoleQueue::JobRequest&,
+                                                  bool, const QString&)));
 
   m_client->submitJobRequest(req);
 
@@ -213,8 +210,8 @@ void ConnectionTest::testSuccessfulJobCancellation()
   QCOMPARE(jobSubmittedSpy.count(), 1);
 
   QSignalSpy jobCancelledSpy (m_client,
-                              SIGNAL(jobCanceled(const MoleQueue::Job*, bool,
-                                                 const QString&)));
+                              SIGNAL(jobCanceled(const MoleQueue::JobRequest&,
+                                                 bool, const QString&)));
 
   m_client->cancelJob(req);
 
@@ -240,16 +237,16 @@ void ConnectionTest::testJobStateChangeNotification()
     MoleQueue::QueueManager* qmanager = m_server->queueManager();
     qmanager->addQueue("fifo", QString("Local"), TRUE);
 
-    MoleQueue::Job *req = m_client->newJobRequest();
-    req->setLocalWorkingDirectory("/tmp/some/path");
-    req->setQueue(qn);
+    MoleQueue::Job req = m_client->newJobRequest();
+    req.setLocalWorkingDirectory("/tmp/some/path");
+    req.setQueue(qn);
 
     QSignalSpy jobSubmittedSpy (m_client,
-                                SIGNAL(jobSubmitted(const MoleQueue::Job*, bool,
-                                const QString&)));
+                                SIGNAL(jobSubmitted(const MoleQueue::JobRequest&,
+                                                    bool, const QString&)));
 
     QSignalSpy jobStateChangedSpy (m_client,
-                                   SIGNAL(jobStateChanged(const MoleQueue::Job*,
+                                   SIGNAL(jobStateChanged(const MoleQueue::JobRequest&,
                                                           MoleQueue::JobState,
                                                           MoleQueue::JobState)));
 
@@ -268,11 +265,11 @@ void ConnectionTest::testJobStateChangeNotification()
     bool success = jobSubmittedSpy.first().at(1).value<bool>();
     QVERIFY(success);
 
-    const MoleQueue::Job *returnJob = jobSubmittedSpy.first().at(0).value<const MoleQueue::Job*>();
+    MoleQueue::JobRequest job = jobSubmittedSpy.first().at(0).value<MoleQueue::JobRequest>();
 
     MoleQueue::JobManager *jobManager = m_server->jobManager();
 
-    jobManager->updateJobState(returnJob->moleQueueId(), MoleQueue::Killed);
+    jobManager->setJobState(job.moleQueueId(), MoleQueue::Killed);
 
     timer.start(1000);
     while (timer.isActive()) {
