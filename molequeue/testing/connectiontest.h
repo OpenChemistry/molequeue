@@ -34,7 +34,7 @@ public:
   {
   }
 public slots:
-  bool submitJob(const MoleQueue::Job *);
+  bool submitJob(const MoleQueue::Job);
 };
 
 class ConnectionTest : public QObject

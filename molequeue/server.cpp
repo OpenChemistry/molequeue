@@ -44,8 +44,8 @@ Server::Server(QObject *parentObject, QString serverName)
     m_queueManager(new QueueManager (this)),
     m_isTesting(false),
     m_moleQueueIdCounter(0),
-    m_debug(false),
-    m_serverName(serverName)
+    m_serverName(serverName),
+    m_debug(false)
 {
   qRegisterMetaType<ConnectionListener::Error>("ConnectionListener::Error");
   qRegisterMetaType<ServerConnection*>("MoleQueue::ServerConnection*");

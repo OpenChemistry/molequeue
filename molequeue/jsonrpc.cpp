@@ -529,7 +529,7 @@ void JsonRpc::interpretIncomingJsonRpc(Connection *connection,
       this->handleInvalidRequest(connection, replyTo, data);
       break;
     case NOTIFICATION_PACKET:
-      this->handleJobStateChangedNotification(connection, replyTo, data);
+      this->handleJobStateChangedNotification(data);
       break;
     }
     break;
@@ -1112,6 +1112,8 @@ void JsonRpc::handleListQueuesError(Connection *connection,
                                     EndpointId replyTo,
                                     const Json::Value &root) const
 {
+  Q_UNUSED(connection);
+  Q_UNUSED(replyTo);
   Q_UNUSED(root);
   qWarning() << Q_FUNC_INFO << "is not implemented.";
 }
@@ -1289,9 +1291,7 @@ void JsonRpc::handleCancelJobError(const Json::Value &root) const
   qWarning() << Q_FUNC_INFO << "is not implemented.";
 }
 
-void JsonRpc::handleJobStateChangedNotification(Connection *connection,
-                                                EndpointId to,
-                                                const Json::Value &root) const
+void JsonRpc::handleJobStateChangedNotification(const Json::Value &root) const
 {
   const Json::Value &paramsObject = root["params"];
 

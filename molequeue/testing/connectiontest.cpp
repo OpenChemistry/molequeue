@@ -18,7 +18,7 @@
 #include "program.h"
 #include "jobmanager.h"
 
-bool QueueDummy::submitJob(const MoleQueue::Job *)
+bool QueueDummy::submitJob(const MoleQueue::Job)
 {
   return true;
 }

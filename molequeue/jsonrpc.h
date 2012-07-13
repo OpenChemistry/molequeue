@@ -536,9 +536,7 @@ protected:
 
   /// Extract data and emit signal for a jobStateChanged notification.
   /// @param root Root of request
-  void handleJobStateChangedNotification(MoleQueue::Connection *connection,
-                                         const EndpointId replyTo,
-                                         const Json::Value &root) const;
+  void handleJobStateChangedNotification(const Json::Value &root) const;
 
   /**
     * Record that a new request has been sent. This is necessary to identify the
