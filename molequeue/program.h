@@ -124,14 +124,14 @@ public:
   QString inputFilename() const {return m_inputFilename;}
   QString inputFilenameNoExtension() const
   {
-    return this->chopExtension(m_inputFilename);
+    return chopExtension(m_inputFilename);
   }
 
   void setOutputFilename(const QString &str) {m_outputFilename = str;}
   QString outputFilename() const {return m_outputFilename;}
   QString outputFilenameNoExtension() const
   {
-    return this->chopExtension(m_outputFilename);
+    return chopExtension(m_outputFilename);
   }
 
   void setLaunchSyntax(LaunchSyntax s)

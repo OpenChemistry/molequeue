@@ -60,8 +60,8 @@ MainWindow::MainWindow()
           this, SLOT(notifyJobStateChanged(const MoleQueue::Job &,
                                            MoleQueue::JobState,
                                            MoleQueue::JobState)));
-  connect(m_server, SIGNAL(connectionError(QAbstractSocket::SocketError,QString)),
-          this, SLOT(handleServerConnectionError(QAbstractSocket::SocketError, QString)));
+  connect(m_server, SIGNAL(connectionError(MoleQueue::ConnectionListener::Error,QString)),
+          this, SLOT(handleServerConnectionError(MoleQueue::ConnectionListener::Error, QString)));
 
   connect(m_server, SIGNAL(errorNotification(QString,QString)),
           this, SLOT(notifyUserOfError(QString,QString)));
@@ -92,8 +92,8 @@ void MainWindow::readSettings()
 {
   QSettings settings;
 
-  this->restoreGeometry(settings.value("geometry").toByteArray());
-  this->restoreState(settings.value("windowState").toByteArray());
+  restoreGeometry(settings.value("geometry").toByteArray());
+  restoreState(settings.value("windowState").toByteArray());
 
   m_server->readSettings(settings);
   ActionFactoryManager::getInstance()->readSettings(settings);
@@ -103,8 +103,8 @@ void MainWindow::writeSettings()
 {
   QSettings settings;
 
-  settings.setValue("geometry", this->saveGeometry());
-  settings.setValue("windowState", this->saveState());
+  settings.setValue("geometry", saveGeometry());
+  settings.setValue("windowState", saveState());
 
   m_server->writeSettings(settings);
   ActionFactoryManager::getInstance()->writeSettings(settings);
@@ -113,7 +113,7 @@ void MainWindow::writeSettings()
 void MainWindow::trayIconActivated(QSystemTrayIcon::ActivationReason reason)
 {
   if (reason != QSystemTrayIcon::Context)
-    this->show();
+    show();
 }
 
 void MainWindow::notifyUserOfError(const QString &title, const QString &message)
@@ -136,11 +136,11 @@ void MainWindow::showOpenWithManager()
   dialog.exec();
 }
 
-void MainWindow::handleServerConnectionError(QAbstractSocket::SocketError err,
+void MainWindow::handleServerConnectionError(ConnectionListener::Error err,
                                              const QString &str)
 {
   // handle AddressInUseError by giving user option to replace current socket
-  if (err == QAbstractSocket::AddressInUseError) {
+  if (err == ConnectionListener::AddressInUseError) {
     QStringList choices;
     choices << tr("There is no other server running. Continue running.")
             << tr("Oops -- there is an existing server. Terminate the new server.");
@@ -154,7 +154,7 @@ void MainWindow::handleServerConnectionError(QAbstractSocket::SocketError err,
 
     // Terminate
     if (!ok || index == 1) {
-      this->hide();
+      hide();
       qApp->quit();
     }
     // Take over connection
@@ -192,8 +192,8 @@ void MainWindow::closeEvent(QCloseEvent *theEvent)
 {
   QSettings settings;
 
-  settings.setValue("geometry", this->saveGeometry());
-  settings.setValue("windowState", this->saveState());
+  settings.setValue("geometry", saveGeometry());
+  settings.setValue("windowState", saveState());
 
   if (m_trayIcon->isVisible()) {
     QMessageBox::information(this, tr("Systray"),

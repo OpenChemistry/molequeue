@@ -16,12 +16,11 @@
 
 #include <QtTest>
 
-#include "client.h"
-
 #include "job.h"
 #include "jobrequest.h"
 #include "jobmanager.h"
 #include "molequeueglobal.h"
+#include "transport/localsocket/localsocketclient.h"
 
 #include "testserver.h"
 
@@ -78,7 +77,8 @@ MoleQueue::PacketType ClientTest::readReferenceString(const QString &filename)
 void ClientTest::initTestCase()
 {
   m_server = new TestServer(&m_packet);
-  m_client = new MoleQueue::Client();
+  m_client = new MoleQueue::LocalSocketClient(this);
+  qDebug() << m_server->socketName();
   m_client->connectToServer(m_server->socketName());
   // Let the event loop run a bit to handle the connections
   qApp->processEvents(QEventLoop::AllEvents, 1000);
@@ -113,7 +113,7 @@ void ClientTest::testJobSubmission()
   QVERIFY2(m_server->waitForPacket(), "Timeout waiting for reply.");
 
   MoleQueue::PacketType refPacket =
-      this->readReferenceString("client-ref/job-submission.json");
+      readReferenceString("client-ref/job-submission.json");
 
   // Strip out the random ids in the packets
   QRegExp strip ("\\n\\s+\"id\"\\s+:\\s+\\d+\\s*,\\s*\\n");
@@ -134,7 +134,7 @@ void ClientTest::testJobCancellation()
   QVERIFY2(m_server->waitForPacket(), "Timeout waiting for reply.");
 
   MoleQueue::PacketType refPacket =
-      this->readReferenceString("client-ref/job-cancellation.json");
+      readReferenceString("client-ref/job-cancellation.json");
 
   // Strip out the random ids in the packets
   QRegExp strip ("\\n\\s+\"id\"\\s+:\\s+\\d+\\s*,\\s*\\n");
@@ -154,7 +154,7 @@ void ClientTest::testRequestQueueListUpdate()
   QVERIFY2(m_server->waitForPacket(), "Timeout waiting for reply.");
 
   MoleQueue::PacketType refPacket =
-      this->readReferenceString("client-ref/queue-list-request.json");
+      readReferenceString("client-ref/queue-list-request.json");
 
   // Strip out the random ids in the packets
   QRegExp strip ("\\n\\s+\"id\"\\s+:\\s+\\d+\\s*,\\s*\\n");
@@ -182,7 +182,7 @@ void ClientTest::testQueueListReceived()
   QSignalSpy spy (m_client, SIGNAL(queueListUpdated(MoleQueue::QueueListType)));
 
   MoleQueue::PacketType queueList =
-      this->readReferenceString("client-ref/queue-list.json");
+      readReferenceString("client-ref/queue-list.json");
 
   queueList.replace("%id%", MoleQueue::PacketType::number(id));
 
@@ -215,7 +215,7 @@ void ClientTest::testSuccessfulSubmissionReceived()
                                                 bool,QString)));
 
   MoleQueue::PacketType response =
-      this->readReferenceString("client-ref/successful-submission.json");
+      readReferenceString("client-ref/successful-submission.json");
 
   response.replace("%id%", MoleQueue::PacketType::number(id));
 
@@ -248,7 +248,7 @@ void ClientTest::testFailedSubmissionReceived()
                                                 bool,QString)));
 
   MoleQueue::PacketType response =
-      this->readReferenceString("client-ref/failed-submission.json");
+      readReferenceString("client-ref/failed-submission.json");
 
   response.replace("%id%", MoleQueue::PacketType::number(id));
 
@@ -286,7 +286,7 @@ void ClientTest::testJobCancellationConfirmationReceived()
                                                bool, QString)));
 
   MoleQueue::PacketType response =
-      this->readReferenceString("client-ref/job-canceled.json");
+      readReferenceString("client-ref/job-canceled.json");
 
   response.replace("%id%", MoleQueue::PacketType::number(id));
 
@@ -310,7 +310,7 @@ void ClientTest::testJobStateChangeReceived()
                                          MoleQueue::JobState)));
 
   MoleQueue::PacketType response =
-      this->readReferenceString("client-ref/jobstate-change.json");
+      readReferenceString("client-ref/jobstate-change.json");
 
   // Fake the molequeue id
   MoleQueue::JobRequest job = m_client->newJobRequest();

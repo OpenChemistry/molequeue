@@ -17,17 +17,16 @@
 #include "abstractrpcinterface.h"
 
 #include "jsonrpc.h"
+#include "transport/connection.h"
+#include "transport/message.h"
 
 #include <QtCore/QDataStream>
 #include <QtCore/QDateTime>
 #include <QtCore/QDebug>
-
-#include <QtNetwork/QLocalSocket>
-
 #include <QtGlobal>
 
 #define DEBUGOUT(title) \
-  if (this->m_debug)    \
+  if (m_debug)    \
     qDebug() << QDateTime::currentDateTime().toString() \
              << "AbstractRpcInterface" << title <<
 
@@ -36,224 +35,137 @@ namespace MoleQueue
 
 AbstractRpcInterface::AbstractRpcInterface(QObject *parentObject) :
   QObject(parentObject),
-  m_headerVersion(1),
-  m_headerSize(sizeof(quint32) + sizeof(quint32)),
-  m_currentPacketSize(0),
-  m_currentPacket(),
-  m_socket(NULL),
-  m_dataStream(new QDataStream ()),
   m_jsonrpc(new JsonRpc (this)),
   m_packetCounter(0),
   m_debug(false)
 {
-  m_dataStream->setVersion(QDataStream::Qt_4_7);
-
   // Randomize the packet counter's starting value.
   qsrand(static_cast<uint>(QDateTime::currentMSecsSinceEpoch()));
   m_packetCounter = static_cast<IdType>(qrand());
 
-  connect(m_jsonrpc, SIGNAL(invalidPacketReceived(Json::Value,Json::Value)),
-          this, SLOT(replyToInvalidPacket(Json::Value,Json::Value)));
-  connect(m_jsonrpc, SIGNAL(invalidRequestReceived(Json::Value,Json::Value)),
-          this, SLOT(replyToInvalidRequest(Json::Value,Json::Value)));
-  connect(m_jsonrpc, SIGNAL(unrecognizedRequestReceived(Json::Value,Json::Value)),
-          this, SLOT(replyToUnrecognizedRequest(Json::Value,Json::Value)));
-  connect(m_jsonrpc, SIGNAL(invalidRequestParamsReceived(Json::Value,Json::Value)),
-          this, SLOT(replyToinvalidRequestParams(Json::Value,Json::Value)));
-  connect(m_jsonrpc, SIGNAL(internalErrorOccurred(Json::Value,Json::Value)),
-          this, SLOT(replyWithInternalError(Json::Value,Json::Value)));
-
-  connect(this, SIGNAL(newPacketReady(MoleQueue::PacketType)),
-          this, SLOT(readPacket(MoleQueue::PacketType)));
+  connect(m_jsonrpc, SIGNAL(invalidPacketReceived(MoleQueue::Connection*,
+                                                  MoleQueue::EndpointId,
+                                                  Json::Value,Json::Value)),
+          this, SLOT(replyToInvalidPacket(MoleQueue::Connection*,
+                                          MoleQueue::EndpointId,
+                                          Json::Value,Json::Value)));
+  connect(m_jsonrpc, SIGNAL(invalidRequestReceived(MoleQueue::Connection*,
+                                                   MoleQueue::EndpointId,
+                                                   Json::Value,Json::Value)),
+          this, SLOT(replyToInvalidRequest(MoleQueue::Connection*,
+                                           MoleQueue::EndpointId,
+                                           Json::Value,Json::Value)));
+  connect(m_jsonrpc, SIGNAL(unrecognizedRequestReceived(MoleQueue::Connection*,
+                                                        MoleQueue::EndpointId,
+                                                        Json::Value,Json::Value)),
+          this, SLOT(replyToUnrecognizedRequest(MoleQueue::Connection*,
+                                                MoleQueue::EndpointId,
+                                                Json::Value,Json::Value)));
+  connect(m_jsonrpc, SIGNAL(invalidRequestParamsReceived(MoleQueue::Connection*,
+                                                         MoleQueue::EndpointId,
+                                                         Json::Value,Json::Value)),
+          this, SLOT(replyToinvalidRequestParams(MoleQueue::Connection*,
+                                                 MoleQueue::EndpointId,
+                                                 Json::Value,Json::Value)));
+  connect(m_jsonrpc, SIGNAL(internalErrorOccurred(MoleQueue::Connection*,
+                                                  MoleQueue::EndpointId,
+                                                  Json::Value,Json::Value)),
+          this, SLOT(replyWithInternalError(MoleQueue::Connection*,
+                                            MoleQueue::EndpointId,
+                                            Json::Value,Json::Value)));
 }
 
 AbstractRpcInterface::~AbstractRpcInterface()
 {
-  if (m_socket)
-    m_socket->abort();
-  delete m_socket;
-  m_socket = NULL;
-
-  delete m_dataStream;
-  m_dataStream = NULL;
-
   delete m_jsonrpc;
   m_jsonrpc = NULL;
 }
 
-void AbstractRpcInterface::setSocket(QLocalSocket *socket)
+void AbstractRpcInterface::readPacket(const MoleQueue::Message msg)
 {
-  if (m_socket != NULL) {
-    m_socket->abort();
-    m_socket->disconnect(this);
-    this->disconnect(m_socket);
-    m_socket->deleteLater();
-  }
-  if (socket != NULL) {
-    connect(socket, SIGNAL(readyRead()),
-            this, SLOT(readSocket()));
-    connect(socket, SIGNAL(disconnected()),
-            this, SLOT(socketDisconnected()));
-  }
-  m_dataStream->setDevice(socket);
-  m_socket = socket;
+  Connection *conn = qobject_cast<Connection*>(sender());
 
-  qDebug() << "Connected to" << ((m_socket == NULL)
-                                 ? QString("Nothing!")
-                                 : m_socket->serverName());
-}
-
-void AbstractRpcInterface::readSocket()
-{
-  DEBUGOUT("readSocket") "New data available";
-  // Check if the data is a new packet or if we're in the middle of reading one.
-  if (m_currentPacketSize == 0) {
-
-    // Read header info (e.g. packet size) if enough data is available.
-    // Otherwise, wait for more data.
-    if (this->canReadPacketHeader())
-      m_currentPacketSize = this->readPacketHeader();
-    else
-      return;
-  }
-
-  PacketType block;
-  (*m_dataStream) >> block;
-
-  // Add this block to the packet which is in progress
-  m_currentPacket.append(block);
-
-  // Are we done?
-  if (static_cast<qint64>(m_currentPacket.size()) == m_currentPacketSize) {
-    DEBUGOUT("readSocket") "Packet completed. Size:" << m_currentPacketSize;
-    emit newPacketReady(m_currentPacket);
-    m_currentPacket.clear();
-    m_currentPacketSize = 0;
-  }
-  else {
-    DEBUGOUT("readSocket") "Packet incomplete. Waiting for more data..."
-        << "current size:" << m_currentPacket.size() << "bytes of"
-        << m_currentPacketSize;
-  }
-}
-
-void AbstractRpcInterface::readPacket(const PacketType &packet)
-{
-  if (!m_socket->isValid())
-    return;
+  qDebug() << "sender:  " << sender();
+  qDebug() << "Conn: " << conn;
 
   DEBUGOUT("readPacket") "Interpreting new packet.";
-  m_jsonrpc->interpretIncomingPacket(packet);
+
+  m_jsonrpc->interpretIncomingPacket(conn, msg);
 }
-
-void AbstractRpcInterface::sendPacket(const PacketType &packet)
-{
-  if (!m_socket->isValid())
-    return;
-
-  DEBUGOUT("sendPacket") "Sending new packet. Size:" << packet.size();
-  this->writePacketHeader(packet);
-  m_dataStream->writeBytes(packet.constData(),
-                           static_cast<unsigned int>(packet.size()));
-  m_socket->flush();
-}
-
-void AbstractRpcInterface::socketDisconnected()
-{
-  emit disconnected();
-}
-
-void AbstractRpcInterface::replyToInvalidPacket(
-    const Json::Value &packetId, const Json::Value &errorDataObject)
+// TODO rename connection => replyConnection?
+void AbstractRpcInterface::replyToInvalidPacket(MoleQueue::Connection *connection,
+                                                const MoleQueue::EndpointId replyTo,
+                                                const Json::Value &packetId,
+                                                const Json::Value &errorDataObject)
 {
   DEBUGOUT("replyToInvalidPacket") "replying to an invalid packet.";
   PacketType packet = m_jsonrpc->generateErrorResponse(
         -32700, "Parse error", errorDataObject, packetId);
-  this->sendPacket(packet);
+
+  Message msg(replyTo, packet);
+
+  connection->send(msg);
 }
 
-void AbstractRpcInterface::replyToInvalidRequest(
-    const Json::Value &packetId, const Json::Value &errorDataObject)
+void AbstractRpcInterface::replyToInvalidRequest(MoleQueue::Connection *connection,
+                                                 const MoleQueue::EndpointId replyTo,
+                                                 const Json::Value &packetId,
+                                                 const Json::Value &errorDataObject)
 {
   DEBUGOUT("replyToInvalidRequest") "replying to an invalid request.";
   PacketType packet = m_jsonrpc->generateErrorResponse(
         -32600, "Invalid request", errorDataObject, packetId);
-  this->sendPacket(packet);
+
+  Message msg(replyTo, packet);
+
+  connection->send(msg);
 }
 
-void AbstractRpcInterface::replyToUnrecognizedRequest(
-    const Json::Value &packetId, const Json::Value &errorDataObject)
+void AbstractRpcInterface::replyToUnrecognizedRequest(MoleQueue::Connection *connection,
+                                                      const MoleQueue::EndpointId replyTo,
+                                                      const Json::Value &packetId,
+                                                      const Json::Value &errorDataObject)
 {
   DEBUGOUT("replyToUnrecognizedRequest") "replying to an unrecognized method.";
   PacketType packet = m_jsonrpc->generateErrorResponse(
         -32601, "Method not found", errorDataObject, packetId);
-  this->sendPacket(packet);
+
+  Message msg(replyTo, packet);
+
+  connection->send(msg);
 }
 
-void AbstractRpcInterface::replyToinvalidRequestParams(
-    const Json::Value &packetId, const Json::Value &errorDataObject)
+void AbstractRpcInterface::replyToinvalidRequestParams(MoleQueue::Connection *connection,
+                                                       const MoleQueue::EndpointId replyTo,
+                                                       const Json::Value &packetId,
+                                                       const Json::Value &errorDataObject)
 {
   DEBUGOUT("replyToInvalidRequestParam") "replying to an ill-formed request.";
   PacketType packet = m_jsonrpc->generateErrorResponse(
         -32602, "Invalid params", errorDataObject, packetId);
-  this->sendPacket(packet);
+
+  Message msg(replyTo, packet);
+
+  connection->send(msg);
 }
 
-void AbstractRpcInterface::replyWithInternalError(
-    const Json::Value &packetId, const Json::Value &errorDataObject)
+void AbstractRpcInterface::replyWithInternalError(MoleQueue::Connection *connection,
+                                                  const MoleQueue::EndpointId replyTo,
+                                                  const Json::Value &packetId,
+                                                  const Json::Value &errorDataObject)
 {
   DEBUGOUT("replyWithInternalError") "Notifying peer of internal error.";
   PacketType packet = m_jsonrpc->generateErrorResponse(
         -32603, "Internal error", errorDataObject, packetId);
-  this->sendPacket(packet);
+
+  Message msg(replyTo, packet);
+
+  connection->send(msg);
 }
 
 IdType AbstractRpcInterface::nextPacketId()
 {
   return m_packetCounter++;
-}
-
-void AbstractRpcInterface::writePacketHeader(const PacketType &packet)
-{
-  DEBUGOUT("writePacketHeader") "Writing packet header."
-      << "Version:" << m_headerVersion
-      << "Size:" << packet.size();
-
-  // First write a version identifier
-  (*m_dataStream) << m_headerVersion;
-
-  // Next is the packet size as 32-bit unsigned integer
-  (*m_dataStream) << static_cast<quint32>(packet.size());
-}
-
-bool AbstractRpcInterface::canReadPacketHeader()
-{
-  return (m_socket->bytesAvailable() >= m_headerSize);
-}
-
-quint32 AbstractRpcInterface::readPacketHeader()
-{
-  Q_ASSERT_X(m_socket->bytesAvailable() >= m_headerSize, Q_FUNC_INFO,
-             "Not enough data available to read header! This should not "
-             "happen.");
-
-  quint32 headerVersion;
-  quint32 packetSize;
-
-  (*m_dataStream) >> headerVersion;
-
-  if (headerVersion != m_headerVersion) {
-    qWarning() << "Warning -- MoleQueue client/server version mismatch!";
-    return 0;
-  }
-
-  (*m_dataStream) >> packetSize;
-
-  DEBUGOUT("readPacketHeader") "Reading packet header."
-      << "Version:" << headerVersion
-      << "Size:" << packetSize;
-
-  return packetSize;
 }
 
 } // end namespace MoleQueue

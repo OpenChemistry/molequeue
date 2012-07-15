@@ -71,10 +71,10 @@ bool SshCommand::execute(const QString &command)
   if (!isValid())
     return false;
 
-  QStringList args = this->sshArgs();
-  args << this->remoteSpec() << command;
+  QStringList args = sshArgs();
+  args << remoteSpec() << command;
 
-  this->sendRequest(m_sshCommand, args);
+  sendRequest(m_sshCommand, args);
 
   return true;
 }
@@ -85,10 +85,10 @@ bool SshCommand::copyTo(const QString &localFile, const QString &remoteFile)
     return false;
 
   QStringList args = scpArgs();
-  QString remoteFileSpec = this->remoteSpec() + ":" + remoteFile;
+  QString remoteFileSpec = remoteSpec() + ":" + remoteFile;
   args << localFile << remoteFileSpec;
 
-  this->sendRequest(m_scpCommand, args);
+  sendRequest(m_scpCommand, args);
 
   return true;
 }
@@ -99,10 +99,10 @@ bool SshCommand::copyFrom(const QString &remoteFile, const QString &localFile)
     return false;
 
   QStringList args = scpArgs();
-  QString remoteFileSpec = this->remoteSpec() + ":" + remoteFile;
+  QString remoteFileSpec = remoteSpec() + ":" + remoteFile;
   args << remoteFileSpec << localFile;
 
-  this->sendRequest(m_scpCommand, args);
+  sendRequest(m_scpCommand, args);
 
   return true;
 }
@@ -113,10 +113,10 @@ bool SshCommand::copyDirTo(const QString &localDir, const QString &remoteDir)
     return false;
 
   QStringList args = scpArgs();
-  QString remoteDirSpec = this->remoteSpec() + ":" + remoteDir;
+  QString remoteDirSpec = remoteSpec() + ":" + remoteDir;
   args << "-r" << localDir << remoteDirSpec;
 
-  this->sendRequest(m_scpCommand, args);
+  sendRequest(m_scpCommand, args);
 
   return true;
 }
@@ -131,10 +131,10 @@ bool SshCommand::copyDirFrom(const QString &remoteDir, const QString &localDir)
     local.mkpath(localDir); /// @todo Check for failure of mkpath
 
   QStringList args = scpArgs();
-  QString remoteDirSpec = this->remoteSpec() + ":" + remoteDir;
+  QString remoteDirSpec = remoteSpec() + ":" + remoteDir;
   args << "-r" << remoteDirSpec << localDir;
 
-  this->sendRequest(m_scpCommand, args);
+  sendRequest(m_scpCommand, args);
 
   return true;
 }
@@ -160,7 +160,7 @@ void SshCommand::processFinished()
 void SshCommand::sendRequest(const QString &command, const QStringList &args)
 {
   if (!m_process)
-    this->initializeProcess();
+    initializeProcess();
 
   m_isComplete = false;
 

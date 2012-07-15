@@ -43,7 +43,7 @@ ProgrammableOpenWithActionFactory::ProgrammableOpenWithActionFactory(
 ProgrammableOpenWithActionFactory &ProgrammableOpenWithActionFactory::operator=(
     const ProgrammableOpenWithActionFactory &other)
 {
-  this->OpenWithActionFactory::operator=(other);
+  OpenWithActionFactory::operator=(other);
   m_recognizedFilePatterns = other.recognizedFilePatterns();
   return *this;
 }
@@ -63,7 +63,7 @@ void ProgrammableOpenWithActionFactory::readSettings(QSettings &settings)
 
   settings.endArray();
 
-  this->OpenWithActionFactory::readSettings(settings);
+  OpenWithActionFactory::readSettings(settings);
 }
 
 void ProgrammableOpenWithActionFactory::writeSettings(QSettings &settings) const
@@ -78,7 +78,7 @@ void ProgrammableOpenWithActionFactory::writeSettings(QSettings &settings) const
 
   settings.endArray();
 
-  this->OpenWithActionFactory::writeSettings(settings);
+  OpenWithActionFactory::writeSettings(settings);
 }
 
 bool ProgrammableOpenWithActionFactory::isValidForJob(const Job &job) const

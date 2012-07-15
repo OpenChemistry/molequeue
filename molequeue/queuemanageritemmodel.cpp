@@ -113,7 +113,7 @@ QModelIndex QueueManagerItemModel::index(int row, int column,
                                          const QModelIndex &) const
 {
   if (row >= 0 && row < m_queueManager->numQueues())
-    return this->createIndex(row, column);
+    return createIndex(row, column);
   else
     return QModelIndex();
 }

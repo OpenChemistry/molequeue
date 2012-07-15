@@ -29,8 +29,8 @@
 #include <QtCore/QVariantHash>
 
 #define DEBUGOUT(title) \
-  if (this->m_debug)    \
-  qDebug() << QDateTime::currentDateTime().toString() << title <<
+  if (m_debug)    \
+    qDebug() << QDateTime::currentDateTime().toString() << title <<
 
 namespace MoleQueue
 {
@@ -166,7 +166,7 @@ PacketType JsonRpc::generateJobRequest(const Job &job,
 
   DEBUGOUT("generateJobRequest") "New job request:\n" << ret;
 
-  this->registerRequest(packetId, SUBMIT_JOB);
+  registerRequest(packetId, SUBMIT_JOB);
 
   return ret;
 }
@@ -294,7 +294,7 @@ PacketType JsonRpc::generateJobCancellation(const Job &job,
 
   DEBUGOUT("generateJobCancellation") "New job cancellation request:\n" << ret;
 
-  this->registerRequest(packetId, CANCEL_JOB);
+  registerRequest(packetId, CANCEL_JOB);
 
   return ret;
 }
@@ -328,7 +328,7 @@ PacketType JsonRpc::generateQueueListRequest(IdType packetId)
 
   DEBUGOUT("generateQueueListRequest") "New queue list request:\n" << ret;
 
-  this->registerRequest(packetId, LIST_QUEUES);
+  registerRequest(packetId, LIST_QUEUES);
 
   return ret;
 }
@@ -386,54 +386,60 @@ JsonRpc::generateJobStateChangeNotification(IdType moleQueueId,
   return ret;
 }
 
-void JsonRpc::interpretIncomingPacket(const PacketType &packet)
+void JsonRpc::interpretIncomingPacket(Connection* connection,
+                                      const Message msg)
 {
   // Read packet into a Json value
   Json::Reader reader;
   Json::Value root;
-  if (!reader.parse(packet.constData(), packet.constData() + packet.size(),
+
+  if (!reader.parse(msg.data().constData(), msg.data().constData() + msg.data().size(),
                     root, false)) {
-    this->handleUnparsablePacket(packet);
+
+    qDebug() << "msg:  " << msg.data();
+    handleUnparsablePacket(connection, msg);
     return;
   }
 
   // Submit the root node for processing
-  this->interpretIncomingJsonRpc(root);
+  interpretIncomingJsonRpc(connection, msg.replyTo(), root);
 }
 
-void JsonRpc::interpretIncomingJsonRpc(const Json::Value &data)
+void JsonRpc::interpretIncomingJsonRpc(Connection *connection,
+                                       EndpointId replyTo,
+                                       const Json::Value &data)
 {
   // Handle batch requests recursively:
   if (data.isArray()) {
     for (Json::Value::const_iterator it = data.begin(), it_end = data.end();
          it != it_end; ++it) {
-      this->interpretIncomingJsonRpc(*it);
+      interpretIncomingJsonRpc(connection, replyTo, *it);
     }
 
     return;
   }
 
   if (!data.isObject()) {
-    this->handleInvalidRequest(data);
+    handleInvalidRequest(connection, replyTo, data);
     return;
   }
 
-  PacketForm   form   = this->guessPacketForm(data);
-  PacketMethod method = this->guessPacketMethod(data);
+  PacketForm   form   = guessPacketForm(data);
+  PacketMethod method = guessPacketMethod(data);
 
   // Validate detected type
   switch (form) {
   case REQUEST_PACKET:
-    if (!this->validateRequest(data, false))
+    if (!validateRequest(data, false))
       form = INVALID_PACKET;
     break;
   case RESULT_PACKET:
   case ERROR_PACKET:
-    if (!this->validateResponse(data, false))
+    if (!validateResponse(data, false))
       form = INVALID_PACKET;
     break;
   case NOTIFICATION_PACKET:
-    if (!this->validateNotification(data, false))
+    if (!validateNotification(data, false))
       form = INVALID_PACKET;
     break;
   default:
@@ -447,10 +453,10 @@ void JsonRpc::interpretIncomingJsonRpc(const Json::Value &data)
     break;
   default:
   case INVALID_METHOD:
-    this->handleInvalidRequest(data);
+    handleInvalidRequest(connection, replyTo, data);
     break;
   case UNRECOGNIZED_METHOD:
-    this->handleUnrecognizedRequest(data);
+    handleUnrecognizedRequest(connection, replyTo, data);
     break;
   case LIST_QUEUES:
   {
@@ -458,16 +464,16 @@ void JsonRpc::interpretIncomingJsonRpc(const Json::Value &data)
     default:
     case INVALID_PACKET:
     case NOTIFICATION_PACKET:
-      this->handleInvalidRequest(data);
+      handleInvalidRequest(connection, replyTo, data);
       break;
     case REQUEST_PACKET:
-      this->handleListQueuesRequest(data);
+      handleListQueuesRequest(connection, replyTo, data);
       break;
     case RESULT_PACKET:
-      this->handleListQueuesResult(data);
+      handleListQueuesResult(data);
       break;
     case ERROR_PACKET:
-      this->handleListQueuesError(data);
+      handleListQueuesError(connection, replyTo, data);
       break;
     }
     break;
@@ -478,16 +484,16 @@ void JsonRpc::interpretIncomingJsonRpc(const Json::Value &data)
     default:
     case INVALID_PACKET:
     case NOTIFICATION_PACKET:
-      this->handleInvalidRequest(data);
+      handleInvalidRequest(connection, replyTo, data);
       break;
     case REQUEST_PACKET:
-      this->handleSubmitJobRequest(data);
+      handleSubmitJobRequest(connection, replyTo, data);
       break;
     case RESULT_PACKET:
-      this->handleSubmitJobResult(data);
+      handleSubmitJobResult(data);
       break;
     case ERROR_PACKET:
-      this->handleSubmitJobError(data);
+      handleSubmitJobError(data);
       break;
     }
     break;
@@ -498,16 +504,16 @@ void JsonRpc::interpretIncomingJsonRpc(const Json::Value &data)
     default:
     case INVALID_PACKET:
     case NOTIFICATION_PACKET:
-      this->handleInvalidRequest(data);
+      handleInvalidRequest(connection, replyTo, data);
       break;
     case REQUEST_PACKET:
-      this->handleCancelJobRequest(data);
+      handleCancelJobRequest(connection, replyTo, data);
       break;
     case RESULT_PACKET:
-      this->handleCancelJobResult(data);
+      handleCancelJobResult(data);
       break;
     case ERROR_PACKET:
-      this->handleCancelJobError(data);
+      handleCancelJobError(data);
       break;
     }
     break;
@@ -520,10 +526,10 @@ void JsonRpc::interpretIncomingJsonRpc(const Json::Value &data)
     case REQUEST_PACKET:
     case RESULT_PACKET:
     case ERROR_PACKET:
-      this->handleInvalidRequest(data);
+      handleInvalidRequest(connection, replyTo, data);
       break;
     case NOTIFICATION_PACKET:
-      this->handleJobStateChangedNotification(data);
+      handleJobStateChangedNotification(data);
       break;
     }
     break;
@@ -543,7 +549,7 @@ bool JsonRpc::validateRequest(const PacketType &packet, bool strict)
   Json::Reader reader;
   reader.parse(packet.constData(), packet.constData() + packet.size(),
                root, false);
-  return this->validateRequest(root, strict);
+  return validateRequest(root, strict);
 }
 
 bool JsonRpc::validateRequest(const Json::Value &packet, bool strict)
@@ -631,7 +637,7 @@ bool JsonRpc::validateRequest(const Json::Value &packet, bool strict)
 
   // Print extra members
   if (extraMembers.size() != 0) {
-    if (this->m_debug) {
+    if (m_debug) {
       std::string extra;
       for (Json::Value::Members::const_iterator it = extraMembers.begin(),
            it_end = extraMembers.end(); it != it_end; ++it) {
@@ -656,7 +662,7 @@ bool JsonRpc::validateResponse(const PacketType &packet, bool strict)
   Json::Reader reader;
   reader.parse(packet.constData(), packet.constData() + packet.size(),
                root, false);
-  return this->validateResponse(root, strict);
+  return validateResponse(root, strict);
 }
 
 bool JsonRpc::validateResponse(const Json::Value &packet, bool strict)
@@ -750,7 +756,7 @@ bool JsonRpc::validateResponse(const Json::Value &packet, bool strict)
 
   // Print extra members
   if (extraMembers.size() != 0) {
-    if (this->m_debug) {
+    if (m_debug) {
       std::string extra;
       for (Json::Value::Members::const_iterator it = extraMembers.begin(),
            it_end = extraMembers.end(); it != it_end; ++it) {
@@ -776,7 +782,7 @@ bool JsonRpc::validateNotification(const PacketType &packet, bool strict)
   Json::Reader reader;
   reader.parse(packet.constData(), packet.constData() + packet.size(),
                root, false);
-  return this->validateNotification(root, strict);
+  return validateNotification(root, strict);
 }
 
 bool JsonRpc::validateNotification(const Json::Value &packet, bool strict)
@@ -823,11 +829,11 @@ bool JsonRpc::validateNotification(const Json::Value &packet, bool strict)
     DEBUGOUT("validateNotification") "Invalid: 'method' not found!";
     return false;
   }
-  // Params are optional.
-  //  if (!found_params) {
-  //    DEBUGOUT("validateNotification") "Invalid: 'params' not found!";
-  //    return false;
-  //  }
+// Params are optional.
+//  if (!found_params) {
+//    DEBUGOUT("validateNotification") "Invalid: 'params' not found!";
+//    return false;
+//  }
   if (found_id) {
     DEBUGOUT("validateNotification") "Invalid: 'id' found!";
     return false;
@@ -850,7 +856,7 @@ bool JsonRpc::validateNotification(const Json::Value &packet, bool strict)
 
   // Print extra members
   if (extraMembers.size() != 0) {
-    if (this->m_debug) {
+    if (m_debug) {
       std::string extra;
       for (Json::Value::Members::const_iterator it = extraMembers.begin(),
            it_end = extraMembers.end(); it != it_end; ++it) {
@@ -1001,38 +1007,45 @@ JsonRpc::PacketMethod JsonRpc::guessPacketMethod(const Json::Value &root) const
   return INVALID_METHOD;
 }
 
-void JsonRpc::handleUnparsablePacket(const PacketType &data) const
+void JsonRpc::handleUnparsablePacket(Connection *connection,
+                                     const Message msg) const
 {
   Json::Value errorData (Json::objectValue);
 
-  errorData["receivedPacket"] = data.constData();
+  errorData["receivedPacket"] = msg.data().constData();
 
-  emit invalidPacketReceived(Json::nullValue, errorData);
+  emit invalidPacketReceived(connection, msg.replyTo(), Json::nullValue, errorData);
 }
 
-void JsonRpc::handleInvalidRequest(const Json::Value &root) const
+void JsonRpc::handleInvalidRequest(Connection *connection,
+                                   EndpointId replyTo,
+                                   const Json::Value &root) const
 {
   Json::Value errorData (Json::objectValue);
 
   errorData["receivedJson"] = Json::Value(root);
 
-  emit invalidRequestReceived((root.isObject()) ? root["id"] : Json::nullValue,
+  emit invalidRequestReceived(connection, replyTo, (root.isObject()) ? root["id"] : Json::nullValue,
                               errorData);
 }
 
-void JsonRpc::handleUnrecognizedRequest(const Json::Value &root) const
+void JsonRpc::handleUnrecognizedRequest(Connection *connection,
+                                        EndpointId replyTo,
+                                        const Json::Value &root) const
 {
   Json::Value errorData (Json::objectValue);
 
   errorData["receivedJson"] = root;
 
-  emit unrecognizedRequestReceived(root["id"], errorData);
+  emit unrecognizedRequestReceived(connection, replyTo, root["id"], errorData);
 }
 
-void JsonRpc::handleListQueuesRequest(const Json::Value &root) const
+void JsonRpc::handleListQueuesRequest(Connection *connection,
+                                      EndpointId replyTo,
+                                      const Json::Value &root) const
 {
   const IdType id = static_cast<IdType>(root["id"].asLargestUInt());
-  emit queueListRequestReceived(id);
+  emit queueListRequestReceived(connection, replyTo, id);
 }
 
 void JsonRpc::handleListQueuesResult(const Json::Value &root) const
@@ -1095,13 +1108,19 @@ void JsonRpc::handleListQueuesResult(const Json::Value &root) const
   emit queueListReceived(id, queueList);
 }
 
-void JsonRpc::handleListQueuesError(const Json::Value &root) const
+void JsonRpc::handleListQueuesError(Connection *connection,
+                                    EndpointId replyTo,
+                                    const Json::Value &root) const
 {
+  Q_UNUSED(connection);
+  Q_UNUSED(replyTo);
   Q_UNUSED(root);
   qWarning() << Q_FUNC_INFO << "is not implemented.";
 }
 
-void JsonRpc::handleSubmitJobRequest(const Json::Value &root) const
+void JsonRpc::handleSubmitJobRequest(Connection *connection,
+                                     EndpointId replyTo,
+                                     const Json::Value &root) const
 {
   const IdType id = static_cast<IdType>(root["id"].asLargestUInt());
 
@@ -1161,7 +1180,7 @@ void JsonRpc::handleSubmitJobRequest(const Json::Value &root) const
   }
 
 
-  emit jobSubmissionRequestReceived(id, optionHash);
+  emit jobSubmissionRequestReceived(connection, replyTo, id, optionHash);
 }
 
 void JsonRpc::handleSubmitJobResult(const Json::Value &root) const
@@ -1195,7 +1214,10 @@ void JsonRpc::handleSubmitJobResult(const Json::Value &root) const
                << workingDirectory.absolutePath() << "' for MoleQueue job id"
                << moleQueueId << "does not exist.";
 
-  emit successfulSubmissionReceived(id, moleQueueId, jobId, workingDirectory);
+  emit successfulSubmissionReceived(id,
+                                    moleQueueId,
+                                    jobId,
+                                    workingDirectory);
 }
 
 void JsonRpc::handleSubmitJobError(const Json::Value &root) const
@@ -1219,7 +1241,9 @@ void JsonRpc::handleSubmitJobError(const Json::Value &root) const
   emit failedSubmissionReceived(id, errorCode, errorMessage);
 }
 
-void JsonRpc::handleCancelJobRequest(const Json::Value &root) const
+void JsonRpc::handleCancelJobRequest(MoleQueue::Connection *connection,
+                                     const EndpointId replyTo,
+                                     const Json::Value &root) const
 {
   const IdType id = static_cast<IdType>(root["id"].asLargestUInt());
 
@@ -1237,7 +1261,7 @@ void JsonRpc::handleCancelJobRequest(const Json::Value &root) const
   const IdType moleQueueId = static_cast<IdType>(
         paramsObject["moleQueueId"].asLargestUInt());
 
-  emit jobCancellationRequestReceived(id, moleQueueId);
+  emit jobCancellationRequestReceived(connection, replyTo, id, moleQueueId);
 }
 
 void JsonRpc::handleCancelJobResult(const Json::Value &root) const

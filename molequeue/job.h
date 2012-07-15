@@ -27,7 +27,9 @@
 
 namespace MoleQueue
 {
+class Client;
 class JobManager;
+class Server;
 
 /**
  * @class Job job.h <molequeue/job.h>

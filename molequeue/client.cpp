@@ -16,13 +16,9 @@
 
 #include "client.h"
 
-#include "job.h"
-#include "jobrequest.h"
 #include "jobmanager.h"
 #include "jsonrpc.h"
-
-#include <QtNetwork/QLocalSocket>
-
+#include "transport/connection.h"
 #include <QtCore/QDateTime>
 #include <QtCore/QDebug>
 #include <QtCore/QDir>
@@ -30,7 +26,7 @@
 #include <QtCore/QVector>
 
 #define DEBUGOUT(title) \
-  if (this->m_debug)    \
+  if (m_debug)    \
     qDebug() << QDateTime::currentDateTime().toString() \
              << "Client" << title <<
 
@@ -41,14 +37,12 @@ Client::Client(QObject *parentObject) :
   AbstractRpcInterface(parentObject),
   m_jobManager(new JobManager(this)),
   m_submittedLUT(new PacketLookupTable ()),
-  m_canceledLUT(new PacketLookupTable ())
+  m_canceledLUT(new PacketLookupTable ()),
+  m_connection(NULL)
 {
   qRegisterMetaType<JobRequest>("MoleQueue::JobRequest");
   qRegisterMetaType<JobState>("MoleQueue::JobState");
   qRegisterMetaType<QueueListType>("MoleQueue::QueueListType");
-
-  QLocalSocket *socket = new QLocalSocket ();
-  this->setSocket(socket);
 
   connect(m_jsonrpc, SIGNAL(queueListReceived(MoleQueue::IdType,
                                               MoleQueue::QueueListType)),
@@ -84,6 +78,9 @@ Client::Client(QObject *parentObject) :
 
 Client::~Client()
 {
+  delete m_jobManager;
+  m_jobManager = NULL;
+
   delete m_submittedLUT;
   m_submittedLUT = NULL;
 
@@ -98,18 +95,18 @@ QueueListType Client::queueList() const
 
 void Client::submitJobRequest(const JobRequest &req)
 {
-  const IdType id = this->nextPacketId();
+  const IdType id = nextPacketId();
   const PacketType packet = m_jsonrpc->generateJobRequest(req, id);
   m_submittedLUT->insert(id, req);
-  this->sendPacket(packet);
+  m_connection->send(packet);
 }
 
 void Client::cancelJob(const JobRequest &req)
 {
-  const IdType id = this->nextPacketId();
+  const IdType id = nextPacketId();
   const PacketType packet = m_jsonrpc->generateJobCancellation(req, id);
   m_canceledLUT->insert(id, req);
-  this->sendPacket(packet);
+  m_connection->send(packet);
 }
 
 void Client::queueListReceived(IdType, const QueueListType &list)
@@ -211,47 +208,25 @@ void Client::jobStateChangeReceived(IdType moleQueueId,
   emit jobStateChanged(JobRequest(req), oldState, newState);
 }
 
-void Client::connectToServer(const QString &serverName)
-{
-  /// @todo This should return a bool indicating whether the connection was successful...
-  if (m_socket == NULL) {
-    qWarning() << Q_FUNC_INFO << "Cannot connect to server at" << serverName
-               << ", socket is not set.";
-    return;
-  }
-
-  if (m_socket->isOpen()) {
-    if (m_socket->serverName() == serverName) {
-      DEBUGOUT("connectToServer") "Socket already connected to" << serverName;
-      return;
-    }
-    else {
-      DEBUGOUT("connectToServer") "Disconnecting from server"
-          << m_socket->serverName();
-      m_socket->disconnectFromServer();
-    }
-  }
-  if (serverName.isEmpty()) {
-    DEBUGOUT("connectToServer") "No server specified. Not attempting connection.";
-    return;
-  }
-  else {
-    m_socket->connectToServer(serverName);
-    DEBUGOUT("connectToServer") "Client connected to server"
-        << m_socket->serverName();
-  }
-}
-
 void Client::requestQueueListUpdate()
 {
   PacketType packet = m_jsonrpc->generateQueueListRequest(
-        this->nextPacketId());
-  this->sendPacket(packet);
+        nextPacketId());
+  m_connection->send(packet);
 }
 
 JobRequest Client::newJobRequest()
 {
   return m_jobManager->newJob();
+}
+
+
+void Client::setConnection(Connection *connection)
+{
+  m_connection = connection;
+
+  connect(connection, SIGNAL(newMessage(const MoleQueue::Message)),
+          this, SLOT(readPacket(const MoleQueue::Message)));
 }
 
 }

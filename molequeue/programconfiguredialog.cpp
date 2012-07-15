@@ -33,7 +33,7 @@ ProgramConfigureDialog::ProgramConfigureDialog(Program *program,
   m_isCustomized((m_program->launchSyntax() == Program::CUSTOM))
 {
   ui->setupUi(this);
-  this->populateSyntaxCombo();
+  populateSyntaxCombo();
 
   connect(ui->combo_syntax, SIGNAL(currentIndexChanged(int)),
           this, SLOT(launchSyntaxChanged(int)));
@@ -54,9 +54,9 @@ ProgramConfigureDialog::ProgramConfigureDialog(Program *program,
   connect(ui->text_launchTemplate, SIGNAL(textChanged()),
           this, SLOT(launchEditorTextChanged()));
 
-  this->launchSyntaxChanged(ui->combo_syntax->currentIndex());
+  launchSyntaxChanged(ui->combo_syntax->currentIndex());
 
-  this->updateGuiFromProgram();
+  updateGuiFromProgram();
 }
 
 ProgramConfigureDialog::~ProgramConfigureDialog()
@@ -66,7 +66,7 @@ ProgramConfigureDialog::~ProgramConfigureDialog()
 
 void ProgramConfigureDialog::accept()
 {
-  this->updateProgramFromGui();
+  updateProgramFromGui();
   QDialog::accept();
 }
 
@@ -122,7 +122,7 @@ void ProgramConfigureDialog::updateGuiFromProgram()
   ui->combo_syntax->blockSignals(false);
   m_customLaunchText = m_program->customLaunchTemplate();
 
-  this->updateLaunchEditor();
+  updateLaunchEditor();
 }
 
 void ProgramConfigureDialog::updateProgramFromGui()
@@ -191,10 +191,10 @@ void ProgramConfigureDialog::launchSyntaxChanged(int enumVal)
 
   bool syntaxIsCustom = (syntax == Program::CUSTOM);
 
-  this->ui->push_customize->setDisabled(syntaxIsCustom);
-  this->ui->text_launchTemplate->setReadOnly(!syntaxIsCustom);
+  ui->push_customize->setDisabled(syntaxIsCustom);
+  ui->text_launchTemplate->setReadOnly(!syntaxIsCustom);
 
-  this->updateLaunchEditor();
+  updateLaunchEditor();
 }
 
 void ProgramConfigureDialog::customizeLauncherClicked()

@@ -54,7 +54,7 @@ void QueueManager::readSettings(QSettings &settings)
 
     QString queueType = settings.value("type").toString();
 
-    Queue *queue = this->addQueue(queueName, queueType, this);
+    Queue *queue = addQueue(queueName, queueType, this);
 
     if (queue != NULL)
       queue->readSettings(settings);
@@ -68,10 +68,10 @@ void QueueManager::readSettings(QSettings &settings)
 
 void QueueManager::writeSettings(QSettings &settings) const
 {
-  settings.setValue("queues", this->queueNames());
+  settings.setValue("queues", queueNames());
 
   settings.beginGroup("Queues");
-  foreach (const Queue* queue, this->queues()) {
+  foreach (const Queue* queue, queues()) {
     settings.beginGroup(queue->name());
     settings.setValue("type", queue->typeName());
     queue->writeSettings(settings);

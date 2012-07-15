@@ -17,9 +17,10 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include <QtGui/QMainWindow>
-
 #include "molequeueglobal.h"
+#include "transport/connectionlistener.h"
+
+#include <QtGui/QMainWindow>
 
 #include <QtGui/QSystemTrayIcon>
 
@@ -60,7 +61,7 @@ public slots:
 protected slots:
   void showQueueManager();
   void showOpenWithManager();
-  void handleServerConnectionError(QAbstractSocket::SocketError,
+  void handleServerConnectionError(MoleQueue::ConnectionListener::Error,
                                    const QString &);
 
   void notifyJobStateChanged(const MoleQueue::Job &job,

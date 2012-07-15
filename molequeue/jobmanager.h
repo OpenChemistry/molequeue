@@ -28,6 +28,7 @@
 class QSettings;
 
 class ClientTest;
+class ConnectionTest;
 
 namespace MoleQueue
 {
@@ -137,6 +138,7 @@ public:
   int indexOf(const Job &job) const;
 
   friend class JobReferenceBase;
+  friend class ConnectionTest;
 
 public slots:
   /**

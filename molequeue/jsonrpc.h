@@ -18,7 +18,7 @@
 #define JSONRPC_H
 
 #include "molequeueglobal.h"
-
+#include "transport/message.h"
 #include <json/json-forwards.h>
 
 #include <QtCore/QMetaType>
@@ -32,6 +32,7 @@ namespace MoleQueue
 {
 class Job;
 class QueueManager;
+class Connection;
 
 /**
  * @class JsonRpc jsonrpc.h <molequeue/jsonrpc.h>
@@ -68,7 +69,7 @@ public:
     *
     * @param req The Job of interest.
     * @param packetId The JSON-RPC id for the request.
-    * @return A PacketType, ready to send to a QLocalSocket.
+    * @return A PacketType, ready to send to a Connection.
     */
   PacketType generateJobRequest(const Job &req, IdType packetId);
 
@@ -80,7 +81,7 @@ public:
     * @param workingDir Local working directory where files are stored during
     * job execution
     * @param packetId The JSON-RPC id for the request.
-    * @return A PacketType, ready to send to a QLocalSocket.
+    * @return A PacketType, ready to send to a Connection.
     */
   PacketType generateJobSubmissionConfirmation(IdType moleQueueId,
                                                IdType queueId,
@@ -93,7 +94,7 @@ public:
     * @param errorCode Error code
     * @param message Single sentence describing the error that occurred.
     * @param packetId The JSON-RPC id for the packet.
-    * @return A PacketType, ready to send to a QLocalSocket.
+    * @return A PacketType, ready to send to a Connection.
     */
   PacketType generateErrorResponse(int errorCode,
                                    const QString &message,
@@ -106,7 +107,7 @@ public:
     * @param message Single sentence describing the error that occurred.
     * @param data a Json::Value to be used as the error object's data member
     * @param packetId The JSON-RPC id for the packet.
-    * @return A PacketType, ready to send to a QLocalSocket.
+    * @return A PacketType, ready to send to a Connection.
     * @overload
     */
   PacketType generateErrorResponse(int errorCode,
@@ -120,7 +121,7 @@ public:
     * @param errorCode Error code
     * @param message Single sentence describing the error that occurred.
     * @param packetId The JSON-RPC id for the packet.
-    * @return A PacketType, ready to send to a QLocalSocket.
+    * @return A PacketType, ready to send to a Connection.
     * @overload
     */
   PacketType generateErrorResponse(int errorCode,
@@ -134,7 +135,7 @@ public:
     * @param message Single sentence describing the error that occurred.
     * @param data a Json::Value to be used as the error object's data member
     * @param packetId The JSON-RPC id for the packet.
-    * @return A PacketType, ready to send to a QLocalSocket.
+    * @return A PacketType, ready to send to a Connection.
     * @overload
     */
   PacketType generateErrorResponse(int errorCode,
@@ -147,7 +148,7 @@ public:
     *
     * @param req The Job to cancel.
     * @param packetId The JSON-RPC id for the request.
-    * @return A PacketType, ready to send to a QLocalSocket.
+    * @return A PacketType, ready to send to a Connection.
     */
   PacketType generateJobCancellation(const Job &req,
                                      IdType packetId);
@@ -157,7 +158,7 @@ public:
     *
     * @param moleQueueId MoleQueue internal identifer for the canceled job.
     * @param packetId The JSON-RPC id for the request.
-    * @return A PacketType, ready to send to a QLocalSocket.
+    * @return A PacketType, ready to send to a Connection.
     */
   PacketType generateJobCancellationConfirmation(IdType moleQueueId,
                                                  IdType packetId);
@@ -167,7 +168,7 @@ public:
     * Programs.
     *
     * @param packetId The JSON-RPC id for the request.
-    * @return A PacketType, ready to send to a QLocalSocket.
+    * @return A PacketType, ready to send to a Connection.
     */
   PacketType generateQueueListRequest(IdType packetId);
 
@@ -177,7 +178,7 @@ public:
     *
     * @param qmanager The QueueManager to send.
     * @param packetId The JSON-RPC id for the request.
-    * @return A PacketType, ready to send to a QLocalSocket.
+    * @return A PacketType, ready to send to a Connection.
     */
   PacketType generateQueueList(const QueueListType &queueList,
                                IdType packetId);
@@ -189,7 +190,7 @@ public:
     * @param moleQueueId Internal MoleQueue job id of job.
     * @param oldState Old state of the job.
     * @param newState New state of the job.
-    * @return A PacketType, ready to send to a QLocalSocket.
+    * @return A PacketType, ready to send to a Connection.
     */
   PacketType generateJobStateChangeNotification(IdType moleQueueId,
                                                 JobState oldState,
@@ -200,21 +201,26 @@ public:
     * The packet(s) are split and interpreted, and signals are emitted
     * depending on the type of packets.
     *
+    * @param connection The connection the RPC was recieved on
     * @param data A packet containing a single or batch JSON-RPC transmission.
     * @return A QVector containing the packetIds of the data.
     */
-  void interpretIncomingPacket(const PacketType &data);
+  void interpretIncomingPacket(Connection *connection,
+                               const Message msg);
 
   /**
     * Process a JSON-RPC packet and return a QVector containing the packetId(s).
     * The packet(s) are split and interpreted, and signals are emitted
     * depending on the type of packets.
     *
+    * @param connection The connection the RPC was received on
     * @param data A JsonCpp value containing a single or batch JSON-RPC
     * transmission.
     * @return A QVector containing the packetIds of the data.
     */
-  void interpretIncomingJsonRpc(const Json::Value &data);
+  void interpretIncomingJsonRpc(Connection *connection,
+                                EndpointId replyTo,
+                                const Json::Value &data);
 
   /**
     * @param strict If false, minor errors (e.g. extra keys) will result in a
@@ -266,22 +272,28 @@ signals:
     * Emitted when a packet containing invalid JSON is received. The connected
     * client or server must send an error -32700 "Parse error".
     *
+    * @param connection The connection the invalid packet was received on
     * @param packetId JSON value representing the packetId
     * @param errorDataObject JSON object to be used as the data value in the
     * error object.
     */
-  void invalidPacketReceived(const Json::Value &packetId,
+  void invalidPacketReceived(MoleQueue::Connection *connection,
+                             const MoleQueue::EndpointId replyTo,
+                             const Json::Value &packetId,
                              const Json::Value &errorDataObject) const;
 
   /**
     * Emitted when an invalid JSON-RPC request is received. The connected
     * client or server must send an error -32600 "Invalid request".
     *
+    * @param connection The connection the invalid request was received on
     * @param packetId JSON value representing the packetId
     * @param errorDataObject JSON object to be used as the data value in the
     * error object.
     */
-  void invalidRequestReceived(const Json::Value &packetId,
+  void invalidRequestReceived(MoleQueue::Connection *connection,
+                              const MoleQueue::EndpointId replyTo,
+                              const Json::Value &packetId,
                               const Json::Value &errorDataObject) const;
 
   /**
@@ -289,11 +301,14 @@ signals:
     * The connected client or server must send an error -32601
     * "Method not found".
     *
+    * @param connection The connection the unrecognized request was received on
     * @param packetId JSON value representing the packetId
     * @param errorDataObject JSON object to be used as the data value in the
     * error object.
     */
-  void unrecognizedRequestReceived(const Json::Value &packetId,
+  void unrecognizedRequestReceived(MoleQueue::Connection *connection,
+                                   const MoleQueue::EndpointId replyTo,
+                                   const Json::Value &packetId,
                                    const Json::Value &errorDataObject) const;
 
   /**
@@ -301,22 +316,28 @@ signals:
     * parameters is received. The connected client or server must send an
     * error -32602 "Invalid params".
     *
+    * @param connection The connection the request was received on
     * @param packetId JSON value representing the packetId
     * @param errorDataObject JSON object to be used as the data value in the
     * error object.
     */
-  void invalidRequestParamsReceived(const Json::Value &packetId,
+  void invalidRequestParamsReceived(MoleQueue::Connection *connection,
+                                    const MoleQueue::EndpointId replyTo,
+                                    const Json::Value &packetId,
                                     const Json::Value &errorDataObject) const;
 
   /**
     * Emitted when an internal JSON-RPC error occurs. The connected client or
     * server must send an error -32603 "Internal error".
     *
+    * @param connection The connection TODO DOCUMENT
     * @param packetId JSON value representing the packetId
     * @param errorDataObject JSON object to be used as the data value in the
     * error object.
     */
-  void internalErrorOccurred(const Json::Value &packetId,
+  void internalErrorOccurred(MoleQueue::Connection *connection,
+                             const MoleQueue::EndpointId replyTo,
+                             const Json::Value &packetId,
                              const Json::Value &errorDataObject) const;
 
   /**
@@ -325,7 +346,9 @@ signals:
     *
     * @param packetId The JSON-RPC id for the packet
     */
-  void queueListRequestReceived(MoleQueue::IdType packetId) const;
+  void queueListRequestReceived(MoleQueue::Connection *connection,
+                                const MoleQueue::EndpointId replyTo,
+                                MoleQueue::IdType packetId) const;
 
   /**
     * Emitted when a list of available Queues/Programs is received.
@@ -342,7 +365,9 @@ signals:
     * @param packetId The JSON-RPC id for the packet
     * @param options Options for the job.
     */
-  void jobSubmissionRequestReceived(MoleQueue::IdType packetId,
+  void jobSubmissionRequestReceived(MoleQueue::Connection *connection,
+                                    const MoleQueue::EndpointId replyTo,
+                                    MoleQueue::IdType packetId,
                                     const QVariantHash &options) const;
 
   /**
@@ -379,7 +404,9 @@ signals:
     * @param moleQueueId The internal MoleQueue identifier for the job to
     * cancel.
     */
-  void jobCancellationRequestReceived(MoleQueue::IdType packetId,
+  void jobCancellationRequestReceived(MoleQueue::Connection *connection,
+                                      const MoleQueue::EndpointId replyTo,
+                                      MoleQueue::IdType packetId,
                                       MoleQueue::IdType moleQueueId) const;
 
   /**
@@ -457,27 +484,37 @@ protected:
 
   /// Extract data and emit signal for unparsable JSON.
   /// @param root Invalid request data
-  void handleUnparsablePacket(const PacketType &data) const;
+  void handleUnparsablePacket(MoleQueue::Connection *connection,
+                              const Message msg) const;
   /// Extract data and emit signal for a invalid request.
   /// @param root Invalid request data
-  void handleInvalidRequest(const Json::Value &root) const;
+  void handleInvalidRequest(MoleQueue::Connection *connection,
+                            const EndpointId replyTo,
+                            const Json::Value &root) const;
   /// Extract data and emit signal for a unrecognized request method.
   /// @param root Invalid request data
-  void handleUnrecognizedRequest(const Json::Value &root) const;
-
+  void handleUnrecognizedRequest(MoleQueue::Connection *connection,
+                                 const EndpointId replyTo,
+                                 const Json::Value &root) const;
   /// Extract data and emit signal for a listQueues request.
   /// @param root Root of request
-  void handleListQueuesRequest(const Json::Value &root) const;
+  void handleListQueuesRequest(MoleQueue::Connection *connection,
+                               const EndpointId replyTo,
+                               const Json::Value &root) const;
   /// Extract data and emit signal for a listQueues result.
   /// @param root Root of request
   void handleListQueuesResult(const Json::Value &root) const;
   /// Extract data and emit signal for a listQueues error.
   /// @param root Root of request
-  void handleListQueuesError(const Json::Value &root) const;
+  void handleListQueuesError(MoleQueue::Connection *connection,
+                             const EndpointId replyTo,
+                             const Json::Value &root) const;
 
   /// Extract data and emit signal for a submitJob request.
   /// @param root Root of request
-  void handleSubmitJobRequest(const Json::Value &root) const;
+  void handleSubmitJobRequest(MoleQueue::Connection *connection,
+                              const EndpointId replyTo,
+                              const Json::Value &root) const;
   /// Extract data and emit signal for a submitJob result.
   /// @param root Root of request
   void handleSubmitJobResult(const Json::Value &root) const;
@@ -487,7 +524,9 @@ protected:
 
   /// Extract data and emit signal for a cancelJob request.
   /// @param root Root of request
-  void handleCancelJobRequest(const Json::Value &root) const;
+  void handleCancelJobRequest(MoleQueue::Connection *connection,
+                              const EndpointId replyTo,
+                              const Json::Value &root) const;
   /// Extract data and emit signal for a cancelJob result.
   /// @param root Root of request
   void handleCancelJobResult(const Json::Value &root) const;

@@ -78,9 +78,9 @@ void Queue::readSettings(QSettings &settings)
     program->setName(progName);
     program->readSettings(settings);
 
-    if (!this->addProgram(program)) {
+    if (!addProgram(program)) {
       qWarning() << Q_FUNC_INFO << "Could not add program" << progName
-                 << "to queue" << this->name() << "-- duplicate program name.";
+                 << "to queue" << name() << "-- duplicate program name.";
       delete program;
     }
 
@@ -103,9 +103,9 @@ void Queue::writeSettings(QSettings &settings) const
   }
   settings.endArray(); // JobIdMap
 
-  settings.setValue("programs", this->programNames());
+  settings.setValue("programs", programNames());
   settings.beginGroup("Programs");
-  foreach (const Program *prog, this->programs()) {
+  foreach (const Program *prog, programs()) {
     settings.beginGroup(prog->name());
     prog->writeSettings(settings);
     settings.endGroup(); // prog->name()
@@ -161,7 +161,7 @@ bool Queue::writeInputFiles(const Job &job)
     emit errorOccurred(err);
     return false;
   }
-  const Program *program = this->lookupProgram(job.program());
+  const Program *program = lookupProgram(job.program());
   if (!program) {
     Error err (tr("Queue '%1' cannot locate program '%2'!")
                .arg(m_name).arg(job.program()),
@@ -226,7 +226,7 @@ bool Queue::writeInputFiles(const Job &job)
       qobject_cast<const QueueRemote*>(this);
   if ((localQueue && program->launchSyntax() == Program::CUSTOM) ||
       remoteQueue) {
-    QFile launcherFile (dir.absoluteFilePath(this->launchScriptName()));
+    QFile launcherFile (dir.absoluteFilePath(launchScriptName()));
     if (!launcherFile.open(QFile::WriteOnly | QFile::Text)) {
       Error err (tr("Cannot open file for writing: %1.")
                  .arg(launcherFile.fileName()),

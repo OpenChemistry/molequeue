@@ -19,6 +19,7 @@
 #include "abstractrpcinterface.h"
 #include "molequeueglobal.h"
 #include "testserver.h"
+#include "transport/localsocket/localsocketconnection.h"
 
 #include <QtNetwork/QLocalSocket>
 
@@ -28,6 +29,7 @@ class AbstractRpcInterfaceTest : public QObject
 
 private:
   TestServer *m_server;
+  MoleQueue::LocalSocketConnection *m_connection;
   MoleQueue::AbstractRpcInterface *m_rpc;
   MoleQueue::PacketType m_packet;
 
@@ -69,9 +71,15 @@ void AbstractRpcInterfaceTest::initTestCase()
 {
   m_server = new TestServer(&m_packet);
   m_rpc = new MoleQueue::AbstractRpcInterface();
-  QLocalSocket *socket = new QLocalSocket;
-  socket->connectToServer(m_server->socketName());
-  m_rpc->setSocket(socket);
+  m_connection =
+      new MoleQueue::LocalSocketConnection(this, m_server->socketName());
+  m_connection->open();
+  m_connection->start();
+
+  connect(m_connection, SIGNAL(newMessage(const MoleQueue::Message)),
+          m_rpc, SLOT(readPacket(const MoleQueue::Message)));
+
+
   // Let the event loop run a bit to handle the connections
   qApp->processEvents(QEventLoop::AllEvents, 1000);
 }
@@ -80,6 +88,7 @@ void AbstractRpcInterfaceTest::cleanupTestCase()
 {
   delete m_server;
   delete m_rpc;
+  delete m_connection;
 }
 
 void AbstractRpcInterfaceTest::init()
@@ -100,7 +109,7 @@ void AbstractRpcInterfaceTest::testInvalidPacket()
   QVERIFY2(m_server->waitForPacket(), "Timeout waiting for reply.");
 
   MoleQueue::PacketType refPacket =
-      this->readReferenceString("abstractrpcinterface-ref/invalid-json.json");
+      readReferenceString("abstractrpcinterface-ref/invalid-json.json");
 
   QCOMPARE(QString(m_packet), QString(refPacket));
 }
@@ -113,7 +122,7 @@ void AbstractRpcInterfaceTest::testInvalidRequest()
   QVERIFY2(m_server->waitForPacket(), "Timeout waiting for reply.");
 
   MoleQueue::PacketType refPacket =
-      this->readReferenceString("abstractrpcinterface-ref/invalid-request.json");
+      readReferenceString("abstractrpcinterface-ref/invalid-request.json");
 
   QCOMPARE(QString(m_packet), QString(refPacket));
 }
@@ -127,7 +136,7 @@ void AbstractRpcInterfaceTest::testInvalidMethod()
   QVERIFY2(m_server->waitForPacket(), "Timeout waiting for reply.");
 
   MoleQueue::PacketType refPacket =
-      this->readReferenceString("abstractrpcinterface-ref/invalid-method.json");
+      readReferenceString("abstractrpcinterface-ref/invalid-method.json");
 
   QCOMPARE(QString(m_packet), QString(refPacket));
 }

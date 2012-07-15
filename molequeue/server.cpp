@@ -21,10 +21,8 @@
 #include "jobmanager.h"
 #include "queue.h"
 #include "queuemanager.h"
-#include "serverconnection.h"
-
-#include <QtNetwork/QLocalServer>
-#include <QtNetwork/QLocalSocket>
+#include "pluginmanager.h"
+#include "transport/connectionlistenerfactory.h"
 
 #include <QtCore/QDateTime>
 #include <QtCore/QDebug>
@@ -33,60 +31,104 @@
 #include <QtCore/QSettings>
 
 #define DEBUGOUT(title) \
-  if (this->m_debug)    \
+  if (m_debug)    \
     qDebug() << QDateTime::currentDateTime().toString() \
              << "Server" << title <<
 
 namespace MoleQueue
 {
 
-Server::Server(QObject *parentObject)
-  : Object(parentObject),
-    m_server(new QLocalServer (this)),
+Server::Server(QObject *parentObject, QString serverName)
+  : AbstractRpcInterface(parentObject),
     m_jobManager(new JobManager (this)),
     m_queueManager(new QueueManager (this)),
     m_isTesting(false),
     m_moleQueueIdCounter(0),
+    m_serverName(serverName),
     m_debug(false)
 {
-  qRegisterMetaType<QAbstractSocket::SocketError>("QAbstractSocket::SocketError");
+  qRegisterMetaType<ConnectionListener::Error>("ConnectionListener::Error");
   qRegisterMetaType<ServerConnection*>("MoleQueue::ServerConnection*");
   qRegisterMetaType<const ServerConnection*>("const MoleQueue::ServerConnection*");
-
-  connect(m_server, SIGNAL(newConnection()),
-          this, SLOT(newConnectionAvailable()));
+  qRegisterMetaType<Job*>("MoleQueue::Job*");
+  qRegisterMetaType<const Job*>("const MoleQueue::Job*");
+  qRegisterMetaType<QueueListType>("MoleQueue::QueueListType");
 
   connect(m_jobManager, SIGNAL(jobAboutToBeAdded(MoleQueue::Job)),
           this, SLOT(jobAboutToBeAdded(MoleQueue::Job)),
           Qt::DirectConnection);
 
-  connect(m_jobManager, SIGNAL(jobStateChanged(const MoleQueue::Job &,
-                                               MoleQueue::JobState,
-                                               MoleQueue::JobState)),
-          this, SLOT(dispatchJobStateChange(const MoleQueue::Job &,
-                                            MoleQueue::JobState,
-                                            MoleQueue::JobState)));
+  connect(m_jobManager, SIGNAL(jobStateChanged(const MoleQueue::Job&,MoleQueue::JobState,MoleQueue::JobState)),
+          this, SLOT(dispatchJobStateChange(const MoleQueue::Job&,MoleQueue::JobState,MoleQueue::JobState)));
 
-  // Route error messages back into this object's handler:
-  connect(this, SIGNAL(errorOccurred(MoleQueue::Error)),
-          this, SLOT(handleError(MoleQueue::Error)));
+  connect(m_jobManager, SIGNAL(jobRemoved(MoleQueue::IdType)),
+          this, SLOT(jobRemoved(MoleQueue::IdType)));
+
+  connect(m_jsonrpc, SIGNAL(queueListRequestReceived(MoleQueue::Connection*,
+                                                     MoleQueue::EndpointId,
+                                                     MoleQueue::IdType)),
+          this, SLOT(queueListRequestReceived(MoleQueue::Connection*,
+                                              MoleQueue::EndpointId,
+                                              MoleQueue::IdType)));
+
+  connect(m_jsonrpc, SIGNAL(jobSubmissionRequestReceived(MoleQueue::Connection*,
+                                                         MoleQueue::EndpointId,
+                                                         MoleQueue::IdType,
+                                                         QVariantHash)),
+
+          this, SLOT(jobSubmissionRequestReceived(MoleQueue::Connection*,
+                                                  MoleQueue::EndpointId,
+                                                  MoleQueue::IdType,
+                                                  QVariantHash)));
+
+  connect(m_jsonrpc, SIGNAL(jobCancellationRequestReceived(MoleQueue::Connection*,
+                                                           MoleQueue::EndpointId,
+                                                           MoleQueue::IdType,
+                                                           MoleQueue::IdType)),
+          this, SLOT(jobCancellationRequestReceived(MoleQueue::Connection*,
+                                                    MoleQueue::EndpointId,
+                                                    MoleQueue::IdType,
+                                                    MoleQueue::IdType)));
+
+  //connect(m_connection, SIGNAL(disconnected()),
+  //        this, SIGNAL(disconnected()));
+
+  // load the transport plugins so we know what to listener on
+  PluginManager *pluginManager = PluginManager::instance();
+  pluginManager->load();
 }
 
 Server::~Server()
 {
-  this->stop();
-
-  qDeleteAll(m_connections);
-  m_connections.clear();
-
-  delete m_server;
-  m_server = NULL;
+  stop();
 
   delete m_jobManager;
   m_jobManager = NULL;
 
   delete m_queueManager;
   m_queueManager = NULL;
+}
+
+void Server::createConnectionListeners()
+{
+  PluginManager *pluginManager = PluginManager::instance();
+  QList<ConnectionListenerFactory *> factories =
+    pluginManager->connectionListenerFactories();
+
+  foreach(ConnectionListenerFactory *factory, factories) {
+    ConnectionListener *listener = factory->createConnectionListener(this,
+                                                                     m_serverName);
+    connect(listener, SIGNAL(connectionError(MoleQueue::ConnectionListener::Error,
+                                             const QString&)),
+            this, SIGNAL(connectionError(MoleQueue::ConnectionListener::Error,
+                                             const QString&)));
+
+    connect(listener, SIGNAL(newConnection(MoleQueue::Connection*)),
+            this, SLOT(newConnectionAvailable(MoleQueue::Connection*)));
+
+    m_connectionListeners.append(listener);
+
+  }
 }
 
 void Server::readSettings(QSettings &settings)
@@ -112,47 +154,55 @@ void Server::writeSettings(QSettings &settings) const
 
 void Server::start()
 {
-  const QString serverName = (!m_isTesting) ? "MoleQueue"
-                                            : "MoleQueue-testing";
-  if (!m_server->listen(serverName)) {
-    DEBUGOUT("start") "Error starting local socket server. Error type:"
-        << m_server->serverError() << m_server->errorString();
-    emit connectionError(m_server->serverError(), m_server->errorString());
-    return;
+  if(m_connectionListeners.empty())
+    createConnectionListeners();
+
+  foreach (ConnectionListener *listener, m_connectionListeners) {
+    listener->start();
   }
 
-  DEBUGOUT("start") "Local socket server started listening on address:"
-      << m_server->serverName();
+  DEBUGOUT("start") "Connection listener started listening on address:"
+      << m_serverName;
 }
 
 void Server::forceStart()
 {
-  const QString serverName = (!m_isTesting) ? "MoleQueue"
-                                            : "MoleQueue-testing";
-  DEBUGOUT("forceStart") "Attempting to remove existing servers...";
-  if (m_server->removeServer(serverName)) {
-    DEBUGOUT("forceStart") "Servers removed.";
-  }
-  else {
-    DEBUGOUT("forceStart") "Failed to remove existing servers.";
+  // Force stop and restart
+  stop(true);
+  start();
+}
+
+void Server::stop(bool force) {
+
+  foreach (Connection *conn, m_connections) {
+    conn->close();
+    delete conn;
   }
 
-  this->start();
+  foreach (ConnectionListener *listener, m_connectionListeners) {
+    listener->stop(force);
+    delete listener;
+  }
+
+  m_connections.clear();
+  m_connectionListeners.clear();
+
 }
 
 void Server::stop()
 {
-  m_server->close();
+  stop(false);
 }
 
-void Server::dispatchJobStateChange(const Job &job,
-                                    JobState oldState, JobState newState)
+void Server::dispatchJobStateChange(const Job &job, JobState oldState,
+                                    JobState newState)
 {
-  ServerConnection *conn = this->lookupConnection(job.moleQueueId());
-  if (!conn)
-    return;
+  Connection *connection = m_connectionLUT.value(job.moleQueueId());
+  EndpointId replyTo = m_endpointLUT.value(job.moleQueueId());
 
-  conn->sendJobStateChangeNotification(job, oldState, newState);
+  sendJobStateChangeNotification(connection,
+                                 replyTo,
+                                 job, oldState, newState);
 }
 
 void Server::handleError(const MoleQueue::Error &err)
@@ -189,64 +239,23 @@ void Server::handleError(const MoleQueue::Error &err)
   emit errorNotification(title, err.message());
 }
 
-void Server::queueListRequested()
+void Server::queueListRequestReceived(MoleQueue::Connection *connection,
+                                      MoleQueue::EndpointId replyTo,
+                                      MoleQueue::IdType id)
 {
-  ServerConnection *conn = qobject_cast<ServerConnection*>(this->sender());
-  if (conn == NULL) {
-    qWarning() << Q_FUNC_INFO << "called with a sender which is not a "
-                  "ServerConnection.";
-    return;
-  }
-
-  conn->sendQueueList(m_queueManager->toQueueList());
+  sendQueueList(connection, replyTo, id, m_queueManager->toQueueList());
 }
 
-void Server::jobSubmissionRequested(const Job &job)
+void Server::jobCancellationRequestReceived(MoleQueue::Connection *connection,
+                                            MoleQueue::EndpointId replyTo,
+                                            MoleQueue::IdType packetId,
+                                            IdType moleQueueId)
 {
-  ServerConnection *conn = qobject_cast<ServerConnection*>(this->sender());
-  if (conn == NULL) {
-    qWarning() << Q_FUNC_INFO << "called with a sender which is not a "
-                  "ServerConnection.";
-    return;
-  }
-
-  qDebug() << "Job submission requested:\n" << job.hash();
-
-  // Lookup queue and submit job.
-  Queue *queue = m_queueManager->lookupQueue(job.queue());
-  if (!queue) {
-    conn->sendFailedSubmissionResponse(job, MoleQueue::InvalidQueue,
-                                       tr("Unknown queue: %1")
-                                       .arg(job.queue()));
-    return;
-  }
-
-  // Send the submission confirmation first so that the client can update the
-  // MoleQueue id and properly handle packets sent during job submission.
-  conn->sendSuccessfulSubmissionResponse(job);
-
-  /// @todo Handle submission failures better -- return JobSubErrCode?
-  bool ok = queue->submitJob(job);
-  qDebug() << "Submission ok?" << ok;
-}
-
-void Server::jobCancellationRequested(IdType moleQueueId)
-{
-  ServerConnection *conn = qobject_cast<ServerConnection*>(this->sender());
-  if (conn == NULL) {
-    qWarning() << Q_FUNC_INFO << "called with a sender which is not a "
-                  "ServerConnection.";
-    return;
-  }
+  m_cancellationLUT.insert(moleQueueId, packetId);
 
   qDebug() << "Job cancellation requested: MoleQueueId:" << moleQueueId;
 
-  const Job req = m_jobManager->lookupJobByMoleQueueId(moleQueueId);
-
-  /// @todo actually handle the cancellation
-  /// @todo Handle NULL req
-
-  conn->sendSuccessfulCancellationResponse(req);
+   sendSuccessfulCancellationResponse(connection, replyTo, moleQueueId);
 }
 
 void Server::jobAboutToBeAdded(Job job)
@@ -258,41 +267,31 @@ void Server::jobAboutToBeAdded(Job job)
 
   job.setMoleQueueId(nextMoleQueueId);
   job.setLocalWorkingDirectory(m_workingDirectoryBase + "/" +
-                               QString::number(nextMoleQueueId));
+                                QString::number(nextMoleQueueId));
 
   // If the outputDirectory is blank, set it now
   /// @todo Have queues check that outputdir is different from LWD before copying/cleaning.
   if (job.outputDirectory().isEmpty())
     job.setOutputDirectory(job.localWorkingDirectory());
+
 }
 
-void Server::newConnectionAvailable()
+void Server::newConnectionAvailable(Connection *connection)
 {
-  if (!m_server->hasPendingConnections()) {
-    DEBUGOUT("newConnectionAvailable") "Aborting -- no pending connections "
-        "available.";
-    return;
-  }
+  m_connections.append(connection);
+  connect(connection, SIGNAL(newMessage(const MoleQueue::Message)),
+          this, SLOT(readPacket(const MoleQueue::Message)));
 
-  QLocalSocket *socket = m_server->nextPendingConnection();
-  ServerConnection *conn = new ServerConnection (this, socket);
+  connect(connection, SIGNAL(disconnected()), this, SLOT(clientDisconnected()));
 
-  connect(conn, SIGNAL(queueListRequested()), this, SLOT(queueListRequested()));
-  connect(conn, SIGNAL(jobSubmissionRequested(const MoleQueue::Job&)),
-          this, SLOT(jobSubmissionRequested(const MoleQueue::Job&)));
-  connect(conn, SIGNAL(jobCancellationRequested(MoleQueue::IdType)),
-          this, SLOT(jobCancellationRequested(MoleQueue::IdType)));
+  connection->start();
 
-  m_connections.append(conn);
-  connect(conn, SIGNAL(disconnected()), this, SLOT(clientDisconnected()));
-  emit newConnection(conn);
-  DEBUGOUT("newConnectionAvailable") "New connection added:" << conn;
-  conn->startProcessing();
+  DEBUGOUT("newConnectionAvailable") "New connection added:" << connection;
 }
 
 void Server::clientDisconnected()
 {
-  ServerConnection *conn = qobject_cast<ServerConnection*>(this->sender());
+  Connection *conn = qobject_cast<Connection*>(sender());
   if (conn == NULL) {
     qWarning() << Q_FUNC_INFO << "called without a ServerConnection as sender.";
     return;
@@ -303,15 +302,144 @@ void Server::clientDisconnected()
   conn->deleteLater();
 }
 
-ServerConnection *Server::lookupConnection(IdType moleQueueId)
+void Server::sendQueueList(Connection* connection,
+                           EndpointId to,
+                           MoleQueue::IdType id,
+                           const QueueListType &queueList)
 {
-  foreach (ServerConnection *conn, m_connections) {
-    if (!conn->hasJob(moleQueueId))
-      continue;
-    return conn;
+  PacketType packet = m_jsonrpc->generateQueueList(queueList, id);
+
+  Message msg(to, packet);
+
+  connection->send(msg);
+}
+
+void Server::sendSuccessfulSubmissionResponse(MoleQueue::Connection *connection,
+                                              MoleQueue::EndpointId replyTo,
+                                              const Job &job)
+{
+  // Lookup the moleQueueId in the hash so that we can send the correct packetId
+  const IdType moleQueueId = job.moleQueueId();
+  if (!m_submissionLUT.contains(moleQueueId)) {
+    qWarning() << "Refusing to confirm job submission; unrecognized MoleQueue id:"
+               << moleQueueId;
+    return;
   }
 
-  return NULL;
+  const IdType packetId = m_submissionLUT.take(moleQueueId);
+  PacketType packet =  m_jsonrpc->generateJobSubmissionConfirmation(
+        moleQueueId, job.queueId(), job.localWorkingDirectory(),
+        packetId);
+
+  Message msg(replyTo, packet);
+
+  connection->send(msg);
+}
+
+void Server::sendFailedSubmissionResponse(MoleQueue::Connection *connection,
+                                          MoleQueue::EndpointId replyTo,
+                                          const Job &job,
+                                          JobSubmissionErrorCode ec,
+                                          const QString &errorMessage)
+{
+  // Lookup the moleQueueId in the hash so that we can send the correct packetId
+  const IdType moleQueueId = job.moleQueueId();
+  if (!m_submissionLUT.contains(moleQueueId)) {
+    qWarning() << "Refusing to send job failure; unrecognized MoleQueue id:"
+               << moleQueueId;
+    return;
+  }
+
+  const IdType packetId = m_submissionLUT.take(moleQueueId);
+
+  PacketType packet = m_jsonrpc->generateErrorResponse(static_cast<int>(ec),
+                                                       errorMessage,
+                                                       packetId);
+  Message msg(replyTo, packet);
+
+  connection->send(msg);
+}
+
+void Server::sendSuccessfulCancellationResponse(MoleQueue::Connection *connection,
+                                                MoleQueue::EndpointId replyTo,
+                                                IdType jobId)
+{
+  // Lookup the moleQueueId in the hash so that we can send the correct packetId
+  if (!m_cancellationLUT.contains(jobId)) {
+    qWarning() << "Refusing to confirm job cancellation; unrecognized id:"
+               << jobId;
+    return;
+  }
+
+  const IdType packetId = m_cancellationLUT.take(jobId);
+  PacketType packet =  m_jsonrpc->generateJobCancellationConfirmation(
+        jobId, packetId);
+
+  Message msg(replyTo, packet);
+
+  connection->send(msg);
+}
+
+void Server::sendJobStateChangeNotification(MoleQueue::Connection *connection,
+                                            MoleQueue::EndpointId to,
+                                            const Job &job, JobState oldState,
+                                            JobState newState)
+{
+  PacketType packet = m_jsonrpc->generateJobStateChangeNotification(
+        job.moleQueueId(), oldState, newState);
+
+  Message msg(to, packet);
+
+  connection->send(msg);
+}
+
+void Server::jobSubmissionRequestReceived(MoleQueue::Connection *connection,
+                                          MoleQueue::EndpointId replyTo,
+                                          IdType packetId,
+                                          const QVariantHash &options)
+{
+  Job job = jobManager()->newJob(options);
+
+  m_submissionLUT.insert(job.moleQueueId(), packetId);
+  m_connectionLUT.insert(job.moleQueueId(), connection);
+  m_endpointLUT.insert(job.moleQueueId(), replyTo);
+  m_ownedJobMoleQueueIds.append(job.moleQueueId());
+
+  jobSubmissionRequested(connection, replyTo, job);
+}
+
+void Server::jobSubmissionRequested(MoleQueue::Connection *connection,
+                                    MoleQueue::EndpointId replyTo,
+                                    const Job &job)
+{
+  qDebug() << "Job submission requested:\n" << job.hash();
+
+  // Lookup queue and submit job.
+  Queue *queue = m_queueManager->lookupQueue(job.queue());
+  if (!queue) {
+    sendFailedSubmissionResponse(connection, replyTo,
+                                 job, MoleQueue::InvalidQueue,
+                                 tr("Unknown queue: %1").arg(job.queue()));
+    return;
+  }
+
+  // Send the submission confirmation first so that the client can update the
+  // MoleQueue id and properly handle packets sent during job submission.
+  sendSuccessfulSubmissionResponse(connection, replyTo, job);
+
+  /// @todo Handle submission failures better -- return JobSubErrCode?
+  bool ok = queue->submitJob(job);
+  qDebug() << "Submission ok?" << ok;
+}
+
+/**
+ * @warning Do not dereference @a job, as it no longer points to allocated TODO clean this up
+ * memory.
+ */
+void Server::jobRemoved(MoleQueue::IdType moleQueueId)
+{
+  m_connectionLUT.remove(moleQueueId);
+  m_endpointLUT.remove(moleQueueId);
 }
 
 } // end namespace MoleQueue

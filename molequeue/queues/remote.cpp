@@ -38,10 +38,10 @@ QueueRemote::QueueRemote(const QString &queueName, QueueManager *parentObject)
     m_checkForPendingJobsTimerId(-1)
 {
   // Check remote queue every 60 seconds
-  m_checkQueueTimerId = this->startTimer(60000);
+  m_checkQueueTimerId = startTimer(60000);
 
   // Check for jobs to submit every 5 seconds
-  m_checkForPendingJobsTimerId = this->startTimer(5000);
+  m_checkForPendingJobsTimerId = startTimer(5000);
 
   // Always allow m_requestQueueCommand to return 0
   m_allowedQueueRequestExitCodes.append(0);
@@ -112,7 +112,7 @@ void QueueRemote::submitPendingJobs()
   foreach (const IdType moleQueueId, m_pendingSubmission) {
     Job job = jobManager->lookupJobByMoleQueueId(moleQueueId);
     // Kick off the submission process...
-    this->beginJobSubmission(job);
+    beginJobSubmission(job);
   }
 
   m_pendingSubmission.clear();
@@ -120,10 +120,10 @@ void QueueRemote::submitPendingJobs()
 
 void QueueRemote::beginJobSubmission(Job job)
 {
-  if (!this->writeInputFiles(job))
+  if (!writeInputFiles(job))
     return;
 
-  this->createRemoteDirectory(job);
+  createRemoteDirectory(job);
 }
 
 void QueueRemote::createRemoteDirectory(Job job)
@@ -132,7 +132,7 @@ void QueueRemote::createRemoteDirectory(Job job)
   // created by scp.
   QString remoteDir = QString("%1").arg(m_workingDirectoryBase);
 
-  SshConnection *conn = this->newSshConnection();
+  SshConnection *conn = newSshConnection();
   conn->setData(QVariant::fromValue(job));
   connect(conn, SIGNAL(requestComplete()), this, SLOT(remoteDirectoryCreated()));
 
@@ -149,7 +149,7 @@ void QueueRemote::createRemoteDirectory(Job job)
 
 void QueueRemote::remoteDirectoryCreated()
 {
-  SshConnection *conn = qobject_cast<SshConnection*>(this->sender());
+  SshConnection *conn = qobject_cast<SshConnection*>(sender());
   if (!conn) {
     Error err (tr("Internal error: %1\n%2").arg(Q_FUNC_INFO)
                .arg("Sender is not an SshConnection!"), Error::MiscError, this);
@@ -182,7 +182,7 @@ void QueueRemote::remoteDirectoryCreated()
     return;
   }
 
-  this->copyInputFilesToHost(job);
+  copyInputFilesToHost(job);
 }
 
 void QueueRemote::copyInputFilesToHost(Job job)
@@ -191,7 +191,7 @@ void QueueRemote::copyInputFilesToHost(Job job)
   QString remoteDir =
       QString("%1/").arg(m_workingDirectoryBase);
 
-  SshConnection *conn = this->newSshConnection();
+  SshConnection *conn = newSshConnection();
   conn->setData(QVariant::fromValue(job));
   connect(conn, SIGNAL(requestComplete()), this, SLOT(inputFilesCopied()));
 
@@ -208,7 +208,7 @@ void QueueRemote::copyInputFilesToHost(Job job)
 
 void QueueRemote::inputFilesCopied()
 {
-  SshConnection *conn = qobject_cast<SshConnection*>(this->sender());
+  SshConnection *conn = qobject_cast<SshConnection*>(sender());
   if (!conn) {
     Error err (tr("Internal error: %1\n%2").arg(Q_FUNC_INFO)
                .arg("Sender is not an SshConnection!"), Error::MiscError, this);
@@ -240,7 +240,7 @@ void QueueRemote::inputFilesCopied()
     return;
   }
 
-  this->submitJobToRemoteQueue(job);
+  submitJobToRemoteQueue(job);
 }
 
 void QueueRemote::submitJobToRemoteQueue(Job job)
@@ -251,7 +251,7 @@ void QueueRemote::submitJobToRemoteQueue(Job job)
       .arg(m_submissionCommand)
       .arg(m_launchScriptName);
 
-  SshConnection *conn = this->newSshConnection();
+  SshConnection *conn = newSshConnection();
   conn->setData(QVariant::fromValue(job));
   connect(conn, SIGNAL(requestComplete()),
           this, SLOT(jobSubmittedToRemoteQueue()));
@@ -269,7 +269,7 @@ void QueueRemote::submitJobToRemoteQueue(Job job)
 
 void QueueRemote::jobSubmittedToRemoteQueue()
 {
-  SshConnection *conn = qobject_cast<SshConnection*>(this->sender());
+  SshConnection *conn = qobject_cast<SshConnection*>(sender());
   if (!conn) {
     Error err (tr("Internal error: %1\n%2").arg(Q_FUNC_INFO)
                .arg("Sender is not an SshConnection!"), Error::MiscError, this);
@@ -279,7 +279,7 @@ void QueueRemote::jobSubmittedToRemoteQueue()
   conn->deleteLater();
 
   IdType queueId;
-  this->parseQueueId(conn->output(), &queueId);
+  parseQueueId(conn->output(), &queueId);
   Job job = conn->data().value<Job>();
 
   if (!job.isValid()) {
@@ -318,9 +318,9 @@ void QueueRemote::requestQueueUpdate()
 
   m_isCheckingQueue = true;
 
-  const QString command = this->generateQueueRequestCommand();
+  const QString command = generateQueueRequestCommand();
 
-  SshConnection *conn = this->newSshConnection();
+  SshConnection *conn = newSshConnection();
   connect(conn, SIGNAL(requestComplete()),
           this, SLOT(handleQueueUpdate()));
 
@@ -336,7 +336,7 @@ void QueueRemote::requestQueueUpdate()
 
 void QueueRemote::handleQueueUpdate()
 {
-  SshConnection *conn = qobject_cast<SshConnection*>(this->sender());
+  SshConnection *conn = qobject_cast<SshConnection*>(sender());
   if (!conn) {
     Error err (tr("Internal error: %1\n%2").arg(Q_FUNC_INFO)
                .arg("Sender is not an SshConnection!"), Error::MiscError, this);
@@ -366,7 +366,7 @@ void QueueRemote::handleQueueUpdate()
   MoleQueue::JobState state;
   foreach (QString line, output) {
     IdType queueId;
-    if (this->parseQueueLine(line, &queueId, &state)) {
+    if (parseQueueLine(line, &queueId, &state)) {
       IdType moleQueueId = m_jobs.value(queueId, InvalidId);
       if (moleQueueId != InvalidId) {
         queueIds.removeOne(queueId);
@@ -392,7 +392,7 @@ void QueueRemote::handleQueueUpdate()
 
   // Now copy back any jobs that have left the queue
   foreach (IdType queueId, queueIds)
-    this->beginFinalizeJob(queueId);
+    beginFinalizeJob(queueId);
 
   m_isCheckingQueue = false;
 }
@@ -412,7 +412,7 @@ void QueueRemote::beginFinalizeJob(IdType queueId)
   if (!job.isValid())
     return;
 
-  this->finalizeJobCopyFromServer(job);
+  finalizeJobCopyFromServer(job);
 
 }
 
@@ -422,14 +422,14 @@ void QueueRemote::finalizeJobCopyFromServer(Job job)
       (job.cleanLocalWorkingDirectory() && job.outputDirectory().isEmpty())
       ) {
     // Jump to next step
-    this->finalizeJobCopyToCustomDestination(job);
+    finalizeJobCopyToCustomDestination(job);
     return;
   }
 
   QString localDir = job.localWorkingDirectory() + "/..";
   QString remoteDir =
       QString("%1/%2").arg(m_workingDirectoryBase).arg(job.moleQueueId());
-  SshConnection *conn = this->newSshConnection();
+  SshConnection *conn = newSshConnection();
   conn->setData(QVariant::fromValue(job));
   connect(conn, SIGNAL(requestComplete()),
           this, SLOT(finishedJobOutputCopiedFromServer()));
@@ -447,7 +447,7 @@ void QueueRemote::finalizeJobCopyFromServer(Job job)
 
 void QueueRemote::finishedJobOutputCopiedFromServer()
 {
-  SshConnection *conn = qobject_cast<SshConnection*>(this->sender());
+  SshConnection *conn = qobject_cast<SshConnection*>(sender());
   if (!conn) {
     Error err (tr("Internal error: %1\n%2").arg(Q_FUNC_INFO)
                .arg("Sender is not an SshConnection!"), Error::MiscError, this);
@@ -478,7 +478,7 @@ void QueueRemote::finishedJobOutputCopiedFromServer()
     return;
   }
 
-  this->finalizeJobCopyToCustomDestination(job);
+  finalizeJobCopyToCustomDestination(job);
 }
 
 void QueueRemote::finalizeJobCopyToCustomDestination(Job job)
@@ -486,34 +486,34 @@ void QueueRemote::finalizeJobCopyToCustomDestination(Job job)
   // Skip to next step if needed
   if (job.outputDirectory().isEmpty() ||
       job.outputDirectory() == job.localWorkingDirectory()) {
-    this->finalizeJobCleanup(job);
+    finalizeJobCleanup(job);
     return;
   }
 
   // The copy function will throw errors if needed.
-  if (!this->recursiveCopyDirectory(job.localWorkingDirectory(),
+  if (!recursiveCopyDirectory(job.localWorkingDirectory(),
                                     job.outputDirectory())) {
     job.setJobState(MoleQueue::ErrorState);
     return;
   }
 
-  this->finalizeJobCleanup(job);
+  finalizeJobCleanup(job);
 }
 
 void QueueRemote::finalizeJobCleanup(Job job)
 {
   if (job.cleanLocalWorkingDirectory())
-    this->cleanLocalDirectory(job);
+    cleanLocalDirectory(job);
 
   if (job.cleanRemoteFiles())
-    this->cleanRemoteDirectory(job);
+    cleanRemoteDirectory(job);
 
   job.setJobState(MoleQueue::Finished);
 }
 
 void QueueRemote::cleanLocalDirectory(Job job)
 {
-  this->recursiveRemoveDirectory(job.localWorkingDirectory());
+  recursiveRemoveDirectory(job.localWorkingDirectory());
 }
 
 void QueueRemote::cleanRemoteDirectory(Job job)
@@ -532,7 +532,7 @@ void QueueRemote::cleanRemoteDirectory(Job job)
 
   QString command = QString ("rm -rf %1").arg(remoteDir);
 
-  SshConnection *conn = this->newSshConnection();
+  SshConnection *conn = newSshConnection();
   conn->setData(QVariant::fromValue(job));
   connect(conn, SIGNAL(requestComplete()),
           this, SLOT(remoteDirectoryCleaned()));
@@ -549,7 +549,7 @@ void QueueRemote::cleanRemoteDirectory(Job job)
 
 void QueueRemote::remoteDirectoryCleaned()
 {
-  SshConnection *conn = qobject_cast<SshConnection*>(this->sender());
+  SshConnection *conn = qobject_cast<SshConnection*>(sender());
   if (!conn) {
     Error err (tr("Internal error: %1\n%2").arg(Q_FUNC_INFO)
                .arg("Sender is not an SshConnection!"), Error::MiscError, this);
@@ -615,7 +615,7 @@ bool QueueRemote::recursiveRemoveDirectory(const QString &path)
                QDir::NoDotAndDotDot | QDir::System | QDir::Hidden |
                QDir::AllDirs | QDir::Files, QDir::DirsFirst)) {
       if (info.isDir())
-        result = this->recursiveRemoveDirectory(info.absoluteFilePath());
+        result = recursiveRemoveDirectory(info.absoluteFilePath());
       else
         result = QFile::remove(info.absoluteFilePath());
 
@@ -670,7 +670,7 @@ bool QueueRemote::recursiveCopyDirectory(const QString &from, const QString &to)
     .arg(toDir.absolutePath(),
          fromDir.relativeFilePath(info.absoluteFilePath()));
     if (info.isDir()) {
-      result = this->recursiveCopyDirectory(info.absoluteFilePath(),
+      result = recursiveCopyDirectory(info.absoluteFilePath(),
                                             newTargetPath);
     }
     else {
@@ -703,7 +703,7 @@ void QueueRemote::removeStaleJobs()
         Error err (tr("Job with MoleQueue id %1 is missing, but the Queue '%2' "
                       "is still holding a reference to it. Please report this "
                       "bug and check if the job needs to be resubmitted.")
-                   .arg(it.value()).arg(this->name()),
+                   .arg(it.value()).arg(name()),
                    Error::QueueError, this);
         emit errorOccurred(err);
       }

@@ -1,12 +1,19 @@
 find_package(Qt4 4.8.0 COMPONENTS QtCore QtGui QtNetwork)
 
 include(${QT_USE_FILE})
+include(GenerateExportHeader)
 
 set(JSONCPP_SOURCE_DIR "${MoleQueue_SOURCE_DIR}/thirdparty/jsoncpp/")
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR}
+  ${CMAKE_CURRENT_SOURCE_DIR}
   ${JSONCPP_SOURCE_DIR}
-)
+  ${CMAKE_CURRENT_BINARY_DIR}/transport
+  ${CMAKE_CURRENT_BINARY_DIR}/transport/localsocket)
+
+if(CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND NOT WIN32)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
+endif()
 
 set(mq_srcs
   abstractrpcinterface.cpp
@@ -35,6 +42,7 @@ set(mq_srcs
   openwithexecutablemodel.cpp
   openwithpatternmodel.cpp
   patterntypedelegate.cpp
+  pluginmanager.cpp
   program.cpp
   programconfiguredialog.cpp
   queue.cpp
@@ -49,7 +57,6 @@ set(mq_srcs
   queuesettingsdialog.cpp
   remotequeuewidget.cpp
   server.cpp
-  serverconnection.cpp
   sshcommand.cpp
   sshconnection.cpp
   terminalprocess.cpp
@@ -76,6 +83,7 @@ set(mq_moc
   openwithexecutablemodel.h
   openwithpatternmodel.h
   patterntypedelegate.h
+  pluginmanager.h
   program.h
   programconfiguredialog.h
   queue.h
@@ -90,11 +98,11 @@ set(mq_moc
   queuesettingsdialog.h
   remotequeuewidget.h
   server.h
-  serverconnection.h
   sshcommand.h
   sshconnection.h
   terminalprocess.h
 )
+
 qt4_wrap_cpp(moc_srcs ${mq_moc})
 
 qt4_wrap_ui(ui_srcs
@@ -107,6 +115,7 @@ qt4_wrap_ui(ui_srcs
   ui/queuesettingsdialog.ui
   ui/remotequeuewidget.ui
 )
+
 qt4_add_resources(rcc_srcs queuetray.qrc)
 
 # Pull in JsonCpp
@@ -125,10 +134,21 @@ else()
 endif()
 
 add_library(molequeue_static STATIC
-  ${mq_srcs} ${moc_srcs} ${ui_srcs})
+  ${mq_srcs}
+  ${moc_srcs}
+  ${ui_srcs}
+  )
+
+target_link_libraries(molequeue_static
+  mqconnection
+  mqlocalsocketclient
+  mqconnectionlistener)
 
 add_executable(molequeue MACOSX_BUNDLE main.cpp ${rcc_srcs})
-target_link_libraries(molequeue molequeue_static ${QT_LIBRARIES})
+target_link_libraries(molequeue
+  molequeue_static
+  ${QT_LIBRARIES})
+
 install(TARGETS molequeue
   DESTINATION bin)
 
@@ -147,10 +167,6 @@ if((APPLE OR WIN32) AND NOT ${CMAKE_VERSION} VERSION_LESS 2.8.8)
 
   include(DeployQt4)
   install_qt4_executable(bin/molequeue${sfx} "" "" "${dirs}")
-endif()
-
-if(ENABLE_TESTING)
-  add_subdirectory(testing)
 endif()
 
 # Client library
@@ -183,7 +199,18 @@ set(mqclient_headers
   ${JSONCPP_SOURCE_DIR}/json/json-forwards.h
 )
 
+
 qt4_wrap_cpp(mqclient_moc_srcs ${mqclient_moc})
-add_library(molequeueclient SHARED ${mqclient_srcs} ${mqclient_moc_srcs})
-target_link_libraries(molequeueclient ${QT_LIBRARIES})
+add_library(molequeueclient STATIC
+  ${mqclient_srcs}
+  ${mqclient_moc_srcs})
+target_link_libraries(molequeueclient
+  ${QT_LIBRARIES}
+  mqconnection)
 install(TARGETS molequeueclient DESTINATION lib)
+
+add_subdirectory(transport)
+
+if(BUILD_TESTING)
+  add_subdirectory(testing)
+endif()
