@@ -18,6 +18,7 @@
 
 #include "job.h"
 #include "jobdata.h"
+#include "logger.h"
 
 #include <QtCore/QSettings>
 
@@ -187,6 +188,12 @@ void JobManager::setJobState(IdType moleQueueId, JobState newState)
     return;
 
   jobdata->setJobState(newState);
+
+  Logger::addNotification(tr("Job '%1' has changed status from '%2' to '%3'.")
+                          .arg(jobdata->description())
+                          .arg(MoleQueue::jobStateToString(oldState))
+                          .arg(MoleQueue::jobStateToString(newState)),
+                          moleQueueId);
 
   emit jobStateChanged(jobdata, oldState, newState);
 }

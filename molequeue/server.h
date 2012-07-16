@@ -17,15 +17,13 @@
 #ifndef SERVER_H
 #define SERVER_H
 
-#include "object.h"
+#include "abstractrpcinterface.h"
 
 #include "job.h"
 #include "molequeueglobal.h"
 #include "transport/connectionlistener.h"
 #include "jsonrpc.h"
-#include "abstractrpcinterface.h"
 
-#include <QtCore/QObject>
 #include <QtCore/QList>
 
 class ServerTest;
@@ -35,11 +33,12 @@ class QSettings;
 
 namespace MoleQueue
 {
+class Connection;
+class Error;
 class Job;
 class JobManager;
 class QueueManager;
 class ServerConnection;
-class Connection;
 
 /**
  * @class Server server.h <molequeue/server.h>
@@ -172,12 +171,6 @@ public slots:
   void dispatchJobStateChange(const MoleQueue::Job &job,
                               MoleQueue::JobState oldState,
                               MoleQueue::JobState newState);
-
-  /**
-   * Reimplemented from Object. Emits errorNotification.
-   * @param err Error object describing the error.
-   */
-  void handleError(const MoleQueue::Error &err);
 
   /**
    * Sends the @a list to the connected client.

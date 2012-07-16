@@ -17,7 +17,7 @@
 #ifndef PROGRAM_H
 #define PROGRAM_H
 
-#include "object.h"
+#include <QtCore/QObject>
 
 #include <QtCore/QMap>
 #include <QtCore/QMetaType>
@@ -41,7 +41,7 @@ class Server;
  * for running the executable, any arguments it needs, and the names of files
  * it reads/produces.
  */
-class Program : public Object
+class Program : public QObject
 {
   Q_OBJECT
 public:

@@ -28,7 +28,7 @@
 namespace MoleQueue {
 
 Program::Program(Queue *parentQueue) :
-  Object(parentQueue),
+  QObject(parentQueue),
   m_queue(parentQueue),
   m_queueManager((m_queue) ? m_queue->queueManager() : NULL),
   m_server((m_queueManager) ? m_queueManager->server() : NULL),
@@ -45,7 +45,7 @@ Program::Program(Queue *parentQueue) :
 }
 
 Program::Program(const Program &other)
-  : Object(other.parent()),
+  : QObject(other.parent()),
     m_queue(other.m_queue),
     m_name(other.m_name),
     m_executable(other.m_executable),
