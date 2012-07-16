@@ -2,8 +2,6 @@ find_package(ZeroMQ REQUIRED)
 
 include_directories(${ZeroMQ_INCLUDE_DIR})
 
-message("${ZeroMQ_LIBRARIES}")
-
 set(mq_zeromq_connection_srcs
   zeromqconnection.cpp
   )
