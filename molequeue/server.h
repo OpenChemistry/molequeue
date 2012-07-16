@@ -304,9 +304,6 @@ protected:
   /// List of active connections
   QList<Connection*> m_connections;
 
-  /// The connection listeners
-  QList<ConnectionListener*> m_connectionListeners;
-
   /// The JobManager for this Server.
   JobManager *m_jobManager;
 
@@ -346,6 +343,8 @@ public:
 private:
   void createConnectionListeners();
   QString m_serverName;
+  /// The connection listeners
+  QList<ConnectionListener*> m_connectionListeners;
 
 protected:
   /// Toggles runtime debugging
