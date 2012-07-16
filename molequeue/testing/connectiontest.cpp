@@ -96,7 +96,8 @@ void ConnectionTest::testRequestQueueList()
   QCOMPARE(spy.count(), 1);
 
   // Verify we get the same queue list back
-  MoleQueue::QueueListType queueList = spy.first().first().value<MoleQueue::QueueListType>();
+  MoleQueue::QueueListType queueList =
+    spy.first().first().value<MoleQueue::QueueListType>();
 
   foreach(QString qn, testQueues.keys()) {
 
@@ -132,11 +133,11 @@ void ConnectionTest::testSuccessfulJobSubmission()
   m_client->submitJobRequest(req);
 
   QTimer timer;
-    timer.setSingleShot(true);
-    timer.start(10000);
-    while (timer.isActive() && spy.isEmpty()) {
-      qApp->processEvents(QEventLoop::AllEvents, 500);
-    }
+  timer.setSingleShot(true);
+  timer.start(10000);
+  while (timer.isActive() && spy.isEmpty()) {
+    qApp->processEvents(QEventLoop::AllEvents, 500);
+  }
 
   QCOMPARE(spy.count(), 1);
 
@@ -242,13 +243,15 @@ void ConnectionTest::testJobStateChangeNotification()
     req.setQueue(qn);
 
     QSignalSpy jobSubmittedSpy (m_client,
-                                SIGNAL(jobSubmitted(const MoleQueue::JobRequest&,
-                                                    bool, const QString&)));
+                                SIGNAL(jobSubmitted(
+                                          const MoleQueue::JobRequest&,
+                                          bool, const QString&)));
 
     QSignalSpy jobStateChangedSpy (m_client,
-                                   SIGNAL(jobStateChanged(const MoleQueue::JobRequest&,
-                                                          MoleQueue::JobState,
-                                                          MoleQueue::JobState)));
+                                   SIGNAL(jobStateChanged(
+                                            const MoleQueue::JobRequest&,
+                                            MoleQueue::JobState,
+                                            MoleQueue::JobState)));
 
     m_client->connectToServer("MoleQueue-testing");
     m_client->submitJobRequest(req);
@@ -265,7 +268,8 @@ void ConnectionTest::testJobStateChangeNotification()
     bool success = jobSubmittedSpy.first().at(1).value<bool>();
     QVERIFY(success);
 
-    MoleQueue::JobRequest job = jobSubmittedSpy.first().at(0).value<MoleQueue::JobRequest>();
+    MoleQueue::JobRequest job =
+      jobSubmittedSpy.first().at(0).value<MoleQueue::JobRequest>();
 
     MoleQueue::JobManager *jobManager = m_server->jobManager();
 
@@ -278,7 +282,8 @@ void ConnectionTest::testJobStateChangeNotification()
 
     QCOMPARE(jobStateChangedSpy.count(), 2);
 
-    MoleQueue::JobState state = jobStateChangedSpy.at(1).at(2).value<MoleQueue::JobState>();
+    MoleQueue::JobState state =
+      jobStateChangedSpy.at(1).at(2).value<MoleQueue::JobState>();
 
     QCOMPARE(state, MoleQueue::Killed);
 }

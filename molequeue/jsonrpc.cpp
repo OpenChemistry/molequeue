@@ -393,7 +393,8 @@ void JsonRpc::interpretIncomingPacket(Connection* connection,
   Json::Reader reader;
   Json::Value root;
 
-  if (!reader.parse(msg.data().constData(), msg.data().constData() + msg.data().size(),
+  if (!reader.parse(msg.data().constData(),
+                    msg.data().constData() + msg.data().size(),
                     root, false)) {
 
     qDebug() << "msg:  " << msg.data();
@@ -1014,7 +1015,8 @@ void JsonRpc::handleUnparsablePacket(Connection *connection,
 
   errorData["receivedPacket"] = msg.data().constData();
 
-  emit invalidPacketReceived(connection, msg.replyTo(), Json::nullValue, errorData);
+  emit invalidPacketReceived(connection, msg.replyTo(), Json::nullValue,
+                             errorData);
 }
 
 void JsonRpc::handleInvalidRequest(Connection *connection,
@@ -1025,7 +1027,8 @@ void JsonRpc::handleInvalidRequest(Connection *connection,
 
   errorData["receivedJson"] = Json::Value(root);
 
-  emit invalidRequestReceived(connection, replyTo, (root.isObject()) ? root["id"] : Json::nullValue,
+  emit invalidRequestReceived(connection, replyTo,
+                              (root.isObject()) ? root["id"] : Json::nullValue,
                               errorData);
 }
 
@@ -1214,10 +1217,7 @@ void JsonRpc::handleSubmitJobResult(const Json::Value &root) const
                << workingDirectory.absolutePath() << "' for MoleQueue job id"
                << moleQueueId << "does not exist.";
 
-  emit successfulSubmissionReceived(id,
-                                    moleQueueId,
-                                    jobId,
-                                    workingDirectory);
+  emit successfulSubmissionReceived(id, moleQueueId, jobId, workingDirectory);
 }
 
 void JsonRpc::handleSubmitJobError(const Json::Value &root) const

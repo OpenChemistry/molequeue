@@ -85,6 +85,9 @@ public:
    */
   QueueListType queueList() const;
 
+  /**
+   * Sets the connection to be used by this client.
+   */
   void setConnection(Connection *connecton);
 
   /// Used for internal lookup structures
@@ -176,7 +179,8 @@ protected slots:
    * Called when the JsonRpc instance handles a listQueues response.
    * @param list List of supported Queues/Programs
    */
-  void queueListReceived(MoleQueue::IdType, const MoleQueue::QueueListType &list);
+  void queueListReceived(MoleQueue::IdType,
+                         const MoleQueue::QueueListType &list);
 
   /**
    * Called when the JsonRpc instance handles a successful submitJob response.

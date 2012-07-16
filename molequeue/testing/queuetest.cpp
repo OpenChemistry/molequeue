@@ -19,35 +19,6 @@
 #include "program.h"
 #include "queue.h"
 
-class A : public QObject
-{
-  Q_OBJECT
-public:
-
-  void em() { qDebug() << this; emit sig(); };
-
-signals:
-  void sig();
-};
-
-class B : public QObject
-{
-  Q_OBJECT
-public:
-signals:
-  void sig();
-};
-
-class C : public QObject
-{
-  Q_OBJECT
-public slots:
-
-  void slt() { qDebug() << sender(); };
-};
-
-
-
 class DummyQueue : public MoleQueue::Queue
 {
   Q_OBJECT
@@ -82,7 +53,6 @@ private slots:
   void testProgramNames();
   void testRemoveProgram();
   void testCleanup();
-  void testSignals();
 };
 
 void QueueTest::initTestCase()
@@ -172,21 +142,6 @@ void QueueTest::testCleanup()
   queue = NULL;
 
   QCOMPARE(program.data(), static_cast<MoleQueue::Program*>(NULL));
-}
-
-void QueueTest::testSignals()
-{
-  A a;
-  B b;
-  C c;
-
-  connect(&a, SIGNAL(sig()),
-          &b, SIGNAL(sig()));
-
-  connect(&b, SIGNAL(sig()),
-          &c, SLOT(slt()));
-
-  a.em();
 }
 
 QTEST_MAIN(QueueTest)

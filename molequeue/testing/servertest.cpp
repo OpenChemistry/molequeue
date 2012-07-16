@@ -81,18 +81,20 @@ void ServerTest::cleanup()
 
 }
 
-MoleQueue::LocalSocketConnectionListener * ServerTest::localSocketConnectionListener()
+MoleQueue::LocalSocketConnectionListener *
+  ServerTest::localSocketConnectionListener()
 {
 
   MoleQueue::LocalSocketConnectionListener *localListener = NULL;
      static_cast<MoleQueue::LocalSocketConnectionListener *>(
           m_server->m_connectionListeners.at(0));
 
-  foreach(MoleQueue::ConnectionListener *listener, m_server->m_connectionListeners) {
+  foreach(MoleQueue::ConnectionListener *listener,
+          m_server->m_connectionListeners) {
     localListener =
        static_cast<MoleQueue::LocalSocketConnectionListener *>(listener);
 
-    if(localListener)
+    if (localListener)
       break;
   }
 
@@ -125,7 +127,8 @@ void ServerTest::testForceStart()
 
   // Attempt to start the server. Check that the AddressInUseError is emitted.
   QSignalSpy spy (m_server,
-                  SIGNAL(connectionError(MoleQueue::ConnectionListener::Error,const QString&)));
+                  SIGNAL(connectionError(MoleQueue::ConnectionListener::Error,
+                                         const QString&)));
   m_server->start();
   qApp->processEvents(QEventLoop::AllEvents, 1000);
   QCOMPARE(spy.count(), 1);
@@ -158,7 +161,7 @@ void ServerTest::testNewConnection()
   QVERIFY(m_testSocket.state() == QLocalSocket::ConnectedState);
 
   // Check that we've received the connections
-  // One zeromq and one local sock ...
+  // One zeromq and one local socket ...
 #ifdef USE_ZERO_MQ
   QCOMPARE(m_server->m_connections.size(), 2);
 #else

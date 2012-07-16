@@ -32,7 +32,7 @@ void ZeroMqClient::connectToServer(const QString &serverName)
 
   if (m_connection && m_connection->isOpen()) {
     if (m_connection->connectionString() == serverName) {
-      DEBUG("connectToServer") "Socket already connected to" << serverName;
+      DEBUG("connectToServer") "zeromq Socket already connected to" << serverName;
       return;
     }
     else {
