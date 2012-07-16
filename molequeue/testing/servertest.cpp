@@ -36,6 +36,7 @@ class ServerTest : public QObject
   Q_OBJECT
 
 private:
+  QString m_connectionString;
   QLocalSocket m_testSocket;
   MoleQueue::Server *m_server;
 
@@ -61,14 +62,15 @@ private slots:
 
 void ServerTest::initTestCase()
 {
-  m_server = new MoleQueue::Server(this, QString("MoleQueue-testing"));
+  m_connectionString = TestServer::getRandomSocketName();
+  m_server = new MoleQueue::Server(this, m_connectionString);
   m_server->m_isTesting = true;
   m_server->setDebug(true);
 }
 
 void ServerTest::cleanupTestCase()
 {
-  delete m_server;
+
 }
 
 void ServerTest::init()
@@ -86,8 +88,6 @@ MoleQueue::LocalSocketConnectionListener *
 {
 
   MoleQueue::LocalSocketConnectionListener *localListener = NULL;
-     static_cast<MoleQueue::LocalSocketConnectionListener *>(
-          m_server->m_connectionListeners.at(0));
 
   foreach(MoleQueue::ConnectionListener *listener,
           m_server->m_connectionListeners) {
@@ -120,7 +120,7 @@ void ServerTest::testStop()
 void ServerTest::testForceStart()
 {
   // Start a duplicate server to take the socket address
-  MoleQueue::Server dupServer(this, QString("MoleQueue-testing"));
+  MoleQueue::Server dupServer(this, m_connectionString);
   dupServer.m_isTesting = true;
   dupServer.setDebug(true);
   dupServer.start();
@@ -156,7 +156,7 @@ void ServerTest::testNewConnection()
   m_server->stop();
   m_server->start();
 
-  m_testSocket.connectToServer("MoleQueue-testing");
+  m_testSocket.connectToServer(m_connectionString);
   qApp->processEvents(QEventLoop::AllEvents, 1000);
   QVERIFY(m_testSocket.state() == QLocalSocket::ConnectedState);
 

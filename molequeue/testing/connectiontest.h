@@ -43,6 +43,7 @@ class ConnectionTest : public QObject
 protected:
   virtual MoleQueue::Client *createClient() = 0;
 private:
+  QString m_connectionName;
   MoleQueue::Server *m_server;
   MoleQueue::Client *m_client;
 
