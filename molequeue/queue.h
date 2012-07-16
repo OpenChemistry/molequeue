@@ -17,7 +17,7 @@
 #ifndef QUEUE_H
 #define QUEUE_H
 
-#include "object.h"
+#include <QtCore/QObject>
 
 #include "job.h"
 #include "molequeueglobal.h"
@@ -47,7 +47,7 @@ class Server;
  * Queue object manages a set of Program instances, which contain information
  * about the related task of actually running an executable to do work.
  */
-class Queue : public Object
+class Queue : public QObject
 {
   Q_OBJECT
 protected:

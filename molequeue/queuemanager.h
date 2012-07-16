@@ -17,7 +17,7 @@
 #ifndef QUEUEMANAGER_H
 #define QUEUEMANAGER_H
 
-#include "object.h"
+#include <QtCore/QObject>
 
 #include "molequeueglobal.h"
 
@@ -35,7 +35,7 @@ class Server;
  * @brief Manage a collection of Queue instances.
  * @author David C. Lonie
  */
-class QueueManager : public Object
+class QueueManager : public QObject
 {
   Q_OBJECT
 

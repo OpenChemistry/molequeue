@@ -20,7 +20,6 @@ set(mq_srcs
   actionfactorymanager.cpp
   addqueuedialog.cpp
   client.cpp
-  error.cpp
   job.cpp
   jobactionfactory.cpp
   jobactionfactories/opendirectoryactionfactory.cpp
@@ -35,9 +34,10 @@ set(mq_srcs
   jobtablewidget.cpp
   jobview.cpp
   jsonrpc.cpp
+  logentry.cpp
+  logger.cpp
   mainwindow.cpp
   molequeueglobal.h
-  object.cpp
   openwithmanagerdialog.cpp
   openwithexecutablemodel.cpp
   openwithpatternmodel.cpp
@@ -77,8 +77,8 @@ set(mq_moc
   jobtablewidget.h
   jobview.h
   jsonrpc.h
+  logger.h
   mainwindow.h
-  object.h
   openwithmanagerdialog.h
   openwithexecutablemodel.h
   openwithpatternmodel.h
@@ -179,6 +179,8 @@ set(mqclient_srcs
   jobreferencebase.cpp
   jobrequest.cpp
   jsonrpc.cpp
+  logentry.cpp
+  logger.cpp
   molequeueglobal.h
   ${jsoncpp_srcs}
 )
@@ -188,6 +190,7 @@ set(mqclient_moc
   client.h
   jobmanager.h
   jsonrpc.h
+  logger.h
 )
 
 #TODO need to install these

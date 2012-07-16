@@ -23,6 +23,8 @@
 #include "jobactionfactories/opendirectoryactionfactory.h"
 #include "jobactionfactories/removejobactionfactory.h"
 #include "jobmanager.h"
+#include "logentry.h"
+#include "logger.h"
 #include "openwithmanagerdialog.h"
 #include "queuemanagerdialog.h"
 #include "server.h"
@@ -54,17 +56,11 @@ MainWindow::MainWindow()
   readSettings();
   createJobTable();
 
-  connect(m_server->jobManager(), SIGNAL(jobStateChanged(const MoleQueue::Job &,
-                                                         MoleQueue::JobState,
-                                                         MoleQueue::JobState)),
-          this, SLOT(notifyJobStateChanged(const MoleQueue::Job &,
-                                           MoleQueue::JobState,
-                                           MoleQueue::JobState)));
   connect(m_server, SIGNAL(connectionError(MoleQueue::ConnectionListener::Error,QString)),
           this, SLOT(handleServerConnectionError(MoleQueue::ConnectionListener::Error, QString)));
 
-  connect(m_server, SIGNAL(errorNotification(QString,QString)),
-          this, SLOT(notifyUserOfError(QString,QString)));
+  connect(Logger::getInstance(), SIGNAL(newLogEntry(MoleQueue::LogEntry)),
+          this, SLOT(notifyUserOfLogEntry(MoleQueue::LogEntry)));
 
   m_server->setDebug(true);
   m_server->start();
@@ -116,12 +112,33 @@ void MainWindow::trayIconActivated(QSystemTrayIcon::ActivationReason reason)
     show();
 }
 
-void MainWindow::notifyUserOfError(const QString &title, const QString &message)
+void MainWindow::notifyUserOfLogEntry(const MoleQueue::LogEntry &entry)
 {
-  if (m_trayIcon->supportsMessages())
-    m_trayIcon->showMessage(title, message, QSystemTrayIcon::Warning);
-  else
-    QMessageBox::warning(this, title, message);
+  if (!m_trayIcon->supportsMessages())
+    return;
+
+  QString title;
+
+  QSystemTrayIcon::MessageIcon icon;
+  switch (entry.entryType()) {
+  default:
+  case LogEntry::DebugMessage:
+    return;
+  case LogEntry::Notification:
+    icon = QSystemTrayIcon::Information;
+    title = tr("Notification");
+    break;
+  case LogEntry::Warning:
+    icon = QSystemTrayIcon::Warning;
+    title = tr("Warning");
+    break;
+  case LogEntry::Error:
+    icon = QSystemTrayIcon::Critical;
+    title = tr("Error");
+    break;
+  }
+
+  m_trayIcon->showMessage(title, entry.message(), icon);
 }
 
 void MainWindow::showQueueManager()
@@ -168,24 +185,6 @@ void MainWindow::handleServerConnectionError(ConnectionListener::Error err,
     QMessageBox::warning(this, tr("Server error"),
                          tr("A server error has occurred: '%1'").arg(str));
   }
-}
-
-void MainWindow::notifyJobStateChanged(const Job &job, JobState,
-                                       JobState newState)
-{
-  if (!job.popupOnStateChange())
-    return;
-
-  QString notification;
-  if (newState == MoleQueue::Accepted)
-    notification = tr("Job accepted: '%1'").arg(job.description());
-  else if (newState == MoleQueue::Finished)
-    notification = tr("Job finished: '%1'").arg(job.description());
-  else
-    return;
-
-  m_trayIcon->showMessage(tr("MoleQueue"), notification,
-                          QSystemTrayIcon::Information, 5000);
 }
 
 void MainWindow::closeEvent(QCloseEvent *theEvent)

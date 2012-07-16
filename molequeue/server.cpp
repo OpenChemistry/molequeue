@@ -16,9 +16,9 @@
 
 #include "server.h"
 
-#include "error.h"
 #include "job.h"
 #include "jobmanager.h"
+#include "logger.h"
 #include "queue.h"
 #include "queuemanager.h"
 #include "pluginmanager.h"
@@ -210,40 +210,6 @@ void Server::dispatchJobStateChange(const Job &job, JobState oldState,
   sendJobStateChangeNotification(connection,
                                  replyTo,
                                  job, oldState, newState);
-}
-
-void Server::handleError(const MoleQueue::Error &err)
-{
-  qWarning() << "Server::handleError: Error received:\n"
-                "\tType: " << err.type() << "\n"
-                "\tMessage: " << err.message() << "\n"
-                "\tSender: " << err.sender() << "\n"
-                "\tMoleQueueId: " << err.moleQueueId();
-
-  QString title;
-  switch (err.type()) {
-  default:
-  case Error::MiscError:
-    title = tr("MoleQueue Warning");
-    break;
-  case Error::NetworkError:
-    title = tr("MoleQueue Network Error");
-    break;
-  case Error::IPCError:
-    title = tr("MoleQueue Client Communication Error");
-    break;
-  case Error::FileSystemError:
-    title = tr("MoleQueue Error");
-    break;
-  case Error::QueueError:
-    title = tr("MoleQueue Error");
-    break;
-  case Error::ProgramError:
-    title = tr("MoleQueue Error");
-    break;
-  }
-
-  emit errorNotification(title, err.message());
 }
 
 void Server::queueListRequestReceived(MoleQueue::Connection *connection,
