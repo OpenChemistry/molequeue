@@ -177,7 +177,7 @@ public slots:
    * Reimplemented from Object. Emits errorNotification.
    * @param err Error object describing the error.
    */
-  virtual void handleError(const Error &err);
+  void handleError(const MoleQueue::Error &err);
 
   /**
    * Sends the @a list to the connected client.
