@@ -214,11 +214,11 @@ public slots:
   /**
    * Sends a reply to the client informing them that the job cancellation was
    * successful.
-   * @param jobId The id of the job being cancelled
+   * @param moleQueueId The id of the job being cancelled
    */
   void sendSuccessfulCancellationResponse(MoleQueue::Connection *connection,
                                           MoleQueue::EndpointId replyTo,
-                                          IdType jobId);
+                                          IdType moleQueueId);
 
   /**
    * Sends a notification to the connected client informing them that a job
