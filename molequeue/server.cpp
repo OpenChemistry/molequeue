@@ -202,6 +202,11 @@ void Server::dispatchJobStateChange(const Job &job, JobState oldState,
   Connection *connection = m_connectionLUT.value(job.moleQueueId());
   EndpointId replyTo = m_endpointLUT.value(job.moleQueueId());
 
+  if (connection == NULL) {
+    qWarning() << "Unable to retrieve connection for job: " << job.moleQueueId();
+    return;
+  }
+
   sendJobStateChangeNotification(connection,
                                  replyTo,
                                  job, oldState, newState);
