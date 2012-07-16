@@ -78,7 +78,7 @@ public:
    *
    * @see Connection::send()
    */
-  void send(Message msg);
+  void send(const Message &msg);
 
   /**
    * Close the underlying socket. Once closed the connection can no longer be used

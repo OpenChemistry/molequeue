@@ -154,7 +154,7 @@ void LocalSocketConnection::writePacketHeader(const PacketType &packet)
   (*m_dataStream) << static_cast<quint32>(packet.size());
 }
 
-void LocalSocketConnection::send(Message msg)
+void LocalSocketConnection::send(const Message &msg)
 {
   DEBUG("sendPacket") "Sending new packet. Size:" << msg.data().size();
   writePacketHeader(msg.data());
