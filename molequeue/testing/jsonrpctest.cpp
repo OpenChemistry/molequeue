@@ -162,7 +162,7 @@ void JsonRpcTest::initTestCase()
 
 void JsonRpcTest::cleanupTestCase()
 {
-  delete m_connection;
+
 }
 
 void JsonRpcTest::init()
