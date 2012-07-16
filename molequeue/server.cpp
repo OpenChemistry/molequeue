@@ -192,8 +192,7 @@ void Server::stop(bool force) {
 
 }
 
-void Server::stop()
-{
+void Server::stop() {
   stop(false);
 }
 

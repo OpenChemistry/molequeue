@@ -150,7 +150,16 @@ public slots:
 
   /**
    * Terminate the socket server.
+   *
+   * @param Server will pass the value of force when stop it connections.
    */
+  void stop(bool force);
+
+  /**
+     * Terminate the socket server.
+     *
+     * Same as stop(false)
+     */
   void stop();
 
   /**
@@ -336,7 +345,6 @@ public:
 
 private:
   void createConnectionListeners();
-  void stop(bool force);
   QString m_serverName;
 
 protected:
