@@ -26,6 +26,7 @@
 #include "abstractrpcinterface.h"
 
 #include <QtCore/QObject>
+#include <QtCore/QPointer>
 #include <QtCore/QList>
 
 class ServerTest;
@@ -329,7 +330,7 @@ protected:
   PacketLookupTable m_cancellationLUT;
 
   // job id --> connection for notifications.
-  QMap<IdType,Connection*> m_connectionLUT;
+  QMap<IdType,QPointer<Connection> > m_connectionLUT;
 
   // job id --> reply to endpoint for notifications
   QMap<IdType,EndpointId> m_endpointLUT;

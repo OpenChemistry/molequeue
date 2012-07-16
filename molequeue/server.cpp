@@ -199,7 +199,7 @@ void Server::stop() {
 void Server::dispatchJobStateChange(const Job &job, JobState oldState,
                                     JobState newState)
 {
-  Connection *connection = m_connectionLUT.value(job.moleQueueId());
+  Connection *connection = m_connectionLUT.value(job.moleQueueId()).data();
   EndpointId replyTo = m_endpointLUT.value(job.moleQueueId());
 
   if (connection == NULL) {
