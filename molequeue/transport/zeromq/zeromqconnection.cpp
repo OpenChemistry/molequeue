@@ -96,7 +96,7 @@ QString ZeroMqConnection::connectionString() const
   return m_connectionString;
 }
 
-void ZeroMqConnection::send(Message msg)
+void ZeroMqConnection::send(const Message &msg)
 {
   qDebug() << msg.data().size();
   qDebug() << msg.data();

@@ -48,7 +48,7 @@ public:
   /**
    * Send a message on the connection
    */
-  void send(Message msg);
+  void send(const Message &msg);
 
   /**
    * Close the connection. Once a conneciton is closed if can't reused.

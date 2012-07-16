@@ -58,7 +58,7 @@ public:
   /**
    * Send a message on the connection
    */
-  virtual void send(MoleQueue::Message msg) = 0;
+  virtual void send(const Message &msg) = 0;
 
   /**
    * Close the connection. Once a conneciton is closed if can't reused.
