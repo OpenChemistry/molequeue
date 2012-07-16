@@ -32,7 +32,7 @@ public:
   LocalSocketConnectionListenerFactory();
   ~LocalSocketConnectionListenerFactory();
   ConnectionListener *createConnectionListener(QObject *parentObject,
-                                                 QString connectionString = "MoleQueue");
+                                               QString connectionString = "MoleQueue");
 
 };
 

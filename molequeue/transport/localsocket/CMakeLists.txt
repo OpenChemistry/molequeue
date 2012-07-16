@@ -51,7 +51,7 @@ add_compiler_export_flags(molequeue_export_flags)
 set_property(TARGET mqlocalsocketclient APPEND
   PROPERTY COMPILE_FLAGS ${molequeue_export_flags})
 
-install(FILES ${hdrs} DESTINATION "${INSTALL_INCLUDE_DIR}/molequeue/zeromqclient")
+install(FILES ${hdrs} DESTINATION "${INSTALL_INCLUDE_DIR}/molequeue/localsocketclient")
 install(TARGETS mqlocalsocketclient DESTINATION lib)
 
 add_subdirectory(plugin)

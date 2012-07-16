@@ -19,35 +19,6 @@
 #include "program.h"
 #include "queue.h"
 
-class A : public QObject
-{
-  Q_OBJECT
-public:
-
-  void em() { qDebug() << this; emit sig(); };
-
-signals:
-  void sig();
-};
-
-class B : public QObject
-{
-  Q_OBJECT
-public:
-signals:
-  void sig();
-};
-
-class C : public QObject
-{
-  Q_OBJECT
-public slots:
-
-  void slt() { qDebug() << sender(); };
-};
-
-
-
 class DummyQueue : public MoleQueue::Queue
 {
   Q_OBJECT
