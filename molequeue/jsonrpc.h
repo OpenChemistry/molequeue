@@ -202,7 +202,7 @@ public:
     * depending on the type of packets.
     *
     * @param connection The connection the RPC was recieved on
-    * @param data A packet containing a single or batch JSON-RPC transmission.
+    * @param msg A packet containing a single or batch JSON-RPC transmission.
     * @return A QVector containing the packetIds of the data.
     */
   void interpretIncomingPacket(Connection *connection,
@@ -214,6 +214,7 @@ public:
     * depending on the type of packets.
     *
     * @param connection The connection the RPC was received on
+    * @param replyTo The reply to endpoint to identify the client.
     * @param data A JsonCpp value containing a single or batch JSON-RPC
     * transmission.
     * @return A QVector containing the packetIds of the data.
@@ -273,6 +274,7 @@ signals:
     * client or server must send an error -32700 "Parse error".
     *
     * @param connection The connection the invalid packet was received on
+    * @param replyTo The reply to endpoint to identify the client.
     * @param packetId JSON value representing the packetId
     * @param errorDataObject JSON object to be used as the data value in the
     * error object.
@@ -287,6 +289,7 @@ signals:
     * client or server must send an error -32600 "Invalid request".
     *
     * @param connection The connection the invalid request was received on
+    * @param replyTo The reply to endpoint to identify the client.
     * @param packetId JSON value representing the packetId
     * @param errorDataObject JSON object to be used as the data value in the
     * error object.
@@ -302,6 +305,7 @@ signals:
     * "Method not found".
     *
     * @param connection The connection the unrecognized request was received on
+    * @param replyTo The reply to endpoint to identify the client.
     * @param packetId JSON value representing the packetId
     * @param errorDataObject JSON object to be used as the data value in the
     * error object.
@@ -317,6 +321,7 @@ signals:
     * error -32602 "Invalid params".
     *
     * @param connection The connection the request was received on
+    * @param replyTo The reply to endpoint to identify the client.
     * @param packetId JSON value representing the packetId
     * @param errorDataObject JSON object to be used as the data value in the
     * error object.
@@ -331,6 +336,7 @@ signals:
     * server must send an error -32603 "Internal error".
     *
     * @param connection The connection TODO DOCUMENT
+    * @param replyTo The reply to endpoint to identify the client.
     * @param packetId JSON value representing the packetId
     * @param errorDataObject JSON object to be used as the data value in the
     * error object.
@@ -344,6 +350,8 @@ signals:
     * Emitted when a request for a list of available Queues/Programs is
     * received.
     *
+    * @param connection The connection the request was received on
+    * @param replyTo The reply to endpoint to identify the client.
     * @param packetId The JSON-RPC id for the packet
     */
   void queueListRequestReceived(MoleQueue::Connection *connection,
@@ -362,6 +370,8 @@ signals:
   /**
     * Emitted when a request to submit a new job is received.
     *
+    * @param connection The connection the request was received on
+    * @param replyTo The reply to endpoint to identify the client.
     * @param packetId The JSON-RPC id for the packet
     * @param options Options for the job.
     */
@@ -400,6 +410,8 @@ signals:
   /**
     * Emitted when a request to cancel a job is received.
     *
+    * @param connection The connection the request was received on
+    * @param replyTo The reply to endpoint to identify the client.
     * @param packetId The JSON-RPC id for the packet
     * @param moleQueueId The internal MoleQueue identifier for the job to
     * cancel.

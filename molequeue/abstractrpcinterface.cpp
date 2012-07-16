@@ -24,6 +24,7 @@
 #include <QtCore/QDateTime>
 #include <QtCore/QDebug>
 #include <QtGlobal>
+#include "assert.h"
 
 #define DEBUGOUT(title) \
   if (m_debug)    \
@@ -85,14 +86,13 @@ void AbstractRpcInterface::readPacket(const MoleQueue::Message msg)
 {
   Connection *conn = qobject_cast<Connection*>(sender());
 
-  qDebug() << "sender:  " << sender();
-  qDebug() << "Conn: " << conn;
+  assert(conn != NULL);
 
   DEBUGOUT("readPacket") "Interpreting new packet.";
 
   m_jsonrpc->interpretIncomingPacket(conn, msg);
 }
-// TODO rename connection => replyConnection?
+
 void AbstractRpcInterface::replyToInvalidPacket(MoleQueue::Connection *connection,
                                                 const MoleQueue::EndpointId replyTo,
                                                 const Json::Value &packetId,

@@ -50,7 +50,6 @@ Server::Server(QObject *parentObject, QString serverName)
   qRegisterMetaType<ConnectionListener::Error>("ConnectionListener::Error");
   qRegisterMetaType<ServerConnection*>("MoleQueue::ServerConnection*");
   qRegisterMetaType<const ServerConnection*>("const MoleQueue::ServerConnection*");
-  qRegisterMetaType<Job*>("MoleQueue::Job*");
   qRegisterMetaType<const Job*>("const MoleQueue::Job*");
   qRegisterMetaType<QueueListType>("MoleQueue::QueueListType");
 
@@ -58,8 +57,12 @@ Server::Server(QObject *parentObject, QString serverName)
           this, SLOT(jobAboutToBeAdded(MoleQueue::Job)),
           Qt::DirectConnection);
 
-  connect(m_jobManager, SIGNAL(jobStateChanged(const MoleQueue::Job&,MoleQueue::JobState,MoleQueue::JobState)),
-          this, SLOT(dispatchJobStateChange(const MoleQueue::Job&,MoleQueue::JobState,MoleQueue::JobState)));
+  connect(m_jobManager, SIGNAL(jobStateChanged(const MoleQueue::Job&,
+                                               MoleQueue::JobState,
+                                               MoleQueue::JobState)),
+          this, SLOT(dispatchJobStateChange(const MoleQueue::Job&,
+                                            MoleQueue::JobState,
+                                            MoleQueue::JobState)));
 
   connect(m_jobManager, SIGNAL(jobRemoved(MoleQueue::IdType)),
           this, SLOT(jobRemoved(MoleQueue::IdType)));
@@ -93,7 +96,7 @@ Server::Server(QObject *parentObject, QString serverName)
   //connect(m_connection, SIGNAL(disconnected()),
   //        this, SIGNAL(disconnected()));
 
-  // load the transport plugins so we know what to listener on
+  // load the transport plugins so we know what to listen on
   PluginManager *pluginManager = PluginManager::instance();
   pluginManager->load();
 }
@@ -189,8 +192,7 @@ void Server::stop(bool force) {
 
 }
 
-void Server::stop()
-{
+void Server::stop() {
   stop(false);
 }
 
@@ -199,6 +201,11 @@ void Server::dispatchJobStateChange(const Job &job, JobState oldState,
 {
   Connection *connection = m_connectionLUT.value(job.moleQueueId());
   EndpointId replyTo = m_endpointLUT.value(job.moleQueueId());
+
+  if (connection == NULL) {
+    qWarning() << "Unable to retrieve connection for job: " << job.moleQueueId();
+    return;
+  }
 
   sendJobStateChangeNotification(connection,
                                  replyTo,
@@ -241,9 +248,9 @@ void Server::handleError(const MoleQueue::Error &err)
 
 void Server::queueListRequestReceived(MoleQueue::Connection *connection,
                                       MoleQueue::EndpointId replyTo,
-                                      MoleQueue::IdType id)
+                                      MoleQueue::IdType packetId)
 {
-  sendQueueList(connection, replyTo, id, m_queueManager->toQueueList());
+  sendQueueList(connection, replyTo, packetId, m_queueManager->toQueueList());
 }
 
 void Server::jobCancellationRequestReceived(MoleQueue::Connection *connection,
@@ -304,10 +311,10 @@ void Server::clientDisconnected()
 
 void Server::sendQueueList(Connection* connection,
                            EndpointId to,
-                           MoleQueue::IdType id,
+                           MoleQueue::IdType packetId,
                            const QueueListType &queueList)
 {
-  PacketType packet = m_jsonrpc->generateQueueList(queueList, id);
+  PacketType packet = m_jsonrpc->generateQueueList(queueList, packetId);
 
   Message msg(to, packet);
 
@@ -362,18 +369,18 @@ void Server::sendFailedSubmissionResponse(MoleQueue::Connection *connection,
 
 void Server::sendSuccessfulCancellationResponse(MoleQueue::Connection *connection,
                                                 MoleQueue::EndpointId replyTo,
-                                                IdType jobId)
+                                                IdType moleQueueId)
 {
   // Lookup the moleQueueId in the hash so that we can send the correct packetId
-  if (!m_cancellationLUT.contains(jobId)) {
+  if (!m_cancellationLUT.contains(moleQueueId)) {
     qWarning() << "Refusing to confirm job cancellation; unrecognized id:"
-               << jobId;
+               << moleQueueId;
     return;
   }
 
-  const IdType packetId = m_cancellationLUT.take(jobId);
+  const IdType packetId = m_cancellationLUT.take(moleQueueId);
   PacketType packet =  m_jsonrpc->generateJobCancellationConfirmation(
-        jobId, packetId);
+      moleQueueId, packetId);
 
   Message msg(replyTo, packet);
 

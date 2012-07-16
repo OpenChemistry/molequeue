@@ -94,7 +94,7 @@ private slots:
   void newConnectionAvailable();
 
 private:
-  // Method to map implementation specific error to generic errors.
+  /// Method to map implementation specific error to generic errors.
   ConnectionListener::Error toConnectionListenerError(
       QAbstractSocket::SocketError error);
 

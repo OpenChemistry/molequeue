@@ -21,6 +21,7 @@
 #include "molequeueglobal.h"
 #include "transport/connectionlistener.h"
 #include "transport/localsocket/localsocketconnectionlistener.h"
+#include "testing/testserver.h"
 
 #include <QtGui/QApplication>
 
@@ -36,6 +37,7 @@ class ServerTest : public QObject
   Q_OBJECT
 
 private:
+  QString m_connectionString;
   QLocalSocket m_testSocket;
   MoleQueue::Server *m_server;
 
@@ -61,14 +63,15 @@ private slots:
 
 void ServerTest::initTestCase()
 {
-  m_server = new MoleQueue::Server(this, QString("MoleQueue-testing"));
+  m_connectionString = TestServer::getRandomSocketName();
+  m_server = new MoleQueue::Server(this, m_connectionString);
   m_server->m_isTesting = true;
   m_server->setDebug(true);
 }
 
 void ServerTest::cleanupTestCase()
 {
-  delete m_server;
+
 }
 
 void ServerTest::init()
@@ -81,18 +84,18 @@ void ServerTest::cleanup()
 
 }
 
-MoleQueue::LocalSocketConnectionListener * ServerTest::localSocketConnectionListener()
+MoleQueue::LocalSocketConnectionListener *
+  ServerTest::localSocketConnectionListener()
 {
 
   MoleQueue::LocalSocketConnectionListener *localListener = NULL;
-     static_cast<MoleQueue::LocalSocketConnectionListener *>(
-          m_server->m_connectionListeners.at(0));
 
-  foreach(MoleQueue::ConnectionListener *listener, m_server->m_connectionListeners) {
+  foreach(MoleQueue::ConnectionListener *listener,
+          m_server->m_connectionListeners) {
     localListener =
        static_cast<MoleQueue::LocalSocketConnectionListener *>(listener);
 
-    if(localListener)
+    if (localListener)
       break;
   }
 
@@ -118,14 +121,15 @@ void ServerTest::testStop()
 void ServerTest::testForceStart()
 {
   // Start a duplicate server to take the socket address
-  MoleQueue::Server dupServer(this, QString("MoleQueue-testing"));
+  MoleQueue::Server dupServer(this, m_connectionString);
   dupServer.m_isTesting = true;
   dupServer.setDebug(true);
   dupServer.start();
 
   // Attempt to start the server. Check that the AddressInUseError is emitted.
   QSignalSpy spy (m_server,
-                  SIGNAL(connectionError(MoleQueue::ConnectionListener::Error,const QString&)));
+                  SIGNAL(connectionError(MoleQueue::ConnectionListener::Error,
+                                         const QString&)));
   m_server->start();
   qApp->processEvents(QEventLoop::AllEvents, 1000);
   QCOMPARE(spy.count(), 1);
@@ -153,12 +157,12 @@ void ServerTest::testNewConnection()
   m_server->stop();
   m_server->start();
 
-  m_testSocket.connectToServer("MoleQueue-testing");
+  m_testSocket.connectToServer(m_connectionString);
   qApp->processEvents(QEventLoop::AllEvents, 1000);
   QVERIFY(m_testSocket.state() == QLocalSocket::ConnectedState);
 
   // Check that we've received the connections
-  // One zeromq and one local sock ...
+  // One zeromq and one local socket ...
 #ifdef USE_ZERO_MQ
   QCOMPARE(m_server->m_connections.size(), 2);
 #else
@@ -168,7 +172,6 @@ void ServerTest::testNewConnection()
 
 void ServerTest::testClientDisconnected()
 {
-
 #ifdef USE_ZERO_MQ
   QCOMPARE(m_server->m_connections.size(), 2);
 #else

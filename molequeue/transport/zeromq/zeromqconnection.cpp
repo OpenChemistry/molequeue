@@ -96,7 +96,7 @@ QString ZeroMqConnection::connectionString() const
   return m_connectionString;
 }
 
-void ZeroMqConnection::send(Message msg)
+void ZeroMqConnection::send(const Message &msg)
 {
   qDebug() << msg.data().size();
   qDebug() << msg.data();
@@ -145,7 +145,6 @@ void ZeroMqConnection::dealerReceive()
     int size = message.size();
     PacketType messageBuffer;
 
-    // Doe we need to this convertion?
     messageBuffer.append(QString::fromLocal8Bit(static_cast<char*>(message.data()),
                                                 size));
 

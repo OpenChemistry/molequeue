@@ -16,7 +16,6 @@
 
 
 #include <QtTest>
-#include "testserver.h"
 
 #include "client.h"
 #include "connectiontest.h"

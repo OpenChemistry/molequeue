@@ -150,7 +150,16 @@ public slots:
 
   /**
    * Terminate the socket server.
+   *
+   * @param Server will pass the value of force when stop it connections.
    */
+  void stop(bool force);
+
+  /**
+     * Terminate the socket server.
+     *
+     * Same as stop(false)
+     */
   void stop();
 
   /**
@@ -168,7 +177,7 @@ public slots:
    * Reimplemented from Object. Emits errorNotification.
    * @param err Error object describing the error.
    */
-  virtual void handleError(const Error &err);
+  void handleError(const MoleQueue::Error &err);
 
   /**
    * Sends the @a list to the connected client.
@@ -205,11 +214,11 @@ public slots:
   /**
    * Sends a reply to the client informing them that the job cancellation was
    * successful.
-   * @param jobId The id of the job being cancelled
+   * @param moleQueueId The id of the job being cancelled
    */
   void sendSuccessfulCancellationResponse(MoleQueue::Connection *connection,
                                           MoleQueue::EndpointId replyTo,
-                                          IdType jobId);
+                                          IdType moleQueueId);
 
   /**
    * Sends a notification to the connected client informing them that a job
@@ -295,9 +304,6 @@ protected:
   /// List of active connections
   QList<Connection*> m_connections;
 
-  /// The connection listeners
-  QList<ConnectionListener*> m_connectionListeners;
-
   /// The JobManager for this Server.
   JobManager *m_jobManager;
 
@@ -336,8 +342,9 @@ public:
 
 private:
   void createConnectionListeners();
-  void stop(bool force);
   QString m_serverName;
+  /// The connection listeners
+  QList<ConnectionListener*> m_connectionListeners;
 
 protected:
   /// Toggles runtime debugging

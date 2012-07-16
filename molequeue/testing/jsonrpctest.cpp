@@ -101,7 +101,7 @@ public:
 
   void open() {};
   void start() {};
-  void send(const Message msg) { Q_UNUSED(msg); };
+  void send(const Message &msg) { Q_UNUSED(msg); };
   void close() {};
   bool isOpen() { return false; };
   QString connectionString() const { return ""; };
@@ -162,7 +162,7 @@ void JsonRpcTest::initTestCase()
 
 void JsonRpcTest::cleanupTestCase()
 {
-  delete m_connection;
+
 }
 
 void JsonRpcTest::init()
@@ -549,7 +549,8 @@ void JsonRpcTest::generateJobStateChangeNotification()
 void JsonRpcTest::interpretIncomingPacket_unparsable()
 {
   QSignalSpy spy (&m_rpc, SIGNAL(
-                    invalidPacketReceived(MoleQueue::Connection*,MoleQueue::EndpointId,
+                    invalidPacketReceived(MoleQueue::Connection*,
+                                          MoleQueue::EndpointId,
                                           Json::Value,Json::Value)));
   m_packet = "[I'm not valid JSON!}";
   m_rpc.interpretIncomingPacket(m_connection, m_packet);
@@ -566,7 +567,8 @@ void JsonRpcTest::interpretIncomingPacket_unparsable()
 void JsonRpcTest::interpretIncomingPacket_invalidRequest()
 {
   QSignalSpy spy (&m_rpc, SIGNAL(
-                    invalidRequestReceived(MoleQueue::Connection*,MoleQueue::EndpointId,
+                    invalidRequestReceived(MoleQueue::Connection*,
+                                           MoleQueue::EndpointId,
                                            Json::Value,Json::Value)));
   m_packet = "{\"I'm valid JSON\" : \"but not JSON-RPC\"}";
   m_rpc.interpretIncomingPacket(m_connection, m_packet);
@@ -577,7 +579,8 @@ void JsonRpcTest::interpretIncomingPacket_invalidRequest()
 void JsonRpcTest::interpretIncomingPacket_unrecognizedRequest()
 {
   QSignalSpy spy (&m_rpc, SIGNAL(
-                    unrecognizedRequestReceived(MoleQueue::Connection*,MoleQueue::EndpointId,
+                    unrecognizedRequestReceived(MoleQueue::Connection*,
+                                                MoleQueue::EndpointId,
                                                 Json::Value,Json::Value)));
   m_packet = "{ \"jsonrpc\" : \"2.0\", \"id\" : 0, \"method\" : \"notReal\" }";
   m_rpc.interpretIncomingPacket(m_connection, m_packet);
@@ -588,7 +591,8 @@ void JsonRpcTest::interpretIncomingPacket_unrecognizedRequest()
 void JsonRpcTest::interpretIncomingPacket_listQueuesRequest()
 {
   QSignalSpy spy (&m_rpc, SIGNAL(
-                    queueListRequestReceived(MoleQueue::Connection*,MoleQueue::EndpointId,
+                    queueListRequestReceived(MoleQueue::Connection*,
+                                             MoleQueue::EndpointId,
                                              MoleQueue::IdType)));
   m_packet = readReferenceString("jsonrpc-ref/queue-list-request.json");
   m_rpc.interpretIncomingPacket(m_connection, m_packet);
@@ -617,9 +621,10 @@ void JsonRpcTest::interpretIncomingPacket_listQueuesError()
 void JsonRpcTest::interpretIncomingPacket_submitJobRequest()
 {
   QSignalSpy spy (&m_rpc, SIGNAL(
-                    jobSubmissionRequestReceived(MoleQueue::Connection*,
-                                                 MoleQueue::EndpointId,
-                                                 MoleQueue::IdType,QVariantHash)));
+                  jobSubmissionRequestReceived(MoleQueue::Connection*,
+                                               MoleQueue::EndpointId,
+                                               MoleQueue::IdType,
+                                               QVariantHash)));
   m_packet = readReferenceString("jsonrpc-ref/job-request.json");
   m_rpc.interpretIncomingPacket(m_connection, m_packet);
 
@@ -692,7 +697,8 @@ void JsonRpcTest::interpretIncomingPacket_cancelJobError()
 void JsonRpcTest::interpretIncomingPacket_jobStateChange()
 {
   QSignalSpy spy (&m_rpc, SIGNAL(
-                    jobStateChangeReceived(MoleQueue::IdType,MoleQueue::JobState,
+                    jobStateChangeReceived(MoleQueue::IdType,
+                                           MoleQueue::JobState,
                                            MoleQueue::JobState)));
   m_packet = readReferenceString("jsonrpc-ref/jobstate-change.json");
   m_rpc.interpretIncomingPacket(m_connection, m_packet);
