@@ -78,9 +78,6 @@ Client::Client(QObject *parentObject) :
 
 Client::~Client()
 {
-  delete m_jobManager;
-  m_jobManager = NULL;
-
   delete m_submittedLUT;
   m_submittedLUT = NULL;
 
