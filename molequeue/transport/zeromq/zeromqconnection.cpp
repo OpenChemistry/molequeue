@@ -145,7 +145,6 @@ void ZeroMqConnection::dealerReceive()
     int size = message.size();
     PacketType messageBuffer;
 
-    // Doe we need to this convertion?
     messageBuffer.append(QString::fromLocal8Bit(static_cast<char*>(message.data()),
                                                 size));
 

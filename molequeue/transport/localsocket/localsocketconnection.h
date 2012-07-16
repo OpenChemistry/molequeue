@@ -81,7 +81,7 @@ public:
   void send(Message msg);
 
   /**
-   * Close the underlying socket. Once closed the connection can longer be used
+   * Close the underlying socket. Once closed the connection can no longer be used
    * to receive or send messages.
    *
    * @see Connection::close()

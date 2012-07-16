@@ -176,7 +176,8 @@ void ZeroMqClientTest::testQueueListReceived()
   QRegExp capture ("\\n\\s+\"id\"\\s+:\\s+(\\d+)\\s*,\\s*\\n");
   int pos = capture.indexIn(m_packet);
   QVERIFY2(pos >= 0, "id not found in queue list request!");
-  MoleQueue::IdType id = static_cast<MoleQueue::IdType>(capture.cap(1).toULong());
+  MoleQueue::IdType id =
+    static_cast<MoleQueue::IdType>(capture.cap(1).toULong());
 
   QSignalSpy spy (m_client, SIGNAL(queueListUpdated(MoleQueue::QueueListType)));
 
@@ -208,9 +209,11 @@ void ZeroMqClientTest::testSuccessfulSubmissionReceived()
   QRegExp capture ("\\n\\s+\"id\"\\s+:\\s+(\\d+)\\s*,\\s*\\n");
   int pos = capture.indexIn(m_packet);
   QVERIFY2(pos >= 0, "id not found in job submission request!");
-  MoleQueue::IdType id = static_cast<MoleQueue::IdType>(capture.cap(1).toULong());
+  MoleQueue::IdType id =
+    static_cast<MoleQueue::IdType>(capture.cap(1).toULong());
 
-  QSignalSpy spy (m_client, SIGNAL(jobSubmitted(const MoleQueue::Job*,bool,QString)));
+  QSignalSpy spy (m_client, SIGNAL(jobSubmitted(const MoleQueue::Job*,bool,
+                                                QString)));
 
   MoleQueue::PacketType response =
       readReferenceString("client-ref/successful-submission.json");
@@ -240,9 +243,11 @@ void ZeroMqClientTest::testFailedSubmissionReceived()
   QRegExp capture ("\\n\\s+\"id\"\\s+:\\s+(\\d+)\\s*,\\s*\\n");
   int pos = capture.indexIn(m_packet);
   QVERIFY2(pos >= 0, "id not found in job submission request!");
-  MoleQueue::IdType id = static_cast<MoleQueue::IdType>(capture.cap(1).toULong());
+  MoleQueue::IdType id =
+    static_cast<MoleQueue::IdType>(capture.cap(1).toULong());
 
-  QSignalSpy spy (m_client, SIGNAL(jobSubmitted(const MoleQueue::Job*,bool,QString)));
+  QSignalSpy spy (m_client, SIGNAL(jobSubmitted(const MoleQueue::Job*,bool,
+                                                QString)));
 
   MoleQueue::PacketType response =
       readReferenceString("client-ref/failed-submission.json");
@@ -277,9 +282,11 @@ void ZeroMqClientTest::testJobCancellationConfirmationReceived()
   QRegExp capture ("\\n\\s+\"id\"\\s+:\\s+(\\d+)\\s*,\\s*\\n");
   int pos = capture.indexIn(m_packet);
   QVERIFY2(pos >= 0, "id not found in job cancellation request!");
-  MoleQueue::IdType id = static_cast<MoleQueue::IdType>(capture.cap(1).toULong());
+  MoleQueue::IdType id =
+    static_cast<MoleQueue::IdType>(capture.cap(1).toULong());
 
-  QSignalSpy spy (m_client, SIGNAL(jobCanceled(const MoleQueue::Job*,bool,QString)));
+  QSignalSpy spy (m_client, SIGNAL(jobCanceled(const MoleQueue::Job*,bool,
+                                               QString)));
 
   MoleQueue::PacketType response =
       readReferenceString("client-ref/job-canceled.json");
@@ -301,7 +308,9 @@ void ZeroMqClientTest::testJobCancellationConfirmationReceived()
 void ZeroMqClientTest::testJobStateChangeReceived()
 {
   QSignalSpy spy (m_client,
-                  SIGNAL(jobStateChanged(const MoleQueue::Job*,MoleQueue::JobState,MoleQueue::JobState)));
+                  SIGNAL(jobStateChanged(const MoleQueue::Job*,
+                                         MoleQueue::JobState,
+                                         MoleQueue::JobState)));
 
   MoleQueue::PacketType response =
       readReferenceString("client-ref/jobstate-change.json");
@@ -317,8 +326,10 @@ void ZeroMqClientTest::testJobStateChangeReceived()
   QCOMPARE(spy.count(), 1);
   QCOMPARE(spy.first().size(), 3);
 
-  const MoleQueue::JobState before = spy.first()[1].value<MoleQueue::JobState>();
-  const MoleQueue::JobState after  = spy.first()[2].value<MoleQueue::JobState>();
+  const MoleQueue::JobState before =
+    spy.first()[1].value<MoleQueue::JobState>();
+  const MoleQueue::JobState after  =
+    spy.first()[2].value<MoleQueue::JobState>();
   QCOMPARE(before, MoleQueue::RunningRemote);
   QCOMPARE(after,  MoleQueue::Finished);
 }

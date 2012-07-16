@@ -125,7 +125,7 @@ protected slots:
 protected:
 
   /**
-   * @return The next packet id. TODO This is only needed on the client side?
+   * @return The next packet id.
    */
   IdType nextPacketId();
 
@@ -133,7 +133,7 @@ protected:
   JsonRpc *m_jsonrpc;
 
 private:
-  /// Counter for packet requests TODO client side only? But what about notifications?
+  /// Counter for packet requests @todo client side only? But what about notifications?
   IdType m_packetCounter;
 
 public:

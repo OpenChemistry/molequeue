@@ -50,7 +50,6 @@ Server::Server(QObject *parentObject, QString serverName)
   qRegisterMetaType<ConnectionListener::Error>("ConnectionListener::Error");
   qRegisterMetaType<ServerConnection*>("MoleQueue::ServerConnection*");
   qRegisterMetaType<const ServerConnection*>("const MoleQueue::ServerConnection*");
-  qRegisterMetaType<Job*>("MoleQueue::Job*");
   qRegisterMetaType<const Job*>("const MoleQueue::Job*");
   qRegisterMetaType<QueueListType>("MoleQueue::QueueListType");
 
@@ -58,8 +57,12 @@ Server::Server(QObject *parentObject, QString serverName)
           this, SLOT(jobAboutToBeAdded(MoleQueue::Job)),
           Qt::DirectConnection);
 
-  connect(m_jobManager, SIGNAL(jobStateChanged(const MoleQueue::Job&,MoleQueue::JobState,MoleQueue::JobState)),
-          this, SLOT(dispatchJobStateChange(const MoleQueue::Job&,MoleQueue::JobState,MoleQueue::JobState)));
+  connect(m_jobManager, SIGNAL(jobStateChanged(const MoleQueue::Job&,
+                                               MoleQueue::JobState,
+                                               MoleQueue::JobState)),
+          this, SLOT(dispatchJobStateChange(const MoleQueue::Job&,
+                                            MoleQueue::JobState,
+                                            MoleQueue::JobState)));
 
   connect(m_jobManager, SIGNAL(jobRemoved(MoleQueue::IdType)),
           this, SLOT(jobRemoved(MoleQueue::IdType)));
@@ -93,7 +96,7 @@ Server::Server(QObject *parentObject, QString serverName)
   //connect(m_connection, SIGNAL(disconnected()),
   //        this, SIGNAL(disconnected()));
 
-  // load the transport plugins so we know what to listener on
+  // load the transport plugins so we know what to listen on
   PluginManager *pluginManager = PluginManager::instance();
   pluginManager->load();
 }

@@ -92,7 +92,7 @@ void AbstractRpcInterface::readPacket(const MoleQueue::Message msg)
 
   m_jsonrpc->interpretIncomingPacket(conn, msg);
 }
-// TODO rename connection => replyConnection?
+
 void AbstractRpcInterface::replyToInvalidPacket(MoleQueue::Connection *connection,
                                                 const MoleQueue::EndpointId replyTo,
                                                 const Json::Value &packetId,
