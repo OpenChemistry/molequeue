@@ -19,7 +19,6 @@
 
 #include <QtCore/QObject>
 
-#include "object.h"
 #include "molequeueglobal.h"
 #include "transport/message.h"
 #include "thirdparty/jsoncpp/json/json-forwards.h"

@@ -16,9 +16,10 @@
 
 #include "local.h"
 
-#include "../error.h"
 #include "../job.h"
 #include "../jobmanager.h"
+#include "../logentry.h"
+#include "../logger.h"
 #include "../program.h"
 #include "../queue.h"
 #include "../queuemanager.h"
@@ -158,16 +159,14 @@ void QueueLocal::processStarted()
 
   // Get pointer to jobmanager to lookup job
   if (!m_server) {
-    Error err (tr("Queue '%1' cannot locate Server instance!")
-               .arg(m_name), Error::QueueError, this, moleQueueId);
-    emit errorOccurred(err);
+    Logger::addError(tr("Queue '%1' cannot locate Server instance!")
+                     .arg(m_name), moleQueueId);
     return;
   }
   Job job = m_server->jobManager()->lookupJobByMoleQueueId(moleQueueId);
   if (!job.isValid()) {
-    Error err (tr("Queue '%1' Cannot update invalid Job reference!")
-               .arg(m_name), Error::QueueError, this, moleQueueId);
-    emit errorOccurred(err);
+    Logger::addError(tr("Queue '%1' Cannot update invalid Job reference!")
+                     .arg(m_name), moleQueueId);
     return;
   }
   job.setQueueId(queueId);
@@ -192,16 +191,14 @@ void QueueLocal::processFinished(int exitCode, QProcess::ExitStatus exitStatus)
 
   // Get pointer to jobmanager to lookup job
   if (!m_server) {
-    Error err (tr("Queue '%1' cannot locate Server instance!")
-               .arg(m_name), Error::QueueError, this, moleQueueId);
-    emit errorOccurred(err);
+    Logger::addError(tr("Queue '%1' cannot locate Server instance!")
+                     .arg(m_name), moleQueueId);
     return;
   }
   Job job = m_server->jobManager()->lookupJobByMoleQueueId(moleQueueId);
   if (!job.isValid()) {
-    Error err (tr("Queue '%1' Cannot update invalid Job reference!")
-               .arg(m_name), Error::QueueError, this, moleQueueId);
-    emit errorOccurred(err);
+    Logger::addDebugMessage(tr("Queue '%1' Cannot update invalid Job "
+                               "reference!").arg(m_name), moleQueueId);
     return;
   }
   job.setJobState(MoleQueue::Finished);
@@ -248,25 +245,20 @@ bool QueueLocal::startJob(IdType moleQueueId)
 {
   // Get pointers to job, server, etc
   if (!m_server) {
-    Error err (tr("Queue '%1' cannot locate Server instance!")
-               .arg(m_name), Error::QueueError, this, moleQueueId);
-    emit errorOccurred(err);
+    Logger::addError(tr("Queue '%1' cannot locate Server instance!")
+                     .arg(m_name), moleQueueId);
     return false;
   }
   const Job job = m_server->jobManager()->lookupJobByMoleQueueId(moleQueueId);
   if (!job.isValid()) {
-    Error err (tr("Queue '%1' cannot locate Job with MoleQueue id %2.")
-               .arg(m_name).arg(moleQueueId),
-               Error::QueueError, this, moleQueueId);
-    emit errorOccurred(err);
+    Logger::addError(tr("Queue '%1' cannot locate Job with MoleQueue id %2.")
+                     .arg(m_name).arg(moleQueueId), moleQueueId);
     return false;
   }
   const Program *program = lookupProgram(job.program());
   if (!program) {
-    Error err (tr("Queue '%1' cannot locate Program '%2'.")
-               .arg(m_name).arg(job.program()),
-               Error::QueueError, this, moleQueueId);
-    emit errorOccurred(err);
+    Logger::addError(tr("Queue '%1' cannot locate Program '%2'.")
+                     .arg(m_name).arg(job.program()), moleQueueId);
     return false;
   }
 
@@ -310,10 +302,9 @@ bool QueueLocal::startJob(IdType moleQueueId)
     break;
   case Program::SYNTAX_COUNT:
   default:
-    Error err (tr("Unknown launcher syntax for program %1: %2.")
-               .arg(job.program()).arg(program->launchSyntax()),
-               Error::ProgramError, this, moleQueueId);
-    emit errorOccurred(err);
+    Logger::addError(tr("Unknown launcher syntax for program %1: %2.")
+                     .arg(job.program()).arg(program->launchSyntax()),
+                     moleQueueId);
     return false;
   }
 

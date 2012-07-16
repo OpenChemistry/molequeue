@@ -14,28 +14,43 @@
 
 ******************************************************************************/
 
-#include "error.h"
+#include "logentry.h"
+
+#include <QtCore/QDateTime>
 
 namespace MoleQueue
 {
 
-Error::Error(const QString &message_, Error::ErrorType type_, Object *sender_,
-             IdType moleQueueId_, const QVariant data_)
+LogEntry::LogEntry(LogEntryType type, const QString &message_,
+                   const IdType &moleQueueId_)
   : m_message(message_),
-    m_type(type_),
-    m_sender(sender_),
     m_moleQueueId(moleQueueId_),
-    m_data(data_)
+    m_entryType(type),
+    m_timeStamp(new QDateTime())
 {
 }
 
-Error::Error(const Error &other)
+LogEntry::LogEntry(const LogEntry &other)
   : m_message(other.m_message),
-    m_type(other.m_type),
-    m_sender(other.m_sender),
     m_moleQueueId(other.m_moleQueueId),
-    m_data(other.m_data)
+    m_entryType(other.m_entryType),
+    m_timeStamp(new QDateTime (*other.m_timeStamp))
 {
 }
 
-} // end namespace MoleQueue
+LogEntry::~LogEntry()
+{
+  delete m_timeStamp;
+}
+
+void LogEntry::setTimeStamp()
+{
+  *m_timeStamp = QDateTime::currentDateTime();
+}
+
+const QDateTime &LogEntry::timeStamp() const
+{
+  return *m_timeStamp;
+}
+
+} // namespace MoleQueue
