@@ -243,9 +243,9 @@ void Server::handleError(const MoleQueue::Error &err)
 
 void Server::queueListRequestReceived(MoleQueue::Connection *connection,
                                       MoleQueue::EndpointId replyTo,
-                                      MoleQueue::IdType id)
+                                      MoleQueue::IdType packetId)
 {
-  sendQueueList(connection, replyTo, id, m_queueManager->toQueueList());
+  sendQueueList(connection, replyTo, packetId, m_queueManager->toQueueList());
 }
 
 void Server::jobCancellationRequestReceived(MoleQueue::Connection *connection,
@@ -306,10 +306,10 @@ void Server::clientDisconnected()
 
 void Server::sendQueueList(Connection* connection,
                            EndpointId to,
-                           MoleQueue::IdType id,
+                           MoleQueue::IdType packetId,
                            const QueueListType &queueList)
 {
-  PacketType packet = m_jsonrpc->generateQueueList(queueList, id);
+  PacketType packet = m_jsonrpc->generateQueueList(queueList, packetId);
 
   Message msg(to, packet);
 
@@ -364,18 +364,18 @@ void Server::sendFailedSubmissionResponse(MoleQueue::Connection *connection,
 
 void Server::sendSuccessfulCancellationResponse(MoleQueue::Connection *connection,
                                                 MoleQueue::EndpointId replyTo,
-                                                IdType jobId)
+                                                IdType moleQueueId)
 {
   // Lookup the moleQueueId in the hash so that we can send the correct packetId
-  if (!m_cancellationLUT.contains(jobId)) {
+  if (!m_cancellationLUT.contains(moleQueueId)) {
     qWarning() << "Refusing to confirm job cancellation; unrecognized id:"
-               << jobId;
+               << moleQueueId;
     return;
   }
 
-  const IdType packetId = m_cancellationLUT.take(jobId);
+  const IdType packetId = m_cancellationLUT.take(moleQueueId);
   PacketType packet =  m_jsonrpc->generateJobCancellationConfirmation(
-        jobId, packetId);
+      moleQueueId, packetId);
 
   Message msg(replyTo, packet);
 
