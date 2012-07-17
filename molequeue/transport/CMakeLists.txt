@@ -35,8 +35,8 @@ set_property(TARGET mqconnectionlistener APPEND
   PROPERTY COMPILE_FLAGS ${molequeue_export_flags})
 
 list(APPEND hdrs
-  mqconnectionexport.h
-  mqconnectionlistenerexport.h)
+  "${CMAKE_CURRENT_BINARY_DIR}/mqconnectionexport.h"
+  "${CMAKE_CURRENT_BINARY_DIR}/mqconnectionlistenerexport.h")
 
 install(FILES ${hdrs} DESTINATION "${INSTALL_INCLUDE_DIR}/molequeue")
 

@@ -43,7 +43,7 @@ target_link_libraries(mqlocalsocketclient
   molequeueclient
   mqlocalsocketconnection)
 
-set(hdrs localsocketclient.h mqlocalsocketclientexport.h)
+set(hdrs localsocketclient.h ${CMAKE_CURRENT_BINARY_DIR}/mqlocalsocketclientexport.h)
 
 generate_export_header(mqlocalsocketclient EXPORT_FILE_NAME mqlocalsocketclientexport.h)
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
@@ -52,6 +52,6 @@ set_property(TARGET mqlocalsocketclient APPEND
   PROPERTY COMPILE_FLAGS ${molequeue_export_flags})
 
 install(FILES ${hdrs} DESTINATION "${INSTALL_INCLUDE_DIR}/molequeue/localsocketclient")
-install(TARGETS mqlocalsocketclient DESTINATION lib)
+install(TARGETS mqlocalsocketclient DESTINATION ${INSTALL_LIBRARY_DIR})
 
 add_subdirectory(plugin)

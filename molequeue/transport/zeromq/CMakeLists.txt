@@ -59,12 +59,12 @@ target_link_libraries(mqzeromqclient
   mqzeromqconnection
   )
 
-set(hdrs mqzeromqclient.h mqzeromqclientexport.h)
+set(hdrs zeromqclient.h ${CMAKE_CURRENT_BINARY_DIR}/mqzeromqclientexport.h)
 
 generate_export_header(mqzeromqclient EXPORT_FILE_NAME mqzeromqclientexport.h)
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 install(FILES ${hdrs} DESTINATION "${INSTALL_INCLUDE_DIR}/molequeue/zeromqclient")
-install(TARGETS mqzeromqclient DESTINATION lib)
+install(TARGETS mqzeromqclient DESTINATION ${INSTALL_LIBRARY_DIR})
 
 add_subdirectory(plugin)
