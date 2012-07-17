@@ -38,6 +38,7 @@ namespace MoleQueue
 class Job;
 class JobItemModel;
 class LogEntry;
+class LogWindow;
 class Server;
 
 /// The main window for the MoleQueue application.
@@ -62,6 +63,7 @@ public slots:
 protected slots:
   void showQueueManager();
   void showOpenWithManager();
+  void showLogWindow();
   void handleServerConnectionError(MoleQueue::ConnectionListener::Error,
                                    const QString &);
 
@@ -76,6 +78,9 @@ protected:
 
   /** Our MainWindow GUI. */
   Ui::MainWindow *m_ui;
+
+  /// The log window
+  LogWindow *m_logWindow;
 
   QAction *m_minimizeAction;
   QAction *m_maximizeAction;

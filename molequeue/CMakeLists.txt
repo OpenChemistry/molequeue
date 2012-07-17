@@ -36,6 +36,7 @@ set(mq_srcs
   jsonrpc.cpp
   logentry.cpp
   logger.cpp
+  logwindow.cpp
   mainwindow.cpp
   molequeueglobal.h
   openwithmanagerdialog.cpp
@@ -78,6 +79,7 @@ set(mq_moc
   jobview.h
   jsonrpc.h
   logger.h
+  logwindow.h
   mainwindow.h
   openwithmanagerdialog.h
   openwithexecutablemodel.h
@@ -108,6 +110,7 @@ qt4_wrap_cpp(moc_srcs ${mq_moc})
 qt4_wrap_ui(ui_srcs
   ui/addqueuedialog.ui
   ui/jobtablewidget.ui
+  ui/logwindow.ui
   ui/mainwindow.ui
   ui/openwithmanagerdialog.ui
   ui/programconfiguredialog.ui
