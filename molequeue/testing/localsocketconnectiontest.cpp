@@ -14,7 +14,6 @@
 
  ******************************************************************************/
 
-
 #include <QtTest>
 
 #include "client.h"
@@ -23,6 +22,7 @@
 
 class LocalSocketConnectionTest: public ConnectionTest
 {
+  Q_OBJECT
 protected:
   MoleQueue::Client *createClient();
 

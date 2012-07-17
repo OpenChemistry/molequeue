@@ -130,6 +130,9 @@ bool Queue::addProgram(Program *newProgram, bool replace)
 
   m_programs.insert(newProgram->name(), newProgram);
 
+  if (newProgram->parent() != this)
+    newProgram->setParent(this);
+
   emit programAdded(newProgram->name(), newProgram);
   return true;
 }

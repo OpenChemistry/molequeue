@@ -9,5 +9,5 @@ set(CTEST_CUSTOM_WARNING_EXCEPTION
   ${CTEST_CUSTOM_WARNING_EXCEPTION}
   "jsoncpp"
   # Nested Qt foreach loops produce this warning:
-  "warning: declaration of ?_container_? shadows a previous local"
+  "warning: declaration of ._container_. shadows a previous local"
 )

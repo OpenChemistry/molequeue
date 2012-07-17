@@ -104,6 +104,7 @@ public:
   /**
    * Add a new program to the queue. Program names must be unique in each
    * queue, as they are used to specify which program will be used.
+   * @note This Queue instance will take ownership and reparent @a newProgram.
    * @param program The program to be added to the queue.
    * @param replace Defaults to false, if true replace any program with the
    * same name in this queue.
