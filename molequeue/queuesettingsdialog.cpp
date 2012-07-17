@@ -52,12 +52,20 @@ QueueSettingsDialog::QueueSettingsDialog(Queue *queue, QWidget *parentObject)
   // Make connections
   connect(ui->push_addProgram, SIGNAL(clicked()),
           this, SLOT(addProgramClicked()));
+  connect(ui->push_removeProgram, SIGNAL(clicked()),
+          this, SLOT(removeProgramClicked()));
+  connect(ui->push_configureProgram, SIGNAL(clicked()),
+          this, SLOT(configureProgramClicked()));
   connect(ui->programsTable, SIGNAL(doubleClicked(QModelIndex)),
           this, SLOT(doubleClicked(QModelIndex)));
+  connect(ui->programsTable->selectionModel(),
+          SIGNAL(selectionChanged(QItemSelection, QItemSelection)),
+          this, SLOT(enableProgramButtons(QItemSelection)));
+
+  // Names can't be changed
+  ui->nameLineEdit->setDisabled(true);
 
   /// @todo Make these GUI components useful:
-  ui->nameLineEdit->setDisabled(true);
-  ui->push_removeProgram->setDisabled(true);
   ui->push_save->setDisabled(true);
   ui->push_reset->setDisabled(true);
 }
@@ -90,10 +98,35 @@ void QueueSettingsDialog::addProgramClicked()
   }
 }
 
+void QueueSettingsDialog::removeProgramClicked()
+{
+  QModelIndex index = ui->programsTable->currentIndex();
+  if (!index.isValid() || index.row() > m_queue->numPrograms())
+    return;
+
+  m_model->removeRow(index.row());
+  setEnabledProgramButtons(
+        !ui->programsTable->selectionModel()->selectedIndexes().isEmpty());
+}
+
+void QueueSettingsDialog::configureProgramClicked()
+{
+  QModelIndex index = ui->programsTable->currentIndex();
+  if (!index.isValid() || index.row() > m_queue->numPrograms())
+    return;
+
+  showProgramConfigDialog(m_queue->programs().at(index.row()));
+}
+
 void QueueSettingsDialog::doubleClicked(const QModelIndex &index)
 {
-  if (index.row() <= m_queue->numPrograms())
+  if (index.isValid() && index.row() <= m_queue->numPrograms())
     showProgramConfigDialog(m_queue->programs().at(index.row()));
+}
+
+void QueueSettingsDialog::enableProgramButtons(const QItemSelection &selected)
+{
+  setEnabledProgramButtons(!selected.isEmpty());
 }
 
 QDialog::DialogCode QueueSettingsDialog::showProgramConfigDialog(Program *prog)
@@ -101,6 +134,12 @@ QDialog::DialogCode QueueSettingsDialog::showProgramConfigDialog(Program *prog)
   ProgramConfigureDialog configDialog (prog, this);
   int dialogCode = configDialog.exec();
   return static_cast<QDialog::DialogCode>(dialogCode);
+}
+
+void QueueSettingsDialog::setEnabledProgramButtons(bool enabled)
+{
+  ui->push_removeProgram->setEnabled(enabled);
+  ui->push_configureProgram->setEnabled(enabled);
 }
 
 } // end MoleQueue namespace
