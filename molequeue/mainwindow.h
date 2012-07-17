@@ -37,6 +37,8 @@ namespace MoleQueue
 {
 class Job;
 class JobItemModel;
+class LogEntry;
+class LogWindow;
 class Server;
 
 /// The main window for the MoleQueue application.
@@ -56,17 +58,14 @@ public slots:
 
   void trayIconActivated(QSystemTrayIcon::ActivationReason);
 
-  void notifyUserOfError(const QString &title, const QString &message);
+  void notifyUserOfLogEntry(const MoleQueue::LogEntry &entry);
 
 protected slots:
   void showQueueManager();
   void showOpenWithManager();
+  void showLogWindow();
   void handleServerConnectionError(MoleQueue::ConnectionListener::Error,
                                    const QString &);
-
-  void notifyJobStateChanged(const MoleQueue::Job &job,
-                             MoleQueue::JobState oldState,
-                             MoleQueue::JobState newState);
 
 protected:
   void closeEvent(QCloseEvent *theEvent);
@@ -79,6 +78,9 @@ protected:
 
   /** Our MainWindow GUI. */
   Ui::MainWindow *m_ui;
+
+  /// The log window
+  LogWindow *m_logWindow;
 
   QAction *m_minimizeAction;
   QAction *m_maximizeAction;
