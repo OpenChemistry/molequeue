@@ -22,6 +22,7 @@
 
 class ZeroMqConnectionTest: public ConnectionTest
 {
+  Q_OBJECT
 protected:
   MoleQueue::Client *createClient();
 
