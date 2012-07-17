@@ -31,7 +31,8 @@ QueueSettingsDialog::QueueSettingsDialog(Queue *queue, QWidget *parentObject)
   : QDialog(parentObject),
     ui(new Ui::QueueSettingsDialog),
     m_queue(queue),
-    m_model(new QueueProgramItemModel (m_queue, this))
+    m_model(new QueueProgramItemModel (m_queue, this)),
+    m_programConfigureDialog(NULL)
 {
   ui->setupUi(this);
 
@@ -74,8 +75,9 @@ void QueueSettingsDialog::addProgramClicked()
   bool programAccepted = false;
 
   while (!programAccepted) {
-    DialogCode dialogCode = showProgramConfigDialog(prog);
 
+    ProgramConfigureDialog configDialog(prog, this);
+    DialogCode dialogCode = static_cast<DialogCode>(configDialog.exec());
     if (dialogCode == QDialog::Rejected)
       return;
 
@@ -96,11 +98,23 @@ void QueueSettingsDialog::doubleClicked(const QModelIndex &index)
     showProgramConfigDialog(m_queue->programs().at(index.row()));
 }
 
-QDialog::DialogCode QueueSettingsDialog::showProgramConfigDialog(Program *prog)
+void QueueSettingsDialog::showProgramConfigDialog(Program *prog)
 {
-  ProgramConfigureDialog configDialog (prog, this);
-  int dialogCode = configDialog.exec();
-  return static_cast<QDialog::DialogCode>(dialogCode);
+  if (m_programConfigureDialog) {
+    if (m_programConfigureDialog->currentProgram() == prog) {
+      m_programConfigureDialog->show();
+      m_programConfigureDialog->raise();
+      return;
+    }
+
+    m_programConfigureDialog->close();
+    m_programConfigureDialog->deleteLater();
+    m_programConfigureDialog = NULL;
+  }
+
+  m_programConfigureDialog = new ProgramConfigureDialog(prog, this);
+  m_programConfigureDialog->lockName(true);
+  m_programConfigureDialog->show();
 }
 
 } // end MoleQueue namespace

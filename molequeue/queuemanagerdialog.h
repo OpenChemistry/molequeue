@@ -29,6 +29,7 @@ namespace MoleQueue
 class Queue;
 class QueueManager;
 class QueueManagerItemModel;
+class QueueSettingsDialog;
 
 class QueueManagerDialog : public QDialog
 {
@@ -55,6 +56,7 @@ protected:
   Ui::QueueManagerDialog *ui;
   QueueManager *m_queueManager;
   QueueManagerItemModel *m_queueManagerItemModel;
+  QueueSettingsDialog *m_queueSettingsDialog;
 };
 
 } // end MoleQueue namespace

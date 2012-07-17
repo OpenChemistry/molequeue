@@ -33,7 +33,8 @@ QueueManagerDialog::QueueManagerDialog(QueueManager *queueManager,
   : QDialog(parentObject),
     ui(new Ui::QueueManagerDialog),
     m_queueManager(queueManager),
-    m_queueManagerItemModel(new QueueManagerItemModel (m_queueManager, this))
+    m_queueManagerItemModel(new QueueManagerItemModel (m_queueManager, this)),
+    m_queueSettingsDialog(NULL)
 {
   ui->setupUi(this);
 
@@ -92,8 +93,20 @@ void QueueManagerDialog::doubleClicked(const QModelIndex &index)
 
 void QueueManagerDialog::showSettingsDialog(Queue *queue)
 {
-  QueueSettingsDialog dialog(queue, this);
-  dialog.exec();
+  if (m_queueSettingsDialog) {
+    if (m_queueSettingsDialog->currentQueue() == queue) {
+      m_queueSettingsDialog->show();
+      m_queueSettingsDialog->raise();
+      return;
+    }
+
+    m_queueSettingsDialog->close();
+    m_queueSettingsDialog->deleteLater();
+    m_queueSettingsDialog = NULL;
+  }
+
+  m_queueSettingsDialog = new QueueSettingsDialog(queue, this);
+  m_queueSettingsDialog->show();
 }
 
 QList<int> QueueManagerDialog::getSelectedRows()

@@ -28,6 +28,7 @@ namespace Ui {
 namespace MoleQueue
 {
 class Program;
+class ProgramConfigureDialog;
 class Queue;
 class QueueProgramItemModel;
 
@@ -39,16 +40,19 @@ public:
   explicit QueueSettingsDialog(Queue *queue, QWidget *parentObject = 0);
   ~QueueSettingsDialog();
 
+  Queue *currentQueue() const { return m_queue; }
+
 protected slots:
   void addProgramClicked();
   void doubleClicked(const QModelIndex &);
 
 protected:
-  DialogCode showProgramConfigDialog(Program *prog);
+  void showProgramConfigDialog(Program *prog);
 
   Ui::QueueSettingsDialog *ui;
   Queue *m_queue;
   QueueProgramItemModel *m_model;
+  ProgramConfigureDialog *m_programConfigureDialog;
 };
 
 } // end MoleQueue namespace
