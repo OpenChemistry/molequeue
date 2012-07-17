@@ -306,6 +306,16 @@ void Server::clientDisconnected()
 
   DEBUGOUT("clientDisconnected") "Removing connection" << conn;
   m_connections.removeOne(conn);
+
+  // Remove connection from look up table and any endpoints key on molequeueids
+  // associated with that connection.
+  QList<IdType> moleQueueIds = m_connectionLUT.keys(conn);
+
+  foreach(IdType moleQueueId, moleQueueIds) {
+    m_connectionLUT.remove(moleQueueId);
+    m_endpointLUT.remove(moleQueueId);
+  }
+
   conn->deleteLater();
 }
 
