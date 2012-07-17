@@ -44,10 +44,10 @@ class Logger;
  *
  * The easiest way to add new entries to the log is to use the static functions
  * in Logger:
- * - Logger::addDebugMessage(QString message, IdType moleQueueId)
- * - Logger::addNotification(QString message, IdType moleQueueId)
- * - Logger::addWarning(QString message, IdType moleQueueId)
- * - Logger::addError(QString message, IdType moleQueueId)
+ * - Logger::logDebugMessage(QString message, IdType moleQueueId)
+ * - Logger::logNotification(QString message, IdType moleQueueId)
+ * - Logger::logWarning(QString message, IdType moleQueueId)
+ * - Logger::logError(QString message, IdType moleQueueId)
  *
  * Each LogEntry contains a user-friendly message, an LogEntryType to identify
  * the type of log entry, an optional MoleQueue id for any associate Job, and

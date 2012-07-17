@@ -160,14 +160,14 @@ bool Queue::writeInputFiles(const Job &job)
 
   // Lookup program.
   if (!m_server) {
-    Logger::addError(tr("Queue '%1' cannot locate Server instance!")
+    Logger::logError(tr("Queue '%1' cannot locate Server instance!")
                      .arg(m_name),
                      job.moleQueueId());
     return false;
   }
   const Program *program = lookupProgram(job.program());
   if (!program) {
-    Logger::addError(tr("Queue '%1' cannot locate program '%2'!")
+    Logger::logError(tr("Queue '%1' cannot locate program '%2'!")
                      .arg(m_name).arg(job.program()),
                      job.moleQueueId());
     return false;
@@ -178,13 +178,13 @@ bool Queue::writeInputFiles(const Job &job)
 
   /// Send a warning but don't bail if the path already exists.
   if (dir.exists()) {
-    Logger::addWarning(tr("Directory already exists: %1")
+    Logger::logWarning(tr("Directory already exists: %1")
                        .arg(dir.absolutePath()),
                        job.moleQueueId());
   }
   else {
     if (!dir.mkpath(dir.absolutePath())) {
-      Logger::addError(tr("Cannot create directory: %1")
+      Logger::logError(tr("Cannot create directory: %1")
                        .arg(dir.absolutePath()),
                        job.moleQueueId());
       return false;
@@ -198,7 +198,7 @@ bool Queue::writeInputFiles(const Job &job)
       // Open a file and write the input string to it.
       QFile inputFile (inputFilePath);
       if (!inputFile.open(QFile::WriteOnly | QFile::Text)) {
-        Logger::addError(tr("Cannot open file for writing: %1")
+        Logger::logError(tr("Cannot open file for writing: %1")
                          .arg(inputFilePath),
                          job.moleQueueId());
         return false;
@@ -209,7 +209,7 @@ bool Queue::writeInputFiles(const Job &job)
     else {
       // Copy the input file to the input path
       if (!QFile::copy(job.inputAsPath(), inputFilePath)) {
-        Logger::addError(tr("Cannot copy file '%1' --> '%2'.")
+        Logger::logError(tr("Cannot copy file '%1' --> '%2'.")
                          .arg(job.inputAsPath()).arg(inputFilePath),
                          job.moleQueueId());
         return false;
@@ -227,7 +227,7 @@ bool Queue::writeInputFiles(const Job &job)
       remoteQueue) {
     QFile launcherFile (dir.absoluteFilePath(launchScriptName()));
     if (!launcherFile.open(QFile::WriteOnly | QFile::Text)) {
-      Logger::addError(tr("Cannot open file for writing: %1.")
+      Logger::logError(tr("Cannot open file for writing: %1.")
                        .arg(launcherFile.fileName()),
                        job.moleQueueId());
       return false;
@@ -240,7 +240,7 @@ bool Queue::writeInputFiles(const Job &job)
     launcherFile.write(launchString.toLatin1());
     if (!launcherFile.setPermissions(
           launcherFile.permissions() | QFile::ExeUser)) {
-      Logger::addError(tr("Cannot set executable permissions on file: %1.")
+      Logger::logError(tr("Cannot set executable permissions on file: %1.")
                        .arg(launcherFile.fileName()),
                        job.moleQueueId());
       return false;

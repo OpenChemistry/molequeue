@@ -189,7 +189,7 @@ void JobManager::setJobState(IdType moleQueueId, JobState newState)
 
   jobdata->setJobState(newState);
 
-  Logger::addNotification(tr("Job '%1' has changed status from '%2' to '%3'.")
+  Logger::logNotification(tr("Job '%1' has changed status from '%2' to '%3'.")
                           .arg(jobdata->description())
                           .arg(MoleQueue::jobStateToString(oldState))
                           .arg(MoleQueue::jobStateToString(newState)),

@@ -44,7 +44,8 @@ namespace MoleQueue
  * - Error: Serious problem that will affect either the MoleQueue application
  *   or a Job's ability to perform properly.
  *
- * New log entries can be submitted using the static Logger::addLogEntry method.
+ * New log entries can be submitted using the static Logger::logEntry method or
+ * the convenient logDebugMessage, logNotification, logWarning, or logError.
  * Each new log entry causes the newLogEntry signal to be emitted, as well as
  * one of newDebugMessage, newNotification, newWarning, or newError, depending
  * on the LogEntry type. Details of new log entries will be automatically
@@ -108,49 +109,49 @@ signals:
 public slots:
 
   /// Add @a entry to the log.
-  static void addLogEntry(MoleQueue::LogEntry &entry)
+  static void logEntry(MoleQueue::LogEntry &entry)
   {
     Logger::getInstance()->handleNewLogEntry(entry);
   }
 
   /// Add a new log entry to the log.
-  static void addLogEntry(LogEntry::LogEntryType type, const QString &message,
-                          const IdType &moleQueueId = InvalidId)
+  static void logEntry(LogEntry::LogEntryType type, const QString &message,
+                       const IdType &moleQueueId = InvalidId)
   {
     LogEntry entry(type, message, moleQueueId);
-    Logger::addLogEntry(entry);
+    Logger::logEntry(entry);
   }
 
   /// Add a new debugging message to the log.
-  static void addDebugMessage(const QString &message,
+  static void logDebugMessage(const QString &message,
                               const IdType &moleQueueId = InvalidId)
   {
     LogEntry entry(LogEntry::DebugMessage, message, moleQueueId);
-    Logger::addLogEntry(entry);
+    Logger::logEntry(entry);
   }
 
   /// Add a new notification to the log.
-  static void addNotification(const QString &message,
+  static void logNotification(const QString &message,
                               const IdType &moleQueueId = InvalidId)
   {
     LogEntry entry(LogEntry::Notification, message, moleQueueId);
-    Logger::addLogEntry(entry);
+    Logger::logEntry(entry);
   }
 
   /// Add a new warning to the log.
-  static void addWarning(const QString &message,
+  static void logWarning(const QString &message,
                          const IdType &moleQueueId = InvalidId)
   {
     LogEntry entry(LogEntry::Warning, message, moleQueueId);
-    Logger::addLogEntry(entry);
+    Logger::logEntry(entry);
   }
 
   /// Add a new error to the log.
-  static void addError(const QString &message,
+  static void logError(const QString &message,
                        const IdType &moleQueueId = InvalidId)
   {
     LogEntry entry(LogEntry::Error, message, moleQueueId);
-    Logger::addLogEntry(entry);
+    Logger::logEntry(entry);
   }
 
   /// @param print Whether or not to print debugging messages to qDebug.
