@@ -25,6 +25,7 @@
 #include "jobmanager.h"
 #include "logentry.h"
 #include "logger.h"
+#include "logwindow.h"
 #include "openwithmanagerdialog.h"
 #include "queuemanagerdialog.h"
 #include "server.h"
@@ -39,6 +40,7 @@ namespace MoleQueue {
 
 MainWindow::MainWindow()
   : m_ui(new Ui::MainWindow),
+    m_logWindow(NULL),
     m_minimizeAction(NULL),
     m_maximizeAction(NULL),
     m_restoreAction(NULL),
@@ -71,6 +73,10 @@ MainWindow::MainWindow()
 MainWindow::~MainWindow()
 {
   writeSettings();
+
+  if (m_logWindow) {
+    m_logWindow->close();
+  }
 
   delete m_ui;
   delete m_server;
@@ -153,6 +159,17 @@ void MainWindow::showOpenWithManager()
   dialog.exec();
 }
 
+void MainWindow::showLogWindow()
+{
+  if (m_logWindow == NULL)
+    m_logWindow = new LogWindow (this);
+
+  if (m_logWindow->isVisible())
+    m_logWindow->raise();
+  else
+    m_logWindow->show();
+}
+
 void MainWindow::handleServerConnectionError(ConnectionListener::Error err,
                                              const QString &str)
 {
@@ -218,6 +235,8 @@ void MainWindow::createMainMenu()
           this, SLOT(showQueueManager()));
   connect(m_ui->actionOpenWithManager, SIGNAL(triggered()),
           this, SLOT(showOpenWithManager()));
+  connect(m_ui->actionShowLog, SIGNAL(triggered()),
+          this, SLOT(showLogWindow()));
   connect(m_ui->actionQuit, SIGNAL(triggered()),
           qApp, SLOT(quit()));
 }
