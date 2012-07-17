@@ -43,6 +43,7 @@ Logger::Logger() :
     settings.setArrayIndex(i);
     m_log.push_back(LogEntry(settings));
   }
+  settings.endArray();
   settings.endGroup();
 }
 

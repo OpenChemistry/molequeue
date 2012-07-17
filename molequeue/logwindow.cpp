@@ -147,13 +147,15 @@ void LogWindow::createUi()
 {
   ui->setupUi(this);
 
-  QVBoxLayout *mainLayout = new QVBoxLayout (this);
+  QWidget *widget = new QWidget (this);
+  setCentralWidget(widget);
+  QVBoxLayout *mainLayout = new QVBoxLayout (widget);
 
   m_log = new QTextEdit(this);
   m_log->setReadOnly(true);
   mainLayout->addWidget(m_log);
 
-  QHBoxLayout *logSettingsLayout = new QHBoxLayout (this);
+  QHBoxLayout *logSettingsLayout = new QHBoxLayout ();
 
   QPushButton *clearLogButton = new QPushButton(tr("&Clear log"), this);
   connect(clearLogButton, SIGNAL(clicked()), this, SLOT(clearLog()));
@@ -173,11 +175,6 @@ void LogWindow::createUi()
   logSettingsLayout->addWidget(m_maxEntries);
 
   mainLayout->addLayout(logSettingsLayout);
-
-  QWidget *widget = new QWidget (this);
-  widget->setLayout(mainLayout);
-
-  setCentralWidget(widget);
 }
 
 void LogWindow::setupFormats()
