@@ -150,7 +150,7 @@ target_link_libraries(molequeue
   ${QT_LIBRARIES})
 
 install(TARGETS molequeue
-  DESTINATION bin)
+  DESTINATION ${INSTALL_RUNTIME_DIR})
 
 if((APPLE OR WIN32) AND NOT ${CMAKE_VERSION} VERSION_LESS 2.8.8)
   set(sfx "")
@@ -207,7 +207,7 @@ add_library(molequeueclient STATIC
 target_link_libraries(molequeueclient
   ${QT_LIBRARIES}
   mqconnection)
-install(TARGETS molequeueclient DESTINATION lib)
+install(TARGETS molequeueclient DESTINATION ${INSTALL_LIBRARY_DIR})
 
 add_subdirectory(transport)
 
