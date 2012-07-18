@@ -109,7 +109,8 @@ void PluginManager::load(const QString &path)
     // Now attempt to cast to known factory types, and make it available.
     ConnectionListenerFactory *connectionListenerFactory =
       qobject_cast<ConnectionListenerFactory *>(pluginInstance);
-    if (connectionListenerFactory)
+    if (connectionListenerFactory &&
+        !m_connectionListenerFactories.contains(connectionListenerFactory))
       m_connectionListenerFactories.append(connectionListenerFactory);
   }
 }
