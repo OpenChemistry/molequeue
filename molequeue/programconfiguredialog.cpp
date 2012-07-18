@@ -33,6 +33,7 @@ ProgramConfigureDialog::ProgramConfigureDialog(Program *program,
   m_isCustomized((m_program->launchSyntax() == Program::CUSTOM))
 {
   ui->setupUi(this);
+
   populateSyntaxCombo();
 
   connect(ui->combo_syntax, SIGNAL(currentIndexChanged(int)),
@@ -68,6 +69,11 @@ void ProgramConfigureDialog::accept()
 {
   updateProgramFromGui();
   QDialog::accept();
+}
+
+void ProgramConfigureDialog::lockName(bool locked)
+{
+  ui->edit_name->setDisabled(locked);
 }
 
 void ProgramConfigureDialog::populateSyntaxCombo()
