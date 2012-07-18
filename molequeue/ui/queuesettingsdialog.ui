@@ -121,7 +121,20 @@
           </widget>
          </item>
          <item>
+          <widget class="QPushButton" name="push_configureProgram">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+           <property name="text">
+            <string>Configure Program</string>
+           </property>
+          </widget>
+         </item>
+         <item>
           <widget class="QPushButton" name="push_removeProgram">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
            <property name="text">
             <string>Remove Program</string>
            </property>

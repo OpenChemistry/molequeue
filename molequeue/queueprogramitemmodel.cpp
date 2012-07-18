@@ -28,9 +28,7 @@ QueueProgramItemModel::QueueProgramItemModel(Queue *queue,
     m_queue(queue)
 {
   connect(m_queue, SIGNAL(programAdded(QString,MoleQueue::Program*)),
-          this, SIGNAL(layoutChanged()));
-  connect(m_queue, SIGNAL(programRemoved(QString,MoleQueue::Program*)),
-          this, SIGNAL(layoutChanged()));
+          this, SLOT(callReset()));
 }
 
 QModelIndex QueueProgramItemModel::parent(const QModelIndex &) const
@@ -96,6 +94,22 @@ Qt::ItemFlags QueueProgramItemModel::flags(const QModelIndex &) const
   return Qt::ItemIsSelectable | Qt::ItemIsEnabled;
 }
 
+bool QueueProgramItemModel::removeRows(int row, int count,
+                                       const QModelIndex &)
+{
+  if (!m_queue)
+    return false;
+
+  beginRemoveRows(QModelIndex(), row, row + count - 1);
+
+  for (int i = 0; i < count; ++i)
+    m_queue->removeProgram(m_queue->programs().at(row));
+
+  endRemoveRows();
+
+  return true;
+}
+
 QModelIndex QueueProgramItemModel::index(int row, int column,
                                   const QModelIndex &) const
 {
@@ -103,6 +117,11 @@ QModelIndex QueueProgramItemModel::index(int row, int column,
     return createIndex(row, column);
   else
     return QModelIndex();
+}
+
+void QueueProgramItemModel::callReset()
+{
+  reset();
 }
 
 } // End of namespace

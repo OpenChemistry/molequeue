@@ -45,8 +45,13 @@ public:
                 int role = Qt::DisplayRole) const;
   Qt::ItemFlags flags(const QModelIndex & modelIndex) const;
 
+  bool removeRows(int row, int count, const QModelIndex &);
+
   QModelIndex index(int row, int column,
                     const QModelIndex & modelIndex = QModelIndex()) const;
+
+protected slots:
+  void callReset();
 
 protected:
   Queue *m_queue;

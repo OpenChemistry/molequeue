@@ -19,6 +19,7 @@
 
 #include <QtGui/QDialog>
 
+class QItemSelection;
 class QModelIndex;
 
 namespace Ui {
@@ -41,10 +42,14 @@ public:
 
 protected slots:
   void addProgramClicked();
+  void removeProgramClicked();
+  void configureProgramClicked();
   void doubleClicked(const QModelIndex &);
+  void enableProgramButtons(const QItemSelection &selected);
 
 protected:
   DialogCode showProgramConfigDialog(Program *prog);
+  void setEnabledProgramButtons(bool enabled);
 
   Ui::QueueSettingsDialog *ui;
   Queue *m_queue;
