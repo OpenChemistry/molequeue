@@ -35,8 +35,12 @@ public:
   explicit ProgramConfigureDialog(Program *program, QWidget *parentObject = 0);
   ~ProgramConfigureDialog();
 
+  Program *currentProgram() const { return m_program; }
+
 public slots:
   void accept();
+  // Disable the program name from being changed
+  void lockName(bool locked);
 
 protected slots:
   void populateSyntaxCombo();

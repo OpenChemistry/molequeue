@@ -17,6 +17,7 @@
 #include "queuesettingsdialog.h"
 #include "ui_queuesettingsdialog.h"
 
+#include "logger.h"
 #include "queue.h"
 #include "queueprogramitemmodel.h"
 #include "program.h"
@@ -74,8 +75,9 @@ void QueueSettingsDialog::addProgramClicked()
   bool programAccepted = false;
 
   while (!programAccepted) {
-    DialogCode dialogCode = showProgramConfigDialog(prog);
 
+    ProgramConfigureDialog configDialog(prog, this);
+    DialogCode dialogCode = static_cast<DialogCode>(configDialog.exec());
     if (dialogCode == QDialog::Rejected)
       return;
 
@@ -96,11 +98,44 @@ void QueueSettingsDialog::doubleClicked(const QModelIndex &index)
     showProgramConfigDialog(m_queue->programs().at(index.row()));
 }
 
-QDialog::DialogCode QueueSettingsDialog::showProgramConfigDialog(Program *prog)
+void QueueSettingsDialog::removeProgramDialog()
 {
-  ProgramConfigureDialog configDialog (prog, this);
-  int dialogCode = configDialog.exec();
-  return static_cast<QDialog::DialogCode>(dialogCode);
+  ProgramConfigureDialog *dialog =
+      qobject_cast<ProgramConfigureDialog*>(sender());
+  if (!dialog) {
+    Logger::logDebugMessage(tr("Internal error in %1: Sender is not a "
+                               "ProgramConfigureDialog (sender() = %2")
+                            .arg(Q_FUNC_INFO)
+                            .arg(sender() ? sender()->metaObject()->className()
+                                          : "NULL"));
+    return;
+  }
+
+  m_programConfigureDialogs.removeOne(dialog);
+  dialog->deleteLater();
+}
+
+void QueueSettingsDialog::showProgramConfigDialog(Program *prog)
+{
+  ProgramConfigureDialog *dialog = NULL;
+  // Check if there is already an open dialog for this queue
+  foreach (ProgramConfigureDialog *existingDialog, m_programConfigureDialogs) {
+    if (existingDialog->currentProgram() == prog) {
+      dialog = existingDialog;
+      break;
+    }
+  }
+
+  // If not, create one
+  if (!dialog) {
+    dialog = new ProgramConfigureDialog(prog, this);
+    m_programConfigureDialogs.append(dialog);
+    connect(dialog, SIGNAL(finished(int)), this, SLOT(removeProgramDialog()));
+  }
+
+  // Show and raise the dialog
+  dialog->show();
+  dialog->raise();
 }
 
 } // end MoleQueue namespace
