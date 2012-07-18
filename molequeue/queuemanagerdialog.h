@@ -29,6 +29,7 @@ namespace MoleQueue
 class Queue;
 class QueueManager;
 class QueueManagerItemModel;
+class QueueSettingsDialog;
 
 class QueueManagerDialog : public QDialog
 {
@@ -44,6 +45,7 @@ protected slots:
   void configureQueue();
   void doubleClicked(const QModelIndex &);
   void showSettingsDialog(MoleQueue::Queue *queue);
+  void removeSettingsDialog();
   void enableQueueButtons(const QItemSelection &selected);
 
 protected:
@@ -55,6 +57,7 @@ protected:
   Ui::QueueManagerDialog *ui;
   QueueManager *m_queueManager;
   QueueManagerItemModel *m_queueManagerItemModel;
+  QMap<Queue *, QueueSettingsDialog *> m_queueSettingsDialogs;
 };
 
 } // end MoleQueue namespace

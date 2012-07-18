@@ -20,6 +20,7 @@
 #include <QtGui/QItemSelection>
 
 #include "queue.h"
+#include "logger.h"
 #include "mainwindow.h"
 #include "addqueuedialog.h"
 #include "queuemanager.h"
@@ -92,8 +93,36 @@ void QueueManagerDialog::doubleClicked(const QModelIndex &index)
 
 void QueueManagerDialog::showSettingsDialog(Queue *queue)
 {
-  QueueSettingsDialog dialog(queue, this);
-  dialog.exec();
+  QueueSettingsDialog *dialog = NULL;
+  // Check if there is already an open dialog for this queue
+  dialog = m_queueSettingsDialogs.value(queue, NULL);
+
+  // If not, create one
+  if (!dialog) {
+    dialog = new QueueSettingsDialog(queue, this);
+    m_queueSettingsDialogs.insert(queue, dialog);
+    connect(dialog, SIGNAL(finished(int)), this, SLOT(removeSettingsDialog()));
+  }
+
+  // Show and raise the dialog
+  dialog->show();
+  dialog->raise();
+}
+
+void QueueManagerDialog::removeSettingsDialog()
+{
+  QueueSettingsDialog *dialog = qobject_cast<QueueSettingsDialog*>(sender());
+  if (!dialog) {
+    Logger::logDebugMessage(tr("Internal error in %1: Sender is not a "
+                               "QueueSettingsDialog (sender() = %2")
+                            .arg(Q_FUNC_INFO)
+                            .arg(sender() ? sender()->metaObject()->className()
+                                          : "NULL"));
+    return;
+  }
+
+  m_queueSettingsDialogs.remove(dialog->currentQueue());
+  dialog->deleteLater();
 }
 
 QList<int> QueueManagerDialog::getSelectedRows()
