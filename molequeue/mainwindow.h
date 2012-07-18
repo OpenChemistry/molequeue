@@ -39,6 +39,8 @@ class Job;
 class JobItemModel;
 class LogEntry;
 class LogWindow;
+class OpenWithManagerDialog;
+class QueueManagerDialog;
 class Server;
 
 /// The main window for the MoleQueue application.
@@ -61,8 +63,8 @@ public slots:
   void notifyUserOfLogEntry(const MoleQueue::LogEntry &entry);
 
 protected slots:
-  void showQueueManager();
-  void showOpenWithManager();
+  void showQueueManagerDialog();
+  void showOpenWithManagerDialog();
   void showLogWindow();
   void handleServerConnectionError(MoleQueue::ConnectionListener::Error,
                                    const QString &);
@@ -76,11 +78,10 @@ protected:
   void createJobTable();
   void createActionFactories();
 
-  /** Our MainWindow GUI. */
   Ui::MainWindow *m_ui;
-
-  /// The log window
   LogWindow *m_logWindow;
+  OpenWithManagerDialog *m_openWithManagerDialog;
+  QueueManagerDialog *m_queueManagerDialog;
 
   QAction *m_minimizeAction;
   QAction *m_maximizeAction;

@@ -41,6 +41,8 @@ namespace MoleQueue {
 MainWindow::MainWindow()
   : m_ui(new Ui::MainWindow),
     m_logWindow(NULL),
+    m_openWithManagerDialog(NULL),
+    m_queueManagerDialog(NULL),
     m_minimizeAction(NULL),
     m_maximizeAction(NULL),
     m_restoreAction(NULL),
@@ -73,10 +75,6 @@ MainWindow::MainWindow()
 MainWindow::~MainWindow()
 {
   writeSettings();
-
-  if (m_logWindow) {
-    m_logWindow->close();
-  }
 
   delete m_ui;
   delete m_server;
@@ -147,27 +145,33 @@ void MainWindow::notifyUserOfLogEntry(const MoleQueue::LogEntry &entry)
   m_trayIcon->showMessage(title, entry.message(), icon);
 }
 
-void MainWindow::showQueueManager()
+void MainWindow::showQueueManagerDialog()
 {
-  QueueManagerDialog dialog(m_server->queueManager(), this);
-  dialog.exec();
+  if (!m_queueManagerDialog) {
+    m_queueManagerDialog =
+        new QueueManagerDialog(m_server->queueManager(), this);
+  }
+
+  m_queueManagerDialog->show();
+  m_queueManagerDialog->raise();
 }
 
-void MainWindow::showOpenWithManager()
+void MainWindow::showOpenWithManagerDialog()
 {
-  OpenWithManagerDialog dialog(this);
-  dialog.exec();
+  if (!m_openWithManagerDialog)
+    m_openWithManagerDialog = new OpenWithManagerDialog(this);
+
+  m_openWithManagerDialog->show();
+  m_openWithManagerDialog->raise();
 }
 
 void MainWindow::showLogWindow()
 {
   if (m_logWindow == NULL)
-    m_logWindow = new LogWindow (this);
+    m_logWindow = new LogWindow(this);
 
-  if (m_logWindow->isVisible())
-    m_logWindow->raise();
-  else
-    m_logWindow->show();
+  m_logWindow->show();
+  m_logWindow->raise();
 }
 
 void MainWindow::handleServerConnectionError(ConnectionListener::Error err,
@@ -232,9 +236,9 @@ void MainWindow::createActions()
 void MainWindow::createMainMenu()
 {
   connect(m_ui->actionQueueManager, SIGNAL(triggered()),
-          this, SLOT(showQueueManager()));
+          this, SLOT(showQueueManagerDialog()));
   connect(m_ui->actionOpenWithManager, SIGNAL(triggered()),
-          this, SLOT(showOpenWithManager()));
+          this, SLOT(showOpenWithManagerDialog()));
   connect(m_ui->actionShowLog, SIGNAL(triggered()),
           this, SLOT(showLogWindow()));
   connect(m_ui->actionQuit, SIGNAL(triggered()),
