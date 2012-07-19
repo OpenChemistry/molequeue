@@ -238,9 +238,18 @@ protected slots:
    */
   virtual void jobAboutToBeRemoved(const MoleQueue::Job &job);
 
+  /**
+   * Delete the local working directory of @a Job.
+   */
+  void cleanLocalDirectory(MoleQueue::Job job);
+
 protected:
   /// Write the input files for @a job to the local working directory.
   bool writeInputFiles(const Job &job);
+  /// Remove the directory at @a path.
+  bool recursiveRemoveDirectory(const QString &path);
+  /// Copy the contents of directory @a from into @a to.
+  bool recursiveCopyDirectory(const QString &from, const QString &to);
 
   QueueManager *m_queueManager;
   Server *m_server;

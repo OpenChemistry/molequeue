@@ -201,6 +201,20 @@ void QueueLocal::processFinished(int exitCode, QProcess::ExitStatus exitStatus)
                                "reference!").arg(m_name), moleQueueId);
     return;
   }
+
+  if (!job.outputDirectory().isEmpty() &&
+      job.outputDirectory() != job.localWorkingDirectory()) {
+    // copy function logs errors if needed
+    if (!recursiveCopyDirectory(job.localWorkingDirectory(),
+                                job.outputDirectory())) {
+      job.setJobState(MoleQueue::ErrorState);
+      return;
+    }
+  }
+
+  if (job.cleanLocalWorkingDirectory())
+    cleanLocalDirectory(job);
+
   job.setJobState(MoleQueue::Finished);
 }
 

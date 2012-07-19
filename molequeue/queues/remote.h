@@ -139,8 +139,6 @@ protected slots:
   virtual void finalizeJobCopyToCustomDestination(MoleQueue::Job job);
   virtual void finalizeJobCleanup(MoleQueue::Job job);
 
-  virtual void cleanLocalDirectory(MoleQueue::Job job);
-
   virtual void cleanRemoteDirectory(MoleQueue::Job job);
   virtual void remoteDirectoryCleaned();
 
@@ -149,8 +147,6 @@ protected slots:
 
 protected:
   SshConnection *newSshConnection();
-  bool recursiveRemoveDirectory(const QString &path);
-  bool recursiveCopyDirectory(const QString &from, const QString &to);
 
   /**
    * Check for any jobs that are not present in the JobManager but
