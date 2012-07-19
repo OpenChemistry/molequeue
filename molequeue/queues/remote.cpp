@@ -414,7 +414,7 @@ void QueueRemote::finalizeJobCopyFromServer(Job job)
   SshConnection *conn = newSshConnection();
   conn->setData(QVariant::fromValue(job));
   connect(conn, SIGNAL(requestComplete()),
-          this, SLOT(finishedJobOutputCopiedFromServer()));
+          this, SLOT(finalizeJobOutputCopiedFromServer()));
 
   if (!conn->copyDirFrom(remoteDir, localDir)) {
     Logger::logError(tr("Could not initialize ssh resources: user= '%1'\nhost ="
@@ -427,7 +427,7 @@ void QueueRemote::finalizeJobCopyFromServer(Job job)
   }
 }
 
-void QueueRemote::finishedJobOutputCopiedFromServer()
+void QueueRemote::finalizeJobOutputCopiedFromServer()
 {
   SshConnection *conn = qobject_cast<SshConnection*>(sender());
   if (!conn) {
