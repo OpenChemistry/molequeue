@@ -201,6 +201,20 @@ void QueueLocal::processFinished(int exitCode, QProcess::ExitStatus exitStatus)
                                "reference!").arg(m_name), moleQueueId);
     return;
   }
+
+  if (!job.outputDirectory().isEmpty() &&
+      job.outputDirectory() != job.localWorkingDirectory()) {
+    // copy function logs errors if needed
+    if (!recursiveCopyDirectory(job.localWorkingDirectory(),
+                                job.outputDirectory())) {
+      job.setJobState(MoleQueue::ErrorState);
+      return;
+    }
+  }
+
+  if (job.cleanLocalWorkingDirectory())
+    cleanLocalDirectory(job);
+
   job.setJobState(MoleQueue::Finished);
 }
 
@@ -281,8 +295,11 @@ bool QueueLocal::startJob(IdType moleQueueId)
 
   switch (program->launchSyntax()) {
   case Program::CUSTOM:
-    /// @todo batch script on windows
-    command = "./MoleQueueLauncher.sh";
+#ifdef WIN32
+    command = "cmd.exe /c " + launchScriptName();
+#else // WIN32
+    command = "sh " + launchScriptName();
+#endif // WIN32
     break;
   case Program::PLAIN:
     break;
