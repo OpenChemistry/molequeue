@@ -135,7 +135,7 @@ protected slots:
 
   virtual void beginFinalizeJob(MoleQueue::IdType queueId);
   virtual void finalizeJobCopyFromServer(MoleQueue::Job job);
-  virtual void finishedJobOutputCopiedFromServer();
+  virtual void finalizeJobOutputCopiedFromServer();
   virtual void finalizeJobCopyToCustomDestination(MoleQueue::Job job);
   virtual void finalizeJobCleanup(MoleQueue::Job job);
 
