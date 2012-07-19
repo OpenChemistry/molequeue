@@ -78,26 +78,38 @@ QVariantHash JobData::hash() const
 
 void JobData::setFromHash(const QVariantHash &state)
 {
-  /// @todo only set these if they exist in the hash
-  m_queue = state.value("queue", "").toString();
-  m_program = state.value("program", "").toString();
-  m_description = state.value("description", "").toString();
-  m_jobState = static_cast<JobState>(
-        state.value("jobState", MoleQueue::None).toInt());
-  m_inputAsPath = state.value("inputAsPath", "").toString();
-  m_inputAsString = state.value("inputAsString", "").toString();
-  m_outputDirectory = state.value("outputDirectory", "").toString();
-  m_localWorkingDirectory = state.value("localWorkingDirectory", "").toString();
-  m_cleanRemoteFiles = state.value("cleanRemoteFiles", false).toBool();
-  m_retrieveOutput = state.value("retrieveOutput", true).toBool();
-  m_cleanLocalWorkingDirectory =
-      state.value("cleanLocalWorkingDirectory", false).toBool();
-  m_hideFromGui = state.value("hideFromGui", false).toBool();
-  m_popupOnStateChange = state.value("popupOnStateChange", true).toBool();
-  m_moleQueueId = static_cast<IdType>(
-        state.value("moleQueueId", 0).toUInt());
-  m_queueId = static_cast<IdType>(
-        state.value("queueId", 0).toUInt());
+  if (state.contains("queue"))
+    m_queue = state.value("queue").toString();
+  if (state.contains("program"))
+    m_program = state.value("program").toString();
+  if (state.contains("description"))
+    m_description = state.value("description").toString();
+  if (state.contains("jobState"))
+    m_jobState = static_cast<JobState>(state.value("jobState").toInt());
+  if (state.contains("inputAsPath"))
+    m_inputAsPath = state.value("inputAsPath").toString();
+  if (state.contains("inputAsString"))
+    m_inputAsString = state.value("inputAsString").toString();
+  if (state.contains("outputDirectory"))
+    m_outputDirectory = state.value("outputDirectory").toString();
+  if (state.contains("localWorkingDirectory"))
+    m_localWorkingDirectory = state.value("localWorkingDirectory").toString();
+  if (state.contains("cleanRemoteFiles"))
+    m_cleanRemoteFiles = state.value("cleanRemoteFiles").toBool();
+  if (state.contains("retrieveOutput"))
+    m_retrieveOutput = state.value("retrieveOutput").toBool();
+  if (state.contains("cleanLocalWorkingDirectory")) {
+    m_cleanLocalWorkingDirectory =
+        state.value("cleanLocalWorkingDirectory").toBool();
+  }
+  if (state.contains("hideFromGui"))
+    m_hideFromGui = state.value("hideFromGui").toBool();
+  if (state.contains("popupOnStateChange"))
+    m_popupOnStateChange = state.value("popupOnStateChange").toBool();
+  if (state.contains("moleQueueId"))
+    m_moleQueueId = static_cast<IdType>(state.value("moleQueueId").toUInt());
+  if (state.contains("queueId"))
+    m_queueId = static_cast<IdType>(state.value("queueId").toUInt());
 }
 
 } // end namespace MoleQueue
