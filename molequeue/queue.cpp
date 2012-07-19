@@ -218,11 +218,8 @@ bool Queue::writeInputFiles(const Job &job)
   }
 
   // Do we need a driver script?
-  /// @todo Find a better way to check if a driver script is needed.
-  const QueueLocal *localQueue =
-      qobject_cast<const QueueLocal*>(this);
-  const QueueRemote *remoteQueue =
-      qobject_cast<const QueueRemote*>(this);
+  const QueueLocal *localQueue = qobject_cast<const QueueLocal*>(this);
+  const QueueRemote *remoteQueue = qobject_cast<const QueueRemote*>(this);
   if ((localQueue && program->launchSyntax() == Program::CUSTOM) ||
       remoteQueue) {
     QFile launcherFile (dir.absoluteFilePath(launchScriptName()));

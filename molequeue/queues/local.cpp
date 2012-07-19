@@ -281,8 +281,11 @@ bool QueueLocal::startJob(IdType moleQueueId)
 
   switch (program->launchSyntax()) {
   case Program::CUSTOM:
-    /// @todo batch script on windows
-    command = "./MoleQueueLauncher.sh";
+#ifdef WIN32
+    command = "cmd.exe /c " + launchScriptName();
+#else // WIN32
+    command = "sh " + launchScriptName();
+#endif // WIN32
     break;
   case Program::PLAIN:
     break;
