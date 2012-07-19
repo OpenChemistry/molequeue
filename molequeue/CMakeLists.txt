@@ -178,6 +178,7 @@ set(mqclient_srcs
   client.cpp
   job.cpp
   jobdata.cpp
+  jobitemmodel.cpp
   jobmanager.cpp
   jobreferencebase.cpp
   jobrequest.cpp
@@ -191,6 +192,7 @@ set(mqclient_srcs
 set(mqclient_moc
   abstractrpcinterface.h
   client.h
+  jobitemmodel.h
   jobmanager.h
   jsonrpc.h
   logger.h

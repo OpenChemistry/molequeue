@@ -28,12 +28,9 @@ namespace MoleQueue
 JobTableWidget::JobTableWidget(QWidget *parentObject) :
   QWidget(parentObject),
   ui(new Ui::JobTableWidget),
-  m_jobItemModel(new JobItemModel (this))
+  m_jobManager(NULL)
 {
   ui->setupUi(this);
-
-  ui->table->setModel(m_jobItemModel);
-  ui->table->horizontalHeader()->setResizeMode(1, QHeaderView::Stretch);
 
   connect(ui->push_clearFinished, SIGNAL(clicked()),
           this, SLOT(clearFinishedJobs()));
@@ -47,36 +44,34 @@ JobTableWidget::~JobTableWidget()
 
 void JobTableWidget::setJobManager(MoleQueue::JobManager *jobMan)
 {
-  m_jobItemModel->setJobManager(jobMan);
-}
+  if (jobMan == m_jobManager)
+    return;
 
-JobManager *JobTableWidget::jobManager() const
-{
-  return m_jobItemModel->jobManager();
+  m_jobManager = jobMan;
+  ui->table->setModel(jobMan->itemModel());
+  ui->table->horizontalHeader()->setResizeMode(1, QHeaderView::Stretch);
 }
 
 QList<Job> JobTableWidget::getSelectedJobs()
 {
   QList<Job> result;
 
-  if (!m_jobItemModel->jobManager()) {
+  if (!m_jobManager)
     return result;
-  }
 
   foreach (int row, ui->table->getSelectedRows())
-    result << m_jobItemModel->jobManager()->jobAt(row);
+    result << m_jobManager->jobAt(row);
 
   return result;
 }
 
 void JobTableWidget::clearFinishedJobs()
 {
-  JobManager *jobMan = m_jobItemModel->jobManager();
-  if (!jobMan)
+  if (!m_jobManager)
     return;
 
   QList<Job> finishedJobs =
-      jobMan->jobsWithJobState(MoleQueue::Finished);
+      m_jobManager->jobsWithJobState(MoleQueue::Finished);
 
   QMessageBox::StandardButton confirm =
       QMessageBox::question(this, tr("Really remove jobs?"),
@@ -88,7 +83,7 @@ void JobTableWidget::clearFinishedJobs()
   if (confirm != QMessageBox::Yes)
     return;
 
-  jobMan->removeJobs(finishedJobs);
+  m_jobManager->removeJobs(finishedJobs);
 }
 
 } // end namespace MoleQueue

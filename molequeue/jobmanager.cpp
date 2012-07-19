@@ -18,6 +18,7 @@
 
 #include "job.h"
 #include "jobdata.h"
+#include "jobitemmodel.h"
 #include "logger.h"
 
 #include <QtCore/QSettings>
@@ -26,9 +27,16 @@ namespace MoleQueue
 {
 
 JobManager::JobManager(QObject *parentObject) :
-  QObject(parentObject)
+  QObject(parentObject),
+  m_itemModel(new JobItemModel(this))
 {
   qRegisterMetaType<Job>("MoleQueue::Job");
+
+  m_itemModel->setJobManager(this);
+
+  connect(this, SIGNAL(jobStateChanged(MoleQueue::Job,MoleQueue::JobState,
+                                       MoleQueue::JobState)),
+          this, SIGNAL(jobUpdated(MoleQueue::Job)));
 }
 
 JobManager::~JobManager()
@@ -50,6 +58,8 @@ void JobManager::readSettings(QSettings &settings)
     insertJobData(jobdata);
   }
   settings.endArray();
+
+  m_itemModel->reset();
 }
 
 void JobManager::writeSettings(QSettings &settings) const
@@ -95,7 +105,9 @@ void JobManager::removeJob(JobData *jobdata)
 
   IdType moleQueueId = jobdata->moleQueueId();
 
-  m_jobs.removeOne(jobdata);
+  int jobsIndex = m_jobs.indexOf(jobdata);
+  m_jobs.removeAt(jobsIndex);
+  m_itemModel->removeRow(jobsIndex);
   m_moleQueueMap.remove(moleQueueId);
 
   delete jobdata;
@@ -209,7 +221,7 @@ void JobManager::setJobQueueId(IdType moleQueueId, IdType queueId)
 
   jobdata->setQueueId(queueId);
 
-  emit jobQueueIdChanged(jobdata);
+  emit jobUpdated(jobdata);
 }
 
 void JobManager::insertJobData(JobData *jobdata)
@@ -217,6 +229,7 @@ void JobManager::insertJobData(JobData *jobdata)
   if (jobdata->moleQueueId() != MoleQueue::InvalidId)
     m_moleQueueMap.insert(jobdata->moleQueueId(), jobdata);
 
+  m_itemModel->insertRow(m_jobs.size());
   emit jobAdded(Job(jobdata));
 }
 

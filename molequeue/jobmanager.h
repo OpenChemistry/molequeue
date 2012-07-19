@@ -33,6 +33,7 @@ class ConnectionTest;
 namespace MoleQueue
 {
 class JobData;
+class JobItemModel;
 class JobReferenceBase;
 
 /**
@@ -137,6 +138,11 @@ public:
    */
   int indexOf(const Job &job) const;
 
+  /**
+   * @return the JobItemModel for this JobManager.
+   */
+  JobItemModel * itemModel() const { return m_itemModel; }
+
   friend class JobReferenceBase;
   friend class ConnectionTest;
 
@@ -202,11 +208,11 @@ signals:
                        MoleQueue::JobState newState);
 
   /**
-   * Emitted when a Job is assigned a queue id.
+   * Emitted when a Job's state changes.
    * @param job
    * @param queueId
    */
-  void jobQueueIdChanged(const MoleQueue::Job &job);
+  void jobUpdated(const MoleQueue::Job &job);
 
   /**
    * Emitted when the @a job is about to be removed and deleted.
@@ -237,6 +243,9 @@ protected:
 
   /// "Master" list of JobData
   QList<JobData*> m_jobs;
+
+  /// Item model for interacting with jobs
+  JobItemModel *m_itemModel;
 
   /// Lookup table for MoleQueue ids
   QMap<IdType, JobData*> m_moleQueueMap;

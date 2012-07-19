@@ -39,21 +39,10 @@ void JobItemModel::setJobManager(JobManager *newJobManager)
 
   m_jobManager = newJobManager;
 
-  if (m_jobManager) {
-    /// @todo these should reset the model, not change the layout
-    connect(m_jobManager, SIGNAL(jobAdded(const MoleQueue::Job &)),
-            this, SIGNAL(layoutChanged()));
-    connect(m_jobManager, SIGNAL(jobRemoved(MoleQueue::IdType)),
-            this, SIGNAL(layoutChanged()));
-    connect(m_jobManager, SIGNAL(jobStateChanged(const MoleQueue::Job &,
-                                                 MoleQueue::JobState,
-                                                 MoleQueue::JobState)),
-            this, SLOT(jobUpdated(const MoleQueue::Job &)));
-    connect(m_jobManager, SIGNAL(jobQueueIdChanged(const MoleQueue::Job &)),
-            this, SLOT(jobUpdated(const MoleQueue::Job &)));
-  }
+  connect(newJobManager, SIGNAL(jobUpdated(MoleQueue::Job)),
+          this, SLOT(jobUpdated(MoleQueue::Job)));
 
-  emit layoutChanged();
+  reset();
 }
 
 int JobItemModel::rowCount(const QModelIndex &modelIndex) const
@@ -130,27 +119,15 @@ QVariant JobItemModel::data(const QModelIndex &modelIndex, int role) const
 
 bool JobItemModel::removeRows(int row, int count, const QModelIndex &)
 {
-  if (!m_jobManager)
-    return false;
-
   beginRemoveRows(QModelIndex(), row, row + count - 1);
-
-  QList<Job> jobs;
-  for (int i = row; i < row + count; ++i)
-    jobs << m_jobManager->jobAt(i);
-
-  /// @todo These signals should reset the model, not change the layout
-  // Disconnect the layoutChanged signal from the manager and reattach it when
-  // finished, otherwise the table will mistakenly pop off the last item in the
-  // list. Don't block signals here -- other receivers may need to handle the
-  // removal signals.
-  disconnect(m_jobManager, SIGNAL(jobRemoved(MoleQueue::IdType)),
-             this, SIGNAL(layoutChanged()));
-  m_jobManager->removeJobs(jobs);
-  connect(m_jobManager, SIGNAL(jobRemoved(MoleQueue::IdType)),
-          this, SIGNAL(layoutChanged()));
-
   endRemoveRows();
+  return true;
+}
+
+bool JobItemModel::insertRows(int row, int count, const QModelIndex &)
+{
+  beginInsertRows(QModelIndex(), row, row + count - 1);
+  endInsertRows();
   return true;
 }
 
