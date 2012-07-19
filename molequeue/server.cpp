@@ -243,7 +243,6 @@ void Server::jobAboutToBeAdded(Job job)
                                 QString::number(nextMoleQueueId));
 
   // If the outputDirectory is blank, set it now
-  /// @todo Have queues check that outputdir is different from LWD before copying/cleaning.
   if (job.outputDirectory().isEmpty())
     job.setOutputDirectory(job.localWorkingDirectory());
 
