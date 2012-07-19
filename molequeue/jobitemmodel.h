@@ -61,15 +61,27 @@ public:
 
   QVariant data(const QModelIndex & modelIndex, int role = Qt::DisplayRole) const;
 
-  bool removeRows(int row, int count, const QModelIndex &parent);
+  /// Remove the rows from the model. Does not modify the underlying data
+  /// structure.
+  /// @see JobManager::removeJob()
+  bool removeRows(int row, int count, const QModelIndex &);
+
+  /// Insert rows into the model. Does not modify the underlying data structure.
+  /// @see JobManager::newJob()
+  bool insertRows(int row, int count, const QModelIndex &);
 
   Qt::ItemFlags flags(const QModelIndex & modelIndex) const;
 
   QModelIndex index(int row, int column,
                     const QModelIndex & modelIndex = QModelIndex()) const;
 
+  friend class MoleQueue::JobManager;
+
 public slots:
   void jobUpdated(const MoleQueue::Job &job);
+
+protected slots:
+  void callReset();
 
 protected:
   JobManager *m_jobManager;
