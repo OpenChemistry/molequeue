@@ -21,9 +21,13 @@
 
 #include "molequeueglobal.h"
 #include "transport/message.h"
-#include "thirdparty/jsoncpp/json/json-forwards.h"
 
 class AbstractRpcInterfaceTest;
+
+namespace Json
+{
+class Value;
+}
 
 namespace MoleQueue
 {

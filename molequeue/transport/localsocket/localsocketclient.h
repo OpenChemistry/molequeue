@@ -18,7 +18,7 @@
 #define LOCALSOCKETCLIENT_H_
 
 #include "mqlocalsocketclientexport.h"
-#include "client.h"
+#include "molequeue/client.h"
 
 namespace MoleQueue
 {
