@@ -102,6 +102,16 @@ public:
     return m_submissionCommand;
   }
 
+  void setKillCommand(const QString &command)
+  {
+    m_killCommand = command;
+  }
+
+  QString killCommand() const
+  {
+    return m_killCommand;
+  }
+
   void setRequestQueueCommand(const QString &command)
   {
     m_requestQueueCommand = command;
@@ -114,7 +124,8 @@ public:
 
 public slots:
 
-  virtual bool submitJob(MoleQueue::Job job);
+  bool submitJob(MoleQueue::Job job);
+  void killJob(MoleQueue::Job job);
 
 protected slots:
   virtual void submitPendingJobs();
@@ -144,6 +155,9 @@ protected slots:
 
   /// Reimplemented from Queue
   void jobAboutToBeRemoved(const MoleQueue::Job &job);
+
+  virtual void beginKillJob(MoleQueue::Job job);
+  virtual void endKillJob();
 
 protected:
   SshConnection *newSshConnection();
@@ -197,6 +211,7 @@ protected:
   int m_checkForPendingJobsTimerId;
 
   QString m_submissionCommand;
+  QString m_killCommand;
   QString m_requestQueueCommand;
 
   /// List of allowed exit codes for m_requestQueueCommand. This is required for

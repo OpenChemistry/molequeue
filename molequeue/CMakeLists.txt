@@ -22,6 +22,7 @@ set(mq_srcs
   client.cpp
   job.cpp
   jobactionfactory.cpp
+  jobactionfactories/killjobactionfactory.cpp
   jobactionfactories/opendirectoryactionfactory.cpp
   jobactionfactories/openwithactionfactory.cpp
   jobactionfactories/programmableopenwithactionfactory.cpp
@@ -69,6 +70,7 @@ set(mq_moc
   addqueuedialog.h
   client.h
   jobactionfactory.h
+  jobactionfactories/killjobactionfactory.h
   jobactionfactories/opendirectoryactionfactory.h
   jobactionfactories/openwithactionfactory.h
   jobactionfactories/programmableopenwithactionfactory.h

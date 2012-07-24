@@ -25,6 +25,7 @@ QueueSge::QueueSge(QueueManager *parentManager) :
   QueueRemote("Remote (SGE)", parentManager)
 {
   m_submissionCommand = "qsub";
+  m_killCommand = "qdel";
   m_requestQueueCommand = "qstat";
   m_launchScriptName = "job.sge";
 
