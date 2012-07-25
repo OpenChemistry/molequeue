@@ -72,6 +72,7 @@ void JobTableWidget::clearFinishedJobs()
 
   QList<Job> finishedJobs =
       m_jobManager->jobsWithJobState(MoleQueue::Finished);
+  finishedJobs.append(m_jobManager->jobsWithJobState(MoleQueue::Killed));
 
   QMessageBox::StandardButton confirm =
       QMessageBox::question(this, tr("Really remove jobs?"),

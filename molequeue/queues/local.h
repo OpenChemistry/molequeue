@@ -58,7 +58,8 @@ public:
   QWidget* settingsWidget();
 
 public slots:
-  virtual bool submitJob(MoleQueue::Job job);
+  bool submitJob(MoleQueue::Job job);
+  void killJob(MoleQueue::Job job);
 
 protected slots:
   /**

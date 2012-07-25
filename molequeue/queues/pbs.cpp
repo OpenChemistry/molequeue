@@ -25,6 +25,7 @@ QueuePbs::QueuePbs(QueueManager *parentManager) :
   QueueRemote("Remote (PBS)", parentManager)
 {
   m_submissionCommand = "qsub";
+  m_killCommand = "qdel";
   m_requestQueueCommand = "qstat";
   m_launchScriptName = "job.pbs";
 
