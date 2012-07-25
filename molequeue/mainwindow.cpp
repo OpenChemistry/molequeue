@@ -19,8 +19,9 @@
 
 #include "actionfactorymanager.h"
 #include "job.h"
-#include "jobactionfactories/programmableopenwithactionfactory.h"
+#include "jobactionfactories/killjobactionfactory.h"
 #include "jobactionfactories/opendirectoryactionfactory.h"
+#include "jobactionfactories/programmableopenwithactionfactory.h"
 #include "jobactionfactories/removejobactionfactory.h"
 #include "jobmanager.h"
 #include "logentry.h"
@@ -286,6 +287,11 @@ void MainWindow::createActionFactories()
       new RemoveJobActionFactory();
   removeActionFactory->setServer(m_server);
   manager->addFactory(removeActionFactory);
+
+  KillJobActionFactory *killActionFactory =
+      new KillJobActionFactory();
+  killActionFactory->setServer(m_server);
+  manager->addFactory(killActionFactory);
 }
 
 } // End namespace

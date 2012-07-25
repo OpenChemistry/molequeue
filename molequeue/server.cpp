@@ -226,9 +226,24 @@ void Server::jobCancellationRequestReceived(MoleQueue::Connection *connection,
 {
   m_cancellationLUT.insert(moleQueueId, packetId);
 
-  qDebug() << "Job cancellation requested: MoleQueueId:" << moleQueueId;
+  Job job = m_jobManager->lookupJobByMoleQueueId(moleQueueId);
+  if (!job.isValid()) {
+    Logger::logWarning(tr("Received cancellation request for job with invalid "
+                          "MoleQueue id '%1'.").arg(moleQueueId));
+  }
+  else {
+    Queue *queue = m_queueManager->lookupQueue(job.queue());
+    if (!queue) {
+      Logger::logWarning(tr("Cannot cancel job with MoleQueue id '%1': Unknown "
+                            "Queue ('%2').").arg(job.moleQueueId())
+                         .arg(job.queue()));
+    }
+    else {
+      queue->killJob(job);
+    }
+  }
 
-   sendSuccessfulCancellationResponse(connection, replyTo, moleQueueId);
+  sendSuccessfulCancellationResponse(connection, replyTo, moleQueueId);
 }
 
 void Server::jobAboutToBeAdded(Job job)
