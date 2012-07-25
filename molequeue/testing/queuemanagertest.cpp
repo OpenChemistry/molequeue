@@ -32,6 +32,7 @@ public:
   }
 public slots:
   bool submitJob(MoleQueue::Job) { return false; }
+  void killJob(MoleQueue::Job) { }
 };
 
 class QueueManagerTest : public QObject

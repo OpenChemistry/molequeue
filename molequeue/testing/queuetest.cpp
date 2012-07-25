@@ -27,6 +27,7 @@ public:
     : MoleQueue::Queue(queueName, NULL) {};
 public slots:
   bool submitJob(MoleQueue::Job) { return false; }
+  void killJob(MoleQueue::Job) { }
 };
 
 class QueueTest : public QObject
