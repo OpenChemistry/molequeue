@@ -18,7 +18,7 @@
 #define MESSAGE_H_
 
 #include "mqconnectionexport.h"
-#include "molequeueglobal.h"
+#include "molequeue/molequeueglobal.h"
 
 namespace MoleQueue
 {

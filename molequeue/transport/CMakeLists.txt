@@ -23,7 +23,8 @@ target_link_libraries(mqconnectionlistener
 set(hdrs
   ${mq_connection_hdrs}
   ${mq_connectionlistener_hdrs}
-  connectionlistenerfactory.h)
+  connectionlistenerfactory.h
+  message.h)
 
 generate_export_header(mqconnection EXPORT_FILE_NAME mqconnectionexport.h)
 generate_export_header(mqconnectionlistener EXPORT_FILE_NAME mqconnectionlistenerexport.h)
@@ -38,7 +39,9 @@ list(APPEND hdrs
   "${CMAKE_CURRENT_BINARY_DIR}/mqconnectionexport.h"
   "${CMAKE_CURRENT_BINARY_DIR}/mqconnectionlistenerexport.h")
 
-install(FILES ${hdrs} DESTINATION "${INSTALL_INCLUDE_DIR}/molequeue")
+install(FILES ${hdrs} DESTINATION "${INSTALL_INCLUDE_DIR}/molequeue/transport")
+install(TARGETS mqconnection mqconnectionlistener
+  DESTINATION "${INSTALL_LIBRARY_DIR}")
 
 add_subdirectory(localsocket)
 

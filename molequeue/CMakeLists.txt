@@ -198,13 +198,12 @@ set(mqclient_moc
   logger.h
 )
 
-#TODO need to install these
 set(mqclient_headers
   abstractrpcinterface.h
   client.h
+  jobreferencebase.h
   jobrequest.h
   molequeueglobal.h
-  ${JSONCPP_SOURCE_DIR}/json/json-forwards.h
 )
 
 
@@ -215,7 +214,8 @@ add_library(molequeueclient STATIC
 target_link_libraries(molequeueclient
   ${QT_LIBRARIES}
   mqconnection)
-install(TARGETS molequeueclient DESTINATION ${INSTALL_LIBRARY_DIR})
+install(FILES ${mqclient_headers}
+  DESTINATION "${INSTALL_INCLUDE_DIR}/molequeue")
 
 add_subdirectory(transport)
 
