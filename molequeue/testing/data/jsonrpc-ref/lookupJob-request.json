@@ -1,0 +1,8 @@
+{
+   "id" : 12,
+   "jsonrpc" : "2.0",
+   "method" : "lookupJob",
+   "params" : {
+      "moleQueueId" : 17
+   }
+}

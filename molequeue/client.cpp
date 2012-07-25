@@ -38,6 +38,7 @@ Client::Client(QObject *parentObject) :
   m_jobManager(new JobManager(this)),
   m_submittedLUT(new PacketLookupTable ()),
   m_canceledLUT(new PacketLookupTable ()),
+  m_lookupJobLUT(new QMap<IdType, IdType>()),
   m_connection(NULL)
 {
   qRegisterMetaType<JobRequest>("MoleQueue::JobRequest");
@@ -68,6 +69,12 @@ Client::Client(QObject *parentObject) :
                                                      MoleQueue::IdType)),
           this, SLOT(jobCancellationConfirmationReceived(MoleQueue::IdType,
                                                          MoleQueue::IdType)));
+  connect(m_jsonrpc, SIGNAL(lookupJobResponseReceived(MoleQueue::IdType,
+                                                      QVariantHash)),
+          this, SLOT(lookupJobResponseReceived(MoleQueue::IdType,
+                                               QVariantHash)));
+  connect(m_jsonrpc, SIGNAL(lookupJobErrorReceived(MoleQueue::IdType)),
+          this, SLOT(lookupJobErrorReceived(MoleQueue::IdType)));
   connect(m_jsonrpc, SIGNAL(jobStateChangeReceived(MoleQueue::IdType,
                                                    MoleQueue::JobState,
                                                    MoleQueue::JobState)),
@@ -103,6 +110,14 @@ void Client::cancelJob(const JobRequest &req)
   const IdType id = nextPacketId();
   const PacketType packet = m_jsonrpc->generateJobCancellation(req, id);
   m_canceledLUT->insert(id, req);
+  m_connection->send(packet);
+}
+
+void Client::lookupJob(IdType moleQueueId)
+{
+  const IdType id = nextPacketId();
+  const PacketType packet = m_jsonrpc->generateLookupJobRequest(moleQueueId,id);
+  m_lookupJobLUT->insert(id, moleQueueId);
   m_connection->send(packet);
 }
 
@@ -189,6 +204,42 @@ void Client::jobCancellationConfirmationReceived(IdType packetId,
   emit jobCanceled(req, true, QString());
 }
 
+void Client::lookupJobResponseReceived(IdType packetId,
+                                       const QVariantHash &hash)
+{
+  if (!m_lookupJobLUT->contains(packetId)) {
+    qWarning() << "Client received a lookup confirmation with an "
+                  "unrecognized packet id.";
+    return;
+  }
+
+  IdType moleQueueId = m_lookupJobLUT->take(packetId);
+
+  Job job = m_jobManager->lookupJobByMoleQueueId(moleQueueId);
+  if (job.isValid())  {
+    job.setFromHash(hash);
+  }
+  else {
+    job = m_jobManager->newJob(hash);
+    job.setMoleQueueId(moleQueueId);
+  }
+
+  emit lookupJobComplete(JobRequest(job), moleQueueId);
+}
+
+void Client::lookupJobErrorReceived(IdType packetId)
+{
+  if (!m_lookupJobLUT->contains(packetId)) {
+    qWarning() << "Client received a lookup confirmation with an "
+                  "unrecognized packet id.";
+    return;
+  }
+
+  IdType moleQueueId = m_lookupJobLUT->take(packetId);
+
+  emit lookupJobComplete(JobRequest(), moleQueueId);
+}
+
 void Client::jobStateChangeReceived(IdType moleQueueId,
                                     JobState oldState, JobState newState)
 {
@@ -207,8 +258,7 @@ void Client::jobStateChangeReceived(IdType moleQueueId,
 
 void Client::requestQueueListUpdate()
 {
-  PacketType packet = m_jsonrpc->generateQueueListRequest(
-        nextPacketId());
+  PacketType packet = m_jsonrpc->generateQueueListRequest(nextPacketId());
   m_connection->send(packet);
 }
 

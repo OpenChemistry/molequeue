@@ -17,6 +17,7 @@
 #include "jsonrpc.h"
 
 #include "job.h"
+#include "jobdata.h"
 #include "molequeueglobal.h"
 
 #include <json/json.h>
@@ -67,96 +68,7 @@ PacketType JsonRpc::generateJobRequest(const Job &job,
 
   packet["method"] = "submitJob";
 
-  Json::Value paramsObject (Json::objectValue);
-
-  const QVariantHash reqHash = job.hash();
-
-  for (QVariantHash::const_iterator it = reqHash.constBegin(),
-       it_end = reqHash.constEnd(); it != it_end; ++it) {
-    Json::Value val;
-    switch (it.value().type()) {
-    case QVariant::Bool:
-      val = it.value().toBool();
-      break;
-    case QVariant::Int:
-      val = it.value().toInt();
-      break;
-    case QVariant::LongLong:
-      val = it.value().toLongLong();
-      break;
-    case QVariant::UInt:
-      val = it.value().toUInt();
-      break;
-    case QVariant::ULongLong:
-      val = it.value().toULongLong();
-      break;
-    case QVariant::Double:
-      val = it.value().toDouble();
-      break;
-    case QVariant::String: {
-      const std::string str = it.value().toString().toStdString();
-      val = str;
-      break;
-    }
-    case QVariant::ByteArray:
-      val = it.value().toByteArray().constData();
-      break;
-    default:
-    case QVariant::Invalid:
-    case QVariant::Map:
-    case QVariant::List:
-    case QVariant::Char:
-    case QVariant::StringList:
-    case QVariant::BitArray:
-    case QVariant::Date:
-    case QVariant::Time:
-    case QVariant::DateTime:
-    case QVariant::Url:
-    case QVariant::Locale:
-    case QVariant::Rect:
-    case QVariant::RectF:
-    case QVariant::Size:
-    case QVariant::SizeF:
-    case QVariant::Line:
-    case QVariant::LineF:
-    case QVariant::Point:
-    case QVariant::PointF:
-    case QVariant::RegExp:
-    case QVariant::Hash:
-    case QVariant::EasingCurve:
-    case QVariant::Font:
-    case QVariant::Pixmap:
-    case QVariant::Brush:
-    case QVariant::Color:
-    case QVariant::Palette:
-    case QVariant::Icon:
-    case QVariant::Image:
-    case QVariant::Polygon:
-    case QVariant::Region:
-    case QVariant::Bitmap:
-    case QVariant::Cursor:
-    case QVariant::SizePolicy:
-    case QVariant::KeySequence:
-    case QVariant::Pen:
-    case QVariant::TextLength:
-    case QVariant::TextFormat:
-    case QVariant::Matrix:
-    case QVariant::Transform:
-    case QVariant::Matrix4x4:
-    case QVariant::Vector2D:
-    case QVariant::Vector3D:
-    case QVariant::Vector4D:
-    case QVariant::Quaternion:
-    case QVariant::UserType:
-    case QVariant::LastType:
-      DEBUGOUT("generateJobRequest") "Unhandled type in hash:"
-          << it.value().type();
-      continue;
-    } // end switch
-
-    const std::string name = it.key().toStdString();
-    paramsObject[name] = val;
-  } // end for
+  Json::Value paramsObject = hashToJson(job.hash());
 
   packet["params"] = paramsObject;
 
@@ -312,6 +224,55 @@ PacketType JsonRpc::generateJobCancellationConfirmation(IdType moleQueueId,
 
   DEBUGOUT("generateJobCancellationConfirmation")
       "New job cancellation confirmation generated:\n" << ret;
+
+  return ret;
+}
+
+PacketType JsonRpc::generateLookupJobRequest(IdType moleQueueId,
+                                             IdType packetId)
+{
+  Json::Value packet = generateEmptyRequest(packetId);
+
+  packet["method"] = "lookupJob";
+
+  Json::Value paramsObject (Json::objectValue);
+  paramsObject["moleQueueId"] = moleQueueId;
+
+  packet["params"] = paramsObject;
+
+  Json::StyledWriter writer;
+  std::string ret_stdstr = writer.write(packet);
+  PacketType ret (ret_stdstr.c_str());
+
+  DEBUGOUT("generateJobCancellation") "New job cancellation request:\n" << ret;
+
+  registerRequest(packetId, LOOKUP_JOB);
+
+  return ret;
+}
+
+PacketType JsonRpc::generateLookupJobResponse(const Job &req, IdType packetId)
+{
+  Json::Value packet;
+
+  if (!req.isValid()) {
+    packet = generateEmptyError(packetId);
+    Json::Value errorObject (Json::objectValue);
+    errorObject["message"] = "Invalid ID";
+    errorObject["code"] = 0;
+    packet["error"] = errorObject;
+  }
+  else {
+    packet = generateEmptyResponse(packetId);
+    packet["result"] = hashToJson(req.hash());
+  }
+
+  Json::StyledWriter writer;
+  std::string ret_stdstr = writer.write(packet);
+  PacketType ret (ret_stdstr.c_str());
+
+  DEBUGOUT("generateLookupJobResponse") "New job lookup response generated:\n"
+      << ret;
 
   return ret;
 }
@@ -515,6 +476,26 @@ void JsonRpc::interpretIncomingJsonRpc(Connection *connection,
       break;
     case ERROR_PACKET:
       handleCancelJobError(data);
+      break;
+    }
+    break;
+  }
+  case LOOKUP_JOB:
+  {
+    switch (form) {
+    default:
+    case INVALID_PACKET:
+    case NOTIFICATION_PACKET:
+      handleInvalidRequest(connection, replyTo, data);
+      break;
+    case REQUEST_PACKET:
+      handleLookupJobRequest(connection, replyTo, data);
+      break;
+    case RESULT_PACKET:
+      handleLookupJobResult(data);
+      break;
+    case ERROR_PACKET:
+      handleLookupJobError(data);
       break;
     }
     break;
@@ -931,6 +912,146 @@ Json::Value JsonRpc::generateEmptyNotification()
   return ret;
 }
 
+Json::Value JsonRpc::hashToJson(const QVariantHash &hash)
+{
+  Json::Value result (Json::objectValue);
+
+  for (QVariantHash::const_iterator it = hash.constBegin(),
+       it_end = hash.constEnd(); it != it_end; ++it) {
+    Json::Value val;
+    switch (it.value().type()) {
+    case QVariant::Bool:
+      val = it.value().toBool();
+      break;
+    case QVariant::Int:
+      val = it.value().toInt();
+      break;
+    case QVariant::LongLong:
+      val = it.value().toLongLong();
+      break;
+    case QVariant::UInt:
+      val = it.value().toUInt();
+      break;
+    case QVariant::ULongLong:
+      val = it.value().toULongLong();
+      break;
+    case QVariant::Double:
+      val = it.value().toDouble();
+      break;
+    case QVariant::String: {
+      const std::string str = it.value().toString().toStdString();
+      val = str;
+      break;
+    }
+    case QVariant::ByteArray:
+      val = it.value().toByteArray().constData();
+      break;
+    default:
+    case QVariant::Invalid:
+    case QVariant::Map:
+    case QVariant::List:
+    case QVariant::Char:
+    case QVariant::StringList:
+    case QVariant::BitArray:
+    case QVariant::Date:
+    case QVariant::Time:
+    case QVariant::DateTime:
+    case QVariant::Url:
+    case QVariant::Locale:
+    case QVariant::Rect:
+    case QVariant::RectF:
+    case QVariant::Size:
+    case QVariant::SizeF:
+    case QVariant::Line:
+    case QVariant::LineF:
+    case QVariant::Point:
+    case QVariant::PointF:
+    case QVariant::RegExp:
+    case QVariant::Hash:
+    case QVariant::EasingCurve:
+    case QVariant::Font:
+    case QVariant::Pixmap:
+    case QVariant::Brush:
+    case QVariant::Color:
+    case QVariant::Palette:
+    case QVariant::Icon:
+    case QVariant::Image:
+    case QVariant::Polygon:
+    case QVariant::Region:
+    case QVariant::Bitmap:
+    case QVariant::Cursor:
+    case QVariant::SizePolicy:
+    case QVariant::KeySequence:
+    case QVariant::Pen:
+    case QVariant::TextLength:
+    case QVariant::TextFormat:
+    case QVariant::Matrix:
+    case QVariant::Transform:
+    case QVariant::Matrix4x4:
+    case QVariant::Vector2D:
+    case QVariant::Vector3D:
+    case QVariant::Vector4D:
+    case QVariant::Quaternion:
+    case QVariant::UserType:
+    case QVariant::LastType:
+      continue;
+    } // end switch
+
+    const std::string name = it.key().toStdString();
+    result[name] = val;
+  } // end for
+
+  return result;
+}
+
+QVariantHash JsonRpc::jsonToHash(const Json::Value &object)
+{
+  // Populate options object:
+  QVariantHash result;
+
+  if (!object.isObject())
+    return result;
+
+  result.reserve(object.size());
+
+  // Iterate through options
+  for (Json::Value::const_iterator it = object.begin(),
+       it_end = object.end(); it != it_end; ++it) {
+    const QString name (it.memberName());
+
+    // Extract option data
+    QVariant variant;
+    switch ((*it).type())
+    {
+    case Json::nullValue:
+      variant = QVariant();
+      break;
+    case Json::intValue:
+      variant = (*it).asLargestInt();
+      break;
+    case Json::uintValue:
+      variant = (*it).asLargestUInt();
+      break;
+    case Json::realValue:
+      variant = (*it).asDouble();
+      break;
+    case Json::stringValue:
+      variant = (*it).asCString();
+      break;
+    case Json::booleanValue:
+      variant = (*it).asBool();
+      break;
+    default:
+    case Json::arrayValue:
+    case Json::objectValue:
+      break;
+    }
+
+    result.insert(name, variant);
+  }
+  return result;
+}
+
 JsonRpc::PacketForm JsonRpc::guessPacketForm(const Json::Value &root) const
 {
   if (!root.isObject()) {
@@ -977,6 +1098,8 @@ JsonRpc::PacketMethod JsonRpc::guessPacketMethod(const Json::Value &root) const
       return SUBMIT_JOB;
     else if (qstrcmp(methodCString, "cancelJob") == 0)
       return CANCEL_JOB;
+    else if (qstrcmp(methodCString, "lookupJob") == 0)
+      return LOOKUP_JOB;
     else if (qstrcmp(methodCString, "jobStateChanged") == 0)
       return JOB_STATE_CHANGED;
 
@@ -1137,51 +1260,7 @@ void JsonRpc::handleSubmitJobRequest(Connection *connection,
   }
 
   // Populate options object:
-  QVariantHash optionHash;
-  optionHash.reserve(paramsObject.size());
-
-  // Iterate through options
-  for (Json::Value::const_iterator it = paramsObject.begin(),
-       it_end = paramsObject.end(); it != it_end; ++it) {
-    const QString optionName (it.memberName());
-
-    // Extract option data
-    QVariant optionVariant;
-    switch ((*it).type())
-    {
-    case Json::nullValue:
-      optionVariant = QVariant();
-      break;
-    case Json::intValue:
-      optionVariant = (*it).asLargestInt();
-      break;
-    case Json::uintValue:
-      optionVariant = (*it).asLargestUInt();
-      break;
-    case Json::realValue:
-      optionVariant = (*it).asDouble();
-      break;
-    case Json::stringValue:
-      optionVariant = (*it).asCString();
-      break;
-    case Json::booleanValue:
-      optionVariant = (*it).asBool();
-      break;
-    default:
-    case Json::arrayValue:
-    case Json::objectValue: {
-      Json::StyledWriter writer;
-      const std::string valueString = writer.write(*it);
-      qWarning() << "Unsupported option type encountered (option name:"
-                 << optionName << ")\n" << valueString.c_str();
-      optionVariant = QVariant();
-      break;
-    }
-    }
-
-    optionHash.insert(optionName, optionVariant);
-  }
-
+  QVariantHash optionHash = jsonToHash(paramsObject);
 
   emit jobSubmissionRequestReceived(connection, replyTo, id, optionHash);
 }
@@ -1289,6 +1368,54 @@ void JsonRpc::handleCancelJobError(const Json::Value &root) const
 {
   Q_UNUSED(root);
   qWarning() << Q_FUNC_INFO << "is not implemented.";
+}
+
+void JsonRpc::handleLookupJobRequest(Connection *connection,
+                                     const EndpointId replyTo,
+                                     const Json::Value &root) const
+{
+  const IdType id = static_cast<IdType>(root["id"].asLargestUInt());
+
+  const Json::Value &paramsObject = root["params"];
+
+  if (!paramsObject.isObject() ||
+      !paramsObject["moleQueueId"].isIntegral()) {
+    Json::StyledWriter writer;
+    const std::string responseString = writer.write(root);
+    qWarning() << "Job lookup request is ill-formed:\n"
+               << responseString.c_str();
+    return;
+  }
+
+  const IdType moleQueueId = static_cast<IdType>(
+        paramsObject["moleQueueId"].asLargestUInt());
+
+  emit lookupJobRequestReceived(connection, replyTo, id, moleQueueId);
+}
+
+void JsonRpc::handleLookupJobResult(const Json::Value &root) const
+{
+  const IdType id = static_cast<IdType>(root["id"].asLargestUInt());
+
+  const Json::Value &resultObject = root["result"];
+
+  if (!resultObject.isObject()) {
+    Json::StyledWriter writer;
+    const std::string responseString = writer.write(root);
+    qWarning() << "Job lookup result is ill-formed:\n"
+               << responseString.c_str();
+    return;
+  }
+
+  QVariantHash hash = jsonToHash(resultObject);
+
+  emit lookupJobResponseReceived(id, hash);
+}
+
+void JsonRpc::handleLookupJobError(const Json::Value &root) const
+{
+  const IdType id = static_cast<IdType>(root["id"].asLargestUInt());
+  emit lookupJobErrorReceived(id);
 }
 
 void JsonRpc::handleJobStateChangedNotification(const Json::Value &root) const

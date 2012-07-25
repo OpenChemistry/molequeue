@@ -215,6 +215,25 @@ public slots:
                                           IdType moleQueueId);
 
   /**
+   * Sends a requested job details to the client.
+   * @param packetId The id of the request packet
+   * @param req The Job
+   */
+  void sendSuccessfulLookupJobResponse(MoleQueue::Connection *connection,
+                                       MoleQueue::EndpointId replyTo,
+                                       MoleQueue::IdType packetId,
+                                       const MoleQueue::Job &req);
+
+  /**
+   * Sends a reply to the client informing them that the job lookup failed.
+   * @param packetId The id of the request packet
+   * @param moleQueueId The unknown MoleQueue id.
+   */
+  void sendFailedLookupJobResponse(MoleQueue::Connection *connection,
+                                   MoleQueue::EndpointId replyTo,
+                                   MoleQueue::IdType packetId);
+
+  /**
    * Sends a notification to the connected client informing them that a job
    * has changed status.
    * @param req
@@ -278,6 +297,15 @@ protected slots:
                                       MoleQueue::EndpointId replyTo,
                                       MoleQueue::IdType packetId,
                                       MoleQueue::IdType moleQueueId);
+
+  /**
+   * Called when the JsonRpc instance handles a lookupJob request.
+   * @param moleQueueId The MoleQueue identifier of the requested job.
+   */
+  void lookupJobRequestReceived(MoleQueue::Connection *connection,
+                                MoleQueue::EndpointId replyTo,
+                                MoleQueue::IdType packetId,
+                                MoleQueue::IdType moleQueueId);
 
 private slots:
 

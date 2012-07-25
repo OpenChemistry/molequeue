@@ -164,6 +164,25 @@ public:
                                                  IdType packetId);
 
   /**
+    * Generate a JSON-RPC packet for requesting a job lookup.
+    *
+    * @param moleQueueId The MoleQueue id of the job.
+    * @param packetId The JSON-RPC id for the request.
+    * @return A PacketType, ready to send to a Connection.
+    */
+  PacketType generateLookupJobRequest(IdType moleQueueId, IdType packetId);
+
+  /**
+    * Generate a JSON-RPC packet to respond to a lookupJob request. If the Job
+    * is invalid, an error response will be generated.
+    *
+    * @param req The requested Job.
+    * @param packetId The JSON-RPC id for the request.
+    * @return A PacketType, ready to send to a Connection.
+    */
+  PacketType generateLookupJobResponse(const Job &req, IdType packetId);
+
+  /**
     * Generate a JSON-RPC packet for requesting a list of available Queues and
     * Programs.
     *
@@ -431,6 +450,36 @@ signals:
                                            MoleQueue::IdType moleQueueId) const;
 
   /**
+    * Emitted when a lookupJob request is received.
+    *
+    * @param connection The connection the request was received on
+    * @param replyTo The reply to endpoint to identify the client.
+    * @param packetId The JSON-RPC id for the packet
+    * @param moleQueueId The internal MoleQueue identifier for the requested
+    * job.
+    */
+  void lookupJobRequestReceived(MoleQueue::Connection *connection,
+                                const MoleQueue::EndpointId replyTo,
+                                MoleQueue::IdType packetId,
+                                MoleQueue::IdType moleQueueId) const;
+
+  /**
+    * Emitted when a successful lookupJob response is received.
+    *
+    * @param packetId The JSON-RPC id for the packet
+    * @param hash The requested Job information as a QVariantHash.
+    */
+  void lookupJobResponseReceived(MoleQueue::IdType packetId,
+                                 const QVariantHash &hash) const;
+
+  /**
+    * Emitted when a failed lookupJob response is received.
+    *
+    * @param packetId The JSON-RPC id for the packet
+    */
+  void lookupJobErrorReceived(MoleQueue::IdType packetId) const;
+
+  /**
     * Emitted when a notification that a job has changed state is received.
     *
     * @param moleQueueId The internal MoleQueue identifier for the job.
@@ -464,6 +513,14 @@ protected:
   /// Create and return a new JsonCpp JSON-RPC notification.
   /// @param id JSON-RPC id
   static Json::Value generateEmptyNotification();
+  /// Convert a QHash into a Json object.
+  /// @param hash input hash.
+  /// @return Json object.
+  static Json::Value hashToJson(const QVariantHash &hash);
+  /// Convert a Json object in to a QVariantHash.
+  /// @param object Json object.
+  /// @return input hash.
+  static QVariantHash jsonToHash(const Json::Value &object);
 
   /// Enum describing the types of packets that the implementation is aware of.
   enum PacketForm {
@@ -483,6 +540,7 @@ protected:
     LIST_QUEUES,
     SUBMIT_JOB,
     CANCEL_JOB,
+    LOOKUP_JOB,
     JOB_STATE_CHANGED
   };
 
@@ -545,6 +603,18 @@ protected:
   /// Extract data and emit signal for a cancelJob error.
   /// @param root Root of request
   void handleCancelJobError(const Json::Value &root) const;
+
+  /// Extract data and emit signal for a lookupJob request.
+  /// @param root Root of request
+  void handleLookupJobRequest(MoleQueue::Connection *connection,
+                              const EndpointId replyTo,
+                              const Json::Value &root) const;
+  /// Extract data and emit signal for a lookupJob result.
+  /// @param root Root of request
+  void handleLookupJobResult(const Json::Value &root) const;
+  /// Extract data and emit signal for a lookupJob error.
+  /// @param root Root of request
+  void handleLookupJobError(const Json::Value &root) const;
 
   /// Extract data and emit signal for a jobStateChanged notification.
   /// @param root Root of request
