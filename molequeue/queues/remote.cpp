@@ -92,6 +92,28 @@ bool QueueRemote::submitJob(Job job)
   return false;
 }
 
+void QueueRemote::killJob(Job job)
+{
+  if (!job.isValid())
+    return;
+
+  int pendingIndex = m_pendingSubmission.indexOf(job.moleQueueId());
+  if (pendingIndex >= 0) {
+    m_pendingSubmission.removeAt(pendingIndex);
+    job.setJobState(MoleQueue::Killed);
+    return;
+  }
+
+  if (job.queueId() != InvalidId &&
+      m_jobs.value(job.queueId()) == job.moleQueueId()) {
+    m_jobs.remove(job.queueId());
+    beginKillJob(job);
+    return;
+  }
+
+  job.setJobState(MoleQueue::Killed);
+}
+
 void QueueRemote::submitPendingJobs()
 {
   if (m_pendingSubmission.isEmpty())
@@ -553,6 +575,58 @@ void QueueRemote::jobAboutToBeRemoved(const Job &job)
 {
   m_pendingSubmission.removeOne(job.moleQueueId());
   Queue::jobAboutToBeRemoved(job);
+}
+
+void QueueRemote::beginKillJob(Job job)
+{
+  const QString command = QString("%1 %2")
+      .arg(m_killCommand)
+      .arg(job.queueId());
+
+  SshConnection *conn = newSshConnection();
+  conn->setData(QVariant::fromValue(job));
+  connect(conn, SIGNAL(requestComplete()),
+          this, SLOT(endKillJob()));
+
+  if (!conn->execute(command)) {
+    Logger::logError(tr("Could not initialize ssh resources: user= '%1'\nhost ="
+                        " '%2' port = '%3'")
+                     .arg(conn->userName()).arg(conn->hostName())
+                     .arg(conn->portNumber()), job.moleQueueId());
+    job.setJobState(MoleQueue::ErrorState);
+    conn->deleteLater();
+    return;
+  }
+}
+
+void QueueRemote::endKillJob()
+{
+  SshConnection *conn = qobject_cast<SshConnection*>(sender());
+  if (!conn) {
+    Logger::logError(tr("Internal error: %1\n%2").arg(Q_FUNC_INFO)
+                     .arg("Sender is not an SshConnection!"));
+    return;
+  }
+  conn->deleteLater();
+
+  Job job = conn->data().value<Job>();
+  if (!job.isValid()) {
+    Logger::logError(tr("Internal error: %1\n%2").arg(Q_FUNC_INFO)
+                     .arg("Sender does not have an associated job!"));
+    return;
+  }
+
+  if (conn->exitCode() != 0) {
+    Logger::logWarning(tr("Error cancelling job (mqid=%1, queueid=%2) on "
+                          "%3@%4:%5 (queue=%6)\n(%7) %8")
+                       .arg(job.moleQueueId()).arg(job.queueId())
+                       .arg(conn->userName()).arg(conn->hostName())
+                       .arg(conn->portNumber()).arg(m_name)
+                       .arg(conn->exitCode()).arg(conn->output()));
+    return;
+  }
+
+  job.setJobState(MoleQueue::Killed);
 }
 
 SshConnection * QueueRemote::newSshConnection()

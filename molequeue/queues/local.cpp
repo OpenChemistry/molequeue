@@ -130,6 +130,31 @@ bool QueueLocal::submitJob(Job job)
   return false;
 }
 
+void QueueLocal::killJob(Job job)
+{
+  if (!job.isValid())
+    return;
+
+  int pendingIndex = m_pendingJobQueue.indexOf(job.moleQueueId());
+  if (pendingIndex >= 0) {
+    m_pendingJobQueue.removeAt(pendingIndex);
+    job.setJobState(MoleQueue::Killed);
+    return;
+  }
+
+  QProcess *process = m_runningJobs.take(job.moleQueueId());
+  if (process != NULL) {
+    m_jobs.remove(job.queueId());
+    process->disconnect(this);
+    process->terminate();
+    process->deleteLater();
+    job.setJobState(MoleQueue::Killed);
+    return;
+  }
+
+  job.setJobState(MoleQueue::Killed);
+}
+
 bool QueueLocal::prepareJobForSubmission(const Job &job)
 {
   if (!writeInputFiles(job))

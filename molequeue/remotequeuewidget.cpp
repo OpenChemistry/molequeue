@@ -44,6 +44,8 @@ RemoteQueueWidget::RemoteQueueWidget(QueueRemote *queue,
 
   connect(ui->edit_submissionCommand, SIGNAL(textChanged(QString)),
           this, SLOT(updateSubmissionCommand(QString)));
+  connect(ui->edit_killCommand, SIGNAL(textChanged(QString)),
+          this, SLOT(updateKillCommand(QString)));
   connect(ui->edit_requestQueueCommand, SIGNAL(textChanged(QString)),
           this, SLOT(updateRequestQueueCommand(QString)));
   connect(ui->edit_launchScriptName, SIGNAL(textChanged(QString)),
@@ -73,6 +75,7 @@ RemoteQueueWidget::~RemoteQueueWidget()
 void RemoteQueueWidget::updateGuiFromQueue()
 {
   ui->edit_submissionCommand->setText(m_queue->submissionCommand());
+  ui->edit_killCommand->setText(m_queue->killCommand());
   ui->edit_requestQueueCommand->setText(m_queue->requestQueueCommand());
   ui->edit_launchScriptName->setText(m_queue->launchScriptName());
   ui->edit_workingDirectoryBase->setText(m_queue->workingDirectoryBase());
@@ -172,6 +175,8 @@ void RemoteQueueWidget::sleepTest()
     missingVariable = tr("server username");
   else if (m_queue->submissionCommand().isEmpty())
     missingVariable = tr("job submission command");
+  else if (m_queue->killCommand().isEmpty())
+    missingVariable = tr("job cancel command");
   else if (m_queue->requestQueueCommand().isEmpty())
     missingVariable = tr("queue request command");
   else if (m_queue->workingDirectoryBase().isEmpty())
@@ -215,6 +220,11 @@ void RemoteQueueWidget::sleepTest()
 void RemoteQueueWidget::updateSubmissionCommand(const QString &command)
 {
   m_queue->setSubmissionCommand(command);
+}
+
+void RemoteQueueWidget::updateKillCommand(const QString &command)
+{
+  m_queue->setKillCommand(command);
 }
 
 void RemoteQueueWidget::updateRequestQueueCommand(const QString &command)
