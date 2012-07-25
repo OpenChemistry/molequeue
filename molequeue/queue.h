@@ -210,6 +210,13 @@ public slots:
   virtual bool submitJob(MoleQueue::Job job) = 0;
 
   /**
+   * @brief killJob Stop the job and remove from the queue. Set the JobState to
+   * Killed.
+   * @param job Job to kill.
+   */
+  virtual void killJob(MoleQueue::Job job) = 0;
+
+  /**
    * Update the launch script template.
    * @param script The new launch template.
    * @sa launchTemplate

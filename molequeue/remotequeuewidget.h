@@ -51,6 +51,7 @@ protected slots:
   void sleepTest();
 
   void updateSubmissionCommand(const QString &command);
+  void updateKillCommand(const QString &command);
   void updateRequestQueueCommand(const QString &command);
   void updateLaunchScriptName(const QString &name);
   void updateWorkingDirectoryBase(const QString &dir);
