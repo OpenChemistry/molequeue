@@ -35,6 +35,7 @@ private slots:
   /// Called after every test function.
   void cleanup();
 
+  void sanityCheck();
   void testParseJobId();
   void testParseQueueLine();
 };
@@ -53,6 +54,28 @@ void QueuePbsTest::init()
 
 void QueuePbsTest::cleanup()
 {
+}
+
+void QueuePbsTest::sanityCheck()
+{
+  QCOMPARE(m_queue.typeName(), QString("PBS/Torque"));
+  QString testString = "some.host.somewhere";
+  m_queue.setHostName(testString);
+  QCOMPARE(m_queue.hostName(), testString);
+  testString = "aUser";
+  m_queue.setUserName(testString);
+  QCOMPARE(m_queue.userName(), testString);
+  m_queue.setSshPort(6887);
+  QCOMPARE(m_queue.sshPort(), 6887);
+  testString = "/some/path";
+  m_queue.setWorkingDirectoryBase(testString);
+  QCOMPARE(m_queue.workingDirectoryBase(), testString);
+  testString = "subComm";
+  m_queue.setSubmissionCommand(testString);
+  QCOMPARE(m_queue.submissionCommand(), testString);
+  testString = "reqComm";
+  m_queue.setRequestQueueCommand(testString);
+  QCOMPARE(m_queue.requestQueueCommand(), testString);
 }
 
 void QueuePbsTest::testParseJobId()

@@ -248,8 +248,9 @@ bool Queue::writeInputFiles(const Job &job)
   return true;
 }
 
-bool Queue::recursiveRemoveDirectory(const QString &path)
+bool Queue::recursiveRemoveDirectory(const QString &p)
 {
+  QString path = QDir::cleanPath(p);
   if (path.isEmpty() || path.simplified() == "/") {
     Logger::logError(tr("Refusing to remove directory '%1'.").arg(path));
     return false;
@@ -299,7 +300,7 @@ bool Queue::recursiveCopyDirectory(const QString &from, const QString &to)
 
   QDir toDir;
   toDir.setPath(to);
-  if (toDir.exists()) {
+  if (!toDir.exists()) {
     if (!toDir.mkdir(toDir.absolutePath())) {
       Logger::logError(tr("Cannot copy '%1' --> '%2': cannot mkdir target "
                           "directory.").arg(from, to));

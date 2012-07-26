@@ -13,11 +13,23 @@ if(USE_ZERO_MQ)
   add_definitions(-DUSE_ZERO_MQ)
 endif()
 
+set(testutils_SRCS
+  dummyqueuemanager.cpp
+  dummyqueueremote.cpp
+  dummyserver.cpp
+  dummysshcommand.cpp
+  testserver.cpp
+)
 set(testutils_MOC
+  dummyqueuemanager.h
+  dummyqueueremote.h
+  dummyserver.h
+  dummysshcommand.h
   testserver.h
 )
 qt4_wrap_cpp(testutils_MOC_SRC ${testutils_MOC})
-add_custom_target(testutilsmoc ALL DEPENDS ${testutils_MOC_SRC})
+add_library(testutils STATIC ${testutils_SRCS} ${testutils_MOC_SRC})
+target_link_libraries(testutils molequeue_static)
 
 set(MyTests
   abstractrpcinterface
@@ -28,10 +40,11 @@ set(MyTests
   program
   queue
   queuemanager
+  queueremote
   server
   sge
+  sshcommand
   )
-
 
 foreach(test ${MyTests})
   set(test_SRC ${test}test.cpp)
@@ -45,6 +58,7 @@ foreach(test ${MyTests})
     ${QT_LIBRARIES}
     mqconnection
     mqlocalsocketclient
+    testutils
     )
 
   add_test(NAME molequeue-${test} COMMAND ${test}test)
