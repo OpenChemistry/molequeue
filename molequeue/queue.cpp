@@ -299,7 +299,7 @@ bool Queue::recursiveCopyDirectory(const QString &from, const QString &to)
 
   QDir toDir;
   toDir.setPath(to);
-  if (toDir.exists()) {
+  if (!toDir.exists()) {
     if (!toDir.mkdir(toDir.absolutePath())) {
       Logger::logError(tr("Cannot copy '%1' --> '%2': cannot mkdir target "
                           "directory.").arg(from, to));

@@ -104,13 +104,19 @@ void QueueRemote::killJob(Job job)
     return;
   }
 
-  if (job.queueId() != InvalidId &&
+  if (job.queue() == m_name && job.queueId() != InvalidId &&
       m_jobs.value(job.queueId()) == job.moleQueueId()) {
     m_jobs.remove(job.queueId());
     beginKillJob(job);
     return;
   }
 
+  Logger::logWarning(tr("Queue '%1' requested to kill unknown job that belongs "
+                        "to queue '%2', queue id '%3'.").arg(m_name)
+                     .arg(job.queue())
+                     .arg(job.queueId() != InvalidId
+                          ? QString::number(job.queueId())
+                          : QString("(Invalid)")), job.moleQueueId());
   job.setJobState(MoleQueue::Killed);
 }
 
@@ -404,8 +410,8 @@ void QueueRemote::handleQueueUpdate()
 
 void QueueRemote::beginFinalizeJob(IdType queueId)
 {
-  IdType moleQueueId = m_jobs.value(queueId, 0);
-  if (moleQueueId == 0)
+  IdType moleQueueId = m_jobs.value(queueId, InvalidId);
+  if (moleQueueId == InvalidId)
     return;
 
   m_jobs.remove(queueId);
@@ -492,7 +498,7 @@ void QueueRemote::finalizeJobCopyToCustomDestination(Job job)
 
   // The copy function will throw errors if needed.
   if (!recursiveCopyDirectory(job.localWorkingDirectory(),
-                                    job.outputDirectory())) {
+                              job.outputDirectory())) {
     job.setJobState(MoleQueue::ErrorState);
     return;
   }
