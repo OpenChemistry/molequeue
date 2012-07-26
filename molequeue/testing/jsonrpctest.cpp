@@ -73,6 +73,8 @@ private slots:
   void generateErrorResponse();
   void generateJobCancellation();
   void generateJobCancellationConfirmation();
+  void generateLookupJobRequest();
+  void generateLookupJobResponse();
   void generateQueueListRequest();
   void generateQueueList();
   void generateJobStateChangeNotification();
@@ -485,6 +487,69 @@ void JsonRpcTest::generateJobCancellationConfirmation()
     qDebug() << "Job cancellation confirmation generation failed!";
     qDebug() << "Expected:" << m_refPacket;
     qDebug() << "Actual:" << m_packet;
+    m_error = true;
+  }
+
+  QVERIFY(m_error == false);
+}
+
+
+void JsonRpcTest::generateLookupJobRequest()
+{
+  m_packet = m_rpc.generateLookupJobRequest(17, 12);
+  if (!m_rpc.validateRequest(m_packet, true)) {
+    qDebug() << "Job lookup request packet failed validation!";
+    m_error = true;
+  }
+
+  m_refPacket = readReferenceString("jsonrpc-ref/lookupJob-request.json");
+  if (m_packet != m_refPacket) {
+    qDebug() << "Job lookup request generation failed!" << endl
+             << "Expected:" << m_refPacket << endl
+             << "Actual:" << m_packet;
+    m_error = true;
+  }
+
+  QVERIFY(m_error == false);
+}
+
+void JsonRpcTest::generateLookupJobResponse()
+{
+  JobManager jobManager;
+  Job req = jobManager.newJob();
+  req.setMoleQueueId(17);
+  req.setQueueId(7366);
+  req.setQueue("Some big ol' cluster");
+  req.setProgram("Quantum Tater");
+  req.setDescription("spud slicer 28");
+  req.setInputAsPath("/tmp/myjob/test.potato");
+  req.setInputAsString("This string will get ignored!");
+
+  // Test successful lookup
+  m_packet = m_rpc.generateLookupJobResponse(req, req.moleQueueId(), 12);
+  if (!m_rpc.validateResponse(m_packet, true)) {
+    qDebug() << "Successful job lookup response packet failed validation!";
+    m_error = true;
+  }
+  m_refPacket = readReferenceString("jsonrpc-ref/lookupJob-response.json");
+  if (m_packet != m_refPacket) {
+    qDebug() << "Successful job lookup response generation failed!" << endl
+             << "Expected:" << m_refPacket << endl
+             << "Actual:" << m_packet;
+    m_error = true;
+  }
+
+  // Test unsuccessful lookup
+  m_packet = m_rpc.generateLookupJobResponse(Job(), 32, 12);
+  if (!m_rpc.validateResponse(m_packet, true)) {
+    qDebug() << "Unsuccessful job lookup response packet failed validation!";
+    m_error = true;
+  }
+  m_refPacket = readReferenceString("jsonrpc-ref/lookupJob-error.json");
+  if (m_packet != m_refPacket) {
+    qDebug() << "Unsuccessful job lookup response generation failed!" << endl
+             << "Expected:" << m_refPacket << endl
+             << "Actual:" << m_packet;
     m_error = true;
   }
 

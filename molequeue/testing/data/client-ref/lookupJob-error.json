@@ -1,0 +1,9 @@
+{
+   "error" : {
+      "data" : 18,
+      "code" : 0,
+      "message" : "Unknown MoleQueue ID"
+   },
+   "id" : %id%,
+   "jsonrpc" : "2.0"
+}
