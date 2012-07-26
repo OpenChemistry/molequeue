@@ -121,11 +121,20 @@ signals:
    * Emitted when a job cancellation reply is received.
    * @param req The job request.
    * @param success Whether the job cancellation was successful.
-  * @param errorMessage String describing the error occurred. Empty if @a
-  * success is true.
+   * @param errorMessage String describing the error occurred. Empty if @a
+   * success is true.
    */
   void jobCanceled(const MoleQueue::JobRequest &req, bool success,
                    const QString &errorMessage) const;
+
+  /**
+   * Emitted when a job lookup reply is received.
+   * @param req The job request. May be invalid if unknown id requested.
+   * @param moleQueueId The MoleQueueId from the request.
+   * @see lookupJob
+   */
+  void lookupJobComplete(const MoleQueue::JobRequest &req,
+                         MoleQueue::IdType moleQueueId) const;
 
   /**
    * Emitted when a job changes state. The JobState of @a req will already be
@@ -173,6 +182,15 @@ public slots:
    */
   void cancelJob(const MoleQueue::JobRequest &req);
 
+  /**
+   * Request details about a job. If the job with the requested MoleQueue id
+   * does not exist in the JobManager, it will be added. Otherwise, the existing
+   * job will be updated.
+   * @param moleQueueId MoleQueue id of the job.
+   * @see lookupJobComplete
+   */
+  void lookupJob(MoleQueue::IdType moleQueueId);
+
 protected slots:
 
   /**
@@ -211,6 +229,20 @@ protected slots:
    */
   void jobCancellationConfirmationReceived(MoleQueue::IdType,
                                            MoleQueue::IdType moleQueueId);
+
+  /**
+   * Called when the JsonRpc instance handles a successful lookupJob response.
+   *
+   * @param hash Hash representing the requested Job's internal state.
+   */
+  void lookupJobResponseReceived(MoleQueue::IdType,
+                                 const QVariantHash & hash);
+
+  /**
+   * Called when the JsonRpc instance handles an unsuccessful lookupJob reply.
+   * @param moleQueueId Requested MoleQueue id.
+   */
+  void lookupJobErrorReceived(MoleQueue::IdType, MoleQueue::IdType moleQueueId);
 
   /**
    * Called when the JsonRpc instance handles a job state change notification.

@@ -92,6 +92,14 @@ Server::Server(QObject *parentObject, QString serverName)
                                                     MoleQueue::EndpointId,
                                                     MoleQueue::IdType,
                                                     MoleQueue::IdType)));
+  connect(m_jsonrpc, SIGNAL(lookupJobRequestReceived(MoleQueue::Connection*,
+                                                     MoleQueue::EndpointId,
+                                                     MoleQueue::IdType,
+                                                     MoleQueue::IdType)),
+          this, SLOT(lookupJobRequestReceived(MoleQueue::Connection*,
+                                              MoleQueue::EndpointId,
+                                              MoleQueue::IdType,
+                                              MoleQueue::IdType)));
 
   //connect(m_connection, SIGNAL(disconnected()),
   //        this, SIGNAL(disconnected()));
@@ -246,6 +254,17 @@ void Server::jobCancellationRequestReceived(MoleQueue::Connection *connection,
   sendSuccessfulCancellationResponse(connection, replyTo, moleQueueId);
 }
 
+void Server::lookupJobRequestReceived(Connection *connection,
+                                      EndpointId replyTo, IdType packetId,
+                                      IdType moleQueueId)
+{
+  Job job = m_jobManager->lookupJobByMoleQueueId(moleQueueId);
+  if (job.isValid())
+    sendSuccessfulLookupJobResponse(connection, replyTo, packetId, job);
+  else
+    sendFailedLookupJobResponse(connection, replyTo, packetId, moleQueueId);
+}
+
 void Server::jobAboutToBeAdded(Job job)
 {
   IdType nextMoleQueueId = ++m_moleQueueIdCounter;
@@ -374,6 +393,28 @@ void Server::sendSuccessfulCancellationResponse(MoleQueue::Connection *connectio
 
   Message msg(replyTo, packet);
 
+  connection->send(msg);
+}
+
+void Server::sendSuccessfulLookupJobResponse(Connection *connection,
+                                             EndpointId replyTo,
+                                             IdType packetId, const Job &req)
+{
+  PacketType packet = m_jsonrpc->generateLookupJobResponse(req,
+                                                           req.moleQueueId(),
+                                                           packetId);
+  Message msg(replyTo, packet);
+  connection->send(msg);
+}
+
+void Server::sendFailedLookupJobResponse(Connection *connection,
+                                         EndpointId replyTo, IdType packetId,
+                                         IdType moleQueueId)
+{
+  PacketType packet = m_jsonrpc->generateLookupJobResponse(Job(),
+                                                           moleQueueId,
+                                                           packetId);
+  Message msg(replyTo, packet);
   connection->send(msg);
 }
 

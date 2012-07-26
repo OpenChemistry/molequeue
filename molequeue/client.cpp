@@ -68,6 +68,14 @@ Client::Client(QObject *parentObject) :
                                                      MoleQueue::IdType)),
           this, SLOT(jobCancellationConfirmationReceived(MoleQueue::IdType,
                                                          MoleQueue::IdType)));
+  connect(m_jsonrpc, SIGNAL(lookupJobResponseReceived(MoleQueue::IdType,
+                                                      QVariantHash)),
+          this, SLOT(lookupJobResponseReceived(MoleQueue::IdType,
+                                               QVariantHash)));
+  connect(m_jsonrpc, SIGNAL(lookupJobErrorReceived(MoleQueue::IdType,
+                                                   MoleQueue::IdType)),
+          this, SLOT(lookupJobErrorReceived(MoleQueue::IdType,
+                                            MoleQueue::IdType)));
   connect(m_jsonrpc, SIGNAL(jobStateChangeReceived(MoleQueue::IdType,
                                                    MoleQueue::JobState,
                                                    MoleQueue::JobState)),
@@ -103,6 +111,13 @@ void Client::cancelJob(const JobRequest &req)
   const IdType id = nextPacketId();
   const PacketType packet = m_jsonrpc->generateJobCancellation(req, id);
   m_canceledLUT->insert(id, req);
+  m_connection->send(packet);
+}
+
+void Client::lookupJob(IdType moleQueueId)
+{
+  const IdType id = nextPacketId();
+  const PacketType packet = m_jsonrpc->generateLookupJobRequest(moleQueueId,id);
   m_connection->send(packet);
 }
 
@@ -189,6 +204,41 @@ void Client::jobCancellationConfirmationReceived(IdType packetId,
   emit jobCanceled(req, true, QString());
 }
 
+void Client::lookupJobResponseReceived(IdType,
+                                       const QVariantHash &hash)
+{
+  IdType moleQueueId =
+      static_cast<IdType>(hash.value("moleQueueId", InvalidId).toULongLong());
+  if (moleQueueId == InvalidId) {
+    qWarning() << "Client received a lookup confirmation without a valid"
+                  "MoleQueue Id.";
+    return;
+  }
+
+
+  Job job = m_jobManager->lookupJobByMoleQueueId(moleQueueId);
+  if (job.isValid())  {
+    job.setFromHash(hash);
+  }
+  else {
+    job = m_jobManager->newJob(hash);
+    job.setMoleQueueId(moleQueueId);
+  }
+
+  emit lookupJobComplete(JobRequest(job), moleQueueId);
+}
+
+void Client::lookupJobErrorReceived(IdType, IdType moleQueueId)
+{
+  if (moleQueueId == InvalidId) {
+    qWarning() << "Client received a lookup failure notice with an "
+                  "invalid molequeue id.";
+    return;
+  }
+
+  emit lookupJobComplete(JobRequest(), moleQueueId);
+}
+
 void Client::jobStateChangeReceived(IdType moleQueueId,
                                     JobState oldState, JobState newState)
 {
@@ -207,8 +257,7 @@ void Client::jobStateChangeReceived(IdType moleQueueId,
 
 void Client::requestQueueListUpdate()
 {
-  PacketType packet = m_jsonrpc->generateQueueListRequest(
-        nextPacketId());
+  PacketType packet = m_jsonrpc->generateQueueListRequest(nextPacketId());
   m_connection->send(packet);
 }
 
