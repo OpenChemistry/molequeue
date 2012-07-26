@@ -84,8 +84,8 @@ public:
    * @sa queueTypeIsKnown
    * @sa availableQueueTypes
    */
-  Queue * addQueue(const QString &queueName, const QString &queueType,
-                   bool replace = false);
+  virtual Queue * addQueue(const QString &queueName, const QString &queueType,
+                           bool replace = false);
 
   /**
    * Remove and delete a queue from the collection.

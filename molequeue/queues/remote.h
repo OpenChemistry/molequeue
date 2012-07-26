@@ -38,8 +38,6 @@ public:
                        QueueManager *parentManager = 0);
   ~QueueRemote();
 
-  virtual QString typeName() const { return "Remote"; }
-
   /**
    * Read settings for the queue, done early on at startup.
    */
@@ -160,7 +158,7 @@ protected slots:
   virtual void endKillJob();
 
 protected:
-  SshConnection *newSshConnection();
+  virtual SshConnection *newSshConnection();
 
   /**
    * Check for any jobs that are not present in the JobManager but

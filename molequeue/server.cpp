@@ -470,10 +470,6 @@ void Server::jobSubmissionRequested(MoleQueue::Connection *connection,
   qDebug() << "Submission ok?" << ok;
 }
 
-/**
- * @warning Do not dereference @a job, as it no longer points to allocated TODO clean this up
- * memory.
- */
 void Server::jobRemoved(MoleQueue::IdType moleQueueId)
 {
   m_connectionLUT.remove(moleQueueId);
