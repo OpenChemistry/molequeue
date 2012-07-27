@@ -157,23 +157,6 @@ target_link_libraries(molequeue
 install(TARGETS molequeue
   DESTINATION ${INSTALL_RUNTIME_DIR})
 
-if((APPLE OR WIN32) AND NOT ${CMAKE_VERSION} VERSION_LESS 2.8.8)
-  set(sfx "")
-  if(APPLE)
-    set(sfx ".app")
-  elseif(WIN32)
-    set(sfx ".exe")
-  endif()
-
-  set(dirs "")
-  if(CMAKE_PREFIX_PATH)
-    set(dirs "${CMAKE_PREFIX_PATH}/lib")
-  endif()
-
-  include(DeployQt4)
-  install_qt4_executable(bin/molequeue${sfx} "" "" "${dirs}")
-endif()
-
 # Client library
 set(mqclient_srcs
   abstractrpcinterface.cpp
@@ -224,3 +207,8 @@ add_subdirectory(transport)
 if(BUILD_TESTING)
   add_subdirectory(testing)
 endif()
+
+
+# Keep "add_subdirectory(lastinstall)" last: fixup_bundle needs to be
+# *after* all other install(TARGETS and install(FILES calls
+add_subdirectory(lastinstall)
