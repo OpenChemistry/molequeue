@@ -51,12 +51,15 @@ private slots:
 
   void testJobSubmission();
   void testJobCancellation();
+  void testLookupJob();
   void testRequestQueueListUpdate();
 
   void testQueueListReceived();
   void testSuccessfulSubmissionReceived();
   void testFailedSubmissionReceived();
   void testJobCancellationConfirmationReceived();
+  void testLookupJobResponseReceived();
+  void testLookupJobErrorReceived();
   void testJobStateChangeReceived();
 };
 
@@ -135,6 +138,26 @@ void ClientTest::testJobCancellation()
 
   MoleQueue::PacketType refPacket =
       readReferenceString("client-ref/job-cancellation.json");
+
+  // Strip out the random ids in the packets
+  QRegExp strip("\\n\\s+\"id\"\\s+:\\s+\\d+\\s*,\\s*\\n");
+  QString strippedPacket = QString(m_packet);
+  QString strippedRefPacket = QString(refPacket);
+
+  strippedPacket.replace(strip, "\n");
+  strippedRefPacket.replace(strip, "\n");
+
+  QCOMPARE(strippedPacket, strippedRefPacket);
+}
+
+void ClientTest::testLookupJob()
+{
+  m_client->lookupJob(12);
+
+  QVERIFY2(m_server->waitForPacket(), "Timeout waiting for reply.");
+
+  MoleQueue::PacketType refPacket =
+      readReferenceString("client-ref/lookupJob-request.json");
 
   // Strip out the random ids in the packets
   QRegExp strip ("\\n\\s+\"id\"\\s+:\\s+\\d+\\s*,\\s*\\n");
@@ -300,6 +323,74 @@ void ClientTest::testJobCancellationConfirmationReceived()
   const QString err = spy.first()[2].toString();
   QVERIFY(success);
   QVERIFY(err.isEmpty());
+}
+
+void ClientTest::testLookupJobResponseReceived()
+{
+  // First send a lookupJob request, then parse out the id for the response.
+  const MoleQueue::IdType moleQueueId = 17;
+  m_client->lookupJob(moleQueueId);
+
+  QVERIFY2(m_server->waitForPacket(), "Timeout waiting for reply.");
+
+  QRegExp capture ("\\n\\s+\"id\"\\s+:\\s+(\\d+)\\s*,\\s*\\n");
+  int pos = capture.indexIn(m_packet);
+  QVERIFY2(pos >= 0, "id not found in lookupJob request!");
+  const MoleQueue::IdType packetId =
+      static_cast<MoleQueue::IdType>(capture.cap(1).toULong());
+
+  QSignalSpy spy(m_client, SIGNAL(lookupJobComplete(MoleQueue::JobRequest,
+                                                    MoleQueue::IdType)));
+
+  MoleQueue::PacketType response =
+      readReferenceString("client-ref/lookupJob-response.json");
+
+  response.replace("%id%", MoleQueue::PacketType::number(packetId));
+
+  m_server->sendPacket(response);
+
+  qApp->processEvents(QEventLoop::AllEvents, 1000);
+  QCOMPARE(spy.count(), 1);
+  QCOMPARE(spy.first().size(), 2);
+
+  MoleQueue::JobRequest req = spy.first()[0].value<MoleQueue::JobRequest>();
+  MoleQueue::IdType sigMQId = spy.first()[1].value<MoleQueue::IdType>();
+  QVERIFY(req.isValid());
+  QCOMPARE(sigMQId, moleQueueId);
+}
+
+void ClientTest::testLookupJobErrorReceived()
+{
+  // First send a lookupJob request, then parse out the id for the response.
+  const MoleQueue::IdType moleQueueId = 18;
+  m_client->lookupJob(moleQueueId);
+
+  QVERIFY2(m_server->waitForPacket(), "Timeout waiting for reply.");
+
+  QRegExp capture("\\n\\s+\"id\"\\s+:\\s+(\\d+)\\s*,\\s*\\n");
+  int pos = capture.indexIn(m_packet);
+  QVERIFY2(pos >= 0, "id not found in lookupJob request!");
+  const MoleQueue::IdType packetId =
+      static_cast<MoleQueue::IdType>(capture.cap(1).toULong());
+
+  QSignalSpy spy(m_client, SIGNAL(lookupJobComplete(MoleQueue::JobRequest,
+                                                    MoleQueue::IdType)));
+
+  MoleQueue::PacketType response =
+      readReferenceString("client-ref/lookupJob-error.json");
+
+  response.replace("%id%", MoleQueue::PacketType::number(packetId));
+
+  m_server->sendPacket(response);
+
+  qApp->processEvents(QEventLoop::AllEvents, 1000);
+  QCOMPARE(spy.count(), 1);
+  QCOMPARE(spy.first().size(), 2);
+
+  MoleQueue::JobRequest req = spy.first()[0].value<MoleQueue::JobRequest>();
+  MoleQueue::IdType sigMQId = spy.first()[1].value<MoleQueue::IdType>();
+  QVERIFY(!req.isValid());
+  QCOMPARE(sigMQId, moleQueueId);
 }
 
 void ClientTest::testJobStateChangeReceived()
