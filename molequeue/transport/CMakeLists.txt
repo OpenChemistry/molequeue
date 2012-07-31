@@ -41,7 +41,10 @@ list(APPEND hdrs
 
 install(FILES ${hdrs} DESTINATION "${INSTALL_INCLUDE_DIR}/molequeue/transport")
 install(TARGETS mqconnection mqconnectionlistener
-  DESTINATION "${INSTALL_LIBRARY_DIR}")
+  RUNTIME DESTINATION ${INSTALL_RUNTIME_DIR}
+  LIBRARY DESTINATION ${INSTALL_LIBRARY_DIR}
+  ARCHIVE DESTINATION ${INSTALL_ARCHIVE_DIR}
+  )
 
 add_subdirectory(localsocket)
 

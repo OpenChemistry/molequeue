@@ -155,7 +155,10 @@ target_link_libraries(molequeue
   ${QT_LIBRARIES})
 
 install(TARGETS molequeue
-  DESTINATION ${INSTALL_RUNTIME_DIR})
+  RUNTIME DESTINATION ${INSTALL_RUNTIME_DIR}
+  LIBRARY DESTINATION ${INSTALL_LIBRARY_DIR}
+  ARCHIVE DESTINATION ${INSTALL_ARCHIVE_DIR}
+  )
 
 # Client library
 set(mqclient_srcs
