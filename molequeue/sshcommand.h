@@ -163,7 +163,7 @@ protected:
 
   /// Send a request. This launches the process and connects the completion
   /// signals
-  void sendRequest(const QString &command, const QStringList &args);
+  virtual void sendRequest(const QString &command, const QStringList &args);
 
   /// Initialize the TerminalProcess object.
   void initializeProcess();

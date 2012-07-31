@@ -39,25 +39,9 @@ class TestServer : public QObject
   QLocalServer *m_server;
   QLocalSocket *m_socket;
 public:
-  TestServer(MoleQueue::PacketType *target)
-    : QObject(NULL), m_target(target), m_server(new QLocalServer),
-      m_socket(NULL)
-  {
-    if (!m_server->listen(getRandomSocketName())) {
-      qWarning() << "Cannot start test server:" << m_server->errorString();
-      return;
-    }
+  TestServer(MoleQueue::PacketType *target);
 
-    connect(m_server, SIGNAL(newConnection()), this, SLOT(newConnection()));
-  }
-
-  ~TestServer()
-  {
-    if (m_socket != NULL)
-      m_socket->disconnect();
-
-    delete m_server;
-  }
+  ~TestServer();
 
   void sendPacket(const MoleQueue::PacketType &packet)
   {
@@ -130,7 +114,5 @@ private slots:
     m_target->append(packet);
   }
 };
-
-#include "moc_testserver.cxx"
 
 #endif // TESTSERVER_H
