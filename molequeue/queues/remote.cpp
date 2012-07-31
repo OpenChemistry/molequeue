@@ -59,6 +59,7 @@ void QueueRemote::readSettings(QSettings &settings)
   m_workingDirectoryBase = settings.value("workingDirectoryBase").toString();
   m_submissionCommand = settings.value("submissionCommand").toString();
   m_requestQueueCommand = settings.value("requestQueueCommand").toString();
+  m_killCommand = settings.value("killCommand").toString();
   m_hostName = settings.value("hostName").toString();
   m_userName = settings.value("userName").toString();
   m_sshPort  = settings.value("sshPort").toInt();
@@ -71,6 +72,7 @@ void QueueRemote::writeSettings(QSettings &settings) const
   settings.setValue("workingDirectoryBase", m_workingDirectoryBase);
   settings.setValue("submissionCommand", m_submissionCommand);
   settings.setValue("requestQueueCommand", m_requestQueueCommand);
+  settings.setValue("killCommand", m_killCommand);
   settings.setValue("hostName", m_hostName);
   settings.setValue("userName", m_userName);
   settings.setValue("sshPort",  m_sshPort);
