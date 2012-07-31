@@ -106,6 +106,21 @@ void QueueLocal::writeSettings(QSettings &settings) const
   settings.endArray(); // "PendingJobs"
 }
 
+void QueueLocal::exportConfiguration(QSettings &exporter,
+                                     bool includePrograms) const
+{
+  Queue::exportConfiguration(exporter, includePrograms);
+  exporter.setValue("cores", m_cores);
+}
+
+void QueueLocal::importConfiguration(QSettings &importer, bool includePrograms)
+{
+  Queue::importConfiguration(importer, includePrograms);
+  if (importer.contains("cores")) {
+    m_cores = importer.value("cores").toInt();
+  }
+}
+
 QWidget* QueueLocal::settingsWidget()
 {
   QWidget *widget = new QWidget;
