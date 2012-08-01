@@ -223,6 +223,32 @@ bool Job::popupOnStateChange() const
   return false;
 }
 
+void Job::setNumberOfProcessors(int num)
+{
+  if (warnIfInvalid())
+    m_jobData->setNumberOfProcessors(num);
+}
+
+int Job::numberOfProcessors() const
+{
+  if (warnIfInvalid())
+    return m_jobData->numberOfProcessors();
+  return -1;
+}
+
+void Job::setMaxWallTime(int minutes)
+{
+  if (warnIfInvalid())
+    m_jobData->setMaxWallTime(minutes);
+}
+
+int Job::maxWallTime() const
+{
+  if (warnIfInvalid())
+    return m_jobData->maxWallTime();
+  return -1;
+}
+
 void Job::setMoleQueueId(IdType id)
 {
   if (warnIfInvalid()) {
