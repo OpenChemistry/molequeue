@@ -1,5 +1,5 @@
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY
-  ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/molequeue/plugins
+  ${CMAKE_BINARY_DIR}/lib/molequeue/plugins
   )
 
 set(mq_zeromq_connectionlistenerfactory_srcs
