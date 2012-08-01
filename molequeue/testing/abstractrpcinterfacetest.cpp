@@ -58,7 +58,7 @@ AbstractRpcInterfaceTest::readReferenceString(const QString &filename)
 {
   QString realFilename = TESTDATADIR + filename;
   QFile refFile (realFilename);
-  if (!refFile.open(QFile::ReadOnly)) {
+  if (!refFile.open(QFile::ReadOnly | QFile::Text)) {
     qDebug() << "Cannot access reference file" << realFilename;
     return "";
   }
