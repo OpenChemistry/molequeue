@@ -78,6 +78,30 @@ void QueueRemote::writeSettings(QSettings &settings) const
   settings.setValue("sshPort",  m_sshPort);
 }
 
+void QueueRemote::exportConfiguration(QSettings &exporter,
+                                      bool includePrograms) const
+{
+  Queue::exportConfiguration(exporter, includePrograms);
+
+  exporter.setValue("submissionCommand", m_submissionCommand);
+  exporter.setValue("requestQueueCommand", m_requestQueueCommand);
+  exporter.setValue("killCommand", m_killCommand);
+  exporter.setValue("hostName", m_hostName);
+  exporter.setValue("sshPort",  m_sshPort);
+}
+
+void QueueRemote::importConfiguration(QSettings &importer,
+                                      bool includePrograms)
+{
+  Queue::importConfiguration(importer, includePrograms);
+
+  m_submissionCommand = importer.value("submissionCommand").toString();
+  m_requestQueueCommand = importer.value("requestQueueCommand").toString();
+  m_killCommand = importer.value("killCommand").toString();
+  m_hostName = importer.value("hostName").toString();
+  m_sshPort  = importer.value("sshPort").toInt();
+}
+
 QWidget* QueueRemote::settingsWidget()
 {
   RemoteQueueWidget *widget = new RemoteQueueWidget (this);

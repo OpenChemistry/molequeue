@@ -20,7 +20,13 @@
 #include "program.h"
 #include "queue.h"
 
+#include <QtGui/QFileDialog>
+#include <QtGui/QMessageBox>
 #include <QtGui/QTextDocument>
+
+#include <QtCore/QDir>
+#include <QtCore/QFileInfo>
+#include <QtCore/QSettings>
 
 namespace MoleQueue
 {
@@ -54,6 +60,8 @@ ProgramConfigureDialog::ProgramConfigureDialog(Program *program,
           this, SLOT(updateLaunchEditor()));
   connect(ui->text_launchTemplate, SIGNAL(textChanged()),
           this, SLOT(launchEditorTextChanged()));
+  connect(ui->importProgramButton, SIGNAL(clicked()),
+          this, SLOT(importProgramClicked()));
 
   launchSyntaxChanged(ui->combo_syntax->currentIndex());
 
@@ -207,6 +215,46 @@ void ProgramConfigureDialog::customizeLauncherClicked()
 {
   m_customLaunchText = ui->text_launchTemplate->document()->toPlainText();
   ui->combo_syntax->setCurrentIndex(static_cast<int>(Program::CUSTOM));
+}
+
+void ProgramConfigureDialog::importProgramClicked()
+{
+  // Get initial dir:
+  QSettings settings;
+  QString initialDir = settings.value("import/program/lastImportFile",
+                                      QDir::homePath()).toString();
+
+  initialDir = QFileInfo(initialDir).dir().absolutePath() +
+      QString("/%1-%2.mqq").arg(m_program->queueName(), ui->edit_name->text());
+
+  // Get filename
+  QString importFileName =
+      QFileDialog::getOpenFileName(this, tr("Select file to import"),
+                                   initialDir,
+                                   tr("MoleQueue Program Export Format (*.mqp)"
+                                      ";;All files (*)"));
+
+  // User cancel:
+  if (importFileName.isNull())
+    return;
+
+  // Set location for next time
+  settings.setValue("import/program/lastImportFile", importFileName);
+
+  QSettings importer(importFileName, QSettings::IniFormat);
+  if (!importer.contains("customLaunchTemplate")) {
+    QMessageBox::critical(this, tr("Cannot import program!"),
+                          tr("Cannot import program from file '%1': File open "
+                             "failed or invalid format.").arg(importFileName),
+                          QMessageBox::Ok);
+    return;
+  }
+
+  Program tmpProg(*m_program);
+  m_program->importConfiguration(importer);
+  updateGuiFromProgram();
+  *m_program = tmpProg;
+
 }
 
 } // end namespace MoleQueue

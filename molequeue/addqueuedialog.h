@@ -38,9 +38,15 @@ public:
 public slots:
   virtual void accept();
 
+private slots:
+  void typeChanged();
+  void showImportFileDialog();
+  void importFileTextChanged(const QString &text);
+
 private:
-    Ui::AddQueueDialog *ui;
-    QueueManager *m_queueManager;
+  int m_importIndex;
+  Ui::AddQueueDialog *ui;
+  QueueManager *m_queueManager;
 };
 
 } // end MoleQueue namespace

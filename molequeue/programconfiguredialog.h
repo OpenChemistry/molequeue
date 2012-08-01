@@ -54,6 +54,8 @@ protected slots:
   void launchSyntaxChanged(int enumVal);
   void customizeLauncherClicked();
 
+  void importProgramClicked();
+
 private:
   Ui::ProgramConfigureDialog *ui;
   Program *m_program;

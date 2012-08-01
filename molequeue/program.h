@@ -48,6 +48,7 @@ public:
   explicit Program(Queue *parentQueue = 0);
   Program(const Program &other);
   ~Program();
+  Program &operator=(const Program &other);
 
   /// Enum used for various common styles of execution syntax
   enum LaunchSyntax {
@@ -94,6 +95,12 @@ public:
   void readSettings(QSettings &settings);
   /// @param settings QSettings object to read state from.
   void writeSettings(QSettings &settings) const;
+
+  /// Import the program's configuration from the @a settings object.
+  void importConfiguration(QSettings &importer);
+
+  /// Export the program's configuration into the @a settings object.
+  void exportConfiguration(QSettings &exporter) const;
 
   /**
    * Set the name of the program. This is the name that will show up in

@@ -43,6 +43,7 @@ protected slots:
   void addQueue();
   void removeQueue();
   void configureQueue();
+  void exportQueue();
   void doubleClicked(const QModelIndex &);
   void showSettingsDialog(MoleQueue::Queue *queue);
   void removeSettingsDialog();
