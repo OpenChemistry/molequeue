@@ -11,6 +11,11 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR}
   ${CMAKE_CURRENT_BINARY_DIR}/transport
   ${CMAKE_CURRENT_BINARY_DIR}/transport/localsocket)
 
+# multi configuration build? Needed for plugin search path
+if(CMAKE_CONFIGURATION_TYPES)
+  add_definitions(-DMULTI_CONFIG_BUILD)
+endif()
+
 if(CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND NOT WIN32)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
 endif()
