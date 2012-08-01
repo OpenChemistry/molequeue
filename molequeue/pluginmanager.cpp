@@ -55,8 +55,20 @@ PluginManager::PluginManager(QObject *p) : QObject(p)
                      + "/lib/molequeue/plugins").absolutePath();
   }
 #endif
+
+// For multi configuration types add correct one to search path.
+#ifdef MULTI_CONFIG_BUILD
+  // First extract the build type ( the name of the application dir )
+  QDir appDir(QCoreApplication::applicationDirPath());
+  QString buildType = appDir.dirName();
+
+  QDir dir(QCoreApplication::applicationDirPath()
+	       + "/../../lib/molequeue/plugins/"+ buildType);
+  m_pluginDirs.append(dir.absolutePath());
+#else
   QDir dir(QCoreApplication::applicationDirPath() + m_relativeToApp);
   m_pluginDirs.append(dir.absolutePath());
+#endif
 }
 
 PluginManager::~PluginManager()
