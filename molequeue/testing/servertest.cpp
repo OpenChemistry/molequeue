@@ -120,6 +120,10 @@ void ServerTest::testStop()
 
 void ServerTest::testForceStart()
 {
+// For now exclude this on Windows named pipes do now throw an error
+// when you create one using the same name ...
+#ifndef WIN32
+
   // Start a duplicate server to take the socket address
   MoleQueue::Server dupServer(this, m_connectionString);
   dupServer.m_isTesting = true;
@@ -149,6 +153,8 @@ void ServerTest::testForceStart()
   QVERIFY(localSocketConnectionListener()->m_server->isListening());
 
   dupServer.stop();
+#endif
+
 }
 
 void ServerTest::testNewConnection()
