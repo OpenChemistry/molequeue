@@ -25,6 +25,7 @@ namespace MoleQueue
 
 class MQLOCALSOCKETCLIENT_EXPORT LocalSocketClient: public MoleQueue::Client
 {
+  Q_OBJECT
 public:
   explicit LocalSocketClient(QObject *parentObject = 0);
 

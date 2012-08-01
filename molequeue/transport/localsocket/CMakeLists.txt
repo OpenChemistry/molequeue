@@ -13,11 +13,17 @@ set(mq_localsocket_connectionlistener_hdrs
 set(mq_client_localsocket_srcs
   localsocketclient.cpp)
 
+set(mq_client_localsocket_hdrs
+   localsocketclient.h)
+
 qt4_wrap_cpp(mq_localsocket_connection_moc_srcs
   ${mq_localsocket_connection_hdrs})
 
 qt4_wrap_cpp(mq_localsocket_connectionlistener_moc_srcs
   ${mq_localsocket_connectionlistener_hdrs})
+
+qt4_wrap_cpp(mq_client_localsocket_moc_srcs
+  ${mq_client_localsocket_hdrs})
 
 add_library(mqlocalsocketconnection STATIC
   ${mq_localsocket_connection_srcs}
@@ -38,7 +44,9 @@ target_link_libraries(mqlocalsocketconnectionlistener
 
 # local socket client
 add_library(mqlocalsocketclient
-  ${mq_client_localsocket_srcs})
+  ${mq_client_localsocket_srcs}
+  ${mq_client_localsocket_moc_srcs})
+
 target_link_libraries(mqlocalsocketclient
   molequeueclient
   mqlocalsocketconnection)
