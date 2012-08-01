@@ -1,8 +1,9 @@
 set(CTEST_CUSTOM_COVERAGE_EXCLUDE
   ${CTEST_CUSTOM_COVERAGE_EXCLUDE}
-  "*molequeue/testing/*"
-  "*/moc_*"
-  "*/thirdparty/*"
+  "/molequeue/testing/"
+  "/moc_"
+  "/ui_"
+  "/thirdparty/"
 )
 
 set(CTEST_CUSTOM_WARNING_EXCEPTION
