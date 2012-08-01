@@ -112,7 +112,7 @@ PacketType JsonRpcTest::readReferenceString(const QString &filename)
 {
   QString realFilename = TESTDATADIR + filename;
   QFile refFile (realFilename);
-  if (!refFile.open(QFile::ReadOnly)) {
+  if (!refFile.open(QFile::ReadOnly | QIODevice::Text)) {
     qDebug() << "Cannot access reference file" << realFilename;
     return "";
   }
