@@ -2,7 +2,7 @@
 
   This source file is part of the MoleQueue project.
 
-  Copyright 2011-2012 Kitware, Inc.
+  Copyright 2012 Kitware, Inc.
 
   This source code is released under the New BSD License, (the "License").
 
@@ -14,35 +14,38 @@
 
 ******************************************************************************/
 
-#ifndef ADDQUEUEDIALOG_H
-#define ADDQUEUEDIALOG_H
+#ifndef MOLEQUEUE_IMPORTQUEUEDIALOG_H
+#define MOLEQUEUE_IMPORTQUEUEDIALOG_H
 
-#include <QDialog>
+#include <QtGui/QDialog>
 
 namespace Ui {
-    class AddQueueDialog;
+class ImportQueueDialog;
 }
 
 namespace MoleQueue {
-
 class QueueManager;
 
-class AddQueueDialog : public QDialog
+class ImportQueueDialog : public QDialog
 {
-    Q_OBJECT
+  Q_OBJECT
 
 public:
-    explicit AddQueueDialog(QueueManager *queueManager, QWidget *parentObject = 0);
-    ~AddQueueDialog();
+  ImportQueueDialog(QueueManager *queueManager,
+                    QWidget *parentObject = 0);
+  ~ImportQueueDialog();
 
 public slots:
-  virtual void accept();
+  void accept();
+
+private slots:
+  void showImportFileDialog();
+  void importFileTextChanged(const QString &text);
 
 private:
-  Ui::AddQueueDialog *ui;
+  Ui::ImportQueueDialog *ui;
   QueueManager *m_queueManager;
 };
 
-} // end MoleQueue namespace
-
-#endif // ADDQUEUEDIALOG_H
+} // namespace MoleQueue
+#endif // MOLEQUEUE_IMPORTQUEUEDIALOG_H

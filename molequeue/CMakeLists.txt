@@ -20,6 +20,8 @@ set(mq_srcs
   actionfactorymanager.cpp
   addqueuedialog.cpp
   client.cpp
+  importprogramdialog.cpp
+  importqueuedialog.cpp
   job.cpp
   jobactionfactory.cpp
   jobactionfactories/killjobactionfactory.cpp
@@ -69,6 +71,8 @@ set(mq_moc
   actionfactorymanager.h
   addqueuedialog.h
   client.h
+  importprogramdialog.h
+  importqueuedialog.h
   jobactionfactory.h
   jobactionfactories/killjobactionfactory.h
   jobactionfactories/opendirectoryactionfactory.h
@@ -111,6 +115,8 @@ qt4_wrap_cpp(moc_srcs ${mq_moc})
 
 qt4_wrap_ui(ui_srcs
   ui/addqueuedialog.ui
+  ui/importprogramdialog.ui
+  ui/importqueuedialog.ui
   ui/jobtablewidget.ui
   ui/logwindow.ui
   ui/mainwindow.ui

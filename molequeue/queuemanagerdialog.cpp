@@ -18,11 +18,17 @@
 #include "ui_queuemanagerdialog.h"
 
 #include <QtGui/QItemSelection>
+#include <QtGui/QFileDialog>
+#include <QtGui/QMessageBox>
+
+#include <QtCore/QFileInfo>
+#include <QtCore/QSettings>
 
 #include "queue.h"
 #include "logger.h"
 #include "mainwindow.h"
 #include "addqueuedialog.h"
+#include "importqueuedialog.h"
 #include "queuemanager.h"
 #include "queuemanageritemmodel.h"
 #include "queuesettingsdialog.h"
@@ -49,8 +55,10 @@ QueueManagerDialog::QueueManagerDialog(QueueManager *queueManager,
           this, SLOT(removeQueue()));
   connect(ui->configureQueueButton, SIGNAL(clicked()),
           this, SLOT(configureQueue()));
-  connect(ui->closeButton, SIGNAL(clicked()),
-          this, SLOT(close()));
+  connect(ui->importQueueButton, SIGNAL(clicked()),
+          this, SLOT(importQueue()));
+  connect(ui->exportQueueButton, SIGNAL(clicked()),
+          this, SLOT(exportQueue()));
   connect(ui->queueTable->selectionModel(), SIGNAL(selectionChanged(QItemSelection, QItemSelection)),
           this, SLOT(enableQueueButtons(QItemSelection)));
 }
@@ -83,6 +91,82 @@ void QueueManagerDialog::configureQueue()
   QList<Queue*> sel = getSelectedQueues();
   if (!sel.isEmpty())
     showSettingsDialog(sel.first());
+}
+
+void QueueManagerDialog::importQueue()
+{
+  ImportQueueDialog dialog(m_queueManager, this);
+  dialog.exec();
+}
+
+void QueueManagerDialog::exportQueue()
+{
+  // Get selected Queue
+  QList<Queue*> selectedQueues = getSelectedQueues();
+
+  // Ensure that only one queue is selected at a time
+  if (selectedQueues.size() < 1)
+    return;
+  if (selectedQueues.size() != 1) {
+    QMessageBox::information(this, tr("Queue Export"),
+                             tr("Please select only one queue to export at a "
+                                "time."), QMessageBox::Ok);
+    return;
+  }
+  Queue *queue = selectedQueues.first();
+
+  // Get initial dir:
+  QSettings settings;
+  QString initialDir = settings.value("export/queue/lastExportFile",
+                                      QDir::homePath()).toString();
+  initialDir = QFileInfo(initialDir).dir().absolutePath() +
+      QString("/%1.mqq").arg(queue->name());
+
+  // Get filename for export
+  QString exportFileName =
+      QFileDialog::getSaveFileName(this, tr("Select export filename"),
+                                   initialDir,
+                                   tr("MoleQueue Queue Export Format (*.mqq);;"
+                                      "All files (*)"));
+
+  // User cancel:
+  if (exportFileName.isNull())
+    return;
+
+  // Set location for next time
+  settings.setValue("export/queue/lastExportFile", exportFileName);
+
+  // Setup QSettings file to write an INI format file to the filename
+  QSettings exporter(exportFileName, QSettings::IniFormat);
+
+  if (!exporter.isWritable()) {
+    QMessageBox::critical(this, tr("Cannot export queue!"),
+                          tr("Cannot export queue to file '%1': File is not "
+                             "writable.").arg(exportFileName),
+                          QMessageBox::Ok);
+    return;
+  }
+
+  // Prompt whether to export all programs or just the queue details
+  QMessageBox::StandardButton exportProgramsButton =
+      QMessageBox::question(this, tr("Export programs?"),
+                            tr("Would you like to export all program "
+                               "configurations along with the queue?\n\n"
+                               "Programs: %1")
+                            .arg(queue->programNames().join(", ")),
+                            QMessageBox::Yes | QMessageBox::No,
+                            QMessageBox::Yes);
+
+  bool exportPrograms = (exportProgramsButton == QMessageBox::Yes);
+
+  // Clear any existing state information from the file
+  exporter.remove("");
+
+  // Populate file
+  queue->exportConfiguration(exporter, exportPrograms);
+
+  // Flush QSettings
+  exporter.sync();
 }
 
 void QueueManagerDialog::doubleClicked(const QModelIndex &index)
@@ -154,6 +238,7 @@ void QueueManagerDialog::setEnabledQueueButtons(bool enabled)
 {
   ui->removeQueueButton->setEnabled(enabled);
   ui->configureQueueButton->setEnabled(enabled);
+  ui->exportQueueButton->setEnabled(enabled);
 }
 
 void QueueManagerDialog::enableQueueButtons(const QItemSelection &selected)

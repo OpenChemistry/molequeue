@@ -49,10 +49,15 @@ protected slots:
   void addProgramClicked();
   void removeProgramClicked();
   void configureProgramClicked();
+  void importProgramClicked();
+  void exportProgramClicked();
   void doubleClicked(const QModelIndex &);
   void enableProgramButtons(const QItemSelection &selected);
 
 protected:
+  /// Row indices, ascending order
+  QList<int> getSelectedRows();
+  QList<Program*> getSelectedPrograms();
   void showProgramConfigDialog(Program *prog);
   void setEnabledProgramButtons(bool enabled);
   void removeProgramDialog();
