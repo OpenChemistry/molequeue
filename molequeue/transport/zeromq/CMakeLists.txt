@@ -65,6 +65,10 @@ generate_export_header(mqzeromqclient EXPORT_FILE_NAME mqzeromqclientexport.h)
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 install(FILES ${hdrs} DESTINATION "${INSTALL_INCLUDE_DIR}/molequeue/zeromqclient")
-install(TARGETS mqzeromqclient DESTINATION ${INSTALL_LIBRARY_DIR})
+install(TARGETS mqzeromqclient
+  RUNTIME DESTINATION ${INSTALL_RUNTIME_DIR}
+  LIBRARY DESTINATION ${INSTALL_LIBRARY_DIR}
+  ARCHIVE DESTINATION ${INSTALL_ARCHIVE_DIR}
+  )
 
 add_subdirectory(plugin)
