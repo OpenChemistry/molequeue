@@ -773,4 +773,4 @@ void JsonRpcTest::interpretIncomingPacket_jobStateChange()
 
 QTEST_MAIN(JsonRpcTest)
 
-#include "moc_jsonrpctest.cxx"
+#include "jsonrpctest.moc"

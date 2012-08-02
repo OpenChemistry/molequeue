@@ -421,4 +421,4 @@ void ClientTest::testJobStateChangeReceived()
 
 QTEST_MAIN(ClientTest)
 
-#include "moc_clienttest.cxx"
+#include "clienttest.moc"

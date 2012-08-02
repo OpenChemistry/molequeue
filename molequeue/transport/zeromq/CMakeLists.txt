@@ -2,62 +2,26 @@ find_package(ZeroMQ REQUIRED)
 
 include_directories(${ZeroMQ_INCLUDE_DIR})
 
-set(mq_zeromq_connection_srcs
-  zeromqconnection.cpp
-  )
-set(mq_zeromq_connection_hdrs
-  zeromqconnection.h
-  )
-
-set(mq_zeromq_connectionlistener_srcs
-  zeromqconnectionlistener.cpp
-  )
-set(mq_zeromq_connectionlistener_hdrs
-  zeromqconnectionlistener.h
-  )
-
-set(mq_client_zeromq_srcs
-  zeromqclient.cpp
-  )
-
 add_definitions(-DUSE_ZERO_MQ)
 
-qt4_wrap_cpp(mq_zeromq_connection_moc_srcs
-  ${mq_zeromq_connection_hdrs}
-  )
-qt4_wrap_cpp(mq_zeromq_connectionlistener_moc_srcs
-  ${mq_zeromq_connectionlistener_hdrs}
-  )
-
-add_library(mqzeromqconnection STATIC
-  ${mq_zeromq_connection_srcs}
-  ${mq_zeromq_connection_moc_srcs}
-  )
-
+add_library(mqzeromqconnection STATIC zeromqconnection.cpp)
+set_target_properties(mqzeromqconnection PROPERTIES AUTOMOC TRUE)
 target_link_libraries(mqzeromqconnection
   mqconnection
   ${QT_LIBRARIES}
-  ${ZeroMQ_LIBRARIES}
-)
+  ${ZeroMQ_LIBRARIES})
 
-add_library(mqzeromqconnectionlistener STATIC
-  ${mq_zeromq_connectionlistener_srcs}
-  ${mq_zeromq_connectionlistener_moc_srcs}
-  )
-
+add_library(mqzeromqconnectionlistener STATIC zeromqconnectionlistener.cpp)
+set_target_properties(mqzeromqconnectionlistener PROPERTIES AUTOMOC TRUE)
 target_link_libraries(mqzeromqconnectionlistener
   mqconnectionlistener
-  mqzeromqconnection
-)
+  mqzeromqconnection)
 
 # zero client
-add_library(mqzeromqclient
-  ${mq_client_zeromq_srcs}
-  )
+add_library(mqzeromqclient zeromqclient.cpp)
 target_link_libraries(mqzeromqclient
   molequeueclient
-  mqzeromqconnection
-  )
+  mqzeromqconnection)
 
 set(hdrs zeromqclient.h ${CMAKE_CURRENT_BINARY_DIR}/mqzeromqclientexport.h)
 

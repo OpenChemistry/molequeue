@@ -197,4 +197,4 @@ void ServerTest::testClientDisconnected()
 
 QTEST_MAIN(ServerTest)
 
-#include "moc_servertest.cxx"
+#include "servertest.moc"

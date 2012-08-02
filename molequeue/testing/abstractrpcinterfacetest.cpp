@@ -153,4 +153,4 @@ void AbstractRpcInterfaceTest::testInternalError()
 
 QTEST_MAIN(AbstractRpcInterfaceTest)
 
-#include "moc_abstractrpcinterfacetest.cxx"
+#include "abstractrpcinterfacetest.moc"

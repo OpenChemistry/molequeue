@@ -458,4 +458,4 @@ void QueueRemoteTest::testQueueUpdate()
 
 QTEST_MAIN(QueueRemoteTest)
 
-#include "moc_queueremotetest.cxx"
+#include "queueremotetest.moc"

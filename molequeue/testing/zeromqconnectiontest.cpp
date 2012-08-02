@@ -35,4 +35,4 @@ MoleQueue::Client *ZeroMqConnectionTest::createClient()
 
 QTEST_MAIN(ZeroMqConnectionTest)
 
-#include "moc_zeromqconnectiontest.cxx"
+#include "zeromqconnectiontest.moc"

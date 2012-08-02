@@ -35,4 +35,4 @@ MoleQueue::Client *LocalSocketConnectionTest::createClient()
 
 QTEST_MAIN(LocalSocketConnectionTest)
 
-#include "moc_localsocketconnectiontest.cxx"
+#include "localsocketconnectiontest.moc"

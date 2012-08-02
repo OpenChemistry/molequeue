@@ -140,4 +140,4 @@ void QueueManagerTest::testCleanup()
 
 QTEST_MAIN(QueueManagerTest)
 
-#include "moc_queuemanagertest.cxx"
+#include "queuemanagertest.moc"
