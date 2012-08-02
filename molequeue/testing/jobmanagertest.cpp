@@ -102,4 +102,4 @@ void JobManagerTest::testLookupMoleQueueId()
 
 QTEST_MAIN(JobManagerTest)
 
-#include "moc_jobmanagertest.cxx"
+#include "jobmanagertest.moc"

@@ -60,4 +60,4 @@ void ProgramTest::runTest()
 
 QTEST_MAIN(ProgramTest)
 
-#include "moc_programtest.cxx"
+#include "programtest.moc"

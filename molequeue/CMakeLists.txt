@@ -71,53 +71,6 @@ set(mq_srcs
   terminalprocess.cpp
 )
 
-set(mq_moc
-  abstractrpcinterface.h
-  actionfactorymanager.h
-  addqueuedialog.h
-  client.h
-  importprogramdialog.h
-  importqueuedialog.h
-  jobactionfactory.h
-  jobactionfactories/killjobactionfactory.h
-  jobactionfactories/opendirectoryactionfactory.h
-  jobactionfactories/openwithactionfactory.h
-  jobactionfactories/programmableopenwithactionfactory.h
-  jobactionfactories/removejobactionfactory.h
-  jobitemmodel.h
-  jobmanager.h
-  jobtablewidget.h
-  jobview.h
-  jsonrpc.h
-  logger.h
-  logwindow.h
-  mainwindow.h
-  openwithmanagerdialog.h
-  openwithexecutablemodel.h
-  openwithpatternmodel.h
-  patterntypedelegate.h
-  pluginmanager.h
-  program.h
-  programconfiguredialog.h
-  queue.h
-  queuemanager.h
-  queuemanagerdialog.h
-  queuemanageritemmodel.h
-  queueprogramitemmodel.h
-  queues/local.h
-  queues/pbs.h
-  queues/remote.h
-  queues/sge.h
-  queuesettingsdialog.h
-  remotequeuewidget.h
-  server.h
-  sshcommand.h
-  sshconnection.h
-  terminalprocess.h
-)
-
-qt4_wrap_cpp(moc_srcs ${mq_moc})
-
 qt4_wrap_ui(ui_srcs
   ui/addqueuedialog.ui
   ui/importprogramdialog.ui
@@ -151,9 +104,9 @@ endif()
 
 add_library(molequeue_static STATIC
   ${mq_srcs}
-  ${moc_srcs}
   ${ui_srcs}
   )
+set_target_properties(molequeue_static PROPERTIES AUTOMOC TRUE)
 
 target_link_libraries(molequeue_static
   mqconnection
@@ -189,15 +142,6 @@ set(mqclient_srcs
   ${jsoncpp_srcs}
 )
 
-set(mqclient_moc
-  abstractrpcinterface.h
-  client.h
-  jobitemmodel.h
-  jobmanager.h
-  jsonrpc.h
-  logger.h
-)
-
 set(mqclient_headers
   abstractrpcinterface.h
   client.h
@@ -206,11 +150,9 @@ set(mqclient_headers
   molequeueglobal.h
 )
 
-
-qt4_wrap_cpp(mqclient_moc_srcs ${mqclient_moc})
 add_library(molequeueclient STATIC
-  ${mqclient_srcs}
-  ${mqclient_moc_srcs})
+  ${mqclient_srcs})
+set_target_properties(molequeueclient PROPERTIES AUTOMOC TRUE)
 target_link_libraries(molequeueclient
   ${QT_LIBRARIES}
   mqconnection)

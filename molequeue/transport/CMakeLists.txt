@@ -1,28 +1,14 @@
-set(mq_connection_hdrs
-  connection.h)
+add_library(mqconnection message.cpp connection.h)
+set_target_properties(mqconnection PROPERTIES AUTOMOC TRUE)
+target_link_libraries(mqconnection ${QT_LIBRARIES})
 
-set(mq_connectionlistener_hdrs
-  connectionlistener.h)
-
-qt4_wrap_cpp(mq_connection_moc_srcs ${mq_connection_hdrs})
-qt4_wrap_cpp(mq_connectionlistener_moc_srcs ${mq_connectionlistener_hdrs})
-
-add_library(mqconnection
-  ${mq_connection_moc_srcs}
-  message.cpp)
-
-target_link_libraries(mqconnection
-  ${QT_LIBRARIES})
-
-add_library(mqconnectionlistener
-  ${mq_connectionlistener_moc_srcs})
-
-target_link_libraries(mqconnectionlistener
-  ${QT_LIBRARIES})
+add_library(mqconnectionlistener connectionlistener.h)
+set_target_properties(mqconnectionlistener PROPERTIES AUTOMOC TRUE)
+target_link_libraries(mqconnectionlistener ${QT_LIBRARIES})
 
 set(hdrs
-  ${mq_connection_hdrs}
-  ${mq_connectionlistener_hdrs}
+  connection.h
+  connectionlistener.h
   connectionlistenerfactory.h
   message.h)
 

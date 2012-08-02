@@ -133,4 +133,4 @@ void SshCommandTest::testCopyDirFrom()
 
 QTEST_MAIN(SshCommandTest)
 
-#include "moc_sshcommandtest.cxx"
+#include "sshcommandtest.moc"

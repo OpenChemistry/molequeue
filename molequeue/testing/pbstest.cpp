@@ -145,4 +145,4 @@ void QueuePbsTest::testParseQueueLine()
 
 QTEST_MAIN(QueuePbsTest)
 
-#include "moc_pbstest.cxx"
+#include "pbstest.moc"

@@ -1,52 +1,29 @@
 set(mq_localsocket_connection_srcs
   localsocketconnection.cpp)
 
-set(mq_localsocket_connection_hdrs
-  localsocketconnection.h)
-
 set(mq_localsocket_connectionlistener_srcs
   localsocketconnectionlistener.cpp)
-
-set(mq_localsocket_connectionlistener_hdrs
-  localsocketconnectionlistener.h)
 
 set(mq_client_localsocket_srcs
   localsocketclient.cpp)
 
-set(mq_client_localsocket_hdrs
-   localsocketclient.h)
-
-qt4_wrap_cpp(mq_localsocket_connection_moc_srcs
-  ${mq_localsocket_connection_hdrs})
-
-qt4_wrap_cpp(mq_localsocket_connectionlistener_moc_srcs
-  ${mq_localsocket_connectionlistener_hdrs})
-
-qt4_wrap_cpp(mq_client_localsocket_moc_srcs
-  ${mq_client_localsocket_hdrs})
-
-add_library(mqlocalsocketconnection STATIC
-  ${mq_localsocket_connection_srcs}
-  ${mq_localsocket_connection_moc_srcs})
-
+add_library(mqlocalsocketconnection STATIC localsocketconnection.cpp)
+set_target_properties(mqlocalsocketconnection PROPERTIES AUTOMOC TRUE)
 target_link_libraries(mqlocalsocketconnection
   mqconnection
   ${QT_LIBRARIES})
 
 add_library(mqlocalsocketconnectionlistener STATIC
-  ${mq_localsocket_connectionlistener_srcs}
-  ${mq_localsocket_connectionlistener_moc_srcs})
-
+  localsocketconnectionlistener.cpp)
+set_target_properties(mqlocalsocketconnectionlistener PROPERTIES AUTOMOC TRUE)
 target_link_libraries(mqlocalsocketconnectionlistener
   mqconnectionlistener
   mqlocalsocketconnection
   ${QT_LIBRARIES})
 
 # local socket client
-add_library(mqlocalsocketclient
-  ${mq_client_localsocket_srcs}
-  ${mq_client_localsocket_moc_srcs})
-
+add_library(mqlocalsocketclient localsocketclient.cpp)
+set_target_properties(mqlocalsocketclient PROPERTIES AUTOMOC TRUE)
 target_link_libraries(mqlocalsocketclient
   molequeueclient
   mqlocalsocketconnection)

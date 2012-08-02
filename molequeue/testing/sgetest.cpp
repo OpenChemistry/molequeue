@@ -150,4 +150,4 @@ void QueueSgeTest::testParseQueueLine()
 
 QTEST_MAIN(QueueSgeTest)
 
-#include "moc_sgetest.cxx"
+#include "sgetest.moc"
