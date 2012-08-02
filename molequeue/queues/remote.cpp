@@ -60,6 +60,7 @@ void QueueRemote::readSettings(QSettings &settings)
   m_workingDirectoryBase = settings.value("workingDirectoryBase").toString();
   m_submissionCommand = settings.value("submissionCommand").toString();
   m_requestQueueCommand = settings.value("requestQueueCommand").toString();
+  m_killCommand = settings.value("killCommand").toString();
   m_hostName = settings.value("hostName").toString();
   m_userName = settings.value("userName").toString();
   m_sshPort  = settings.value("sshPort").toInt();
@@ -72,9 +73,34 @@ void QueueRemote::writeSettings(QSettings &settings) const
   settings.setValue("workingDirectoryBase", m_workingDirectoryBase);
   settings.setValue("submissionCommand", m_submissionCommand);
   settings.setValue("requestQueueCommand", m_requestQueueCommand);
+  settings.setValue("killCommand", m_killCommand);
   settings.setValue("hostName", m_hostName);
   settings.setValue("userName", m_userName);
   settings.setValue("sshPort",  m_sshPort);
+}
+
+void QueueRemote::exportConfiguration(QSettings &exporter,
+                                      bool includePrograms) const
+{
+  Queue::exportConfiguration(exporter, includePrograms);
+
+  exporter.setValue("submissionCommand", m_submissionCommand);
+  exporter.setValue("requestQueueCommand", m_requestQueueCommand);
+  exporter.setValue("killCommand", m_killCommand);
+  exporter.setValue("hostName", m_hostName);
+  exporter.setValue("sshPort",  m_sshPort);
+}
+
+void QueueRemote::importConfiguration(QSettings &importer,
+                                      bool includePrograms)
+{
+  Queue::importConfiguration(importer, includePrograms);
+
+  m_submissionCommand = importer.value("submissionCommand").toString();
+  m_requestQueueCommand = importer.value("requestQueueCommand").toString();
+  m_killCommand = importer.value("killCommand").toString();
+  m_hostName = importer.value("hostName").toString();
+  m_sshPort  = importer.value("sshPort").toInt();
 }
 
 QWidget* QueueRemote::settingsWidget()

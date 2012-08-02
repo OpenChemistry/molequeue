@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>404</width>
+    <width>475</width>
     <height>291</height>
    </rect>
   </property>
@@ -39,6 +39,48 @@
    <item>
     <layout class="QHBoxLayout" name="buttonBox">
      <item>
+      <widget class="QPushButton" name="addQueueButton">
+       <property name="toolTip">
+        <string>Add a new queue.</string>
+       </property>
+       <property name="text">
+        <string>&amp;Add...</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="configureQueueButton">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="toolTip">
+        <string>Configure and add programs to the selected queue.</string>
+       </property>
+       <property name="text">
+        <string>&amp;Configure...</string>
+       </property>
+       <property name="Enabled" stdset="0">
+        <bool>false</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="removeQueueButton">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="toolTip">
+        <string>Remove the selected queue.</string>
+       </property>
+       <property name="text">
+        <string>&amp;Remove</string>
+       </property>
+       <property name="Enabled" stdset="0">
+        <bool>false</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
       <spacer name="horizontalSpacer">
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
@@ -52,45 +94,19 @@
       </spacer>
      </item>
      <item>
-      <widget class="QPushButton" name="addQueueButton">
-       <property name="toolTip">
-        <string>Add a new queue.</string>
-       </property>
+      <widget class="QPushButton" name="importQueueButton">
        <property name="text">
-        <string>&amp;Add</string>
+        <string>Import...</string>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="removeQueueButton">
-       <property name="toolTip">
-        <string>Remove the selected queue.</string>
-       </property>
-       <property name="text">
-        <string>&amp;Remove</string>
-       </property>
-       <property name="Enabled">
+      <widget class="QPushButton" name="exportQueueButton">
+       <property name="enabled">
         <bool>false</bool>
        </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="configureQueueButton">
-       <property name="toolTip">
-        <string>Configure and add programs to the selected queue.</string>
-       </property>
        <property name="text">
-        <string>&amp;Configure</string>
-       </property>
-       <property name="Enabled">
-        <bool>false</bool>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="closeButton">
-       <property name="text">
-        <string>Close</string>
+        <string>Export...</string>
        </property>
       </widget>
      </item>
@@ -98,6 +114,14 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>queueTable</tabstop>
+  <tabstop>addQueueButton</tabstop>
+  <tabstop>configureQueueButton</tabstop>
+  <tabstop>removeQueueButton</tabstop>
+  <tabstop>importQueueButton</tabstop>
+  <tabstop>exportQueueButton</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

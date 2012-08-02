@@ -114,6 +114,52 @@ void Queue::writeSettings(QSettings &settings) const
   settings.endGroup(); // "Programs"
 }
 
+void Queue::exportConfiguration(QSettings &exporter, bool includePrograms) const
+{
+  exporter.setValue("type", typeName());
+  exporter.setValue("launchTemplate", m_launchTemplate);
+  exporter.setValue("launchScriptName", m_launchScriptName);
+
+  if (includePrograms) {
+    exporter.setValue("programs", programNames());
+    exporter.beginGroup("Programs");
+    foreach (const Program *prog, programs()) {
+      exporter.beginGroup(prog->name());
+      prog->exportConfiguration(exporter);
+      exporter.endGroup(); // prog->name()
+    }
+    exporter.endGroup(); // "Programs"
+  }
+}
+
+void Queue::importConfiguration(QSettings &importer, bool includePrograms)
+{
+  m_launchTemplate = importer.value("launchTemplate").toString();
+  m_launchScriptName = importer.value("launchScriptName").toString();
+
+  if (includePrograms) {
+    QStringList progNames = importer.value("programs").toStringList();
+
+    importer.beginGroup("Programs");
+    foreach (const QString &progName, progNames) {
+      importer.beginGroup(progName);
+
+      Program *program = new Program (this);
+      program->setName(progName);
+      program->importConfiguration(importer);
+
+      if (!addProgram(program)) {
+        qWarning() << Q_FUNC_INFO << "Could not add program" << progName
+                   << "to queue" << name() << "-- duplicate program name.";
+        delete program;
+      }
+
+      importer.endGroup(); // progName
+    }
+    importer.endGroup(); // "Programs"
+  }
+}
+
 QWidget* Queue::settingsWidget()
 {
   return NULL;
