@@ -205,16 +205,16 @@ bool JobRequest::popupOnStateChange() const
   return false;
 }
 
-void JobRequest::setNumberOfProcessors(int num)
+void JobRequest::setNumberOfCores(int num)
 {
   if (warnIfInvalid())
-    m_jobData->setNumberOfProcessors(num);
+    m_jobData->setNumberOfCores(num);
 }
 
-int JobRequest::numberOfProcessors() const
+int JobRequest::numberOfCores() const
 {
   if (warnIfInvalid())
-    return m_jobData->numberOfProcessors();
+    return m_jobData->numberOfCores();
   return false;
 }
 

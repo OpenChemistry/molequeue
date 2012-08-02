@@ -98,7 +98,7 @@ QVariant JobItemModel::data(const QModelIndex &modelIndex, int role) const
       case JOB_TITLE:
         return QVariant(job.description());
       case NUM_PROCS:
-        return QVariant(QString::number(job.numberOfProcessors()));
+        return QVariant(QString::number(job.numberOfCores()));
       case QUEUE_NAME: {
         if (job.queueId() != InvalidId)
           return QVariant(QString("%1 (%2)").arg(job.queue())
