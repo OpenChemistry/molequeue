@@ -161,9 +161,9 @@ void Queue::replaceLaunchScriptKeywords(QString &launchScript, const Job &job)
                          QString::number(job.moleQueueId()));
   }
 
-  if (launchScript.contains("$$numberOfProcessors$$")) {
-    launchScript.replace("$$numberOfProcessors$$",
-                         QString::number(job.numberOfProcessors()));
+  if (launchScript.contains("$$numberOfCores$$")) {
+    launchScript.replace("$$numberOfCores$$",
+                         QString::number(job.numberOfCores()));
   }
 
   // Add newline at end if not present

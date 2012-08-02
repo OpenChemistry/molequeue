@@ -13,7 +13,7 @@
       "localWorkingDirectory" : "",
       "maxWallTime" : -1,
       "moleQueueId" : 0,
-      "numberOfProcessors" : 1,
+      "numberOfCores" : 1,
       "outputDirectory" : "",
       "popupOnStateChange" : true,
       "program" : "Quantum Tater",

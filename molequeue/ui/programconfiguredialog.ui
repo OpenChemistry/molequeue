@@ -135,7 +135,7 @@
       <item row="2" column="0" colspan="3">
        <widget class="QLabel" name="label_8">
         <property name="text">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; color:#ff0000;&quot;&gt;$$numberOfProcessors$$&lt;/span&gt;&lt;span style=&quot; color:#000000;&quot;&gt; will be replaced by the job's requested number of processors.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; color:#ff0000;&quot;&gt;$$numberOfCores$$&lt;/span&gt;&lt;span style=&quot; color:#000000;&quot;&gt; will be replaced by the job's requested number of processor cores.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
        </widget>
       </item>
