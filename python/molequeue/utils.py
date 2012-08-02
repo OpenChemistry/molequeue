@@ -2,10 +2,10 @@ import json
 
 class JsonRpc:
   @staticmethod
-  def generate_request(molequeueid, method, parameters):
+  def generate_request(packet_id, method, parameters):
     request = {}
     request['jsonrpc'] = "2.0"
-    request['id'] = molequeueid
+    request['id'] = packet_id
     request['method'] = method
     request['params'] = parameters
 
