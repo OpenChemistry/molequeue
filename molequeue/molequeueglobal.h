@@ -153,8 +153,8 @@ enum JobSubmissionErrorCode {
   InvalidQueue
 };
 
-/// Default number of processors for a job
-const int DEFAULT_NUM_PROCS= 1;
+/// Default number of processor cores for a job
+const int DEFAULT_NUM_CORES = 1;
 
 /// Default walltime limit for a job
 const int DEFAULT_MAX_WALLTIME = 1440;

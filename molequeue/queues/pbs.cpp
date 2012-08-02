@@ -36,7 +36,7 @@ QueuePbs::QueuePbs(QueueManager *parentManager) :
       "#\n"
       "#These commands set up the Grid Environment for your job:\n"
       "#PBS -N MoleQueueJob-$$moleQueueId$$\n"
-      "#PBS -l procs=$$numberOfProcessors$$\n"
+      "#PBS -l procs=$$numberOfCores$$\n"
       "#PBS -l walltime=$$maxWallTime$$\n"
       "\n"
       "$$programExecution$$\n";

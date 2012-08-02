@@ -33,7 +33,7 @@ class JobItemModel : public QAbstractItemModel
   enum ColumnNames {
     MOLEQUEUE_ID = 0,
     JOB_TITLE ,
-    NUM_PROCS,
+    NUM_CORES,
     QUEUE_NAME,
     PROGRAM_NAME,
     JOB_STATE,

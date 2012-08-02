@@ -150,13 +150,13 @@ public:
   /// notification from the MoleQueue system tray icon. Default: true
   bool popupOnStateChange() const;
 
-  /// @param num The total number of processors to use (if applicable).
+  /// @param num The total number of processor cores to use (if applicable).
   /// Default: 1
-  void setNumberOfProcessors(int num);
+  void setNumberOfCores(int num);
 
-  /// @return The total number of processors to use (if applicable).
+  /// @return The total number of processor cores to use (if applicable).
   /// Default: 1
-  int numberOfProcessors() const;
+  int numberOfCores() const;
 
   /// @param minutes The maximum walltime for this job in minutes. Setting this
   /// to a value <= 0 will use the queue-specific default max walltime. Only
