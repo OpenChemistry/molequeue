@@ -11,6 +11,11 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR}
   ${CMAKE_CURRENT_BINARY_DIR}/transport
   ${CMAKE_CURRENT_BINARY_DIR}/transport/localsocket)
 
+# multi configuration build? Needed for plugin search path
+if(CMAKE_CONFIGURATION_TYPES)
+  add_definitions(-DMULTI_CONFIG_BUILD)
+endif()
+
 if(CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND NOT WIN32)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
 endif()
@@ -161,7 +166,11 @@ target_link_libraries(molequeue
   ${QT_LIBRARIES})
 
 install(TARGETS molequeue
-  DESTINATION ${INSTALL_RUNTIME_DIR})
+  RUNTIME DESTINATION ${INSTALL_RUNTIME_DIR}
+  LIBRARY DESTINATION ${INSTALL_LIBRARY_DIR}
+  ARCHIVE DESTINATION ${INSTALL_ARCHIVE_DIR}
+  BUNDLE DESTINATION .
+  )
 
 # Client library
 set(mqclient_srcs

@@ -13,11 +13,17 @@ set(mq_localsocket_connectionlistener_hdrs
 set(mq_client_localsocket_srcs
   localsocketclient.cpp)
 
+set(mq_client_localsocket_hdrs
+   localsocketclient.h)
+
 qt4_wrap_cpp(mq_localsocket_connection_moc_srcs
   ${mq_localsocket_connection_hdrs})
 
 qt4_wrap_cpp(mq_localsocket_connectionlistener_moc_srcs
   ${mq_localsocket_connectionlistener_hdrs})
+
+qt4_wrap_cpp(mq_client_localsocket_moc_srcs
+  ${mq_client_localsocket_hdrs})
 
 add_library(mqlocalsocketconnection STATIC
   ${mq_localsocket_connection_srcs}
@@ -38,7 +44,9 @@ target_link_libraries(mqlocalsocketconnectionlistener
 
 # local socket client
 add_library(mqlocalsocketclient
-  ${mq_client_localsocket_srcs})
+  ${mq_client_localsocket_srcs}
+  ${mq_client_localsocket_moc_srcs})
+
 target_link_libraries(mqlocalsocketclient
   molequeueclient
   mqlocalsocketconnection)
@@ -52,6 +60,9 @@ set_property(TARGET mqlocalsocketclient APPEND
   PROPERTY COMPILE_FLAGS ${molequeue_export_flags})
 
 install(FILES ${hdrs} DESTINATION "${INSTALL_INCLUDE_DIR}/molequeue/localsocketclient")
-install(TARGETS mqlocalsocketclient DESTINATION ${INSTALL_LIBRARY_DIR})
-
+install(TARGETS mqlocalsocketclient
+  RUNTIME DESTINATION ${INSTALL_RUNTIME_DIR}
+  LIBRARY DESTINATION ${INSTALL_LIBRARY_DIR}
+  ARCHIVE DESTINATION ${INSTALL_ARCHIVE_DIR}
+  )
 add_subdirectory(plugin)
