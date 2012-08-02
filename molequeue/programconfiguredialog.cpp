@@ -20,7 +20,13 @@
 #include "program.h"
 #include "queue.h"
 
+#include <QtGui/QFileDialog>
+#include <QtGui/QMessageBox>
 #include <QtGui/QTextDocument>
+
+#include <QtCore/QDir>
+#include <QtCore/QFileInfo>
+#include <QtCore/QSettings>
 
 namespace MoleQueue
 {

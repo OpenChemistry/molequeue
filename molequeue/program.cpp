@@ -63,6 +63,21 @@ Program::~Program()
 {
 }
 
+Program &Program::operator=(const Program &other)
+{
+  m_queue = other.m_queue;
+  m_name = other.m_name;
+  m_executable = other.m_executable;
+  m_useExecutablePath = other.m_useExecutablePath;
+  m_executablePath = other.m_executablePath;
+  m_arguments = other.m_arguments;
+  m_inputFilename = other.m_inputFilename;
+  m_outputFilename = other.m_outputFilename;
+  m_launchSyntax = other.m_launchSyntax;
+  m_customLaunchTemplate = other.m_customLaunchTemplate;
+  return *this;
+}
+
 QString Program::queueName() const
 {
   if (m_queue)
@@ -96,6 +111,31 @@ void Program::writeSettings(QSettings &settings) const
   settings.setValue("outputFilename", m_outputFilename);
   settings.setValue("customLaunchTemplate", m_customLaunchTemplate);
   settings.setValue("launchSyntax", static_cast<int>(m_launchSyntax));
+}
+
+void Program::importConfiguration(QSettings &importer)
+{
+  m_executable           = importer.value("executable").toString();
+  m_useExecutablePath    = importer.value("useExecutablePath").toBool();
+  m_arguments            = importer.value("arguments").toString();
+  m_executablePath       = importer.value("executablePath").toString();
+  m_inputFilename        = importer.value("inputFilename").toString();
+  m_outputFilename       = importer.value("outputFilename").toString();
+  m_customLaunchTemplate = importer.value("customLaunchTemplate").toString();
+  m_launchSyntax         = static_cast<LaunchSyntax>(
+        importer.value("launchSyntax").toInt());
+}
+
+void Program::exportConfiguration(QSettings &exporter) const
+{
+  exporter.setValue("executable", m_executable);
+  exporter.setValue("useExecutablePath", m_useExecutablePath);
+  exporter.setValue("executablePath", m_executablePath);
+  exporter.setValue("arguments", m_arguments);
+  exporter.setValue("inputFilename", m_inputFilename);
+  exporter.setValue("outputFilename", m_outputFilename);
+  exporter.setValue("customLaunchTemplate", m_customLaunchTemplate);
+  exporter.setValue("launchSyntax", static_cast<int>(m_launchSyntax));
 }
 
 QString Program::launchTemplate() const

@@ -44,6 +44,14 @@ AddQueueDialog::~AddQueueDialog()
 void AddQueueDialog::accept()
 {
   const QString name = ui->nameLineEdit->text();
+
+  if (name.isEmpty()) {
+    QMessageBox::critical(this, tr("Missing name"),
+                          tr("Please enter a name for the queue before "
+                             "continuing."), QMessageBox::Ok);
+    return;
+  }
+
   const QString type = ui->typeComboBox->currentText();
   Queue *queue = m_queueManager->addQueue(name, type);
 

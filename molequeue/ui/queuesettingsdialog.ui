@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
+    <width>496</width>
     <height>300</height>
    </rect>
   </property>
@@ -114,29 +114,59 @@
        <item>
         <layout class="QHBoxLayout" name="horizontalLayout_2">
          <item>
-          <widget class="QPushButton" name="push_addProgram">
+          <widget class="QPushButton" name="addProgramButton">
            <property name="text">
-            <string>Add Program</string>
+            <string>Add...</string>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="push_configureProgram">
+          <widget class="QPushButton" name="configureProgramButton">
            <property name="enabled">
             <bool>false</bool>
            </property>
            <property name="text">
-            <string>Configure Program</string>
+            <string>Configure...</string>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="push_removeProgram">
+          <widget class="QPushButton" name="removeProgramButton">
            <property name="enabled">
             <bool>false</bool>
            </property>
            <property name="text">
-            <string>Remove Program</string>
+            <string>Remove</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="horizontalSpacer">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QPushButton" name="importProgramButton">
+           <property name="text">
+            <string>Import...</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="exportProgramButton">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+           <property name="text">
+            <string>Export...</string>
            </property>
           </widget>
          </item>
@@ -148,6 +178,18 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>tabWidget</tabstop>
+  <tabstop>nameLineEdit</tabstop>
+  <tabstop>push_save</tabstop>
+  <tabstop>push_reset</tabstop>
+  <tabstop>programsTable</tabstop>
+  <tabstop>addProgramButton</tabstop>
+  <tabstop>configureProgramButton</tabstop>
+  <tabstop>removeProgramButton</tabstop>
+  <tabstop>importProgramButton</tabstop>
+  <tabstop>exportProgramButton</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

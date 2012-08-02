@@ -52,6 +52,25 @@ public:
   virtual void writeSettings(QSettings &settings) const;
 
   /**
+   * Populate the passed QSettings object with this queue's configuration.
+   * Sensitive data (such as usernames, etc) and mutatable state data (like
+   * current jobs) are not written, see writeSettings() if these are needed.
+   * @param includePrograms Export this queue's programs as well. Default: true
+   */
+  void exportConfiguration(QSettings &exporter,
+                           bool includePrograms = true) const;
+
+  /**
+   * Set this Queue's configuration from the passed QSettings object.
+   * Sensitive data (such as usernames, etc) and mutatable state data (like
+   * current jobs) are not read, see writeSettings() if these are needed.
+   * @param includePrograms Import any programs contained in the importer.
+   * Default: true
+   */
+  void importConfiguration(QSettings &importer,
+                           bool includePrograms = true);
+
+  /**
    * Returns a widget that can be used to configure the settings for the
    * queue.
    */
