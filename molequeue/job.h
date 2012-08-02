@@ -192,12 +192,14 @@ public:
   /// Default: 1
   int numberOfProcessors() const;
 
-  /// @param minutes The maximum walltime for this job in minutes. Default is
-  /// 24x60=1440, e.g. 1 day.
+  /// @param minutes The maximum walltime for this job in minutes. Setting this
+  /// to a value <= 0 will use the queue-specific default max walltime. Only
+  /// available for remote queues. Default is -1.
   void setMaxWallTime(int minutes);
 
-  /// @return The maximum walltime for this job in minutes. Default is
-  //// 24x60=1440, e.g. 1 day.
+  /// @return The maximum walltime for this job in minutes. Setting this to a
+  /// value <= 0 will use the queue-specific default max walltime. Only
+  /// available for remote queues. Default is -1.
   int maxWallTime() const;
 
   /// @param id The new MoleQueue id for this job.

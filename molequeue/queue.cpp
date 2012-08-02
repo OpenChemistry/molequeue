@@ -154,6 +154,23 @@ bool Queue::removeProgram(const QString &programName)
   return true;
 }
 
+void Queue::replaceLaunchScriptKeywords(QString &launchScript, const Job &job)
+{
+  if (launchScript.contains("$$moleQueueId$$")) {
+    launchScript.replace("$$moleQueueId$$",
+                         QString::number(job.moleQueueId()));
+  }
+
+  if (launchScript.contains("$$numberOfProcessors$$")) {
+    launchScript.replace("$$numberOfProcessors$$",
+                         QString::number(job.numberOfProcessors()));
+  }
+
+  // Add newline at end if not present
+  if (!launchScript.isEmpty() && launchScript.endsWith(QChar('\n')))
+    launchScript.append(QChar('\n'));
+}
+
 bool Queue::writeInputFiles(const Job &job)
 {
   QString workdir = job.localWorkingDirectory();
@@ -231,31 +248,7 @@ bool Queue::writeInputFiles(const Job &job)
     }
     QString launchString = program->launchTemplate();
 
-    if (launchString.contains("$$moleQueueId$$")) {
-      launchString.replace("$$moleQueueId$$",
-                           QString::number(job.moleQueueId()));
-    }
-
-    if (launchString.contains("$$numberOfProcessors$$")) {
-      launchString.replace("$$numberOfProcessors$$",
-                           QString::number(job.numberOfProcessors()));
-    }
-
-    if (launchString.contains("$$maxWallTime$$")) {
-      int wallTime = job.maxWallTime();
-      if (wallTime <= 0)
-        wallTime = 1440;
-      int hours = wallTime / 60;
-      int minutes = wallTime % 60;
-      launchString.replace("$$maxWallTime$$",
-                           QString("%1:%2:00")
-                           .arg(hours, 2, 10, QChar('0'))
-                           .arg(minutes, 2, 10, QChar('0')));
-    }
-
-    // Add newline at end if not present
-    if (!launchString.isEmpty() && launchString.endsWith(QChar('\n')))
-      launchString.append(QChar('\n'));
+    replaceLaunchScriptKeywords(launchString, job);
 
     launcherFile.write(launchString.toLatin1());
     if (!launcherFile.setPermissions(

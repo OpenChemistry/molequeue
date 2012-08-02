@@ -10,7 +10,7 @@
       "inputAsString" : "This string will get ignored!",
       "jobState" : 0,
       "localWorkingDirectory" : "",
-      "maxWallTime" : 1440,
+      "maxWallTime" : -1,
       "moleQueueId" : 17,
       "numberOfProcessors" : 1,
       "outputDirectory" : "",

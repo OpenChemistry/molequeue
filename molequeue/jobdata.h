@@ -162,12 +162,14 @@ public:
   /// Default: 1
   int numberOfProcessors() const { return m_numberOfProcessors; }
 
-  /// @param minutes The maximum walltime for this job in minutes. Default is
-  /// 24x60=1440, e.g. 1 day.
+  /// @param minutes The maximum walltime for this job in minutes. Setting this
+  /// to a value <= 0 will use the queue-specific default max walltime. Only
+  /// available for remote queues. Default is -1.
   void setMaxWallTime(int minutes) { m_maxWallTime = minutes; }
 
-  /// @return The maximum walltime for this job in minutes. Default is
-  //// 24x60=1440, e.g. 1 day.
+  /// @return The maximum walltime for this job in minutes. Setting this to a
+  /// value <= 0 will use the queue-specific default max walltime. Only
+  /// available for remote queues. Default is -1.
   int maxWallTime() const { return m_maxWallTime; }
 
   /// @param id Internal MoleQueue identifier
@@ -224,8 +226,9 @@ protected:
   /// The total number of processors to use (if applicable).
   /// Default: 1
   int m_numberOfProcessors;
-  /// The maximum walltime for this job in minutes. Default is 24x60=1440, e.g.
-  /// 1 day.
+  /// The maximum walltime for this job in minutes. Setting this
+  /// to a value <= 0 will use the queue-specific default max walltime. Only
+  /// available for remote queues. Default is -1.
   int m_maxWallTime;
   /// Internal MoleQueue identifier
   IdType m_moleQueueId;

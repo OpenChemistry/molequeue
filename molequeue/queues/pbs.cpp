@@ -35,11 +35,9 @@ QueuePbs::QueuePbs(QueueManager *parentManager) :
       "# Sample job script provided by MoleQueue.\n"
       "#\n"
       "#These commands set up the Grid Environment for your job:\n"
-      "##PBS -N JobDescription\n"
-      "##PBS -l nodes=1:ppn=1\n"
-      "##PBS -q target_queue\n"
-      "##PBS -M email@address.com\n"
-      "##PBS -m abe\n"
+      "#PBS -N MoleQueueJob-$$moleQueueId$$\n"
+      "#PBS -l procs=$$numberOfProcessors$$\n"
+      "#PBS -l walltime=$$maxWallTime$$\n"
       "\n"
       "$$programExecution$$\n";
 

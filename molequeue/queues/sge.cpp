@@ -34,8 +34,10 @@ QueueSge::QueueSge(QueueManager *parentManager) :
       "#\n"
       "# Sample job script provided by MoleQueue.\n"
       "#\n"
-      "# Use BASH as job shell:\n"
       "#$ -S /bin/bash\n"
+      "#$ -N MoleQueueJob-$$moleQueueId$$\n"
+      "#$ -pe NODETYPE $$numberOfProcessors$$\n"
+      "#$ -l h_rt=$$maxWallTime$$\n"
       "\n"
       "$$programExecution$$\n";
 }

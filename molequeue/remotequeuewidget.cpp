@@ -79,6 +79,9 @@ void RemoteQueueWidget::updateGuiFromQueue()
   ui->edit_requestQueueCommand->setText(m_queue->requestQueueCommand());
   ui->edit_launchScriptName->setText(m_queue->launchScriptName());
   ui->edit_workingDirectoryBase->setText(m_queue->workingDirectoryBase());
+  int walltime = m_queue->defaultMaxWallTime();
+  ui->wallTimeHours->setValue(walltime / 60);
+  ui->wallTimeMinutes->setValue(walltime % 60);
   ui->edit_hostName->setText(m_queue->hostName());
   ui->edit_userName->setText(m_queue->userName());
   ui->spin_sshPort->setValue(m_queue->sshPort());
@@ -240,6 +243,15 @@ void RemoteQueueWidget::updateLaunchScriptName(const QString &name)
 void RemoteQueueWidget::updateWorkingDirectoryBase(const QString &dir)
 {
   m_queue->setWorkingDirectoryBase(dir);
+}
+
+void RemoteQueueWidget::updateDefaultMaxWallTime()
+{
+  int hours = ui->wallTimeHours->value();
+  int minutes = ui->wallTimeMinutes->value();
+
+  minutes += hours * 60;
+  m_queue->setDefaultMaxWallTime(minutes);
 }
 
 void RemoteQueueWidget::updateHostName(const QString &hostName)

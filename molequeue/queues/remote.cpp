@@ -36,7 +36,8 @@ QueueRemote::QueueRemote(const QString &queueName, QueueManager *parentObject)
   : Queue(queueName, parentObject),
     m_sshPort(22),
     m_isCheckingQueue(false),
-    m_checkForPendingJobsTimerId(-1)
+    m_checkForPendingJobsTimerId(-1),
+    m_defaultMaxWallTime(DEFAULT_MAX_WALLTIME)
 {
   // Check remote queue every 60 seconds
   m_checkQueueTimerId = startTimer(60000);
@@ -80,6 +81,24 @@ QWidget* QueueRemote::settingsWidget()
 {
   RemoteQueueWidget *widget = new RemoteQueueWidget (this);
   return widget;
+}
+
+void QueueRemote::replaceLaunchScriptKeywords(QString &launchScript,
+                                              const Job &job)
+{
+  if (launchScript.contains("$$maxWallTime$$")) {
+    int wallTime = job.maxWallTime();
+    if (wallTime <= 0)
+      wallTime = defaultMaxWallTime();
+    int hours = wallTime / 60;
+    int minutes = wallTime % 60;
+    launchScript.replace("$$maxWallTime$$",
+                         QString("%1:%2:00")
+                         .arg(hours, 2, 10, QChar('0'))
+                         .arg(minutes, 2, 10, QChar('0')));
+  }
+
+  Queue::replaceLaunchScriptKeywords(launchScript, job);
 }
 
 bool QueueRemote::submitJob(Job job)

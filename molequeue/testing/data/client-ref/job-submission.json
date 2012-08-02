@@ -10,7 +10,7 @@
       "inputAsString" : "I'm a sample input text!",
       "jobState" : 0,
       "localWorkingDirectory" : "",
-      "maxWallTime" : 1440,
+      "maxWallTime" : -1,
       "moleQueueId" : 4294967295,
       "numberOfProcessors" : 1,
       "outputDirectory" : "",

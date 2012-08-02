@@ -180,6 +180,15 @@ public:
    */
   QString launchScriptName() const { return m_launchScriptName; }
 
+  /**
+   * @brief replaceLaunchScriptKeywords Replace $$keywords$$ in @a launchScript
+   * with queue/job specific values.
+   * @param launchScript Launch script to complete.
+   * @param job Job data to use.
+   */
+  virtual void replaceLaunchScriptKeywords(QString & launchScript,
+                                           const Job &job);
+
   /// For queue creation
   friend class MoleQueue::QueueManager;
 

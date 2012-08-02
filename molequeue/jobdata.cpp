@@ -28,8 +28,8 @@ JobData::JobData(JobManager *parentManager)
     m_cleanLocalWorkingDirectory(false),
     m_hideFromGui(false),
     m_popupOnStateChange(true),
-    m_numberOfProcessors(1),
-    m_maxWallTime(1440),
+    m_numberOfProcessors(DEFAULT_NUM_PROCS),
+    m_maxWallTime(-1), // use default queue time
     m_moleQueueId(InvalidId),
     m_queueId(InvalidId)
 {
