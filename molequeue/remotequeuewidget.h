@@ -55,6 +55,7 @@ protected slots:
   void updateRequestQueueCommand(const QString &command);
   void updateLaunchScriptName(const QString &name);
   void updateWorkingDirectoryBase(const QString &dir);
+  void updateDefaultMaxWallTime();
   void updateHostName(const QString &hostName);
   void updateUserName(const QString &userName);
   void updateSshPort(int sshPort);

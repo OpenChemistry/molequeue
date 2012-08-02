@@ -28,6 +28,8 @@ JobData::JobData(JobManager *parentManager)
     m_cleanLocalWorkingDirectory(false),
     m_hideFromGui(false),
     m_popupOnStateChange(true),
+    m_numberOfCores(DEFAULT_NUM_CORES),
+    m_maxWallTime(-1), // use default queue time
     m_moleQueueId(InvalidId),
     m_queueId(InvalidId)
 {
@@ -48,6 +50,8 @@ JobData::JobData(const MoleQueue::JobData &other)
     m_cleanLocalWorkingDirectory(other.m_cleanLocalWorkingDirectory),
     m_hideFromGui(other.m_hideFromGui),
     m_popupOnStateChange(other.m_popupOnStateChange),
+    m_numberOfCores(other.m_numberOfCores),
+    m_maxWallTime(other.m_maxWallTime),
     m_moleQueueId(other.m_moleQueueId),
     m_queueId(other.m_queueId)
 {
@@ -70,6 +74,8 @@ QVariantHash JobData::hash() const
   state.insert("cleanLocalWorkingDirectory", m_cleanLocalWorkingDirectory);
   state.insert("hideFromGui", m_hideFromGui);
   state.insert("popupOnStateChange", m_popupOnStateChange);
+  state.insert("numberOfCores", m_numberOfCores);
+  state.insert("maxWallTime", m_maxWallTime);
   state.insert("moleQueueId", m_moleQueueId);
   state.insert("queueId", m_queueId);
 
@@ -106,6 +112,10 @@ void JobData::setFromHash(const QVariantHash &state)
     m_hideFromGui = state.value("hideFromGui").toBool();
   if (state.contains("popupOnStateChange"))
     m_popupOnStateChange = state.value("popupOnStateChange").toBool();
+  if (state.contains("numberOfCores"))
+    m_numberOfCores = state.value("numberOfCores").toInt();
+  if (state.contains("maxWallTime"))
+    m_maxWallTime = state.value("maxWallTime").toInt();
   if (state.contains("moleQueueId"))
     m_moleQueueId = static_cast<IdType>(state.value("moleQueueId").toUInt());
   if (state.contains("queueId"))

@@ -139,6 +139,27 @@ public:
     return m_requestQueueCommand;
   }
 
+  /**
+   * @brief setDefaultMaxWallTime Set the default walltime limit (in minutes)
+   * for jobs on this queue. This value will be used if the job's
+   * Job::maxWallTime() method returns a value <= 0. Default is one day.
+   * @param time walltime limit in minutes
+   * @see Job::maxWallTime()
+   */
+  void setDefaultMaxWallTime(int time) { m_defaultMaxWallTime = time; }
+
+  /**
+   * @brief defaultMaxWallTime Get the default walltime limit (in minutes)
+   * for jobs on this queue. This value will be used if the job's
+   * Job::maxWallTime() method returns a value <= 0. Default is one day.
+   * @return walltime limit in minutes
+   * @see Job::maxWallTime()
+   */
+  int defaultMaxWallTime() const { return m_defaultMaxWallTime; }
+
+  /// Reimplemented from Queue::replaceLaunchScriptKeywords
+  void replaceLaunchScriptKeywords(QString &launchScript, const Job &job);
+
 public slots:
 
   bool submitJob(MoleQueue::Job job);
@@ -230,6 +251,9 @@ protected:
   QString m_submissionCommand;
   QString m_killCommand;
   QString m_requestQueueCommand;
+
+  /// Default maximum walltime limit for jobs on this queue in minutes.
+  int m_defaultMaxWallTime;
 
   /// List of allowed exit codes for m_requestQueueCommand. This is required for
   /// e.g. PBS/Torque, which return 153 if you request the status of a job that

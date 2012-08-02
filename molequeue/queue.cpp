@@ -200,6 +200,23 @@ bool Queue::removeProgram(const QString &programName)
   return true;
 }
 
+void Queue::replaceLaunchScriptKeywords(QString &launchScript, const Job &job)
+{
+  if (launchScript.contains("$$moleQueueId$$")) {
+    launchScript.replace("$$moleQueueId$$",
+                         QString::number(job.moleQueueId()));
+  }
+
+  if (launchScript.contains("$$numberOfCores$$")) {
+    launchScript.replace("$$numberOfCores$$",
+                         QString::number(job.numberOfCores()));
+  }
+
+  // Add newline at end if not present
+  if (!launchScript.isEmpty() && launchScript.endsWith(QChar('\n')))
+    launchScript.append(QChar('\n'));
+}
+
 bool Queue::writeInputFiles(const Job &job)
 {
   QString workdir = job.localWorkingDirectory();
@@ -276,10 +293,9 @@ bool Queue::writeInputFiles(const Job &job)
       return false;
     }
     QString launchString = program->launchTemplate();
-    if (launchString.contains("$$moleQueueId$$")) {
-      launchString.replace("$$moleQueueId$$",
-                           QString::number(job.moleQueueId()));
-    }
+
+    replaceLaunchScriptKeywords(launchString, job);
+
     launcherFile.write(launchString.toLatin1());
     if (!launcherFile.setPermissions(
           launcherFile.permissions() | QFile::ExeUser)) {

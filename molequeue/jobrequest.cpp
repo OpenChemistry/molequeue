@@ -205,6 +205,32 @@ bool JobRequest::popupOnStateChange() const
   return false;
 }
 
+void JobRequest::setNumberOfCores(int num)
+{
+  if (warnIfInvalid())
+    m_jobData->setNumberOfCores(num);
+}
+
+int JobRequest::numberOfCores() const
+{
+  if (warnIfInvalid())
+    return m_jobData->numberOfCores();
+  return false;
+}
+
+void JobRequest::setMaxWallTime(int minutes)
+{
+  if (warnIfInvalid())
+    m_jobData->setMaxWallTime(minutes);
+}
+
+int JobRequest::maxWallTime() const
+{
+  if (warnIfInvalid())
+    return m_jobData->maxWallTime();
+  return -1;
+}
+
 IdType JobRequest::moleQueueId() const
 {
   if (warnIfInvalid())

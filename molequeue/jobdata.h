@@ -150,9 +150,27 @@ public:
   /// notification from the MoleQueue system tray icon. Default: true
   void setPopupOnStateChange(bool b) { m_popupOnStateChange = b; }
 
-  /// @param b If true, changes in the job state will trigger a popup
+  /// @return If true, changes in the job state will trigger a popup
   /// notification from the MoleQueue system tray icon. Default: true
   bool popupOnStateChange() const { return m_popupOnStateChange; }
+
+  /// @param num The total number of processor cores to use (if applicable).
+  /// Default: 1
+  void setNumberOfCores(int num) { m_numberOfCores = num; }
+
+  /// @return The total number of processor cores to use (if applicable).
+  /// Default: 1
+  int numberOfCores() const { return m_numberOfCores; }
+
+  /// @param minutes The maximum walltime for this job in minutes. Setting this
+  /// to a value <= 0 will use the queue-specific default max walltime. Only
+  /// available for remote queues. Default is -1.
+  void setMaxWallTime(int minutes) { m_maxWallTime = minutes; }
+
+  /// @return The maximum walltime for this job in minutes. Setting this to a
+  /// value <= 0 will use the queue-specific default max walltime. Only
+  /// available for remote queues. Default is -1.
+  int maxWallTime() const { return m_maxWallTime; }
 
   /// @param id Internal MoleQueue identifier
   void setMoleQueueId(IdType id) { m_moleQueueId = id; }
@@ -205,6 +223,13 @@ protected:
   /// If true, changes in the job state will trigger a popup notification from
   /// the MoleQueue system tray icon. Default: true
   bool m_popupOnStateChange;
+  /// The total number of processor cores to use (if applicable).
+  /// Default: 1
+  int m_numberOfCores;
+  /// The maximum walltime for this job in minutes. Setting this
+  /// to a value <= 0 will use the queue-specific default max walltime. Only
+  /// available for remote queues. Default is -1.
+  int m_maxWallTime;
   /// Internal MoleQueue identifier
   IdType m_moleQueueId;
   /// Queue Job ID

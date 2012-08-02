@@ -153,6 +153,13 @@ enum JobSubmissionErrorCode {
   InvalidQueue
 };
 
+/// Default number of processor cores for a job
+const int DEFAULT_NUM_CORES = 1;
+
+/// Default walltime limit for a job
+const int DEFAULT_MAX_WALLTIME = 1440;
+
+
 } // end namespace MoleQueue
 
 Q_DECLARE_METATYPE(MoleQueue::IdType)
