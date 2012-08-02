@@ -1,9 +1,9 @@
-import mq
+import molequeue
 
-client = mq.Client()
+client = molequeue.Client()
 client.connect_to_server('MoleQueue')
 
-job_request = mq.JobRequest()
+job_request = molequeue.JobRequest()
 job_request.queue = 'salix'
 job_request.program = 'sleep (testing)'
 
