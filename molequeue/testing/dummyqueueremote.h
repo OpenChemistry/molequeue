@@ -55,6 +55,7 @@ protected:
     m_dummySsh->setHostName(m_hostName);
     m_dummySsh->setUserName(m_userName);
     m_dummySsh->setPortNumber(m_sshPort);
+    m_dummySsh->setParent(this);
 
     return m_dummySsh.data();
   }
