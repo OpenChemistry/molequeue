@@ -28,6 +28,7 @@ class TemplateKeywordDialog;
 
 namespace MoleQueue {
 
+/// Dialog explaining how templates are used in MoleQueue
 class TemplateKeywordDialog : public QDialog
 {
   Q_OBJECT
