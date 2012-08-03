@@ -87,7 +87,6 @@ protected:
   QAction *m_maximizeAction;
   QAction *m_restoreAction;
 
-  QIcon *m_icon;
   QSystemTrayIcon *m_trayIcon;
   QMenu *m_trayIconMenu;
 

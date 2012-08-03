@@ -47,12 +47,14 @@ MainWindow::MainWindow()
     m_minimizeAction(NULL),
     m_maximizeAction(NULL),
     m_restoreAction(NULL),
-    m_icon(NULL),
     m_trayIcon(NULL),
     m_trayIconMenu(NULL),
     m_server(new Server (this))
 {
   m_ui->setupUi(this);
+
+  QIcon icon(":/icons/molequeue.png");
+  setWindowIcon(icon);
 
   createActions();
   createActionFactories();
@@ -258,8 +260,8 @@ void MainWindow::createTrayIcon()
   m_trayIcon = new QSystemTrayIcon(this);
   m_trayIcon->setContextMenu(m_trayIconMenu);
 
-  m_icon = new QIcon(":/icons/avogadro.png");
-  m_trayIcon->setIcon(*m_icon);
+  QIcon icon(":/icons/molequeue.png");
+  m_trayIcon->setIcon(icon);
 
   connect(m_trayIcon, SIGNAL(messageClicked()),
           this, SLOT(show()));
