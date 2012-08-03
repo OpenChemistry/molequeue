@@ -49,7 +49,8 @@ MainWindow::MainWindow()
     m_restoreAction(NULL),
     m_trayIcon(NULL),
     m_trayIconMenu(NULL),
-    m_server(new Server (this))
+    m_server(new Server (this)),
+    m_errorCount(0)
 {
   m_ui->setupUi(this);
 
@@ -66,12 +67,22 @@ MainWindow::MainWindow()
   connect(m_server, SIGNAL(connectionError(MoleQueue::ConnectionListener::Error,QString)),
           this, SLOT(handleServerConnectionError(MoleQueue::ConnectionListener::Error, QString)));
 
-  connect(Logger::getInstance(), SIGNAL(newLogEntry(MoleQueue::LogEntry)),
-          this, SLOT(notifyUserOfLogEntry(MoleQueue::LogEntry)));
+  connect(Logger::getInstance(), SIGNAL(firstNewErrorOccurred()),
+          this, SLOT(errorOccurred()));
+  connect(Logger::getInstance(), SIGNAL(newErrorCountReset()),
+          this, SLOT(errorCleared()));
+  connect(m_ui->errorNotificationLabel, SIGNAL(linkActivated(QString)),
+          this, SLOT(handleErrorNotificationLabelAction(QString)));
+  connect(m_server->jobManager(), SIGNAL(jobStateChanged(MoleQueue::Job,
+                                                         MoleQueue::JobState,
+                                                         MoleQueue::JobState)),
+          this, SLOT(notifyJobStateChange(MoleQueue::Job,
+                                          MoleQueue::JobState,
+                                          MoleQueue::JobState)));
 
-  m_server->setDebug(true);
   m_server->start();
 
+  m_ui->errorNotificationLabel->hide();
   m_trayIcon->show();
 }
 
@@ -119,33 +130,41 @@ void MainWindow::trayIconActivated(QSystemTrayIcon::ActivationReason reason)
     show();
 }
 
-void MainWindow::notifyUserOfLogEntry(const MoleQueue::LogEntry &entry)
+void MainWindow::errorOccurred()
 {
+  /// @todo Change systray icon
+
+  m_ui->errorNotificationLabel->show();
+
   if (!m_trayIcon->supportsMessages())
     return;
 
-  QString title;
+  m_trayIcon->showMessage(tr("An error has occurred in MoleQueue!"),
+                          tr("Check the error log for details."),
+                          QSystemTrayIcon::Critical);
+}
 
-  QSystemTrayIcon::MessageIcon icon;
-  switch (entry.entryType()) {
-  default:
-  case LogEntry::DebugMessage:
-    return;
-  case LogEntry::Notification:
-    icon = QSystemTrayIcon::Information;
-    title = tr("Notification");
-    break;
-  case LogEntry::Warning:
-    icon = QSystemTrayIcon::Warning;
-    title = tr("Warning");
-    break;
-  case LogEntry::Error:
-    icon = QSystemTrayIcon::Critical;
-    title = tr("Error");
-    break;
+void MainWindow::errorCleared()
+{
+  /// @todo Reset system tray icon
+
+  m_ui->errorNotificationLabel->hide();
+}
+
+void MainWindow::notifyJobStateChange(const Job &job,
+                                      JobState oldState, JobState newState)
+{
+  if (job.popupOnStateChange()) {
+    m_trayIcon->showMessage(tr("Job '%1' is %2")
+                            .arg(job.description())
+                            .arg(jobStateToString(job.jobState())),
+                            tr("MoleQueue Job #%1 has changed from %2 to %3.")
+                            .arg(QString::number(job.moleQueueId()))
+                            .arg(jobStateToString(oldState))
+                            .arg(jobStateToString(newState)),
+                            QSystemTrayIcon::Information,
+                            5000);
   }
-
-  m_trayIcon->showMessage(title, entry.message(), icon);
 }
 
 void MainWindow::showQueueManagerDialog()
@@ -209,6 +228,14 @@ void MainWindow::handleServerConnectionError(ConnectionListener::Error err,
     QMessageBox::warning(this, tr("Server error"),
                          tr("A server error has occurred: '%1'").arg(str));
   }
+}
+
+void MainWindow::handleErrorNotificationLabelAction(const QString &action)
+{
+  if (action == "viewLog")
+    showLogWindow();
+  else if (action == "clearError")
+    Logger::resetNewErrorCount();
 }
 
 void MainWindow::closeEvent(QCloseEvent *theEvent)

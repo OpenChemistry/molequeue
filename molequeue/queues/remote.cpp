@@ -238,11 +238,11 @@ void QueueRemote::remoteDirectoryCreated()
   }
 
   if (conn->exitCode() != 0) {
-    Logger::logWarning(tr("Cannot create remote directory '%1@%2:%3'. Retrying "
-                          "soon.\nExit code (%4) %5")
-                       .arg(conn->userName()).arg(conn->hostName())
-                       .arg(m_workingDirectoryBase).arg(conn->exitCode())
-                       .arg(conn->output()), job.moleQueueId());
+    Logger::logError(tr("Cannot create remote directory '%1@%2:%3'. Retrying "
+                        "soon.\nExit code (%4) %5")
+                     .arg(conn->userName()).arg(conn->hostName())
+                     .arg(m_workingDirectoryBase).arg(conn->exitCode())
+                     .arg(conn->output()), job.moleQueueId());
     // Retry submission:
     m_pendingSubmission.append(job.moleQueueId());
     job.setJobState(MoleQueue::ErrorState);

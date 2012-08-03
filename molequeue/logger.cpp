@@ -28,9 +28,11 @@ Logger *Logger::m_instance = NULL;
 Logger::Logger() :
   QObject(),
   m_printDebugMessages(false),
-  m_printNotifications(true),
-  m_printWarnings(true),
-  m_printErrors(true)
+  m_printNotifications(false),
+  m_printWarnings(false),
+  m_printErrors(false),
+  m_newErrorCount(0),
+  m_silenceNewErrors(false)
 {
   // Call destructor when program exits
   atexit(&cleanUp);
@@ -60,6 +62,16 @@ Logger::~Logger()
   }
   settings.endArray();
   settings.endGroup();
+}
+
+void Logger::resetNewErrorCount()
+{
+  Logger *instance = Logger::getInstance();
+  if (instance->m_newErrorCount == 0)
+    return;
+
+  emit instance->newErrorCountReset();
+  instance->m_newErrorCount = 0;
 }
 
 void Logger::cleanUp()
@@ -123,9 +135,9 @@ inline void Logger::handleNewNotification(const MoleQueue::LogEntry &notif)
 inline void Logger::handleNewWarning(const MoleQueue::LogEntry &warning)
 {
   if (m_printWarnings) {
-    qWarning() << "Warning:"
-               << "Message: " << warning.message()
-               << "MoleQueueId: (" << warning.moleQueueId() << ")";
+    qDebug() << "Warning:"
+             << "Message: " << warning.message()
+             << "MoleQueueId: (" << warning.moleQueueId() << ")";
   }
   emit newWarning(warning);
 }
@@ -133,11 +145,17 @@ inline void Logger::handleNewWarning(const MoleQueue::LogEntry &warning)
 inline void Logger::handleNewError(const MoleQueue::LogEntry &error)
 {
   if (m_printErrors) {
-    qWarning() << "Error occurred:"
-               << "Message: " << error.message()
-               << "MoleQueueId: (" << error.moleQueueId() << ")";
+    qDebug() << "Error occurred:"
+             << "Message: " << error.message()
+             << "MoleQueueId: (" << error.moleQueueId() << ")";
   }
+
+  ++m_newErrorCount;
+
   emit newError(error);
+
+  if (!m_silenceNewErrors && m_newErrorCount == 1)
+    emit firstNewErrorOccurred();
 }
 
 void Logger::trimLog()

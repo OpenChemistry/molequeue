@@ -143,11 +143,11 @@ public:
   bool hideFromGui() const;
 
   /// @param b If true, changes in the job state will trigger a popup
-  /// notification from the MoleQueue system tray icon. Default: true
+  /// notification from the MoleQueue system tray icon. Default: false
   void setPopupOnStateChange(bool b);
 
   /// @return If true, changes in the job state will trigger a popup
-  /// notification from the MoleQueue system tray icon. Default: true
+  /// notification from the MoleQueue system tray icon. Default: false
   bool popupOnStateChange() const;
 
   /// @param num The total number of processor cores to use (if applicable).

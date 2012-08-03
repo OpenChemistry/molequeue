@@ -49,9 +49,7 @@ namespace MoleQueue
  * Each new log entry causes the newLogEntry signal to be emitted, as well as
  * one of newDebugMessage, newNotification, newWarning, or newError, depending
  * on the LogEntry type. Details of new log entries will be automatically
- * sent to qDebug() (DebugMessage, Notification) or qWarning() (Warning, Error)
- * depending on the values of the print* methods. By default, all log entries
- * except for DebugMessages are printed.
+ * sent to qDebug() if the print* methods are set to true (false by default).
  */
 class Logger : public QObject
 {
@@ -67,27 +65,31 @@ public:
     return Logger::getInstance()->m_printDebugMessages;
   }
 
-  /// @return Whether or not to print notifications to qDebug. Default: true
+  /// @return Whether or not to print notifications to qDebug. Default: false
   static bool printNotifications()
   {
     return Logger::getInstance()->m_printNotifications;
   }
 
-  /// @return Whether or not to print warnings to qWarning. Default: true
+  /// @return Whether or not to print warnings to qDebug. Default: false
   static bool printWarnings()
   {
     return Logger::getInstance()->m_printWarnings;
   }
 
-  /// @return Whether or not to print errors to qWarning. Default: true
+  /// @return Whether or not to print errors to qDebug. Default: false
   static bool printErrors()
   {
     return Logger::getInstance()->m_printErrors;
   }
 
-  /// @param return The maximum number of entries the Logger will track.
+  /// @return The maximum number of entries the Logger will track.
   /// Default: 1000
   static int maxEntries() { return Logger::getInstance()->m_maxEntries; }
+
+  /// @return The number of new errors that have occurred since the last
+  /// Logger::resetNewErrors call.
+  static int numNewErrors() { return Logger::getInstance()->m_newErrorCount; }
 
 signals:
 
@@ -105,6 +107,13 @@ signals:
 
   /// Emitted when any new log entry is added to the log.
   void newLogEntry(const MoleQueue::LogEntry &entry);
+
+  /// Emitted when the new error count becomes non-zero. Monitor this to check
+  /// for the presence of errors without getting notified about each error.
+  void firstNewErrorOccurred();
+
+  /// Emitted when the new error count is reset.
+  void newErrorCountReset();
 
 public slots:
 
@@ -162,19 +171,19 @@ public slots:
   }
 
   /// @param print Whether or not to print notifications to qDebug. Default:
-  /// true
+  /// false
   static void setPrintNotifications(bool print)
   {
     Logger::getInstance()->m_printNotifications = print;
   }
 
-  /// @param print Whether or not to print warnings to qWarning. Default: true
+  /// @param print Whether or not to print warnings to qDebug. Default: false
   static void setPrintWarnings(bool print)
   {
     Logger::getInstance()->m_printWarnings = print;
   }
 
-  /// @param print Whether or not to print errors to qWarning. Default: true
+  /// @param print Whether or not to print errors to qDebug. Default: false
   static void setPrintErrors(bool print)
   {
     Logger::getInstance()->m_printErrors = print;
@@ -193,6 +202,16 @@ public slots:
 
   /// Remove all entries from the log
   static void clear() { Logger::getInstance()->m_log.clear(); }
+
+  /// Reset the number of new errors.
+  static void resetNewErrorCount();
+
+  /// @param silence If true, the firstNewErrorOccurred signal will not be
+  /// emitted until this function is called again with false.
+  static void silenceNewErrors(bool silence = true)
+  {
+    Logger::getInstance()->m_silenceNewErrors = silence;
+  }
 
 private:
   Logger();
@@ -214,6 +233,9 @@ private:
   bool m_printErrors;
 
   int m_maxEntries;
+  int m_newErrorCount;
+  bool m_silenceNewErrors;
+
   QLinkedList<LogEntry> m_log;
 };
 
