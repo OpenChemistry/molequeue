@@ -285,10 +285,33 @@ void QueueLocal::connectProcess(QProcess *proc)
 
 bool QueueLocal::checkJobLimit()
 {
-  if (m_runningJobs.isEmpty() && !m_pendingJobQueue.isEmpty()) {
-    if (!startJob(m_pendingJobQueue.takeFirst())) {
-      return false;
+  int coresInUse = 0;
+  foreach(IdType moleQueueId, m_runningJobs.keys()) {
+    const Job job = m_server->jobManager()->lookupJobByMoleQueueId(moleQueueId);
+    if (job.isValid())
+      coresInUse += job.numberOfCores();
+  }
+
+  int totalCores = cores();
+  int coresAvailable = totalCores - coresInUse;
+
+  // Keep submitting jobs (FIFO) until we hit one we can't afford to start.
+  while (!m_pendingJobQueue.isEmpty() && coresAvailable > 0) {
+    IdType nextMQId = m_pendingJobQueue.first();
+    Job nextJob = m_server->jobManager()->lookupJobByMoleQueueId(nextMQId);
+    if (!nextJob.isValid()) {
+      m_pendingJobQueue.removeFirst();
+      continue;
     }
+    else if (nextJob.numberOfCores() <= coresAvailable) {
+      m_pendingJobQueue.removeFirst();
+      if (startJob(nextJob.moleQueueId()))
+        coresAvailable -= nextJob.numberOfCores();
+      continue;
+    }
+
+    // Cannot start next job yet!
+    break;
   }
 
   return true;
