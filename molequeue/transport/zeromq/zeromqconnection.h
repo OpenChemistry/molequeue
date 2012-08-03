@@ -25,6 +25,8 @@ class QTimer;
 
 namespace MoleQueue
 {
+
+/// @brief Connection subclass using ZeroMQ.
 class ZeroMqConnection: public MoleQueue::Connection
 {
   Q_OBJECT

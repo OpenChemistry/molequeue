@@ -29,7 +29,7 @@ class Job;
 class JobActionFactory;
 class JobManager;
 
-/// Widget which encapsulates the Job table MVC classes.
+/// @brief Widget which encapsulates the Job table MVC classes.
 class JobTableWidget : public QWidget
 {
   Q_OBJECT

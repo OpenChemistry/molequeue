@@ -28,6 +28,7 @@ namespace MoleQueue
 class Program;
 class TemplateKeywordDialog;
 
+/// @brief Dialog for setting Program configuration options.
 class ProgramConfigureDialog : public QDialog
 {
   Q_OBJECT

@@ -22,6 +22,7 @@
 namespace MoleQueue
 {
 
+/// @brief JobActionFactory for canceling jobs.
 class KillJobActionFactory : public JobActionFactory
 {
   Q_OBJECT

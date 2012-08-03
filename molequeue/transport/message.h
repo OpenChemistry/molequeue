@@ -25,6 +25,8 @@ namespace MoleQueue
 
 typedef QByteArray EndpointId;
 
+/// @brief Transport agnostic encapsulation of a single client-server
+/// communication.
 class MQCONNECTION_EXPORT Message
 {
 public:

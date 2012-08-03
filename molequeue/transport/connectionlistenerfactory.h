@@ -26,6 +26,7 @@ namespace MoleQueue
 
 class ConnectionListener;
 
+/// @brief Factory for generating ConnectionListener instances.
 class ConnectionListenerFactory
 {
 
