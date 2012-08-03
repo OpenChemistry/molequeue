@@ -27,7 +27,7 @@ JobData::JobData(JobManager *parentManager)
     m_retrieveOutput(true),
     m_cleanLocalWorkingDirectory(false),
     m_hideFromGui(false),
-    m_popupOnStateChange(true),
+    m_popupOnStateChange(false),
     m_numberOfCores(DEFAULT_NUM_CORES),
     m_maxWallTime(-1), // use default queue time
     m_moleQueueId(InvalidId),

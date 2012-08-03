@@ -85,6 +85,38 @@ LogWindow::~LogWindow()
   delete m_moleQueueIdFormat;
 }
 
+void LogWindow::changeEvent(QEvent *e)
+{
+  if (e->type() == QEvent::ActivationChange && isActiveWindow())
+    Logger::resetNewErrorCount();
+
+  QMainWindow::changeEvent(e);
+}
+
+void LogWindow::closeEvent(QCloseEvent *e)
+{
+  Logger::silenceNewErrors(false);
+  Logger::resetNewErrorCount();
+
+  QMainWindow::closeEvent(e);
+}
+
+void LogWindow::hideEvent(QHideEvent *e)
+{
+  Logger::silenceNewErrors(false);
+  Logger::resetNewErrorCount();
+
+  QMainWindow::hideEvent(e);
+}
+
+void LogWindow::showEvent(QShowEvent *e)
+{
+  Logger::silenceNewErrors(true);
+  Logger::resetNewErrorCount();
+
+  QMainWindow::showEvent(e);
+}
+
 void LogWindow::addLogEntry(const LogEntry &entry)
 {
   QString entryType;
