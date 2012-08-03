@@ -21,6 +21,7 @@
 #include "program.h"
 #include "queues/remote.h"
 #include "sshcommand.h"
+#include "templatekeyworddialog.h"
 
 #include <QtCore/QTimer>
 
@@ -36,7 +37,8 @@ RemoteQueueWidget::RemoteQueueWidget(QueueRemote *queue,
   QWidget(parentObject),
   ui(new Ui::RemoteQueueWidget),
   m_queue(queue),
-  m_client(NULL)
+  m_client(NULL),
+  m_helpDialog(NULL)
 {
   ui->setupUi(this);
 
@@ -65,6 +67,8 @@ RemoteQueueWidget::RemoteQueueWidget(QueueRemote *queue,
           this, SLOT(testConnection()));
   connect(ui->push_sleepTest, SIGNAL(clicked()),
           this, SLOT(sleepTest()));
+  connect(ui->templateHelpButton, SIGNAL(clicked()),
+          this, SLOT(showTemplateHelp()));
 }
 
 RemoteQueueWidget::~RemoteQueueWidget()
@@ -267,6 +271,13 @@ void RemoteQueueWidget::updateUserName(const QString &userName)
 void RemoteQueueWidget::updateSshPort(int sshPort)
 {
   m_queue->setSshPort(sshPort);
+}
+
+void RemoteQueueWidget::showTemplateHelp()
+{
+  if (!m_helpDialog)
+    m_helpDialog = new TemplateKeywordDialog(this);
+  m_helpDialog->show();
 }
 
 void RemoteQueueWidget::updateLaunchTemplate()
