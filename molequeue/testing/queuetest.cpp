@@ -16,6 +16,8 @@
 
 #include <QtTest>
 
+#include "job.h"
+#include "jobmanager.h"
 #include "program.h"
 #include "queue.h"
 
@@ -54,6 +56,7 @@ private slots:
   void testProgramNames();
   void testRemoveProgram();
   void testCleanup();
+  void testReplaceLaunchScriptKeywords();
 };
 
 void QueueTest::initTestCase()
@@ -143,6 +146,25 @@ void QueueTest::testCleanup()
   queue = NULL;
 
   QCOMPARE(program.data(), static_cast<MoleQueue::Program*>(NULL));
+}
+
+void QueueTest::testReplaceLaunchScriptKeywords()
+{
+  QString script = "$$moleQueueId$$\n";
+  MoleQueue::JobManager jobManager;
+  MoleQueue::Job job = jobManager.newJob();
+  DummyQueue queue;
+  queue.replaceLaunchScriptKeywords(script, job);
+  QCOMPARE(script, QString("%1\n").arg(job.moleQueueId()));
+
+  script = "$$numberOfCores$$\n";
+  job.setNumberOfCores(32);
+  queue.replaceLaunchScriptKeywords(script, job);
+  QCOMPARE(script, QString("%1\n").arg(job.numberOfCores()));
+
+  script = "Ain't no newline!";
+  queue.replaceLaunchScriptKeywords(script, job);
+  QCOMPARE(script, QString("Ain't no newline!\n"));
 }
 
 QTEST_MAIN(QueueTest)
