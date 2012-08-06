@@ -412,8 +412,9 @@ void JsonRpcTest::generateJobRequest()
 
 void JsonRpcTest::generateJobSubmissionConfirmation()
 {
-  m_packet = m_rpc.generateJobSubmissionConfirmation(12, 789123,
-                                                 "/tmp/myjob/test.potato", 14);
+  m_packet = m_rpc.generateJobSubmissionConfirmation(12,
+                                                     "/tmp/myjob/test.potato",
+                                                     14);
   if (!m_rpc.validateResponse(m_packet, true)) {
     qDebug() << "Job request response packet failed validation!";
     m_error = true;
@@ -700,10 +701,9 @@ void JsonRpcTest::interpretIncomingPacket_submitJobResult()
 {
   QSignalSpy spy (&m_rpc, SIGNAL(
                     successfulSubmissionReceived(MoleQueue::IdType,
-                                                 MoleQueue::IdType,
                                                  MoleQueue::IdType,QDir)));
   // Register the packet id with this method for JsonRpc:
-  m_rpc.generateJobSubmissionConfirmation(0,0,"",14);
+  m_rpc.generateJobSubmissionConfirmation(0,"",14);
   m_packet = readReferenceString("jsonrpc-ref/job-submit-success.json");
   m_rpc.interpretIncomingPacket(m_connection, m_packet);
 

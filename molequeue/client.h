@@ -204,12 +204,10 @@ protected slots:
    * Called when the JsonRpc instance handles a successful submitJob response.
    *
    * @param moleQueueId Unique MoleQueue identifier for job.
-   * @param queueJobId Queue-specific job identifier
    * @param workingDir Local working directory for temporary files.
    */
   void successfulSubmissionReceived(MoleQueue::IdType,
                                     MoleQueue::IdType moleQueueId,
-                                    MoleQueue::IdType queueJobId,
                                     const QDir &workingDir);
 
   /**
