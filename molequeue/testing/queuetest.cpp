@@ -16,6 +16,8 @@
 
 #include <QtTest>
 
+#include "job.h"
+#include "jobmanager.h"
 #include "program.h"
 #include "queue.h"
 
@@ -54,6 +56,10 @@ private slots:
   void testProgramNames();
   void testRemoveProgram();
   void testCleanup();
+
+  void testReplaceLaunchScriptKeywords_moleQueueId();
+  void testReplaceLaunchScriptKeywords_numberOfCores();
+  void testReplaceLaunchScriptKeywords_newlineFix();
 };
 
 void QueueTest::initTestCase()
@@ -143,6 +149,40 @@ void QueueTest::testCleanup()
   queue = NULL;
 
   QCOMPARE(program.data(), static_cast<MoleQueue::Program*>(NULL));
+}
+
+void QueueTest::testReplaceLaunchScriptKeywords_moleQueueId()
+{
+  QString script = "$$moleQueueId$$\n";
+
+  MoleQueue::JobManager jobManager;
+  MoleQueue::Job job = jobManager.newJob();
+  DummyQueue queue;
+  queue.replaceLaunchScriptKeywords(script, job);
+  QCOMPARE(script, QString("%1\n").arg(job.moleQueueId()));
+}
+
+void QueueTest::testReplaceLaunchScriptKeywords_numberOfCores()
+{
+  QString script = "$$numberOfCores$$\n";
+
+  MoleQueue::JobManager jobManager;
+  MoleQueue::Job job = jobManager.newJob();
+  job.setNumberOfCores(32);
+  DummyQueue queue;
+  queue.replaceLaunchScriptKeywords(script, job);
+  QCOMPARE(script, QString("%1\n").arg(job.numberOfCores()));
+}
+
+void QueueTest::testReplaceLaunchScriptKeywords_newlineFix()
+{
+  QString script = "Ain't no newline!";
+
+  MoleQueue::JobManager jobManager;
+  MoleQueue::Job job = jobManager.newJob();
+  DummyQueue queue;
+  queue.replaceLaunchScriptKeywords(script, job);
+  QCOMPARE(script, QString("Ain't no newline!\n"));
 }
 
 QTEST_MAIN(QueueTest)
