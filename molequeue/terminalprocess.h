@@ -22,7 +22,7 @@
 namespace MoleQueue {
 
 /**
- * @class Server server.h <molequeue/server.h>
+ * @class TerminalProcess terminalprocess.h <molequeue/terminalprocess.h>
  * @brief Special QProcess derived class, calls setsid on Unix to remove tty,
  * allowing us to give a GUI prompt for SSH etc.
  * @author Marcus D. Hanwell

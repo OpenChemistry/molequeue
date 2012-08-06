@@ -26,6 +26,7 @@ namespace MoleQueue
 class Job;
 class JobManager;
 
+/// @brief Item model for interacting with jobs.
 class JobItemModel : public QAbstractItemModel
 {
   Q_OBJECT

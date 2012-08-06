@@ -23,6 +23,7 @@
 namespace MoleQueue
 {
 
+/// @brief Client subclass using ZeroMQ.
 class MQZEROMQCLIENT_EXPORT ZeroMqClient : public MoleQueue::Client
 {
 public:

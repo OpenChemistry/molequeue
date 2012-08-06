@@ -23,6 +23,7 @@
 namespace MoleQueue
 {
 
+/// @brief A Client subclass that uses local sockets for IPC.
 class MQLOCALSOCKETCLIENT_EXPORT LocalSocketClient: public MoleQueue::Client
 {
   Q_OBJECT

@@ -23,7 +23,7 @@ namespace MoleQueue
 {
 class ProgrammableOpenWithActionFactory;
 
-/// MVC item model for interacting with ProgrammableOpenWithActionFactory
+/// @brief MVC item model for interacting with ProgrammableOpenWithActionFactory
 /// output file filters.
 class OpenWithPatternModel : public QAbstractItemModel
 {

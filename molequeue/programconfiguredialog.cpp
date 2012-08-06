@@ -19,6 +19,7 @@
 
 #include "program.h"
 #include "queue.h"
+#include "templatekeyworddialog.h"
 
 #include <QtGui/QFileDialog>
 #include <QtGui/QMessageBox>
@@ -36,6 +37,7 @@ ProgramConfigureDialog::ProgramConfigureDialog(Program *program,
   QDialog(parentObject),
   ui(new Ui::ProgramConfigureDialog),
   m_program(program),
+  m_helpDialog(NULL),
   m_isCustomized((m_program->launchSyntax() == Program::CUSTOM))
 {
   ui->setupUi(this);
@@ -60,6 +62,8 @@ ProgramConfigureDialog::ProgramConfigureDialog(Program *program,
           this, SLOT(updateLaunchEditor()));
   connect(ui->text_launchTemplate, SIGNAL(textChanged()),
           this, SLOT(launchEditorTextChanged()));
+  connect(ui->templateHelpButton, SIGNAL(clicked()),
+          this, SLOT(showHelpDialog()));
 
   launchSyntaxChanged(ui->combo_syntax->currentIndex());
 
@@ -213,6 +217,13 @@ void ProgramConfigureDialog::customizeLauncherClicked()
 {
   m_customLaunchText = ui->text_launchTemplate->document()->toPlainText();
   ui->combo_syntax->setCurrentIndex(static_cast<int>(Program::CUSTOM));
+}
+
+void ProgramConfigureDialog::showHelpDialog()
+{
+  if (!m_helpDialog)
+    m_helpDialog = new TemplateKeywordDialog(this);
+  m_helpDialog->show();
 }
 
 } // end namespace MoleQueue

@@ -22,6 +22,7 @@
 namespace MoleQueue
 {
 
+/// @brief A ConnectionListenerFactory subclass using ZeroMQ.
 class ZeroMqConnectionListenerFactory: public QObject,
                                        public MoleQueue::ConnectionListenerFactory
 {

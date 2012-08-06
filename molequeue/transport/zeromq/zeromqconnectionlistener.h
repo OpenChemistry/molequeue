@@ -28,6 +28,7 @@
 namespace MoleQueue
 {
 
+/// @brief ConnectionListener subclass using ZeroMQ.
 class ZeroMqConnectionListener : public ConnectionListener
 {
   Q_OBJECT

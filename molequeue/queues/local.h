@@ -28,10 +28,7 @@ namespace MoleQueue
 class Job;
 class QueueManager;
 
-/**
- * Queue for jobs to run locally.
- */
-
+/// @brief Queue for running jobs locally.
 class QueueLocal : public Queue
 {
   Q_OBJECT

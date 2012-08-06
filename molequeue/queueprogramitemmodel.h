@@ -23,6 +23,7 @@ namespace MoleQueue
 {
 class Queue;
 
+/// @brief Item model for interacting with a Queue's Program instances.
 class QueueProgramItemModel : public QAbstractItemModel
 {
   Q_OBJECT

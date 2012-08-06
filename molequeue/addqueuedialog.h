@@ -27,6 +27,7 @@ namespace MoleQueue {
 
 class QueueManager;
 
+/// @brief Dialog for adding a new queue to the queuemanager.
 class AddQueueDialog : public QDialog
 {
     Q_OBJECT

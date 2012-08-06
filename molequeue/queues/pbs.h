@@ -24,6 +24,7 @@ class QueuePbsTest;
 namespace MoleQueue
 {
 
+/// @brief QueueRemote subclass for interacting with a PBS/Torque queue.
 class QueuePbs : public QueueRemote
 {
   Q_OBJECT

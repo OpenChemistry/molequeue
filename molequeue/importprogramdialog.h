@@ -26,6 +26,7 @@ class ImportProgramDialog;
 namespace MoleQueue {
 class Queue;
 
+/// @brief Dialog for importing a program configuration from a file.
 class ImportProgramDialog : public QDialog
 {
   Q_OBJECT

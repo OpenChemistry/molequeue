@@ -26,10 +26,7 @@ namespace MoleQueue
 class QueueManager;
 class SshConnection;
 
-/**
- * Remote queue.
- */
-
+/// @brief Queue subclass for interacting with a generic Remote queue.
 class QueueRemote : public Queue
 {
   Q_OBJECT

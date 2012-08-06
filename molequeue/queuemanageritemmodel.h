@@ -23,6 +23,7 @@ namespace MoleQueue
 {
 class QueueManager;
 
+/// @brief Item model for interacting with queues in the QueueManagerDialog.
 class QueueManagerItemModel : public QAbstractItemModel
 {
   Q_OBJECT
