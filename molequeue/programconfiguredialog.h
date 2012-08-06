@@ -54,10 +54,17 @@ protected slots:
   void launchSyntaxChanged(int enumVal);
   void customizeLauncherClicked();
 
+  void setDirty(bool dirty = true) { m_dirty = dirty; }
+
+protected:
+  void closeEvent(QCloseEvent *);
+  void keyPressEvent(QKeyEvent *);
+
 private:
   Ui::ProgramConfigureDialog *ui;
   Program *m_program;
   bool m_isCustomized;
+  bool m_dirty;
   QString m_customLaunchText;
 };
 

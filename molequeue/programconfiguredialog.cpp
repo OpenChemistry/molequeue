@@ -36,7 +36,8 @@ ProgramConfigureDialog::ProgramConfigureDialog(Program *program,
   QDialog(parentObject),
   ui(new Ui::ProgramConfigureDialog),
   m_program(program),
-  m_isCustomized((m_program->launchSyntax() == Program::CUSTOM))
+  m_isCustomized((m_program->launchSyntax() == Program::CUSTOM)),
+  m_dirty(false)
 {
   ui->setupUi(this);
 
@@ -61,6 +62,27 @@ ProgramConfigureDialog::ProgramConfigureDialog(Program *program,
   connect(ui->text_launchTemplate, SIGNAL(textChanged()),
           this, SLOT(launchEditorTextChanged()));
 
+  connect(ui->edit_name, SIGNAL(textChanged(QString)),
+          this, SLOT(setDirty()));
+  connect(ui->edit_executableName, SIGNAL(textChanged(QString)),
+          this, SLOT(setDirty()));
+  connect(ui->edit_executablePath, SIGNAL(textChanged(QString)),
+          this, SLOT(setDirty()));
+  connect(ui->edit_arguments, SIGNAL(textChanged(QString)),
+          this, SLOT(setDirty()));
+  connect(ui->edit_inputFilename, SIGNAL(textChanged(QString)),
+          this, SLOT(setDirty()));
+  connect(ui->edit_outputFilename, SIGNAL(textChanged(QString)),
+          this, SLOT(setDirty()));
+  connect(ui->gb_executablePath, SIGNAL(toggled(bool)),
+          this, SLOT(setDirty()));
+  connect(ui->combo_syntax, SIGNAL(currentIndexChanged(int)),
+          this, SLOT(setDirty()));
+  connect(ui->push_customize, SIGNAL(clicked()),
+          this, SLOT(setDirty()));
+  connect(ui->text_launchTemplate, SIGNAL(textChanged()),
+          this, SLOT(setDirty()));
+
   launchSyntaxChanged(ui->combo_syntax->currentIndex());
 
   updateGuiFromProgram();
@@ -73,7 +95,9 @@ ProgramConfigureDialog::~ProgramConfigureDialog()
 
 void ProgramConfigureDialog::accept()
 {
-  updateProgramFromGui();
+  if (m_dirty)
+    updateProgramFromGui();
+
   QDialog::accept();
 }
 
@@ -135,6 +159,7 @@ void ProgramConfigureDialog::updateGuiFromProgram()
   m_customLaunchText = m_program->customLaunchTemplate();
 
   updateLaunchEditor();
+  m_dirty = false;
 }
 
 void ProgramConfigureDialog::updateProgramFromGui()
@@ -151,6 +176,7 @@ void ProgramConfigureDialog::updateProgramFromGui()
         ui->combo_syntax->currentIndex());
   m_program->setLaunchSyntax(syntax);
   m_program->setCustomLaunchTemplate(m_customLaunchText);
+  m_dirty = false;
 }
 
 void ProgramConfigureDialog::updateLaunchEditor()
@@ -213,6 +239,49 @@ void ProgramConfigureDialog::customizeLauncherClicked()
 {
   m_customLaunchText = ui->text_launchTemplate->document()->toPlainText();
   ui->combo_syntax->setCurrentIndex(static_cast<int>(Program::CUSTOM));
+}
+
+void ProgramConfigureDialog::closeEvent(QCloseEvent *e)
+{
+  if (m_dirty) {
+    // apply or discard changes?
+    QMessageBox::StandardButton reply =
+        QMessageBox::warning(this, tr("Unsaved changes"),
+                             tr("The changes to the program have not been "
+                                "saved. Would you like to save or discard "
+                                "them?"),
+                             QMessageBox::Save | QMessageBox::Discard |
+                             QMessageBox::Cancel,
+                             QMessageBox::Save);
+
+    switch (reply) {
+    case QMessageBox::Cancel:
+      e->ignore();
+      return;
+    case QMessageBox::Save:
+      updateProgramFromGui();
+    case QMessageBox::NoButton:
+    case QMessageBox::Discard:
+    default:
+      e->accept();
+      break;
+    }
+  }
+
+  QDialog::closeEvent(e);
+}
+
+void ProgramConfigureDialog::keyPressEvent(QKeyEvent *e)
+{
+  // By default, the escape key bypasses the close event, but we still want to
+  // check if the settings widget is dirty.
+  if (e->key() == Qt::Key_Escape) {
+    e->accept();
+    close();
+    return;
+  }
+
+  QDialog::keyPressEvent(e);
 }
 
 } // end namespace MoleQueue
