@@ -48,6 +48,9 @@ TemplateKeywordDialog::TemplateKeywordDialog(QWidget *parent_) :
   m_keywordCharFormat.setForeground(QBrush(Qt::blue));
   m_keywordCharFormat.setFontItalic(true);
 
+  m_dangerousKeywordCharFormat.setForeground(QBrush(Qt::darkRed));
+  m_keywordCharFormat.setFontItalic(true);
+
   buildKeywordLists();
   buildDocument();
 }
@@ -68,8 +71,21 @@ void TemplateKeywordDialog::buildKeywordLists()
   m_jobKeywords.insert("$$maxWallTime$$",
                        tr("The maximum walltime for the current job (i.e. the "
                           "time limit before the queue will automatically "
-                          "stop the job, regardless of completion state). "
+                          "stop the job, regardless of completion state). If "
+                          "the job's specified walltime is less than or equal "
+                          "to zero minutes, the default "
+                          "walltime (configured in the queue settings) is used."
+                          " See $$$maxWallTime$$$ for a method of using the "
+                          "default walltime set by the queue administrator. "
                           "Available only on remote queues."));
+  m_jobKeywords.insert("$$$maxWallTime$$$",
+                       tr("Same as $$maxWallTime$$, but if the job specific "
+                          "walltime is not set, the entire line containing "
+                          "this keyword will be removed from the final "
+                          "template output. This is used to apply "
+                          "the default walltime set by the queuing system's "
+                          "administrator. Only available on remote queuing "
+                          "systems."));
 
   // Queue
   m_queueKeywords.insert("$$programExecution$$",
@@ -110,7 +126,10 @@ void TemplateKeywordDialog::buildDocument()
                  "The following list of keywords may be used in the "
                  "input templates and are replaced by information "
                  "approriate to a specific job. Keywords are enclosed "
-                 "in '$$' and are case sensitive.\n"), cur);
+                 "in '$$' or '$$$' and are case sensitive. Keywords with two "
+                 "'$' symbols will be replaced by the appropriate data, while "
+                 " those with three '$' have more specialized behavior ("
+                 "see the maxWallTime variants for an example)."), cur);
 
   // Jobs
   addKeywordHeader(tr("Job specific keywords:"), cur);
@@ -165,11 +184,21 @@ void TemplateKeywordDialog::highlightKeywords()
   QTextCursor cur(doc);
   cur.movePosition(QTextCursor::Start);
 
-  QRegExp expr("\\$\\$[^\\$\\s]+\\$\\$");
+  QRegExp expr("[^\\$]?\\${2,2}[^\\$\\s]+\\${2,2}[^\\$]?");
 
   cur = doc->find(expr, cur);
   while (!cur.isNull()) {
     cur.setCharFormat(m_keywordCharFormat);
+    cur = doc->find(expr, cur);
+  }
+
+  cur.movePosition(QTextCursor::Start);
+
+  expr.setPattern("[^\\$]?\\${3,3}[^\\$\\s]+\\${3,3}[^\\$]?");
+
+  cur = doc->find(expr, cur);
+  while (!cur.isNull()) {
+    cur.setCharFormat(m_dangerousKeywordCharFormat);
     cur = doc->find(expr, cur);
   }
 }

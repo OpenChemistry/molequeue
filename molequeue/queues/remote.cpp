@@ -112,8 +112,26 @@ QWidget* QueueRemote::settingsWidget()
 void QueueRemote::replaceLaunchScriptKeywords(QString &launchScript,
                                               const Job &job)
 {
+  int wallTime = job.maxWallTime();
+  if (launchScript.contains("$$$maxWallTime$$$")) {
+    // If a valid walltime is set, replace all occurances with the appropriate
+    // string:
+    if (wallTime > 0) {
+      int hours = wallTime / 60;
+      int minutes = wallTime % 60;
+      launchScript.replace("$$$maxWallTime$$$",
+                           QString("%1:%2:00")
+                           .arg(hours, 2, 10, QChar('0'))
+                           .arg(minutes, 2, 10, QChar('0')));
+    }
+    // Otherwise, erase all lines containing the keyword
+    else {
+      QRegExp expr("\\n[^\\n]*\\${3,3}maxWallTime\\${3,3}[^\\n]*\\n");
+      launchScript.replace(expr, "\n");
+    }
+  }
+
   if (launchScript.contains("$$maxWallTime$$")) {
-    int wallTime = job.maxWallTime();
     if (wallTime <= 0)
       wallTime = defaultMaxWallTime();
     int hours = wallTime / 60;

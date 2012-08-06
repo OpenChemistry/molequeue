@@ -58,6 +58,7 @@ private:
   QTextCharFormat m_keywordHeaderCharFormat;
   QTextCharFormat m_keywordDescriptionCharFormat;
   QTextCharFormat m_keywordCharFormat;
+  QTextCharFormat m_dangerousKeywordCharFormat;
 
   QMap<QString, QString> m_jobKeywords;
   QMap<QString, QString> m_queueKeywords;
