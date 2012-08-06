@@ -47,7 +47,8 @@ LogWindow::LogWindow(QWidget *theParent) :
   m_notificationFormat(new QTextCharFormat()),
   m_warningFormat(new QTextCharFormat()),
   m_errorFormat(new QTextCharFormat()),
-  m_moleQueueIdFormat(new QTextCharFormat())
+  m_moleQueueIdFormat(new QTextCharFormat()),
+  m_messageFormat(new QTextCharFormat())
 {
   createUi();
 
@@ -83,6 +84,7 @@ LogWindow::~LogWindow()
   delete m_warningFormat;
   delete m_errorFormat;
   delete m_moleQueueIdFormat;
+  delete m_messageFormat;
 }
 
 void LogWindow::changeEvent(QEvent *e)
@@ -148,19 +150,21 @@ void LogWindow::addLogEntry(const LogEntry &entry)
   cur.beginEditBlock();
   cur.movePosition(QTextCursor::Start);
   cur.insertBlock(*m_logEntryBlockFormat);
-  cur.insertText(entry.timeStamp().toString(), *m_timeStampFormat);
+  cur.insertText(entry.timeStamp().toString("[yyyy-MM-dd hh:mm:ss]"),
+                 *m_timeStampFormat);
   cur.insertText(" ");
   cur.insertText(QString("%1").arg(entryType, -12), *entryFormat);
   cur.insertText(" ");
   if (entry.moleQueueId() == InvalidId) {
-    cur.insertText(tr("Job %1").arg("N/A", -5), *m_moleQueueIdFormat);
+    cur.insertText(tr("Job %1").arg("N/A", -6), *m_moleQueueIdFormat);
   }
   else {
-    cur.insertText(tr("Job %1").arg(entry.moleQueueId(), -5),
+    cur.insertText(tr("Job %1").arg(entry.moleQueueId(), -6),
                    *m_moleQueueIdFormat);
   }
   cur.insertText(" ");
-  cur.insertText(entry.message(), *entryFormat);
+  // Modify newlines to align with the hanging indent.
+  cur.insertText(entry.message().replace("\n", "\n\t\t\t\t"), *m_messageFormat);
   cur.endEditBlock();
 }
 
@@ -211,9 +215,9 @@ void LogWindow::createUi()
 
 void LogWindow::setupFormats()
 {
-  // Use a hanging indent:
-  m_logEntryBlockFormat->setTextIndent(-40);
-  m_logEntryBlockFormat->setIndent(1);
+  // Use a hanging indent, aligned with the start of the log message:
+  m_logEntryBlockFormat->setTextIndent(-320);
+  m_logEntryBlockFormat->setIndent(8);
   m_logEntryBlockFormat->setBottomMargin(5);
 
   m_timeStampFormat->setForeground(QBrush(Qt::blue));
@@ -236,6 +240,9 @@ void LogWindow::setupFormats()
 
   m_moleQueueIdFormat->setForeground(QBrush(Qt::darkCyan));
   m_moleQueueIdFormat->setFontFamily("monospace");
+
+  m_messageFormat->setForeground(QBrush(Qt::black));
+  m_messageFormat->setFontFamily("monospace");
 }
 
 void LogWindow::initializeLogText()

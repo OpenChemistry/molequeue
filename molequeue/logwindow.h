@@ -69,6 +69,7 @@ private:
   QTextCharFormat *m_warningFormat;
   QTextCharFormat *m_errorFormat;
   QTextCharFormat *m_moleQueueIdFormat;
+  QTextCharFormat *m_messageFormat;
 };
 
 
