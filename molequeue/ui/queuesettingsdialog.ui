@@ -67,24 +67,6 @@
          </layout>
         </widget>
        </item>
-       <item>
-        <layout class="QHBoxLayout" name="horizontalLayout">
-         <item>
-          <widget class="QPushButton" name="push_save">
-           <property name="text">
-            <string>Save</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="push_reset">
-           <property name="text">
-            <string>Reset</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </item>
       </layout>
      </widget>
      <widget class="QWidget" name="programsTab">
@@ -176,13 +158,18 @@
      </widget>
     </widget>
    </item>
+   <item>
+    <widget class="QDialogButtonBox" name="buttonBox">
+     <property name="standardButtons">
+      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+     </property>
+    </widget>
+   </item>
   </layout>
  </widget>
  <tabstops>
   <tabstop>tabWidget</tabstop>
   <tabstop>nameLineEdit</tabstop>
-  <tabstop>push_save</tabstop>
-  <tabstop>push_reset</tabstop>
   <tabstop>programsTable</tabstop>
   <tabstop>addProgramButton</tabstop>
   <tabstop>configureProgramButton</tabstop>
@@ -191,5 +178,38 @@
   <tabstop>exportProgramButton</tabstop>
  </tabstops>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>buttonBox</sender>
+   <signal>accepted()</signal>
+   <receiver>QueueSettingsDialog</receiver>
+   <slot>accept()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>368</x>
+     <y>278</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>497</x>
+     <y>274</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>buttonBox</sender>
+   <signal>rejected()</signal>
+   <receiver>QueueSettingsDialog</receiver>
+   <slot>reject()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>362</x>
+     <y>287</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>0</x>
+     <y>250</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
 </ui>

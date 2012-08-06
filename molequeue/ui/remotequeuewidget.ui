@@ -283,6 +283,8 @@
   <tabstop>edit_requestQueueCommand</tabstop>
   <tabstop>edit_launchScriptName</tabstop>
   <tabstop>edit_workingDirectoryBase</tabstop>
+  <tabstop>wallTimeHours</tabstop>
+  <tabstop>wallTimeMinutes</tabstop>
   <tabstop>edit_hostName</tabstop>
   <tabstop>edit_userName</tabstop>
   <tabstop>spin_sshPort</tabstop>

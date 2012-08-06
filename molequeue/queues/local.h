@@ -74,7 +74,13 @@ public:
    * Returns a widget that can be used to configure the settings for the
    * queue.
    */
-  QWidget* settingsWidget();
+  AbstractQueueSettingsWidget* settingsWidget();
+
+  /// The number of cores available.
+  int maxNumberOfCores() const;
+
+  /// The number of cores available.
+  void setMaxNumberOfCores(int cores) { m_cores = cores; }
 
 public slots:
   bool submitJob(MoleQueue::Job job);
@@ -101,9 +107,6 @@ protected slots:
   void processFinished(int exitCode, QProcess::ExitStatus exitStatus);
 
 protected:
-  /// The number of cores available.
-  int cores() const;
-
   /// Insert the job into the queue.
   bool addJobToQueue(const Job &job);
 

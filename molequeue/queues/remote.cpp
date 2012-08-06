@@ -103,7 +103,7 @@ void QueueRemote::importConfiguration(QSettings &importer,
   m_sshPort  = importer.value("sshPort").toInt();
 }
 
-QWidget* QueueRemote::settingsWidget()
+AbstractQueueSettingsWidget* QueueRemote::settingsWidget()
 {
   RemoteQueueWidget *widget = new RemoteQueueWidget (this);
   return widget;

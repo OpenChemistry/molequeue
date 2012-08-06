@@ -14,49 +14,36 @@
 
 ******************************************************************************/
 
-#ifndef REMOTEQUEUEWIDGET_H
-#define REMOTEQUEUEWIDGET_H
+#ifndef MOLEQUEUE_LOCALQUEUEWIDGET_H
+#define MOLEQUEUE_LOCALQUEUEWIDGET_H
 
 #include "abstractqueuesettingswidget.h"
 
 namespace Ui {
-class RemoteQueueWidget;
+class LocalQueueWidget;
 }
 
-namespace MoleQueue
-{
-class Client;
-class QueueRemote;
+namespace MoleQueue {
+class QueueLocal;
 
-/**
- * @class RemoteQueueWidget remotequeuewidget.h <molequeue/remotequeuewidget.h>
- *
- * @brief A generic configuration dialog for remote queuing systems.
- *
- * @author David C. Lonie
- */
-class RemoteQueueWidget: public AbstractQueueSettingsWidget
+/// @brief Configuration widget for local queues.
+class LocalQueueWidget : public AbstractQueueSettingsWidget
 {
   Q_OBJECT
 
 public:
-  explicit RemoteQueueWidget(QueueRemote *queue, QWidget *parentObject = 0);
-  ~RemoteQueueWidget();
+  LocalQueueWidget(QueueLocal *queue, QWidget *parent_ = 0);
+  ~LocalQueueWidget();
 
 public slots:
   void save();
   void reset();
 
-protected slots:
-  void testConnection();
-  void sleepTest();
-
 private:
-  Ui::RemoteQueueWidget *ui;
-  QueueRemote *m_queue;
-  Client *m_client; // Used for submitting test jobs.
+  Ui::LocalQueueWidget *ui;
+  QueueLocal *m_queue;
 };
 
-} // end namespace MoleQueue
+} // namespace MoleQueue
 
-#endif // REMOTEQUEUEWIDGET_H
+#endif // MOLEQUEUE_LOCALQUEUEWIDGET_H
