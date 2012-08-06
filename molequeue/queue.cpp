@@ -213,7 +213,7 @@ void Queue::replaceLaunchScriptKeywords(QString &launchScript, const Job &job)
   }
 
   // Add newline at end if not present
-  if (!launchScript.isEmpty() && launchScript.endsWith(QChar('\n')))
+  if (!launchScript.isEmpty() && !launchScript.endsWith(QChar('\n')))
     launchScript.append(QChar('\n'));
 }
 

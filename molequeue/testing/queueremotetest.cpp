@@ -200,7 +200,7 @@ void QueueRemoteTest::testSubmissionPipeline()
   QFile launchScriptFile(launchScriptFileName);
   QVERIFY(launchScriptFile.open(QFile::ReadOnly));
   QCOMPARE(QString(launchScriptFile.readAll()),
-           QString("Run job 4!!"));
+           QString("Run job 4!!\n"));
 
   ///////////////////////////
   // createRemoteDirectory //
