@@ -60,7 +60,12 @@ public slots:
 
   void trayIconActivated(QSystemTrayIcon::ActivationReason);
 
-  void notifyUserOfLogEntry(const MoleQueue::LogEntry &entry);
+  void errorOccurred();
+  void errorCleared();
+
+  void notifyJobStateChange(const MoleQueue::Job &job,
+                            MoleQueue::JobState oldState,
+                            MoleQueue::JobState newState);
 
 protected slots:
   void showQueueManagerDialog();
@@ -68,6 +73,7 @@ protected slots:
   void showLogWindow();
   void handleServerConnectionError(MoleQueue::ConnectionListener::Error,
                                    const QString &);
+  void handleErrorNotificationLabelAction(const QString &action);
 
 protected:
   void closeEvent(QCloseEvent *theEvent);
@@ -91,6 +97,8 @@ protected:
   QMenu *m_trayIconMenu;
 
   Server *m_server;
+
+  int m_errorCount;
 };
 
 } // End namespace
