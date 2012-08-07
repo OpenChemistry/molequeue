@@ -27,6 +27,7 @@ namespace MoleQueue
 {
 class Client;
 class QueueRemote;
+class TemplateKeywordDialog;
 
 /**
  * @class RemoteQueueWidget remotequeuewidget.h <molequeue/remotequeuewidget.h>
@@ -55,6 +56,7 @@ private:
   Ui::RemoteQueueWidget *ui;
   QueueRemote *m_queue;
   Client *m_client; // Used for submitting test jobs.
+  TemplateKeywordDialog *m_helpDialog;
 };
 
 } // end namespace MoleQueue

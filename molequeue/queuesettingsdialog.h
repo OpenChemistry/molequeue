@@ -36,6 +36,7 @@ class ProgramConfigureDialog;
 class Queue;
 class QueueProgramItemModel;
 
+/// @brief Dialog for configuring queues and managing programs.
 class QueueSettingsDialog : public QDialog
 {
   Q_OBJECT

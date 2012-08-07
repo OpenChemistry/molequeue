@@ -26,6 +26,7 @@ class ImportQueueDialog;
 namespace MoleQueue {
 class QueueManager;
 
+/// @brief Dialog for importing a queue from a file.
 class ImportQueueDialog : public QDialog
 {
   Q_OBJECT

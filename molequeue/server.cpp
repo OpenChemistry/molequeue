@@ -344,8 +344,7 @@ void Server::sendSuccessfulSubmissionResponse(MoleQueue::Connection *connection,
 
   const IdType packetId = m_submissionLUT.take(moleQueueId);
   PacketType packet =  m_jsonrpc->generateJobSubmissionConfirmation(
-        moleQueueId, job.queueId(), job.localWorkingDirectory(),
-        packetId);
+        moleQueueId, job.localWorkingDirectory(), packetId);
 
   Message msg(replyTo, packet);
 

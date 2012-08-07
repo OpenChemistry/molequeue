@@ -24,6 +24,7 @@ class QueueSgeTest;
 namespace MoleQueue
 {
 
+/// @brief QueueRemote subclass for interacting with Sun Grid Engine.
 class QueueSge : public QueueRemote
 {
   Q_OBJECT

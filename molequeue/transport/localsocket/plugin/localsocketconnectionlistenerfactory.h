@@ -23,6 +23,7 @@
 namespace MoleQueue
 {
 
+/// @brief Subclass to ConnectionListenerFactory which uses local sockets.
 class LocalSocketConnectionListenerFactory: public QObject,
                                             public MoleQueue::ConnectionListenerFactory
 {

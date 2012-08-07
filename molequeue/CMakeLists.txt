@@ -70,6 +70,7 @@ set(mq_srcs
   server.cpp
   sshcommand.cpp
   sshconnection.cpp
+  templatekeyworddialog.cpp
   terminalprocess.cpp
 )
 
@@ -86,6 +87,7 @@ qt4_wrap_ui(ui_srcs
   ui/queuemanagerdialog.ui
   ui/queuesettingsdialog.ui
   ui/remotequeuewidget.ui
+  ui/templatekeyworddialog.ui
 )
 
 qt4_add_resources(rcc_srcs queuetray.qrc)

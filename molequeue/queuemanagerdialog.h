@@ -31,6 +31,7 @@ class QueueManager;
 class QueueManagerItemModel;
 class QueueSettingsDialog;
 
+/// @brief Dialog for managing supported queues.
 class QueueManagerDialog : public QDialog
 {
   Q_OBJECT

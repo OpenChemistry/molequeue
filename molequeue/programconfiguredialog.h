@@ -26,7 +26,9 @@ class ProgramConfigureDialog;
 namespace MoleQueue
 {
 class Program;
+class TemplateKeywordDialog;
 
+/// @brief Dialog for setting Program configuration options.
 class ProgramConfigureDialog : public QDialog
 {
   Q_OBJECT
@@ -59,10 +61,12 @@ protected slots:
 protected:
   void closeEvent(QCloseEvent *);
   void keyPressEvent(QKeyEvent *);
+  void showHelpDialog();
 
 private:
   Ui::ProgramConfigureDialog *ui;
   Program *m_program;
+  TemplateKeywordDialog *m_helpDialog;
   bool m_isCustomized;
   bool m_dirty;
   QString m_customLaunchText;

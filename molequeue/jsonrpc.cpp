@@ -85,7 +85,6 @@ PacketType JsonRpc::generateJobRequest(const Job &job,
 
 PacketType
 JsonRpc::generateJobSubmissionConfirmation(IdType moleQueueId,
-                                           IdType queueId,
                                            const QString &workingDirectory,
                                            IdType packetId)
 {
@@ -93,7 +92,6 @@ JsonRpc::generateJobSubmissionConfirmation(IdType moleQueueId,
 
   Json::Value resultObject (Json::objectValue);
   resultObject["moleQueueId"] = moleQueueId;
-  resultObject["queueId"] = queueId;
   resultObject["workingDirectory"] = workingDirectory.toStdString();
 
   packet["result"] = resultObject;
@@ -1225,11 +1223,9 @@ void JsonRpc::handleSubmitJobResult(const Json::Value &root) const
   const Json::Value &resultObject = root["result"];
 
   IdType moleQueueId;
-  IdType jobId;
   QDir workingDirectory;
 
   if (!resultObject["moleQueueId"].isIntegral() ||
-      !resultObject["queueId"].isIntegral() ||
       !resultObject["workingDirectory"].isString()) {
     Json::StyledWriter writer;
     const std::string responseString = writer.write(root);
@@ -1240,7 +1236,6 @@ void JsonRpc::handleSubmitJobResult(const Json::Value &root) const
 
   moleQueueId = static_cast<IdType>(
         resultObject["moleQueueId"].asLargestUInt());
-  jobId = static_cast<IdType>(resultObject["queueId"].asLargestUInt());
   workingDirectory = QDir(QString(
                             resultObject["workingDirectory"].asCString()));
 
@@ -1249,7 +1244,7 @@ void JsonRpc::handleSubmitJobResult(const Json::Value &root) const
                << workingDirectory.absolutePath() << "' for MoleQueue job id"
                << moleQueueId << "does not exist.";
 
-  emit successfulSubmissionReceived(id, moleQueueId, jobId, workingDirectory);
+  emit successfulSubmissionReceived(id, moleQueueId, workingDirectory);
 }
 
 void JsonRpc::handleSubmitJobError(const Json::Value &root) const

@@ -36,7 +36,8 @@ class OpenWithPatternModel;
 class ProgrammableOpenWithActionFactory;
 class PatternTypeDelegate;
 
-/// Dialog window for configuring ProgrammableOpenWithActionFactory objects.
+/// @brief Dialog window for configuring ProgrammableOpenWithActionFactory
+/// objects.
 class OpenWithManagerDialog : public QDialog
 {
   Q_OBJECT
