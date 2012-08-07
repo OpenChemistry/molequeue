@@ -17,6 +17,7 @@
 #include "queuesettingsdialog.h"
 #include "ui_queuesettingsdialog.h"
 
+#include "abstractqueuesettingswidget.h"
 #include "logger.h"
 #include "importprogramdialog.h"
 #include "queue.h"
@@ -24,7 +25,9 @@
 #include "program.h"
 #include "programconfiguredialog.h"
 
+#include <QtGui/QCloseEvent>
 #include <QtGui/QFileDialog>
+#include <QtGui/QKeyEvent>
 #include <QtGui/QMessageBox>
 #include <QtGui/QHeaderView>
 
@@ -38,7 +41,8 @@ QueueSettingsDialog::QueueSettingsDialog(Queue *queue, QWidget *parentObject)
   : QDialog(parentObject),
     ui(new Ui::QueueSettingsDialog),
     m_queue(queue),
-    m_model(new QueueProgramItemModel (m_queue, this))
+    m_model(new QueueProgramItemModel (m_queue, this)),
+    m_settingsWidget(m_queue->settingsWidget())
 {
   ui->setupUi(this);
 
@@ -46,10 +50,10 @@ QueueSettingsDialog::QueueSettingsDialog(Queue *queue, QWidget *parentObject)
   ui->typeNameLabel->setText(queue->typeName());
 
   // add queue settings widget
-  QWidget *settingsWidget = queue->settingsWidget();
-  if (settingsWidget) {
-    settingsWidget->setParent(ui->settingsFrame);
-    ui->settingsLayout->addWidget(settingsWidget);
+  if (m_settingsWidget) {
+    m_settingsWidget->setParent(ui->settingsFrame);
+    ui->settingsLayout->addWidget(m_settingsWidget);
+    m_settingsWidget->reset();
   }
 
   // populate programs table
@@ -75,15 +79,19 @@ QueueSettingsDialog::QueueSettingsDialog(Queue *queue, QWidget *parentObject)
 
   // Names can't be changed
   ui->nameLineEdit->setDisabled(true);
-
-  /// @todo Make these GUI components useful:
-  ui->push_save->setDisabled(true);
-  ui->push_reset->setDisabled(true);
 }
 
 QueueSettingsDialog::~QueueSettingsDialog()
 {
   delete ui;
+}
+
+void QueueSettingsDialog::accept()
+{
+  if (m_settingsWidget && m_settingsWidget->isDirty())
+    m_settingsWidget->save();
+
+  QDialog::accept();
 }
 
 void QueueSettingsDialog::addProgramClicked()
@@ -245,6 +253,48 @@ void QueueSettingsDialog::removeProgramDialog()
 
   m_programConfigureDialogs.remove(dialog->currentProgram());
   dialog->deleteLater();
+}
+
+void QueueSettingsDialog::closeEvent(QCloseEvent *e)
+{
+  if (m_settingsWidget && m_settingsWidget->isDirty()) {
+    // apply or discard changes?
+    QMessageBox::StandardButton reply =
+        QMessageBox::warning(this, tr("Unsaved changes"),
+                             tr("The changes to the queue have not been saved. "
+                                "Would you like to save or discard them?"),
+                             QMessageBox::Save | QMessageBox::Discard |
+                             QMessageBox::Cancel,
+                             QMessageBox::Save);
+
+    switch (reply) {
+    case QMessageBox::Cancel:
+      e->ignore();
+      return;
+    case QMessageBox::Save:
+      m_settingsWidget->save();
+    case QMessageBox::NoButton:
+    case QMessageBox::Discard:
+    default:
+      e->accept();
+      break;
+    }
+  }
+
+  QDialog::closeEvent(e);
+}
+
+void QueueSettingsDialog::keyPressEvent(QKeyEvent *e)
+{
+  // By default, the escape key bypasses the close event, but we still want to
+  // check if the settings widget is dirty.
+  if (e->key() == Qt::Key_Escape) {
+    e->accept();
+    close();
+    return;
+  }
+
+  QDialog::keyPressEvent(e);
 }
 
 void QueueSettingsDialog::showProgramConfigDialog(Program *prog)

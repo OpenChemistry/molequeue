@@ -32,6 +32,7 @@ class QSettings;
 
 namespace MoleQueue
 {
+class AbstractQueueSettingsWidget;
 class Job;
 class Program;
 class QueueManager;
@@ -118,7 +119,7 @@ public:
    * Returns a widget that can be used to configure the settings for the
    * queue.
    */
-  virtual QWidget* settingsWidget();
+  virtual AbstractQueueSettingsWidget* settingsWidget();
 
   /**
    * Add a new program to the queue. Program names must be unique in each

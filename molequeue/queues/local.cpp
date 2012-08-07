@@ -18,6 +18,7 @@
 
 #include "../job.h"
 #include "../jobmanager.h"
+#include "../localqueuewidget.h"
 #include "../logentry.h"
 #include "../logger.h"
 #include "../program.h"
@@ -35,7 +36,6 @@
 #include <QtCore/QTimerEvent>
 #include <QtCore/QThread> // For ideal thread count
 
-#include <QtGui/QWidget>
 #include <QtGui/QFormLayout>
 #include <QtGui/QSpinBox>
 
@@ -120,17 +120,9 @@ void QueueLocal::importConfiguration(QSettings &importer, bool includePrograms)
     m_cores = importer.value("cores").toInt();
 }
 
-QWidget* QueueLocal::settingsWidget()
+AbstractQueueSettingsWidget *QueueLocal::settingsWidget()
 {
-  QWidget *widget = new QWidget;
-
-  QFormLayout *layout = new QFormLayout;
-  QSpinBox *coresSpinBox = new QSpinBox(widget);
-  coresSpinBox->setValue(m_cores);
-  coresSpinBox->setMinimum(0);
-  layout->addRow("Number of Cores: ", coresSpinBox);
-  widget->setLayout(layout);
-
+  LocalQueueWidget *widget = new LocalQueueWidget(this);
   return widget;
 }
 
@@ -257,12 +249,12 @@ void QueueLocal::processFinished(int exitCode, QProcess::ExitStatus exitStatus)
   job.setJobState(MoleQueue::Finished);
 }
 
-int QueueLocal::cores() const
+int QueueLocal::maxNumberOfCores() const
 {
   if (m_cores > 0)
     return m_cores;
   else
-    return QThread::idealThreadCount() > 8 ? 8 : QThread::idealThreadCount();
+    return QThread::idealThreadCount();
 }
 
 
@@ -292,7 +284,7 @@ bool QueueLocal::checkJobLimit()
       coresInUse += job.numberOfCores();
   }
 
-  int totalCores = cores();
+  int totalCores = maxNumberOfCores();
   int coresAvailable = totalCores - coresInUse;
 
   // Keep submitting jobs (FIFO) until we hit one we can't afford to start.

@@ -34,7 +34,7 @@ namespace MoleQueue
 
 RemoteQueueWidget::RemoteQueueWidget(QueueRemote *queue,
                                      QWidget *parentObject) :
-  QWidget(parentObject),
+  AbstractQueueSettingsWidget(parentObject),
   ui(new Ui::RemoteQueueWidget),
   m_queue(queue),
   m_client(NULL),
@@ -42,26 +42,26 @@ RemoteQueueWidget::RemoteQueueWidget(QueueRemote *queue,
 {
   ui->setupUi(this);
 
-  updateGuiFromQueue();
+  reset();
 
   connect(ui->edit_submissionCommand, SIGNAL(textChanged(QString)),
-          this, SLOT(updateSubmissionCommand(QString)));
+          this, SLOT(setDirty()));
   connect(ui->edit_killCommand, SIGNAL(textChanged(QString)),
-          this, SLOT(updateKillCommand(QString)));
+          this, SLOT(setDirty()));
   connect(ui->edit_requestQueueCommand, SIGNAL(textChanged(QString)),
-          this, SLOT(updateRequestQueueCommand(QString)));
+          this, SLOT(setDirty()));
   connect(ui->edit_launchScriptName, SIGNAL(textChanged(QString)),
-          this, SLOT(updateLaunchScriptName(QString)));
+          this, SLOT(setDirty()));
   connect(ui->edit_workingDirectoryBase, SIGNAL(textChanged(QString)),
-          this, SLOT(updateWorkingDirectoryBase(QString)));
+          this, SLOT(setDirty()));
   connect(ui->edit_hostName, SIGNAL(textChanged(QString)),
-          this, SLOT(updateHostName(QString)));
+          this, SLOT(setDirty()));
   connect(ui->edit_userName, SIGNAL(textChanged(QString)),
-          this, SLOT(updateUserName(QString)));
+          this, SLOT(setDirty()));
   connect(ui->spin_sshPort, SIGNAL(valueChanged(int)),
-          this, SLOT(updateSshPort(int)));
+          this, SLOT(setDirty()));
   connect(ui->text_launchTemplate, SIGNAL(textChanged()),
-          this, SLOT(updateLaunchTemplate()));
+          this, SLOT(setDirty()));
 
   connect(ui->push_testConnection, SIGNAL(clicked()),
           this, SLOT(testConnection()));
@@ -76,7 +76,27 @@ RemoteQueueWidget::~RemoteQueueWidget()
   delete ui;
 }
 
-void RemoteQueueWidget::updateGuiFromQueue()
+void RemoteQueueWidget::save()
+{
+  m_queue->setSubmissionCommand(ui->edit_submissionCommand->text());
+  m_queue->setKillCommand(ui->edit_killCommand->text());
+  m_queue->setRequestQueueCommand(ui->edit_requestQueueCommand->text());
+  m_queue->setLaunchScriptName(ui->edit_launchScriptName->text());
+  m_queue->setWorkingDirectoryBase(ui->edit_workingDirectoryBase->text());
+  m_queue->setHostName(ui->edit_hostName->text());
+  m_queue->setUserName(ui->edit_userName->text());
+  m_queue->setSshPort(ui->spin_sshPort->value());
+
+  QString text = ui->text_launchTemplate->document()->toPlainText();
+  m_queue->setLaunchTemplate(text);
+
+  int hours = ui->wallTimeHours->value();
+  int minutes = ui->wallTimeMinutes->value();
+  m_queue->setDefaultMaxWallTime(minutes + (hours * 60));
+  setDirty(false);
+}
+
+void RemoteQueueWidget::reset()
 {
   ui->edit_submissionCommand->setText(m_queue->submissionCommand());
   ui->edit_killCommand->setText(m_queue->killCommand());
@@ -90,6 +110,7 @@ void RemoteQueueWidget::updateGuiFromQueue()
   ui->edit_userName->setText(m_queue->userName());
   ui->spin_sshPort->setValue(m_queue->sshPort());
   ui->text_launchTemplate->document()->setPlainText(m_queue->launchTemplate());
+  setDirty(false);
 }
 
 void RemoteQueueWidget::testConnection()
@@ -222,68 +243,6 @@ void RemoteQueueWidget::sleepTest()
   sleepJob.setDescription("sleep 30 (test)");
 
   m_client->submitJobRequest(sleepJob);
-}
-
-void RemoteQueueWidget::updateSubmissionCommand(const QString &command)
-{
-  m_queue->setSubmissionCommand(command);
-}
-
-void RemoteQueueWidget::updateKillCommand(const QString &command)
-{
-  m_queue->setKillCommand(command);
-}
-
-void RemoteQueueWidget::updateRequestQueueCommand(const QString &command)
-{
-  m_queue->setRequestQueueCommand(command);
-}
-
-void RemoteQueueWidget::updateLaunchScriptName(const QString &name)
-{
-  m_queue->setLaunchScriptName(name);
-}
-
-void RemoteQueueWidget::updateWorkingDirectoryBase(const QString &dir)
-{
-  m_queue->setWorkingDirectoryBase(dir);
-}
-
-void RemoteQueueWidget::updateDefaultMaxWallTime()
-{
-  int hours = ui->wallTimeHours->value();
-  int minutes = ui->wallTimeMinutes->value();
-
-  minutes += hours * 60;
-  m_queue->setDefaultMaxWallTime(minutes);
-}
-
-void RemoteQueueWidget::updateHostName(const QString &hostName)
-{
-  m_queue->setHostName(hostName);
-}
-
-void RemoteQueueWidget::updateUserName(const QString &userName)
-{
-  m_queue->setUserName(userName);
-}
-
-void RemoteQueueWidget::updateSshPort(int sshPort)
-{
-  m_queue->setSshPort(sshPort);
-}
-
-void RemoteQueueWidget::showTemplateHelp()
-{
-  if (!m_helpDialog)
-    m_helpDialog = new TemplateKeywordDialog(this);
-  m_helpDialog->show();
-}
-
-void RemoteQueueWidget::updateLaunchTemplate()
-{
-  QString text = ui->text_launchTemplate->document()->toPlainText();
-  m_queue->setLaunchTemplate(text);
 }
 
 } // end namespace MoleQueue

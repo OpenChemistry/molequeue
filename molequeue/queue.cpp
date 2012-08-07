@@ -160,7 +160,7 @@ void Queue::importConfiguration(QSettings &importer, bool includePrograms)
   }
 }
 
-QWidget* Queue::settingsWidget()
+AbstractQueueSettingsWidget* Queue::settingsWidget()
 {
   return NULL;
 }

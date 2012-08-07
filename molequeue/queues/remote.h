@@ -64,7 +64,7 @@ public:
   void importConfiguration(QSettings &importer,
                            bool includePrograms = true);
 
-  virtual QWidget *settingsWidget();
+  virtual AbstractQueueSettingsWidget* settingsWidget();
 
   void setHostName(const QString &host)
   {
