@@ -50,10 +50,8 @@ Client::Client(QObject *parentObject) :
                                        MoleQueue::QueueListType)));
   connect(m_jsonrpc, SIGNAL(successfulSubmissionReceived(MoleQueue::IdType,
                                                          MoleQueue::IdType,
-                                                         MoleQueue::IdType,
                                                          QDir)),
           this, SLOT(successfulSubmissionReceived(MoleQueue::IdType,
-                                                  MoleQueue::IdType,
                                                   MoleQueue::IdType,
                                                   QDir)));
   connect(m_jsonrpc,
@@ -129,7 +127,6 @@ void Client::queueListReceived(IdType, const QueueListType &list)
 
 void Client::successfulSubmissionReceived(IdType packetId,
                                           IdType moleQueueId,
-                                          IdType queueId,
                                           const QDir &workingDir)
 {
   if (!m_submittedLUT->contains(packetId)) {
@@ -147,7 +144,6 @@ void Client::successfulSubmissionReceived(IdType packetId,
     return;
   }
   req.setMoleQueueId(moleQueueId);
-  req.setQueueId(queueId);
   req.setLocalWorkingDirectory(workingDir.absolutePath());
   if (req.outputDirectory().isEmpty())
     req.setOutputDirectory(req.localWorkingDirectory());
