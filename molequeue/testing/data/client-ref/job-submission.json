@@ -14,7 +14,7 @@
       "moleQueueId" : 4294967295,
       "numberOfCores" : 1,
       "outputDirectory" : "",
-      "popupOnStateChange" : true,
+      "popupOnStateChange" : false,
       "program" : "Some program",
       "queue" : "Some queue",
       "queueId" : 4294967295,

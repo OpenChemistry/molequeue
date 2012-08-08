@@ -15,7 +15,7 @@
       "moleQueueId" : 0,
       "numberOfCores" : 1,
       "outputDirectory" : "",
-      "popupOnStateChange" : true,
+      "popupOnStateChange" : false,
       "program" : "Quantum Tater",
       "queue" : "Some big ol' cluster",
       "queueId" : 4294967295,
