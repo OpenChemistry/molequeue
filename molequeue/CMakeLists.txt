@@ -21,6 +21,7 @@ if(CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND NOT WIN32)
 endif()
 
 set(mq_srcs
+  abstractqueuesettingswidget.cpp
   abstractrpcinterface.cpp
   actionfactorymanager.cpp
   addqueuedialog.cpp
@@ -42,6 +43,7 @@ set(mq_srcs
   jobtablewidget.cpp
   jobview.cpp
   jsonrpc.cpp
+  localqueuewidget.cpp
   logentry.cpp
   logger.cpp
   logwindow.cpp
@@ -77,6 +79,7 @@ qt4_wrap_ui(ui_srcs
   ui/importprogramdialog.ui
   ui/importqueuedialog.ui
   ui/jobtablewidget.ui
+  ui/localqueuewidget.ui
   ui/logwindow.ui
   ui/mainwindow.ui
   ui/openwithmanagerdialog.ui

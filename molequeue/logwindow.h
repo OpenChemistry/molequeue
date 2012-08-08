@@ -41,6 +41,12 @@ public:
   explicit LogWindow(QWidget *theParent = 0);
   ~LogWindow();
 
+protected:
+  void changeEvent(QEvent *e);
+  void closeEvent(QCloseEvent *);
+  void hideEvent(QHideEvent *);
+  void showEvent(QShowEvent *);
+
 private slots:
   void addLogEntry(const MoleQueue::LogEntry &);
   void clearLog();
@@ -63,6 +69,7 @@ private:
   QTextCharFormat *m_warningFormat;
   QTextCharFormat *m_errorFormat;
   QTextCharFormat *m_moleQueueIdFormat;
+  QTextCharFormat *m_messageFormat;
 };
 
 

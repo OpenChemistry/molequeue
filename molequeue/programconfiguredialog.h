@@ -56,6 +56,11 @@ protected slots:
   void launchSyntaxChanged(int enumVal);
   void customizeLauncherClicked();
 
+  void setDirty(bool dirty = true) { m_dirty = dirty; }
+
+protected:
+  void closeEvent(QCloseEvent *);
+  void keyPressEvent(QKeyEvent *);
   void showHelpDialog();
 
 private:
@@ -63,6 +68,7 @@ private:
   Program *m_program;
   TemplateKeywordDialog *m_helpDialog;
   bool m_isCustomized;
+  bool m_dirty;
   QString m_customLaunchText;
 };
 

@@ -30,6 +30,7 @@ namespace Ui {
 
 namespace MoleQueue
 {
+class AbstractQueueSettingsWidget;
 class Program;
 class ProgramConfigureDialog;
 class Queue;
@@ -46,6 +47,9 @@ public:
 
   Queue *currentQueue() const { return m_queue; }
 
+public slots:
+  void accept();
+
 protected slots:
   void addProgramClicked();
   void removeProgramClicked();
@@ -59,6 +63,9 @@ protected slots:
   void removeProgramDialog();
 
 protected:
+  void closeEvent(QCloseEvent *);
+  void keyPressEvent(QKeyEvent *);
+
   /// Row indices, ascending order
   QList<int> getSelectedRows();
   QList<Program*> getSelectedPrograms();
@@ -67,6 +74,7 @@ protected:
   Queue *m_queue;
   QueueProgramItemModel *m_model;
   QMap<Program *, ProgramConfigureDialog *> m_programConfigureDialogs;
+  AbstractQueueSettingsWidget *m_settingsWidget;
 };
 
 } // end MoleQueue namespace

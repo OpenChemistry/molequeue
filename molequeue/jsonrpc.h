@@ -77,14 +77,12 @@ public:
     * Generate a JSON-RPC packet to confirm a successful job submission.
     *
     * @param moleQueueId The MoleQueue internal job identifier
-    * @param queueId The Queue job id (if applicable, 0 otherwise)
     * @param workingDir Local working directory where files are stored during
     * job execution
     * @param packetId The JSON-RPC id for the request.
     * @return A PacketType, ready to send to a Connection.
     */
   PacketType generateJobSubmissionConfirmation(IdType moleQueueId,
-                                               IdType queueId,
                                                const QString &workingDir,
                                                IdType packetId);
 
@@ -406,15 +404,11 @@ signals:
     *
     * @param packetId The JSON-RPC id for the packet
     * @param moleQueueId An internal identifer unique to the new job.
-    * @param jobId An identifier used by the queuing system. If the Queue does
-    * not used numeric ids or none are available (e.g. local submission may not
-    * provide a process id immediately), 0 will be returned.
     * @param workingDir The local directory where the temporary files will be
     * stored.
     */
   void successfulSubmissionReceived(MoleQueue::IdType packetId,
                                     MoleQueue::IdType moleQueueId,
-                                    MoleQueue::IdType jobId,
                                     const QDir &workingDir) const;
 
   /**
