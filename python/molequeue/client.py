@@ -84,6 +84,13 @@ class JobRequestException(MoleQueueException):
     self.code = code
     self.message = message
 
+class JobRequestInformationException(MoleQueueException):
+  def __init__(self, packet_id, data, code, message):
+    self.packet_id = packet_id
+    self.data = data
+    self.code = code
+    self.message = message
+
 class Client:
 
   def __init__(self):
@@ -149,9 +156,34 @@ class Client:
     # TODO
     pass
 
-  def lookup_job(self):
-    # TODO
-    pass
+  def lookup_job(self, molequeue_id, timeout=None):
+
+    params = {'moleQueueId': molequeue_id}
+
+    packet_id = self._next_packet_id()
+    jsonrpc = JsonRpc.generate_request(packet_id,
+                                      'lookupJob',
+                                      params)
+
+    self._send_request(packet_id, jsonrpc)
+    response = self._wait_for_response(packet_id, timeout)
+
+    # Timeout
+    if response == None:
+      return None
+
+    # if we an error occurred then throw an exception
+    if 'error' in response:
+      exception = JobRequestInformationException(response['error']['id'],
+                                                 reponse['error']['data'],
+                                                 reponse['error']['code'],
+                                                 reponse['error']['message'])
+      raise exception
+
+    jobrequest = JsonRpc.json_to_jobrequest(response)
+
+    return jobrequest
+
 
   def _on_response(self, packet_id, msg):
     if packet_id in self._request_response_map:
