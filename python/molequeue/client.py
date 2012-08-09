@@ -10,6 +10,30 @@ from functools import partial
 import inspect
 import json
 
+class JobState:
+  # Unknown status
+  UNKNOWN = -1,
+  # Initial state of job, should never be entered.
+  NONE = 0,
+  # Job has been accepted by the server and is being prepared (Writing input files, etc).
+  ACCEPTED = 1
+  # Job is being queued locally, either waiting for local execution or remote submission.
+  LOCALQUEUED = 2
+  # Job has been submitted to a remote queuing system.
+  SUBMITTED = 3
+  # Job is pending execution on a remote queuing system.
+  REMOTEQUEUED = 4
+  # Job is running locally.
+  RUNNINGLOCAL = 5
+  # Job is running remotely.
+  RUNNINGREMOTE = 6
+  # Job has completed.
+  FINISHED = 7
+  # Job has been terminated at a user request.
+  KILLED = 8
+  # Job has been terminated due to an error.
+  ERRORSTATE = 9
+
 class JobRequest:
   def __init__(self):
     self.queue = None
