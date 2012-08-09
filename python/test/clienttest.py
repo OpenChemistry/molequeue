@@ -49,5 +49,33 @@ class TestClient(unittest.TestCase):
 
     client.disconnect()
 
+  def test_lookup_job(self):
+    client = molequeue.Client()
+    client.connect_to_server('MoleQueue')
+
+    expected_job_request = molequeue.JobRequest()
+    expected_job_request.queue = 'salix'
+    expected_job_request.program = 'sleep (testing)'
+    expected_job_request.description = 'This is a test job'
+    expected_job_request.hide_from_gui = True
+    expected_job_request.popup_on_state_change = False
+
+    molequeue_id = client.submit_job_request(expected_job_request)
+
+    jobrequest = client.lookup_job(molequeue_id)
+
+    self.assertEqual(molequeue_id, jobrequest.molequeue_id())
+    self.assertEqual(jobrequest.job_state(), molequeue.JobState.ACCEPTED)
+    self.assertTrue(isinstance(jobrequest.queue_id(), int))
+    self.assertEqual(jobrequest.queue, expected_job_request.queue)
+    self.assertEqual(jobrequest.program, expected_job_request.program)
+    self.assertEqual(jobrequest.description, expected_job_request.description)
+    self.assertEqual(jobrequest.hide_from_gui,
+                     expected_job_request.hide_from_gui)
+    self.assertEqual(jobrequest.popup_on_state_change,
+                     expected_job_request.popup_on_state_change)
+
+    client.disconnect()
+
 if __name__ == '__main__':
     unittest.main()
