@@ -50,7 +50,9 @@ class JobRequest:
     self.retrieve_output = True
     self.clean_local_working_directory = False
     self.hide_from_gui = False
-    self.pop_up_state_change = True
+    self.popup_on_state_change = True
+    self.number_of_cores = 1
+    self.max_wall_time = -1
 
   def job_state(self):
     # TODO
