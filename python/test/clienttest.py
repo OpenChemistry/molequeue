@@ -45,5 +45,16 @@ class TestClient(unittest.TestCase):
 
     client.disconnect()
 
+  def test_wait_for_response_timeout(self):
+     client = molequeue.Client()
+     # Fake up the request
+     client._request_response_map[1] = None
+     start = time.time()
+     response = client._wait_for_response(1, 3)
+     end = time.time()
+
+     self.assertEqual(response, None)
+     self.assertEqual(int(end - start), 3)
+
 if __name__ == '__main__':
     unittest.main()

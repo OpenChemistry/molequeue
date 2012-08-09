@@ -9,6 +9,7 @@ from threading import Lock
 from functools import partial
 import inspect
 import json
+import time
 
 class JobState:
   # Unknown status
@@ -129,19 +130,13 @@ class Client:
                                       'submitJob',
                                       params)
 
-    # add to request map so we know we are waiting on  response for this packet
-    # id
-    self._request_response_map[packet_id] = None
-    self.stream.send(str(jsonrpc))
-    self.stream.flush()
+    self._send_request(packet_id, jsonrpc)
+    response = self._wait_for_response(packet_id, timeout)
 
-    # wait for the response to come in
-    self._new_response_condition.acquire()
-    while self._request_response_map[packet_id] == None:
-      self._new_response_condition.wait(timeout)
+    # Timeout
+    if response == None:
+      return None
 
-    response = self._request_response_map[packet_id]
-    self._new_response_condition.release()
     # if we an error occurred then throw an exception
     if 'error' in response:
       exception = JobRequestException(reponse['error']['id'],
@@ -178,6 +173,30 @@ class Client:
       self._current_packet_id += 1
       next = self._current_packet_id
     return next
+
+  def _send_request(self, packet_id, jsonrpc):
+    # add to request map so we know we are waiting on  response for this packet
+    # id
+    self._request_response_map[packet_id] = None
+    self.stream.send(str(jsonrpc))
+    self.stream.flush()
+
+  def _wait_for_response(self, packet_id, timeout):
+    start = time.time()
+    # wait for the response to come in
+    self._new_response_condition.acquire()
+    while self._request_response_map[packet_id] == None:
+      wait_time = None
+      if timeout != None:
+        wait_time = timeout - (time.time() - start)
+        if wait_time <= 0:
+          break;
+      self._new_response_condition.wait(wait_time)
+
+    response = self._request_response_map[packet_id]
+    self._new_response_condition.release()
+
+    return response
 
 def _on_recv(client, msg):
   jsonrpc = json.loads(msg[0])
