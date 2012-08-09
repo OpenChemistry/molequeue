@@ -115,7 +115,7 @@ class Client:
 
   def register_notification_callback(self, callback):
     # check a valid function has been past
-    assert not callback(callback)
+    assert callable(callback)
     self._notification_callbacks.append(callback)
 
   def request_queue_list_update(self):
