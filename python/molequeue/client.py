@@ -54,16 +54,13 @@ class JobRequest:
     self.max_wall_time = -1
 
   def job_state(self):
-    # TODO
-    pass
+    return self._job_state
 
   def molequeue_id(self):
-    # TODO
-    pass
+    return self._mole_queue_id
 
   def queue_id(self):
-    # TODO
-    pass
+    return self._queue_id
 
 class EventLoop(Thread):
   def __init__(self, io_loop):
