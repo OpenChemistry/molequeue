@@ -1,4 +1,6 @@
 import json
+import re
+import itertools
 
 class JsonRpc:
   @staticmethod
@@ -12,11 +14,15 @@ class JsonRpc:
     return json.dumps(request)
 
 def underscore_to_camelcase(value):
-    def camelcase():
-        yield str.lower
-        while True:
-            yield str.capitalize
+  def camelcase():
+    yield str.lower
+    while True:
+      yield str.capitalize
 
-    c = camelcase()
+  c = camelcase()
 
-    return "".join(c.next()(x) for x in value.split("_"))
+  return ''.join(c.next()(x) for x in value.split('_'))
+
+def camelcase_to_underscore(value):
+  operation = itertools.cycle((lambda x : x.lower(), lambda x : '_' + x.lower()))
+  return ''.join(operation.next()(x) for x in re.split('([A-Z])', value))
