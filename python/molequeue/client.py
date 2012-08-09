@@ -1,8 +1,6 @@
 import zmq
 from zmq.eventloop import ioloop
 from zmq.eventloop.zmqstream import ZMQStream
-from utils import underscore_to_camelcase
-from utils import JsonRpc
 from threading import Thread
 from threading import Condition
 from threading import Lock
@@ -10,6 +8,10 @@ from functools import partial
 import inspect
 import json
 import time
+
+from utils import underscore_to_camelcase
+from utils import camelcase_to_underscore
+from utils import JsonRpc
 
 class JobState:
   # Unknown status
@@ -121,10 +123,7 @@ class Client:
     pass
 
   def submit_job_request(self, request, timeout=None):
-    params = {}
-    for key, value in request.__dict__.iteritems():
-      params[underscore_to_camelcase(key)] = value
-
+    params = JsonRpc.jobrequest_to_json_params(request)
     packet_id = self._next_packet_id()
     jsonrpc = JsonRpc.generate_request(packet_id,
                                       'submitJob',
