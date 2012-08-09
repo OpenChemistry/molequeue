@@ -1,5 +1,6 @@
 import unittest
 from functools import partial
+import time
 
 import molequeue
 
@@ -40,6 +41,9 @@ class TestClient(unittest.TestCase):
     job_request.program = 'sleep (testing)'
 
     molequeue_id = client.submit_job_request(job_request)
+
+    # wait for notification
+    time.sleep(1)
 
     self.assertIs(self.callback_count, 2)
 
