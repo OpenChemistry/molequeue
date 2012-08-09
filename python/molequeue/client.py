@@ -139,9 +139,9 @@ class Client:
 
     # if we an error occurred then throw an exception
     if 'error' in response:
-      exception = JobRequestException(reponse['error']['id'],
-                                      reponse['error']['code'],
-                                      reponse['error']['message'])
+      exception = JobRequestException(response['error']['id'],
+                                      response['error']['code'],
+                                      response['error']['message'])
       raise exception
 
     # otherwise return the molequeue id
