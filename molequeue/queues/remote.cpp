@@ -231,7 +231,7 @@ void QueueRemote::createRemoteDirectory(Job job)
                         " '%2' port = '%3'")
                      .arg(conn->userName()).arg(conn->hostName())
                      .arg(conn->portNumber()), job.moleQueueId());
-    job.setJobState(MoleQueue::ErrorState);
+    job.setJobState(MoleQueue::Error);
     conn->deleteLater();
     return;
   }
@@ -263,7 +263,7 @@ void QueueRemote::remoteDirectoryCreated()
                      .arg(conn->output()), job.moleQueueId());
     // Retry submission:
     m_pendingSubmission.append(job.moleQueueId());
-    job.setJobState(MoleQueue::ErrorState);
+    job.setJobState(MoleQueue::Error);
     return;
   }
 
@@ -285,7 +285,7 @@ void QueueRemote::copyInputFilesToHost(Job job)
                         " '%2' port = '%3'")
                      .arg(conn->userName()).arg(conn->hostName())
                      .arg(conn->portNumber()), job.moleQueueId());
-    job.setJobState(MoleQueue::ErrorState);
+    job.setJobState(MoleQueue::Error);
     conn->deleteLater();
     return;
   }
@@ -318,7 +318,7 @@ void QueueRemote::inputFilesCopied()
                        job.moleQueueId());
     // Retry submission:
     m_pendingSubmission.append(job.moleQueueId());
-    job.setJobState(MoleQueue::ErrorState);
+    job.setJobState(MoleQueue::Error);
     return;
   }
 
@@ -343,7 +343,7 @@ void QueueRemote::submitJobToRemoteQueue(Job job)
                         " '%2' port = '%3'")
                      .arg(conn->userName()).arg(conn->hostName())
                      .arg(conn->portNumber()), job.moleQueueId());
-    job.setJobState(MoleQueue::ErrorState);
+    job.setJobState(MoleQueue::Error);
     conn->deleteLater();
     return;
   }
@@ -379,7 +379,7 @@ void QueueRemote::jobSubmittedToRemoteQueue()
                        .arg(conn->output()), job.moleQueueId());
     // Retry submission:
     m_pendingSubmission.append(job.moleQueueId());
-    job.setJobState(MoleQueue::ErrorState);
+    job.setJobState(MoleQueue::Error);
     return;
   }
 
@@ -512,7 +512,7 @@ void QueueRemote::finalizeJobCopyFromServer(Job job)
                         " '%2' port = '%3'")
                      .arg(conn->userName()).arg(conn->hostName())
                      .arg(conn->portNumber()), job.moleQueueId());
-    job.setJobState(MoleQueue::ErrorState);
+    job.setJobState(MoleQueue::Error);
     conn->deleteLater();
     return;
   }
@@ -543,7 +543,7 @@ void QueueRemote::finalizeJobOutputCopiedFromServer()
                      .arg(conn->portNumber()).arg(job.localWorkingDirectory())
                      .arg(conn->exitCode()).arg(conn->output()),
                      job.moleQueueId());
-    job.setJobState(MoleQueue::ErrorState);
+    job.setJobState(MoleQueue::Error);
     return;
   }
 
@@ -562,7 +562,7 @@ void QueueRemote::finalizeJobCopyToCustomDestination(Job job)
   // The copy function will throw errors if needed.
   if (!recursiveCopyDirectory(job.localWorkingDirectory(),
                               job.outputDirectory())) {
-    job.setJobState(MoleQueue::ErrorState);
+    job.setJobState(MoleQueue::Error);
     return;
   }
 
@@ -635,7 +635,7 @@ void QueueRemote::remoteDirectoryCleaned()
                      .arg(m_workingDirectoryBase).arg(job.moleQueueId())
                      .arg(conn->exitCode()).arg(conn->output()),
                      job.moleQueueId());
-    job.setJobState(MoleQueue::ErrorState);
+    job.setJobState(MoleQueue::Error);
     return;
   }
 }
@@ -662,7 +662,7 @@ void QueueRemote::beginKillJob(Job job)
                         " '%2' port = '%3'")
                      .arg(conn->userName()).arg(conn->hostName())
                      .arg(conn->portNumber()), job.moleQueueId());
-    job.setJobState(MoleQueue::ErrorState);
+    job.setJobState(MoleQueue::Error);
     conn->deleteLater();
     return;
   }

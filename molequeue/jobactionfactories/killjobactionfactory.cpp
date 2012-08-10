@@ -51,7 +51,7 @@ bool KillJobActionFactory::isValidForJob(const Job &job) const
   case MoleQueue::RemoteQueued:
   case MoleQueue::RunningLocal:
   case MoleQueue::RunningRemote:
-  case MoleQueue::ErrorState:
+  case MoleQueue::Error:
     return true;
   case MoleQueue::Unknown:
   case MoleQueue::None:

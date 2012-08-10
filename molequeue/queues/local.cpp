@@ -238,7 +238,7 @@ void QueueLocal::processFinished(int exitCode, QProcess::ExitStatus exitStatus)
     // copy function logs errors if needed
     if (!recursiveCopyDirectory(job.localWorkingDirectory(),
                                 job.outputDirectory())) {
-      job.setJobState(MoleQueue::ErrorState);
+      job.setJobState(MoleQueue::Error);
       return;
     }
   }
