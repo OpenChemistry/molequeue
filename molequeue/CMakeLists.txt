@@ -254,6 +254,8 @@ if(MoleQueue_BUILD_CLIENT)
 
 endif() # MoleQueue_BUILD_CLIENT
 
+add_subdirectory(client)
+
 add_subdirectory(transport)
 
 # Config file for build options.
