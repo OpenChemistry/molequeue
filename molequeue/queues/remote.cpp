@@ -133,6 +133,8 @@ void QueueRemote::setQueueUpdateInterval(int interval)
   if (interval == m_queueUpdateInterval)
     return;
 
+  m_queueUpdateInterval = interval;
+
   killTimer(m_checkQueueTimerId);
   m_checkQueueTimerId = startTimer(m_queueUpdateInterval * 60000);
   requestQueueUpdate();
