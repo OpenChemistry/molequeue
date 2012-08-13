@@ -422,6 +422,9 @@ void QueueRemote::requestQueueUpdate()
   if (m_isCheckingQueue)
     return;
 
+  if (m_jobs.isEmpty())
+    return;
+
   m_isCheckingQueue = true;
 
   const QString command = generateQueueRequestCommand();

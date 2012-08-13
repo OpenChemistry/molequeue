@@ -146,4 +146,13 @@ QueueListType QueueManager::toQueueList() const
   return queueList;
 }
 
+void QueueManager::updateRemoteQueues() const
+{
+  foreach (Queue *queue, m_queues) {
+    if (QueueRemote *remote = qobject_cast<QueueRemote*>(queue)) {
+      remote->requestQueueUpdate();
+    }
+  }
+}
+
 } // end MoleQueue namespace

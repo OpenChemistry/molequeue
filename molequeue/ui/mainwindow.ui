@@ -52,6 +52,7 @@
     <addaction name="actionQueueManager"/>
     <addaction name="actionOpenWithManager"/>
     <addaction name="actionShowLog"/>
+    <addaction name="actionUpdateRemoteQueues"/>
     <addaction name="actionQuit"/>
    </widget>
    <addaction name="fileMenu"/>
@@ -96,6 +97,17 @@
   <action name="actionShowLog">
    <property name="text">
     <string>Show &amp;Log</string>
+   </property>
+  </action>
+  <action name="actionUpdateRemoteQueues">
+   <property name="text">
+    <string>&amp;Update remote queues</string>
+   </property>
+   <property name="toolTip">
+    <string>Update the status of jobs on remote queuing systems.</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+R</string>
    </property>
   </action>
  </widget>

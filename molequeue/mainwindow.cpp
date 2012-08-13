@@ -28,6 +28,7 @@
 #include "logger.h"
 #include "logwindow.h"
 #include "openwithmanagerdialog.h"
+#include "queuemanager.h"
 #include "queuemanagerdialog.h"
 #include "server.h"
 
@@ -261,6 +262,8 @@ void MainWindow::createActions()
   connect(m_ui->actionMinimize, SIGNAL(triggered()), this, SLOT(hide()));
   connect(m_ui->actionMaximize, SIGNAL(triggered()), this, SLOT(showMaximized()));
   connect(m_ui->actionRestore, SIGNAL(triggered()), this, SLOT(showNormal()));
+  connect(m_ui->actionUpdateRemoteQueues, SIGNAL(triggered()),
+          m_server->queueManager(), SLOT(updateRemoteQueues()));
 }
 
 void MainWindow::createMainMenu()

@@ -188,6 +188,8 @@ public slots:
   bool submitJob(MoleQueue::Job job);
   void killJob(MoleQueue::Job job);
 
+  virtual void requestQueueUpdate();
+
 protected slots:
   virtual void submitPendingJobs();
 
@@ -202,7 +204,6 @@ protected slots:
   virtual void submitJobToRemoteQueue(MoleQueue::Job job);
   virtual void jobSubmittedToRemoteQueue();
 
-  virtual void requestQueueUpdate();
   virtual void handleQueueUpdate();
 
   virtual void beginFinalizeJob(MoleQueue::IdType queueId);
