@@ -74,7 +74,7 @@ RemoteQueueWidget::RemoteQueueWidget(QueueRemote *queue,
   connect(ui->push_sleepTest, SIGNAL(clicked()),
           this, SLOT(sleepTest()));
   connect(ui->templateHelpButton, SIGNAL(clicked()),
-          this, SLOT(showTemplateHelp()));
+          this, SLOT(showHelpDialog()));
 }
 
 RemoteQueueWidget::~RemoteQueueWidget()
