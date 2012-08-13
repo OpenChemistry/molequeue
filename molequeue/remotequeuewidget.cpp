@@ -133,6 +133,7 @@ void RemoteQueueWidget::reset()
 void RemoteQueueWidget::testConnection()
 {
   // Verify information
+  QString sshCommand = ui->sshExecutableEdit->text();
   QString host = ui->edit_hostName->text();
   QString user = ui->edit_userName->text();
   int port = ui->spin_sshPort->value();
@@ -145,7 +146,8 @@ void RemoteQueueWidget::testConnection()
   }
 
   // Create SSH connection
-  SshConnection *conn = new SshCommand (this);
+  SshCommand *conn= new SshCommand (this);
+  conn->setSshCommand(sshCommand);
   conn->setHostName(host);
   conn->setUserName(user);
   conn->setPortNumber(port);
