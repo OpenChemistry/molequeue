@@ -201,6 +201,17 @@ public:
   QString launchScriptName() const { return m_launchScriptName; }
 
   /**
+   * @param moleQueueId MoleQueue id of Job of interest.
+   * @return The number of time the job has failed if it has encountered an
+   * error and is being retried. 0 if the job has not encountered an error, or
+   * has exceeded three retries.
+   */
+  int jobFailureCount(IdType moleQueueId) const
+  {
+    return m_failureTracker.value(moleQueueId, 0);
+  }
+
+  /**
    * @brief replaceLaunchScriptKeywords Replace $$keywords$$ in @a launchScript
    * with queue/job specific values.
    * @param launchScript Launch script to complete.
@@ -287,6 +298,34 @@ protected:
   /// Copy the contents of directory @a from into @a to.
   bool recursiveCopyDirectory(const QString &from, const QString &to);
 
+  /**
+   * @brief addJobFailure Call this when a job encounters a problem but will be
+   * retried (e.g. a possible networking failure). The failure will be recorded
+   * and the return value will indicate whether to retry the job or not. If this
+   * function returns true, the job has failed less than 3 times and an attempt
+   * should be made to retry. If it returns false, the job has exceeded the
+   * maximum number of retries and should be aborted. The failure count will be
+   * reset and an error will be logged if the maximum retries are exceeded.
+   * @param moleQueueId
+   * @return True if the job should be retried, false otherwise.
+   * @see jobFailureCount
+   * @see clearJobFailures
+   */
+  bool addJobFailure(IdType moleQueueId);
+
+  /**
+   * @brief clearJobFailures Remove all recorded job failures for a job. This
+   * does not necessarily mean that the job is successful, but that it is no
+   * longer being retried.
+   * @param moleQueueId MoleQueue id of job
+   * @see addJobFailure
+   * @see jobFailureCount
+   */
+  void clearJobFailures(IdType moleQueueId)
+  {
+    m_failureTracker.remove(moleQueueId);
+  }
+
   QueueManager *m_queueManager;
   Server *m_server;
 
@@ -296,6 +335,9 @@ protected:
   QMap<QString, Program *> m_programs;
   /// Lookup table for jobs that are using this Queue. Maps JobId to MoleQueueId.
   QMap<IdType, IdType> m_jobs;
+  /// Keeps track of the number of times a job has failed (MoleQueueId to
+  /// #failures). Once a job fails three times, it will no longer retry.
+  QMap<IdType, int> m_failureTracker;
 };
 
 } // End namespace

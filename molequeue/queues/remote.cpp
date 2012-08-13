@@ -256,13 +256,14 @@ void QueueRemote::remoteDirectoryCreated()
   }
 
   if (conn->exitCode() != 0) {
-    Logger::logError(tr("Cannot create remote directory '%1@%2:%3'. Retrying "
-                        "soon.\nExit code (%4) %5")
+    Logger::logWarning(tr("Cannot create remote directory '%1@%2:%3'.\n"
+                          "Exit code (%4) %5")
                      .arg(conn->userName()).arg(conn->hostName())
                      .arg(m_workingDirectoryBase).arg(conn->exitCode())
                      .arg(conn->output()), job.moleQueueId());
     // Retry submission:
-    m_pendingSubmission.append(job.moleQueueId());
+    if (addJobFailure(job.moleQueueId()))
+      m_pendingSubmission.append(job.moleQueueId());
     job.setJobState(MoleQueue::Error);
     return;
   }
@@ -311,13 +312,14 @@ void QueueRemote::inputFilesCopied()
 
   if (conn->exitCode() != 0) {
     Logger::logWarning(tr("Error while copying input files to remote host:\n"
-                          "'%1' --> '%2/'\nExit code (%3) %4\n\nRetrying soon.")
+                          "'%1' --> '%2/'\nExit code (%3) %4")
                        .arg(job.localWorkingDirectory())
                        .arg(m_workingDirectoryBase)
                        .arg(conn->exitCode()).arg(conn->output()),
                        job.moleQueueId());
     // Retry submission:
-    m_pendingSubmission.append(job.moleQueueId());
+    if (addJobFailure(job.moleQueueId()))
+      m_pendingSubmission.append(job.moleQueueId());
     job.setJobState(MoleQueue::Error);
     return;
   }
@@ -371,19 +373,21 @@ void QueueRemote::jobSubmittedToRemoteQueue()
 
   if (conn->exitCode() != 0) {
     Logger::logWarning(tr("Could not submit job to remote queue on %1@%2:%3\n"
-                          "%4 %5/%6/%7\nExit code (%8) %9\n\nRetrying soon.")
+                          "%4 %5/%6/%7\nExit code (%8) %9")
                        .arg(conn->userName()).arg(conn->hostName())
                        .arg(conn->portNumber()).arg(m_submissionCommand)
                        .arg(m_workingDirectoryBase).arg(job.moleQueueId())
                        .arg(m_launchScriptName).arg(conn->exitCode())
                        .arg(conn->output()), job.moleQueueId());
     // Retry submission:
-    m_pendingSubmission.append(job.moleQueueId());
+    if (addJobFailure(job.moleQueueId()))
+      m_pendingSubmission.append(job.moleQueueId());
     job.setJobState(MoleQueue::Error);
     return;
   }
 
   job.setJobState(MoleQueue::Submitted);
+  clearJobFailures(job.moleQueueId());
   job.setQueueId(queueId);
   m_jobs.insert(queueId, job.moleQueueId());
 }
