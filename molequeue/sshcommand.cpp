@@ -182,7 +182,10 @@ void SshCommand::initializeProcess()
     sshEnv.insert("EDITOR", env.value("EDITOR"));
   if (env.contains("SSH_AUTH_SOCK"))
     sshEnv.insert("SSH_AUTH_SOCK", env.value("SSH_AUTH_SOCK"));
-  sshEnv.insert("SSH_ASKPASS", "/usr/bin/pinentry-qt4");
+  if (env.contains("KRB5CCNAME"))
+    sshEnv.insert("KRB5CCNAME", env.value("KRB5CCNAME"));
+  if (env.contains("SSH_ASKPASS"))
+    sshEnv.insert("SSH_ASKPASS", env.value("SSH_ASKPASS"));
   m_process->setProcessEnvironment(sshEnv);
   m_process->setProcessChannelMode(QProcess::MergedChannels);
 
@@ -198,7 +201,7 @@ QStringList SshCommand::sshArgs()
   args << "-q";
   if (!m_identityFile.isEmpty())
     args << "-i" << m_identityFile;
-  if (m_portNumber >= 0)
+  if (m_portNumber >= 0 && m_portNumber != 22)
     args << "-p" << QString::number(m_portNumber);
   return args;
 }
@@ -208,9 +211,11 @@ QStringList SshCommand::scpArgs()
   QStringList args;
   // Suppress login banners
   args << "-q";
+  // Ensure the same SSH used for commands is used by scp.
+  args << "-S" << m_sshCommand;
   if (!m_identityFile.isEmpty())
     args << "-i" << m_identityFile;
-  if (m_portNumber >= 0)
+  if (m_portNumber >= 0 && m_portNumber != 22)
     args << "-P" << QString::number(m_portNumber);
   return args;
 }
