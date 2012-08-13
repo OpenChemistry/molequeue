@@ -66,6 +66,26 @@ public:
 
   virtual AbstractQueueSettingsWidget* settingsWidget();
 
+  void setSshExecutable(const QString &exe)
+  {
+    m_sshExecutable = exe;
+  }
+
+  QString sshExecutable() const
+  {
+    return m_sshExecutable;
+  }
+
+  void setScpExecutable(const QString &exe)
+  {
+    m_scpExecutable = exe;
+  }
+
+  QString scpExectuable() const
+  {
+    return m_scpExecutable;
+  }
+
   void setHostName(const QString &host)
   {
     m_hostName = host;
@@ -236,6 +256,8 @@ protected:
   /// Reimplemented to monitor queue events.
   virtual void timerEvent(QTimerEvent *theEvent);
 
+  QString m_sshExecutable;
+  QString m_scpExecutable;
   QString m_hostName;
   QString m_userName;
   int m_sshPort;

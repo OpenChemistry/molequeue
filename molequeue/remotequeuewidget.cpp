@@ -54,6 +54,10 @@ RemoteQueueWidget::RemoteQueueWidget(QueueRemote *queue,
           this, SLOT(setDirty()));
   connect(ui->edit_workingDirectoryBase, SIGNAL(textChanged(QString)),
           this, SLOT(setDirty()));
+  connect(ui->sshExecutableEdit, SIGNAL(textChanged(QString)),
+          this, SLOT(setDirty()));
+  connect(ui->scpExecutableEdit, SIGNAL(textChanged(QString)),
+          this, SLOT(setDirty()));
   connect(ui->edit_hostName, SIGNAL(textChanged(QString)),
           this, SLOT(setDirty()));
   connect(ui->edit_userName, SIGNAL(textChanged(QString)),
@@ -83,6 +87,8 @@ void RemoteQueueWidget::save()
   m_queue->setRequestQueueCommand(ui->edit_requestQueueCommand->text());
   m_queue->setLaunchScriptName(ui->edit_launchScriptName->text());
   m_queue->setWorkingDirectoryBase(ui->edit_workingDirectoryBase->text());
+  m_queue->setSshExecutable(ui->sshExecutableEdit->text());
+  m_queue->setScpExecutable(ui->scpExecutableEdit->text());
   m_queue->setHostName(ui->edit_hostName->text());
   m_queue->setUserName(ui->edit_userName->text());
   m_queue->setSshPort(ui->spin_sshPort->value());
@@ -106,6 +112,8 @@ void RemoteQueueWidget::reset()
   int walltime = m_queue->defaultMaxWallTime();
   ui->wallTimeHours->setValue(walltime / 60);
   ui->wallTimeMinutes->setValue(walltime % 60);
+  ui->sshExecutableEdit->setText(m_queue->sshExecutable());
+  ui->scpExecutableEdit->setText(m_queue->scpExectuable());
   ui->edit_hostName->setText(m_queue->hostName());
   ui->edit_userName->setText(m_queue->userName());
   ui->spin_sshPort->setValue(m_queue->sshPort());

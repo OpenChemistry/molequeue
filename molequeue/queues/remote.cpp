@@ -34,6 +34,8 @@ namespace MoleQueue {
 
 QueueRemote::QueueRemote(const QString &queueName, QueueManager *parentObject)
   : Queue(queueName, parentObject),
+    m_sshExecutable(QString("ssh")),
+    m_scpExecutable(QString("scp")),
     m_sshPort(22),
     m_isCheckingQueue(false),
     m_checkForPendingJobsTimerId(-1),
@@ -61,6 +63,8 @@ void QueueRemote::readSettings(QSettings &settings)
   m_submissionCommand = settings.value("submissionCommand").toString();
   m_requestQueueCommand = settings.value("requestQueueCommand").toString();
   m_killCommand = settings.value("killCommand").toString();
+  m_sshExecutable = settings.value("sshExecutable", "ssh").toString();
+  m_scpExecutable = settings.value("scpExecutable", "scp").toString();
   m_hostName = settings.value("hostName").toString();
   m_userName = settings.value("userName").toString();
   m_sshPort  = settings.value("sshPort").toInt();
@@ -701,6 +705,8 @@ void QueueRemote::endKillJob()
 SshConnection * QueueRemote::newSshConnection()
 {
   SshCommand *command = new SshCommand (this);
+  command->setSshCommand(m_sshExecutable);
+  command->setScpCommand(m_scpExecutable);
   command->setHostName(m_hostName);
   command->setUserName(m_userName);
   command->setPortNumber(m_sshPort);
