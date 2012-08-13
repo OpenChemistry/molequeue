@@ -230,6 +230,28 @@ void RemoteQueueWidget::sleepTest()
     return;
   }
 
+  QString promptString;
+  if (isDirty()) {
+    promptString = tr("Would you like to apply the current settings and submit "
+                      "a test job? The job will run 'sleep 30' on the remote "
+                      "queue.");
+  }
+  else {
+    promptString = tr("Would you like to submit a test job? The job will run "
+                      "'sleep 30' on the remote queue.");
+  }
+
+  QMessageBox::StandardButton response =
+      QMessageBox::question(this, tr("Submit test job?"), promptString,
+                            QMessageBox::Yes | QMessageBox::No,
+                            QMessageBox::Yes);
+
+  if (response != QMessageBox::Yes)
+    return;
+
+  if (isDirty())
+    save();
+
   Program *sleepProgram = m_queue->lookupProgram("sleep (testing)");
 
   if (sleepProgram == NULL) {
