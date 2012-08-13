@@ -80,7 +80,6 @@ void SshCommandTest::testExecute()
   QCOMPARE(m_ssh.getDummyCommand(), QString("ssh"));
   QCOMPARE(m_ssh.getDummyArgs(), QStringList ()
            << QString("-q")
-           << QString("-p") << QString("22")
            << QString("user@host")
            << QString("ls ~"));
 }
@@ -91,7 +90,7 @@ void SshCommandTest::testCopyTo()
   QCOMPARE(m_ssh.getDummyCommand(), QString("scp"));
   QCOMPARE(m_ssh.getDummyArgs(), QStringList ()
            << QString("-q")
-           << QString("-P") << QString("22")
+           << QString("-S") << QString("ssh")
            << QString("C:/local/path")
            << QString("user@host:/remote/path"));
 }
@@ -102,7 +101,7 @@ void SshCommandTest::testCopyFrom()
   QCOMPARE(m_ssh.getDummyCommand(), QString("scp"));
   QCOMPARE(m_ssh.getDummyArgs(), QStringList ()
            << QString("-q")
-           << QString("-P") << QString("22")
+           << QString("-S") << QString("ssh")
            << QString("user@host:/remote/path")
            << QString("C:/local/path"));
 }
@@ -113,7 +112,7 @@ void SshCommandTest::testCopyDirTo()
   QCOMPARE(m_ssh.getDummyCommand(), QString("scp"));
   QCOMPARE(m_ssh.getDummyArgs(), QStringList ()
            << QString("-q")
-           << QString("-P") << QString("22")
+           << QString("-S") << QString("ssh")
            << QString("-r")
            << QString("C:/local/path")
            << QString("user@host:/remote/path"));
@@ -125,7 +124,7 @@ void SshCommandTest::testCopyDirFrom()
   QCOMPARE(m_ssh.getDummyCommand(), QString("scp"));
   QCOMPARE(m_ssh.getDummyArgs(), QStringList ()
            << QString("-q")
-           << QString("-P") << QString("22")
+           << QString("-S") << QString("ssh")
            << QString("-r")
            << QString("user@host:/remote/path")
            << QString("C:/local/path"));

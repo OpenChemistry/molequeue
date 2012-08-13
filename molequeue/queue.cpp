@@ -395,8 +395,28 @@ bool Queue::recursiveCopyDirectory(const QString &from, const QString &to)
   return true;
 }
 
+bool Queue::addJobFailure(IdType moleQueueId)
+{
+  if (!m_failureTracker.contains(moleQueueId)) {
+    m_failureTracker.insert(moleQueueId, 1);
+    return true;
+  }
+
+  int failures = ++m_failureTracker[moleQueueId];
+
+  if (failures > 3) {
+    Logger::logError(tr("Maximum number of retries for job %1 exceeded.")
+                     .arg(moleQueueId), moleQueueId);
+    clearJobFailures(moleQueueId);
+    return false;
+  }
+
+  return true;
+}
+
 void Queue::jobAboutToBeRemoved(const Job &job)
 {
+  m_failureTracker.remove(job.moleQueueId());
   m_jobs.remove(job.queueId());
 }
 

@@ -164,7 +164,8 @@ void LogWindow::addLogEntry(const LogEntry &entry)
   }
   cur.insertText(" ");
   // Modify newlines to align with the hanging indent.
-  cur.insertText(entry.message().replace("\n", "\n\t\t\t\t"), *m_messageFormat);
+  cur.insertText(entry.message().replace(QRegExp("\\n+"), "\n  "),
+                 *m_messageFormat);
   cur.endEditBlock();
 }
 
@@ -216,8 +217,8 @@ void LogWindow::createUi()
 void LogWindow::setupFormats()
 {
   // Use a hanging indent, aligned with the start of the log message:
-  m_logEntryBlockFormat->setTextIndent(-320);
-  m_logEntryBlockFormat->setIndent(8);
+  m_logEntryBlockFormat->setTextIndent(-40);
+  m_logEntryBlockFormat->setIndent(1);
   m_logEntryBlockFormat->setBottomMargin(5);
 
   m_timeStampFormat->setForeground(QBrush(Qt::blue));
