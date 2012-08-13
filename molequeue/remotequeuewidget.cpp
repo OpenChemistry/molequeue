@@ -208,28 +208,6 @@ void RemoteQueueWidget::testConnection()
 
 void RemoteQueueWidget::sleepTest()
 {
-  // Check that important variables are set:
-  QString missingVariable = "";
-  if (m_queue->hostName().isEmpty())
-    missingVariable = tr("server hostname");
-  else if (m_queue->userName().isEmpty())
-    missingVariable = tr("server username");
-  else if (m_queue->submissionCommand().isEmpty())
-    missingVariable = tr("job submission command");
-  else if (m_queue->killCommand().isEmpty())
-    missingVariable = tr("job cancel command");
-  else if (m_queue->requestQueueCommand().isEmpty())
-    missingVariable = tr("queue request command");
-  else if (m_queue->workingDirectoryBase().isEmpty())
-    missingVariable = tr("remote working directory");
-
-  if (!missingVariable.isEmpty()) {
-    QMessageBox::critical(this, tr("Missing information"),
-                          tr("Refusing to test job submission: %1 not set.")
-                          .arg(missingVariable));
-    return;
-  }
-
   QString promptString;
   if (isDirty()) {
     promptString = tr("Would you like to apply the current settings and submit "
@@ -251,6 +229,28 @@ void RemoteQueueWidget::sleepTest()
 
   if (isDirty())
     save();
+
+  // Check that important variables are set:
+  QString missingVariable = "";
+  if (m_queue->hostName().isEmpty())
+    missingVariable = tr("server hostname");
+  else if (m_queue->userName().isEmpty())
+    missingVariable = tr("server username");
+  else if (m_queue->submissionCommand().isEmpty())
+    missingVariable = tr("job submission command");
+  else if (m_queue->killCommand().isEmpty())
+    missingVariable = tr("job cancel command");
+  else if (m_queue->requestQueueCommand().isEmpty())
+    missingVariable = tr("queue request command");
+  else if (m_queue->workingDirectoryBase().isEmpty())
+    missingVariable = tr("remote working directory");
+
+  if (!missingVariable.isEmpty()) {
+    QMessageBox::critical(this, tr("Missing information"),
+                          tr("Refusing to test job submission: %1 not set.")
+                          .arg(missingVariable));
+    return;
+  }
 
   Program *sleepProgram = m_queue->lookupProgram("sleep (testing)");
 
