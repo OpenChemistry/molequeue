@@ -43,6 +43,8 @@ QueuePbs::QueuePbs(QueueManager *parentManager) :
 
   // qstat will return an exit code of 153 if a job has completed.
   m_allowedQueueRequestExitCodes.append(153);
+  // unless it's an ezHPC fork. Then it will return 35.
+  m_allowedQueueRequestExitCodes.append(35);
 }
 
 QueuePbs::~QueuePbs()
