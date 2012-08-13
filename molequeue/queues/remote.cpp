@@ -72,6 +72,8 @@ void QueueRemote::readSettings(QSettings &settings)
   m_queueUpdateInterval =
       settings.value("queueUpdateInterval",
                      DEFAULT_REMOTE_QUEUE_UPDATE_INTERVAL).toInt();
+  m_defaultMaxWallTime = settings.value("defaultMaxWallTime",
+                                        DEFAULT_MAX_WALLTIME).toInt();
 }
 
 void QueueRemote::writeSettings(QSettings &settings) const
@@ -86,6 +88,7 @@ void QueueRemote::writeSettings(QSettings &settings) const
   settings.setValue("userName", m_userName);
   settings.setValue("sshPort",  m_sshPort);
   settings.setValue("queueUpdateInterval", m_queueUpdateInterval);
+  settings.setValue("defaultMaxWallTime", m_defaultMaxWallTime);
 }
 
 void QueueRemote::exportConfiguration(QSettings &exporter,
@@ -99,6 +102,7 @@ void QueueRemote::exportConfiguration(QSettings &exporter,
   exporter.setValue("hostName", m_hostName);
   exporter.setValue("sshPort",  m_sshPort);
   exporter.setValue("queueUpdateInterval", m_queueUpdateInterval);
+  exporter.setValue("defaultMaxWallTime", m_defaultMaxWallTime);
 }
 
 void QueueRemote::importConfiguration(QSettings &importer,
@@ -114,6 +118,8 @@ void QueueRemote::importConfiguration(QSettings &importer,
   m_queueUpdateInterval =
       importer.value("queueUpdateInterval",
                      DEFAULT_REMOTE_QUEUE_UPDATE_INTERVAL).toInt();
+  m_defaultMaxWallTime = importer.value("defaultMaxWallTime",
+                                        DEFAULT_MAX_WALLTIME).toInt();
 }
 
 AbstractQueueSettingsWidget* QueueRemote::settingsWidget()
