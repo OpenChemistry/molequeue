@@ -39,10 +39,11 @@ QueueRemote::QueueRemote(const QString &queueName, QueueManager *parentObject)
     m_sshPort(22),
     m_isCheckingQueue(false),
     m_checkForPendingJobsTimerId(-1),
+    m_queueUpdateInterval(DEFAULT_REMOTE_QUEUE_UPDATE_INTERVAL),
     m_defaultMaxWallTime(DEFAULT_MAX_WALLTIME)
 {
-  // Check remote queue every 60 seconds
-  m_checkQueueTimerId = startTimer(60000);
+  // Set remote queue check timer.
+  m_checkQueueTimerId = startTimer(m_queueUpdateInterval * 60000);
 
   // Check for jobs to submit every 5 seconds
   m_checkForPendingJobsTimerId = startTimer(5000);
@@ -68,6 +69,9 @@ void QueueRemote::readSettings(QSettings &settings)
   m_hostName = settings.value("hostName").toString();
   m_userName = settings.value("userName").toString();
   m_sshPort  = settings.value("sshPort").toInt();
+  m_queueUpdateInterval =
+      settings.value("queueUpdateInterval",
+                     DEFAULT_REMOTE_QUEUE_UPDATE_INTERVAL).toInt();
 }
 
 void QueueRemote::writeSettings(QSettings &settings) const
@@ -81,6 +85,7 @@ void QueueRemote::writeSettings(QSettings &settings) const
   settings.setValue("hostName", m_hostName);
   settings.setValue("userName", m_userName);
   settings.setValue("sshPort",  m_sshPort);
+  settings.setValue("queueUpdateInterval", m_queueUpdateInterval);
 }
 
 void QueueRemote::exportConfiguration(QSettings &exporter,
@@ -93,6 +98,7 @@ void QueueRemote::exportConfiguration(QSettings &exporter,
   exporter.setValue("killCommand", m_killCommand);
   exporter.setValue("hostName", m_hostName);
   exporter.setValue("sshPort",  m_sshPort);
+  exporter.setValue("queueUpdateInterval", m_queueUpdateInterval);
 }
 
 void QueueRemote::importConfiguration(QSettings &importer,
@@ -105,12 +111,25 @@ void QueueRemote::importConfiguration(QSettings &importer,
   m_killCommand = importer.value("killCommand").toString();
   m_hostName = importer.value("hostName").toString();
   m_sshPort  = importer.value("sshPort").toInt();
+  m_queueUpdateInterval =
+      importer.value("queueUpdateInterval",
+                     DEFAULT_REMOTE_QUEUE_UPDATE_INTERVAL).toInt();
 }
 
 AbstractQueueSettingsWidget* QueueRemote::settingsWidget()
 {
   RemoteQueueWidget *widget = new RemoteQueueWidget (this);
   return widget;
+}
+
+void QueueRemote::setQueueUpdateInterval(int interval)
+{
+  if (interval == m_queueUpdateInterval)
+    return;
+
+  killTimer(m_checkQueueTimerId);
+  m_checkQueueTimerId = startTimer(m_queueUpdateInterval * 60000);
+  requestQueueUpdate();
 }
 
 void QueueRemote::replaceLaunchScriptKeywords(QString &launchScript,

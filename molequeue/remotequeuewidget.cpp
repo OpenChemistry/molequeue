@@ -50,6 +50,8 @@ RemoteQueueWidget::RemoteQueueWidget(QueueRemote *queue,
           this, SLOT(setDirty()));
   connect(ui->edit_requestQueueCommand, SIGNAL(textChanged(QString)),
           this, SLOT(setDirty()));
+  connect(ui->updateIntervalSpin, SIGNAL(valueChanged(int)),
+          this, SLOT(setDirty()));
   connect(ui->edit_launchScriptName, SIGNAL(textChanged(QString)),
           this, SLOT(setDirty()));
   connect(ui->edit_workingDirectoryBase, SIGNAL(textChanged(QString)),
@@ -93,6 +95,8 @@ void RemoteQueueWidget::save()
   m_queue->setUserName(ui->edit_userName->text());
   m_queue->setSshPort(ui->spin_sshPort->value());
 
+  m_queue->setQueueUpdateInterval(ui->updateIntervalSpin->value());
+
   QString text = ui->text_launchTemplate->document()->toPlainText();
   m_queue->setLaunchTemplate(text);
 
@@ -109,6 +113,7 @@ void RemoteQueueWidget::reset()
   ui->edit_requestQueueCommand->setText(m_queue->requestQueueCommand());
   ui->edit_launchScriptName->setText(m_queue->launchScriptName());
   ui->edit_workingDirectoryBase->setText(m_queue->workingDirectoryBase());
+  ui->updateIntervalSpin->setValue(m_queue->queueUpdateInterval());
   int walltime = m_queue->defaultMaxWallTime();
   ui->wallTimeHours->setValue(walltime / 60);
   ui->wallTimeMinutes->setValue(walltime % 60);

@@ -69,7 +69,7 @@
       <item row="4" column="1">
        <widget class="QLineEdit" name="edit_launchScriptName"/>
       </item>
-      <item row="5" column="0">
+      <item row="6" column="0">
        <widget class="QLabel" name="label_5">
         <property name="text">
          <string>Remote &amp;working directory:</string>
@@ -79,10 +79,10 @@
         </property>
        </widget>
       </item>
-      <item row="5" column="1">
+      <item row="6" column="1">
        <widget class="QLineEdit" name="edit_workingDirectoryBase"/>
       </item>
-      <item row="7" column="0" colspan="2">
+      <item row="8" column="0" colspan="2">
        <widget class="QGroupBox" name="groupBox_3">
         <property name="title">
          <string>SSH connection settings</string>
@@ -180,7 +180,7 @@
         </layout>
        </widget>
       </item>
-      <item row="9" column="0" colspan="2">
+      <item row="10" column="0" colspan="2">
        <layout class="QHBoxLayout" name="horizontalLayout_3">
         <item>
          <spacer name="horizontalSpacer_2">
@@ -217,7 +217,7 @@
       <item row="1" column="1">
        <widget class="QLineEdit" name="edit_killCommand"/>
       </item>
-      <item row="6" column="0">
+      <item row="7" column="0">
        <widget class="QLabel" name="label_13">
         <property name="text">
          <string>Default &amp;walltime limit:</string>
@@ -227,10 +227,16 @@
         </property>
        </widget>
       </item>
-      <item row="6" column="1">
+      <item row="7" column="1">
        <layout class="QHBoxLayout" name="horizontalLayout_2">
         <item>
          <widget class="QSpinBox" name="wallTimeHours">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
           <property name="suffix">
            <string> h</string>
           </property>
@@ -253,6 +259,32 @@
          </widget>
         </item>
        </layout>
+      </item>
+      <item row="3" column="0">
+       <widget class="QLabel" name="label_11">
+        <property name="text">
+         <string>Queue update interval:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="1">
+       <widget class="QSpinBox" name="updateIntervalSpin">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="suffix">
+         <string> m</string>
+        </property>
+        <property name="minimum">
+         <number>1</number>
+        </property>
+        <property name="maximum">
+         <number>120</number>
+        </property>
+       </widget>
       </item>
      </layout>
     </widget>
@@ -302,6 +334,7 @@
   <tabstop>edit_submissionCommand</tabstop>
   <tabstop>edit_killCommand</tabstop>
   <tabstop>edit_requestQueueCommand</tabstop>
+  <tabstop>updateIntervalSpin</tabstop>
   <tabstop>edit_launchScriptName</tabstop>
   <tabstop>edit_workingDirectoryBase</tabstop>
   <tabstop>wallTimeHours</tabstop>

@@ -156,6 +156,12 @@ public:
     return m_requestQueueCommand;
   }
 
+  /** Time between remote queue updates in minutes. */
+  void setQueueUpdateInterval(int i);
+
+  /** Time between remote queue updates in minutes. */
+  int queueUpdateInterval() const { return m_queueUpdateInterval; }
+
   /**
    * @brief setDefaultMaxWallTime Set the default walltime limit (in minutes)
    * for jobs on this queue. This value will be used if the job's
@@ -270,6 +276,9 @@ protected:
   QString m_submissionCommand;
   QString m_killCommand;
   QString m_requestQueueCommand;
+
+  /// Time between remote queue updates in minutes.
+  int m_queueUpdateInterval;
 
   /// Default maximum walltime limit for jobs on this queue in minutes.
   int m_defaultMaxWallTime;

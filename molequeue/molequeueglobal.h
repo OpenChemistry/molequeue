@@ -153,6 +153,9 @@ enum JobSubmissionErrorCode {
   InvalidQueue
 };
 
+/// Default time in between remote queue updates in minutes.
+const int DEFAULT_REMOTE_QUEUE_UPDATE_INTERVAL = 3;
+
 /// Default number of processor cores for a job
 const int DEFAULT_NUM_CORES = 1;
 
