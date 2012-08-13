@@ -72,7 +72,7 @@ enum JobState {
   /// Job has been terminated at a user request.
   Killed,
   /// Job has been terminated due to an error.
-  ErrorState
+  Error
 };
 
 /**
@@ -103,7 +103,7 @@ inline const char * jobStateToString(JobState state)
     return "Finished";
   case Killed:
     return "Killed";
-  case ErrorState:
+  case Error:
     return "Error";
   default:
   case Unknown:
@@ -137,8 +137,8 @@ inline JobState stringToJobState(const char *str)
     return Finished;
   else if (qstrcmp(str, "Killed") == 0)
     return Killed;
-  else if (qstrcmp(str, "Error") == 0 || qstrcmp(str, "ErrorState") == 0)
-    return ErrorState;
+  else if (qstrcmp(str, "Error") == 0)
+    return Error;
   else
     return Unknown;
 }

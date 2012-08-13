@@ -1,1 +1,1 @@
-from client import Client, JobRequest, JobRequestException
+from client import Client, JobRequest, JobState, JobRequestException

@@ -412,7 +412,7 @@ void QueueRemoteTest::testQueueUpdate()
   QString output;
   QList<Job> jobs;
   for (int state = static_cast<int>(None);
-       state < static_cast<int>(ErrorState); ++state) {
+       state < static_cast<int>(Error); ++state) {
     // Add jobs with queueids
     Job job = m_server.jobManager()->newJob();
     job.setQueue("Dummy");

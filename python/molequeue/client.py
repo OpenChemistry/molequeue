@@ -1,14 +1,41 @@
 import zmq
 from zmq.eventloop import ioloop
 from zmq.eventloop.zmqstream import ZMQStream
-from utils import underscore_to_camelcase
-from utils import JsonRpc
 from threading import Thread
 from threading import Condition
 from threading import Lock
 from functools import partial
 import inspect
 import json
+import time
+
+from utils import underscore_to_camelcase
+from utils import camelcase_to_underscore
+from utils import JsonRpc
+
+class JobState:
+  # Unknown status
+  UNKNOWN = -1,
+  # Initial state of job, should never be entered.
+  NONE = 0,
+  # Job has been accepted by the server and is being prepared (Writing input files, etc).
+  ACCEPTED = 1
+  # Job is being queued locally, either waiting for local execution or remote submission.
+  LOCAL_QUEUED = 2
+  # Job has been submitted to a remote queuing system.
+  SUBMITTED = 3
+  # Job is pending execution on a remote queuing system.
+  REMOTE_QUEUED = 4
+  # Job is running locally.
+  RUNNING_LOCAL = 5
+  # Job is running remotely.
+  RUNNING_REMOTE = 6
+  # Job has completed.
+  FINISHED = 7
+  # Job has been terminated at a user request.
+  KILLED = 8
+  # Job has been terminated due to an error.
+  ERROR = 9
 
 class JobRequest:
   def __init__(self):
@@ -23,19 +50,18 @@ class JobRequest:
     self.retrieve_output = True
     self.clean_local_working_directory = False
     self.hide_from_gui = False
-    self.pop_up_state_change = True
+    self.popup_on_state_change = True
+    self.number_of_cores = 1
+    self.max_wall_time = -1
 
   def job_state(self):
-    # TODO
-    pass
+    return self._job_state
 
   def molequeue_id(self):
-    # TODO
-    pass
+    return self._mole_queue_id
 
   def queue_id(self):
-    # TODO
-    pass
+    return self._queue_id
 
 class EventLoop(Thread):
   def __init__(self, io_loop):
@@ -55,6 +81,13 @@ class MoleQueueException(Exception):
 class JobRequestException(MoleQueueException):
   def __init__(self, packet_id, code, message):
     self.packet_id = packet_id
+    self.code = code
+    self.message = message
+
+class JobRequestInformationException(MoleQueueException):
+  def __init__(self, packet_id, data, code, message):
+    self.packet_id = packet_id
+    self.data = data
     self.code = code
     self.message = message
 
@@ -89,40 +122,31 @@ class Client:
 
   def register_notification_callback(self, callback):
     # check a valid function has been past
-    assert not callback(callback)
+    assert callable(callback)
     self._notification_callbacks.append(callback)
 
   def request_queue_list_update(self):
     pass
 
   def submit_job_request(self, request, timeout=None):
-    params = {}
-    for key, value in request.__dict__.iteritems():
-      params[underscore_to_camelcase(key)] = value
-
+    params = JsonRpc.jobrequest_to_json_params(request)
     packet_id = self._next_packet_id()
     jsonrpc = JsonRpc.generate_request(packet_id,
                                       'submitJob',
                                       params)
 
-    # add to request map so we know we are waiting on  response for this packet
-    # id
-    self._request_response_map[packet_id] = None
-    self.stream.send(str(jsonrpc))
-    self.stream.flush()
+    self._send_request(packet_id, jsonrpc)
+    response = self._wait_for_response(packet_id, timeout)
 
-    # wait for the response to come in
-    self._new_response_condition.acquire()
-    while self._request_response_map[packet_id] == None:
-      self._new_response_condition.wait(timeout)
+    # Timeout
+    if response == None:
+      return None
 
-    response = self._request_response_map[packet_id]
-    self._new_response_condition.release()
     # if we an error occurred then throw an exception
     if 'error' in response:
-      exception = JobRequestException(reponse['error']['id'],
-                                      reponse['error']['code'],
-                                      reponse['error']['message'])
+      exception = JobRequestException(response['error']['id'],
+                                      response['error']['code'],
+                                      response['error']['message'])
       raise exception
 
     # otherwise return the molequeue id
@@ -132,9 +156,34 @@ class Client:
     # TODO
     pass
 
-  def lookup_job(self):
-    # TODO
-    pass
+  def lookup_job(self, molequeue_id, timeout=None):
+
+    params = {'moleQueueId': molequeue_id}
+
+    packet_id = self._next_packet_id()
+    jsonrpc = JsonRpc.generate_request(packet_id,
+                                      'lookupJob',
+                                      params)
+
+    self._send_request(packet_id, jsonrpc)
+    response = self._wait_for_response(packet_id, timeout)
+
+    # Timeout
+    if response == None:
+      return None
+
+    # if we an error occurred then throw an exception
+    if 'error' in response:
+      exception = JobRequestInformationException(response['error']['id'],
+                                                 reponse['error']['data'],
+                                                 reponse['error']['code'],
+                                                 reponse['error']['message'])
+      raise exception
+
+    jobrequest = JsonRpc.json_to_jobrequest(response)
+
+    return jobrequest
+
 
   def _on_response(self, packet_id, msg):
     if packet_id in self._request_response_map:
@@ -154,6 +203,31 @@ class Client:
       self._current_packet_id += 1
       next = self._current_packet_id
     return next
+
+  def _send_request(self, packet_id, jsonrpc):
+    # add to request map so we know we are waiting on  response for this packet
+    # id
+    self._request_response_map[packet_id] = None
+    self.stream.send(str(jsonrpc))
+    self.stream.flush()
+
+  def _wait_for_response(self, packet_id, timeout):
+    start = time.time()
+    # wait for the response to come in
+    self._new_response_condition.acquire()
+    while self._request_response_map[packet_id] == None:
+      wait_time = None
+      if timeout != None:
+        wait_time = timeout - (time.time() - start)
+        if wait_time <= 0:
+          break;
+      self._new_response_condition.wait(wait_time)
+
+    response = self._request_response_map.pop(packet_id)
+
+    self._new_response_condition.release()
+
+    return response
 
 def _on_recv(client, msg):
   jsonrpc = json.loads(msg[0])
