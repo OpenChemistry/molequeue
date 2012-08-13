@@ -235,6 +235,7 @@ void QueueRemoteTest::testSubmissionPipeline()
   QCOMPARE(ssh->getDummyCommand(), QString("scp"));
   QCOMPARE(ssh->getDummyArgs(), QStringList()
            << "-q"
+           << "-S" << "ssh"
            << "-P" << "6887"
            << "-r"
            << "/tmp/MoleQueue-dummyServer//4"
@@ -302,6 +303,7 @@ void QueueRemoteTest::testFinalizePipeline()
   QCOMPARE(ssh->getDummyCommand(), QString("scp"));
   QCOMPARE(ssh->getDummyArgs(), QStringList()
            << "-q"
+           << "-S" << "ssh"
            << "-P" << "6887"
            << "-r"
            << "aUser@some.host.somewhere:/some/path/4"
