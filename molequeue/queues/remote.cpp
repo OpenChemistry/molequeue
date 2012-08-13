@@ -246,7 +246,9 @@ void QueueRemote::beginJobSubmission(Job job)
   if (!writeInputFiles(job))
     return;
 
-  createRemoteDirectory(job);
+  // Attempt to copy the files via scp first. Only call mkdir on the remote
+  // working directory if the scp call fails.
+  copyInputFilesToHost(job);
 }
 
 void QueueRemote::createRemoteDirectory(Job job)
@@ -307,8 +309,9 @@ void QueueRemote::remoteDirectoryCreated()
 void QueueRemote::copyInputFilesToHost(Job job)
 {
   QString localDir = job.localWorkingDirectory();
-  QString remoteDir =
-      QString("%1/").arg(m_workingDirectoryBase);
+  QString remoteDir = QDir::cleanPath(QString("%1/%2")
+                                      .arg(m_workingDirectoryBase)
+                                      .arg(job.moleQueueId()));
 
   SshConnection *conn = newSshConnection();
   conn->setData(QVariant::fromValue(job));
@@ -344,6 +347,14 @@ void QueueRemote::inputFilesCopied()
   }
 
   if (conn->exitCode() != 0) {
+    // Check if we just need to make the parent directory
+    if (conn->exitCode() == 1 &&
+        conn->output().contains("No such file or directory")) {
+      Logger::logDebugMessage(tr("Remote working directory missing on remote "
+                                 "host. Creating now..."), job.moleQueueId());
+      createRemoteDirectory(job);
+      return;
+    }
     Logger::logWarning(tr("Error while copying input files to remote host:\n"
                           "'%1' --> '%2/'\nExit code (%3) %4")
                        .arg(job.localWorkingDirectory())
