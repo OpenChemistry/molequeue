@@ -178,7 +178,7 @@ void QueueRemoteTest::testSubmissionPipeline()
   QCOMPARE(m_queue->m_pendingSubmission.size(), 0);
 
   ////////////////////////
-  // beginJobSubmission // (calls writeInputFiles, createRemoteDirectory)
+  // beginJobSubmission // (calls writeInputFiles, copyInputFilesToHost)
   ////////////////////////
 
   /////////////////////
@@ -203,12 +203,39 @@ void QueueRemoteTest::testSubmissionPipeline()
   QCOMPARE(QString(launchScriptFile.readAll()),
            QString("Run job 4!!\n"));
 
+  //////////////////////////
+  // copyInputFilesToHost //
+  //////////////////////////
+
+  // validate the ssh command
+  DummySshCommand *ssh = m_queue->getDummySshCommand();
+  QCOMPARE(ssh->getDummyCommand(), QString("scp"));
+  QCOMPARE(ssh->getDummyArgs(), QStringList()
+           << "-q"
+           << "-S" << "ssh"
+           << "-P" << "6887"
+           << "-r"
+           << "/tmp/MoleQueue-dummyServer//4"
+           << "aUser@some.host.somewhere:/some/path/4"
+           );
+  QCOMPARE(ssh->data().value<Job>(), job);
+
+  // Fake the process output. Pretend that the remote working dir hasn't been
+  // created yet.
+  ssh->setDummyExitCode(1);
+  ssh->setDummyOutput("No such file or directory");
+  ssh->emitDummyRequestComplete(); // triggers inputFilesCopied
+
+  //////////////////////
+  // inputFilesCopied // // Should detect that the parent dir doesn't exist
+  ////////////////////// // and call create remote directory
+
   ///////////////////////////
   // createRemoteDirectory //
   ///////////////////////////
 
   // Grab the dummy ssh command from the queue and validate its contents
-  DummySshCommand *ssh = m_queue->getDummySshCommand();
+  ssh = m_queue->getDummySshCommand();
   QCOMPARE(ssh->getDummyCommand(), QString("ssh"));
   QCOMPARE(ssh->getDummyArgs(), QStringList()
            << "-q"
@@ -239,7 +266,7 @@ void QueueRemoteTest::testSubmissionPipeline()
            << "-P" << "6887"
            << "-r"
            << "/tmp/MoleQueue-dummyServer//4"
-           << "aUser@some.host.somewhere:/some/path/"
+           << "aUser@some.host.somewhere:/some/path/4"
            );
   QCOMPARE(ssh->data().value<Job>(), job);
 
