@@ -66,6 +66,26 @@ public:
 
   virtual AbstractQueueSettingsWidget* settingsWidget();
 
+  void setSshExecutable(const QString &exe)
+  {
+    m_sshExecutable = exe;
+  }
+
+  QString sshExecutable() const
+  {
+    return m_sshExecutable;
+  }
+
+  void setScpExecutable(const QString &exe)
+  {
+    m_scpExecutable = exe;
+  }
+
+  QString scpExectuable() const
+  {
+    return m_scpExecutable;
+  }
+
   void setHostName(const QString &host)
   {
     m_hostName = host;
@@ -136,6 +156,12 @@ public:
     return m_requestQueueCommand;
   }
 
+  /** Time between remote queue updates in minutes. */
+  void setQueueUpdateInterval(int i);
+
+  /** Time between remote queue updates in minutes. */
+  int queueUpdateInterval() const { return m_queueUpdateInterval; }
+
   /**
    * @brief setDefaultMaxWallTime Set the default walltime limit (in minutes)
    * for jobs on this queue. This value will be used if the job's
@@ -162,6 +188,8 @@ public slots:
   bool submitJob(MoleQueue::Job job);
   void killJob(MoleQueue::Job job);
 
+  virtual void requestQueueUpdate();
+
 protected slots:
   virtual void submitPendingJobs();
 
@@ -176,7 +204,6 @@ protected slots:
   virtual void submitJobToRemoteQueue(MoleQueue::Job job);
   virtual void jobSubmittedToRemoteQueue();
 
-  virtual void requestQueueUpdate();
   virtual void handleQueueUpdate();
 
   virtual void beginFinalizeJob(MoleQueue::IdType queueId);
@@ -236,6 +263,8 @@ protected:
   /// Reimplemented to monitor queue events.
   virtual void timerEvent(QTimerEvent *theEvent);
 
+  QString m_sshExecutable;
+  QString m_scpExecutable;
   QString m_hostName;
   QString m_userName;
   int m_sshPort;
@@ -248,6 +277,9 @@ protected:
   QString m_submissionCommand;
   QString m_killCommand;
   QString m_requestQueueCommand;
+
+  /// Time between remote queue updates in minutes.
+  int m_queueUpdateInterval;
 
   /// Default maximum walltime limit for jobs on this queue in minutes.
   int m_defaultMaxWallTime;

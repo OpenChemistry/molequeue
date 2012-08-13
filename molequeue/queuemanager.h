@@ -131,6 +131,13 @@ public:
    */
   QueueListType toQueueList() const;
 
+public slots:
+  /**
+   * @brief updateRemoteQueues Request that all remote queues update the status
+   * of their jobs.
+   */
+  void updateRemoteQueues() const;
+
 signals:
   /**
    * Emitted when a new Queue is added to the QueueManager

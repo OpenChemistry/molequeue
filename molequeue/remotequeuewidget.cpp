@@ -50,9 +50,15 @@ RemoteQueueWidget::RemoteQueueWidget(QueueRemote *queue,
           this, SLOT(setDirty()));
   connect(ui->edit_requestQueueCommand, SIGNAL(textChanged(QString)),
           this, SLOT(setDirty()));
+  connect(ui->updateIntervalSpin, SIGNAL(valueChanged(int)),
+          this, SLOT(setDirty()));
   connect(ui->edit_launchScriptName, SIGNAL(textChanged(QString)),
           this, SLOT(setDirty()));
   connect(ui->edit_workingDirectoryBase, SIGNAL(textChanged(QString)),
+          this, SLOT(setDirty()));
+  connect(ui->sshExecutableEdit, SIGNAL(textChanged(QString)),
+          this, SLOT(setDirty()));
+  connect(ui->scpExecutableEdit, SIGNAL(textChanged(QString)),
           this, SLOT(setDirty()));
   connect(ui->edit_hostName, SIGNAL(textChanged(QString)),
           this, SLOT(setDirty()));
@@ -62,13 +68,17 @@ RemoteQueueWidget::RemoteQueueWidget(QueueRemote *queue,
           this, SLOT(setDirty()));
   connect(ui->text_launchTemplate, SIGNAL(textChanged()),
           this, SLOT(setDirty()));
+  connect(ui->wallTimeHours, SIGNAL(valueChanged(int)),
+          this, SLOT(setDirty()));
+  connect(ui->wallTimeMinutes, SIGNAL(valueChanged(int)),
+          this, SLOT(setDirty()));
 
   connect(ui->push_testConnection, SIGNAL(clicked()),
           this, SLOT(testConnection()));
   connect(ui->push_sleepTest, SIGNAL(clicked()),
           this, SLOT(sleepTest()));
   connect(ui->templateHelpButton, SIGNAL(clicked()),
-          this, SLOT(showTemplateHelp()));
+          this, SLOT(showHelpDialog()));
 }
 
 RemoteQueueWidget::~RemoteQueueWidget()
@@ -83,9 +93,13 @@ void RemoteQueueWidget::save()
   m_queue->setRequestQueueCommand(ui->edit_requestQueueCommand->text());
   m_queue->setLaunchScriptName(ui->edit_launchScriptName->text());
   m_queue->setWorkingDirectoryBase(ui->edit_workingDirectoryBase->text());
+  m_queue->setSshExecutable(ui->sshExecutableEdit->text());
+  m_queue->setScpExecutable(ui->scpExecutableEdit->text());
   m_queue->setHostName(ui->edit_hostName->text());
   m_queue->setUserName(ui->edit_userName->text());
   m_queue->setSshPort(ui->spin_sshPort->value());
+
+  m_queue->setQueueUpdateInterval(ui->updateIntervalSpin->value());
 
   QString text = ui->text_launchTemplate->document()->toPlainText();
   m_queue->setLaunchTemplate(text);
@@ -103,9 +117,12 @@ void RemoteQueueWidget::reset()
   ui->edit_requestQueueCommand->setText(m_queue->requestQueueCommand());
   ui->edit_launchScriptName->setText(m_queue->launchScriptName());
   ui->edit_workingDirectoryBase->setText(m_queue->workingDirectoryBase());
+  ui->updateIntervalSpin->setValue(m_queue->queueUpdateInterval());
   int walltime = m_queue->defaultMaxWallTime();
   ui->wallTimeHours->setValue(walltime / 60);
   ui->wallTimeMinutes->setValue(walltime % 60);
+  ui->sshExecutableEdit->setText(m_queue->sshExecutable());
+  ui->scpExecutableEdit->setText(m_queue->scpExectuable());
   ui->edit_hostName->setText(m_queue->hostName());
   ui->edit_userName->setText(m_queue->userName());
   ui->spin_sshPort->setValue(m_queue->sshPort());
@@ -195,6 +212,28 @@ void RemoteQueueWidget::testConnection()
 
 void RemoteQueueWidget::sleepTest()
 {
+  QString promptString;
+  if (isDirty()) {
+    promptString = tr("Would you like to apply the current settings and submit "
+                      "a test job? The job will run 'sleep 30' on the remote "
+                      "queue.");
+  }
+  else {
+    promptString = tr("Would you like to submit a test job? The job will run "
+                      "'sleep 30' on the remote queue.");
+  }
+
+  QMessageBox::StandardButton response =
+      QMessageBox::question(this, tr("Submit test job?"), promptString,
+                            QMessageBox::Yes | QMessageBox::No,
+                            QMessageBox::Yes);
+
+  if (response != QMessageBox::Yes)
+    return;
+
+  if (isDirty())
+    save();
+
   // Check that important variables are set:
   QString missingVariable = "";
   if (m_queue->hostName().isEmpty())
@@ -243,6 +282,13 @@ void RemoteQueueWidget::sleepTest()
   sleepJob.setDescription("sleep 30 (test)");
 
   m_client->submitJobRequest(sleepJob);
+}
+
+void RemoteQueueWidget::showHelpDialog()
+{
+  if (!m_helpDialog)
+    m_helpDialog = new TemplateKeywordDialog(this);
+  m_helpDialog->show();
 }
 
 } // end namespace MoleQueue
