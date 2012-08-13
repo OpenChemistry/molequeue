@@ -59,7 +59,7 @@
       <item row="4" column="0">
        <widget class="QLabel" name="label_7">
         <property name="text">
-         <string>Launch &amp;script name:</string>
+         <string>&amp;Launch script name:</string>
         </property>
         <property name="buddy">
          <cstring>edit_launchScriptName</cstring>
@@ -145,7 +145,7 @@
            <item>
             <widget class="QPushButton" name="push_testConnection">
              <property name="text">
-              <string>Test Connection...</string>
+              <string>Test C&amp;onnection...</string>
              </property>
             </widget>
            </item>
@@ -172,7 +172,7 @@
         <item>
          <widget class="QPushButton" name="push_sleepTest">
           <property name="text">
-           <string>Submit &quot;sleep&quot; (testing)</string>
+           <string>S&amp;ubmit &quot;sleep&quot; (testing)</string>
           </property>
          </widget>
         </item>
@@ -194,7 +194,10 @@
       <item row="6" column="0">
        <widget class="QLabel" name="label_13">
         <property name="text">
-         <string>Default walltime limit:</string>
+         <string>Default &amp;walltime limit:</string>
+        </property>
+        <property name="buddy">
+         <cstring>wallTimeHours</cstring>
         </property>
        </widget>
       </item>
