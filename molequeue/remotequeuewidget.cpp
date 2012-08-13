@@ -258,4 +258,11 @@ void RemoteQueueWidget::sleepTest()
   m_client->submitJobRequest(sleepJob);
 }
 
+void RemoteQueueWidget::showHelpDialog()
+{
+  if (!m_helpDialog)
+    m_helpDialog = new TemplateKeywordDialog(this);
+  m_helpDialog->show();
+}
+
 } // end namespace MoleQueue

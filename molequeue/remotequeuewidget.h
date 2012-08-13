@@ -51,6 +51,7 @@ public slots:
 protected slots:
   void testConnection();
   void sleepTest();
+  void showHelpDialog();
 
 private:
   Ui::RemoteQueueWidget *ui;

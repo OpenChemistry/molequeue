@@ -58,10 +58,11 @@ protected slots:
 
   void setDirty(bool dirty = true) { m_dirty = dirty; }
 
+  void showHelpDialog();
+
 protected:
   void closeEvent(QCloseEvent *);
   void keyPressEvent(QKeyEvent *);
-  void showHelpDialog();
 
 private:
   Ui::ProgramConfigureDialog *ui;
