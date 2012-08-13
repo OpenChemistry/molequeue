@@ -84,6 +84,8 @@ void QueueRemote::writeSettings(QSettings &settings) const
   settings.setValue("submissionCommand", m_submissionCommand);
   settings.setValue("requestQueueCommand", m_requestQueueCommand);
   settings.setValue("killCommand", m_killCommand);
+  settings.setValue("sshExecutable", m_sshExecutable);
+  settings.setValue("scpExecutable", m_scpExecutable);
   settings.setValue("hostName", m_hostName);
   settings.setValue("userName", m_userName);
   settings.setValue("sshPort",  m_sshPort);
@@ -132,6 +134,8 @@ void QueueRemote::setQueueUpdateInterval(int interval)
 {
   if (interval == m_queueUpdateInterval)
     return;
+
+  m_queueUpdateInterval = interval;
 
   killTimer(m_checkQueueTimerId);
   m_checkQueueTimerId = startTimer(m_queueUpdateInterval * 60000);

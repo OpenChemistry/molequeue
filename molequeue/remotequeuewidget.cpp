@@ -68,6 +68,10 @@ RemoteQueueWidget::RemoteQueueWidget(QueueRemote *queue,
           this, SLOT(setDirty()));
   connect(ui->text_launchTemplate, SIGNAL(textChanged()),
           this, SLOT(setDirty()));
+  connect(ui->wallTimeHours, SIGNAL(valueChanged(int)),
+          this, SLOT(setDirty()));
+  connect(ui->wallTimeMinutes, SIGNAL(valueChanged(int)),
+          this, SLOT(setDirty()));
 
   connect(ui->push_testConnection, SIGNAL(clicked()),
           this, SLOT(testConnection()));
