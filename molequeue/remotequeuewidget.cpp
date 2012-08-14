@@ -24,10 +24,12 @@
 #include "templatekeyworddialog.h"
 
 #include <QtCore/QTimer>
+#include <QtCore/QSettings>
 
 #include <QtGui/QMessageBox>
 #include <QtGui/QProgressDialog>
 #include <QtGui/QTextDocument>
+#include <QtGui/QFileDialog>
 
 namespace MoleQueue
 {
@@ -64,6 +66,8 @@ RemoteQueueWidget::RemoteQueueWidget(QueueRemote *queue,
           this, SLOT(setDirty()));
   connect(ui->edit_userName, SIGNAL(textChanged(QString)),
           this, SLOT(setDirty()));
+  connect(ui->edit_identityFile, SIGNAL(textChanged(QString)),
+          this, SLOT(setDirty()));
   connect(ui->spin_sshPort, SIGNAL(valueChanged(int)),
           this, SLOT(setDirty()));
   connect(ui->text_launchTemplate, SIGNAL(textChanged()),
@@ -79,6 +83,8 @@ RemoteQueueWidget::RemoteQueueWidget(QueueRemote *queue,
           this, SLOT(sleepTest()));
   connect(ui->templateHelpButton, SIGNAL(clicked()),
           this, SLOT(showHelpDialog()));
+  connect(ui->fileButton, SIGNAL(clicked()),
+          this, SLOT(showFileDialog()));
 }
 
 RemoteQueueWidget::~RemoteQueueWidget()
@@ -97,6 +103,7 @@ void RemoteQueueWidget::save()
   m_queue->setScpExecutable(ui->scpExecutableEdit->text());
   m_queue->setHostName(ui->edit_hostName->text());
   m_queue->setUserName(ui->edit_userName->text());
+  m_queue->setIdentityFile(ui->edit_identityFile->text());
   m_queue->setSshPort(ui->spin_sshPort->value());
 
   m_queue->setQueueUpdateInterval(ui->updateIntervalSpin->value());
@@ -125,6 +132,7 @@ void RemoteQueueWidget::reset()
   ui->scpExecutableEdit->setText(m_queue->scpExectuable());
   ui->edit_hostName->setText(m_queue->hostName());
   ui->edit_userName->setText(m_queue->userName());
+  ui->edit_identityFile->setText(m_queue->identityFile());
   ui->spin_sshPort->setValue(m_queue->sshPort());
   ui->text_launchTemplate->document()->setPlainText(m_queue->launchTemplate());
   setDirty(false);
@@ -136,6 +144,7 @@ void RemoteQueueWidget::testConnection()
   QString sshCommand = ui->sshExecutableEdit->text();
   QString host = ui->edit_hostName->text();
   QString user = ui->edit_userName->text();
+  QString identityFile = ui->edit_identityFile->text();
   int port = ui->spin_sshPort->value();
 
   if (host.isEmpty() || user.isEmpty()) {
@@ -150,6 +159,7 @@ void RemoteQueueWidget::testConnection()
   conn->setSshCommand(sshCommand);
   conn->setHostName(host);
   conn->setUserName(user);
+  conn->setIdentityFile(identityFile);
   conn->setPortNumber(port);
 
   // Create ProgressDialog
@@ -291,6 +301,35 @@ void RemoteQueueWidget::showHelpDialog()
   if (!m_helpDialog)
     m_helpDialog = new TemplateKeywordDialog(this);
   m_helpDialog->show();
+}
+
+void RemoteQueueWidget::showFileDialog()
+{
+  // Get initial dir:
+  QSettings settings;
+  QString initialDir = settings.value("ssh/identity/lastIdentityFile",
+                                      ui->edit_identityFile->text()).toString();
+  if (initialDir.isEmpty()) {
+    initialDir = QDir::homePath();
+#ifndef WIN32
+    initialDir += "/.ssh/";
+#endif
+  }
+
+  initialDir = QFileInfo(initialDir).dir().absolutePath();
+
+  // Get filename
+  QString identityFileName =
+      QFileDialog::getOpenFileName(this, tr("Select identity file"),
+                                   initialDir);
+  // User cancel:
+  if (identityFileName.isNull())
+    return;
+
+  // Set location for next time
+  settings.setValue("ssh/identity/lastIdentityFile", identityFileName);
+
+  ui->edit_identityFile->setText(identityFileName);
 }
 
 } // end namespace MoleQueue

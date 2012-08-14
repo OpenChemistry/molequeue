@@ -115,6 +115,30 @@
           <widget class="QLineEdit" name="edit_userName"/>
          </item>
          <item row="4" column="0">
+          <widget class="QLabel" name="label_identityFile">
+           <property name="text">
+            <string>&amp;Identity file (private key):</string>
+           </property>
+           <property name="buddy">
+            <cstring>edit_identityFile</cstring>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="1">
+          <layout class="QHBoxLayout" name="horizontalLayout">
+           <item>
+            <widget class="QLineEdit" name="edit_identityFile"/>
+           </item>
+           <item>
+            <widget class="QToolButton" name="fileButton">
+             <property name="text">
+              <string>...</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item row="5" column="0">
           <widget class="QLabel" name="label_9">
            <property name="text">
             <string>&amp;Port:</string>
@@ -124,8 +148,8 @@
            </property>
           </widget>
          </item>
-         <item row="4" column="1">
-          <layout class="QHBoxLayout" name="horizontalLayout">
+         <item row="5" column="1">
+          <layout class="QHBoxLayout" name="keyFileLayout">
            <item>
             <widget class="QSpinBox" name="spin_sshPort"/>
            </item>
