@@ -52,6 +52,7 @@ set(mq_srcs
   openwithmanagerdialog.cpp
   openwithexecutablemodel.cpp
   openwithpatternmodel.cpp
+  opensshcommand.cpp
   patterntypedelegate.cpp
   pluginmanager.cpp
   program.cpp
@@ -69,10 +70,15 @@ set(mq_srcs
   remotequeuewidget.cpp
   server.cpp
   sshcommand.cpp
+  sshcommandfactory.cpp
   sshconnection.cpp
   templatekeyworddialog.cpp
   terminalprocess.cpp
 )
+
+if(WIN32)
+  list(APPEND mq_srcs puttycommand.cpp)
+endif()
 
 qt4_wrap_ui(ui_srcs
   ui/addqueuedialog.ui

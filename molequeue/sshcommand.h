@@ -28,10 +28,12 @@ class TerminalProcess;
 
 /**
  * @class SshCommand sshcommand.h <molequeue/sshcommand.h>
- * @brief Concrete implementation of SshConnection using commandline ssh/scp.
- * @author Marcus D. Hanwell, David C. Lonie
+ * @brief Abstract subclass of SshConnection providing base implementaton using
+ * commandline ssh/scp.
  *
- * The SshCommand provides an implementation of the SshConnection interface
+ * @author Marcus D. Hanwell, David C. Lonie, Chris Harris
+ *
+ * The SshCommand provides an base implementation of the SshConnection interface
  * that calls the commandline ssh and scp executables in a TerminalProcess.
  *
  * When writing code that needs ssh functionality, the code should use the
@@ -42,7 +44,7 @@ class SshCommand : public SshConnection
   Q_OBJECT
 
 public:
-  SshCommand(QObject *parentObject = 0);
+  SshCommand(QObject *parentObject, QString sshCommand, QString scpCommand);
   ~SshCommand();
 
   /** \return The SSH command that will be run. */
@@ -169,10 +171,10 @@ protected:
   void initializeProcess();
 
   /// @return the arguments to be passed to the SSH command.
-  QStringList sshArgs();
+  virtual QStringList sshArgs() = 0;
 
   /// @return the arguments to be passed to the SCP command.
-  QStringList scpArgs();
+  virtual QStringList scpArgs() = 0;
 
   /// @return the remote specification, e.g. "user@host" or "host"
   QString remoteSpec();

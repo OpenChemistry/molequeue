@@ -17,10 +17,10 @@
 #ifndef DUMMYSSHCOMMAND_H
 #define DUMMYSSHCOMMAND_H
 
-#include "sshcommand.h"
+#include "opensshcommand.h"
 
 /// SshCommand implementation that doesn't actually call external processes.
-class DummySshCommand : public MoleQueue::SshCommand
+class DummySshCommand : public MoleQueue::OpenSshCommand
 {
   Q_OBJECT
 public:
