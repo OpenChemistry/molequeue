@@ -23,7 +23,7 @@
 #include "../program.h"
 #include "../remotequeuewidget.h"
 #include "../server.h"
-#include "../sshcommand.h"
+#include "../sshcommandfactory.h"
 
 #include <QtCore/QTimer>
 #include <QtCore/QDebug>
@@ -34,8 +34,8 @@ namespace MoleQueue {
 
 QueueRemote::QueueRemote(const QString &queueName, QueueManager *parentObject)
   : Queue(queueName, parentObject),
-    m_sshExecutable(QString("ssh")),
-    m_scpExecutable(QString("scp")),
+    m_sshExecutable(SshCommandFactory::defaultSshCommand()),
+    m_scpExecutable(SshCommandFactory::defaultScpCommand()),
     m_sshPort(22),
     m_isCheckingQueue(false),
     m_checkForPendingJobsTimerId(-1),
@@ -749,9 +749,9 @@ void QueueRemote::endKillJob()
   job.setJobState(MoleQueue::Killed);
 }
 
-SshConnection * QueueRemote::newSshConnection()
+SshConnection *QueueRemote::newSshConnection()
 {
-  SshCommand *command = new SshCommand (this);
+  SshCommand *command = SshCommandFactory::instance()->newSshCommand();
   command->setSshCommand(m_sshExecutable);
   command->setScpCommand(m_scpExecutable);
   command->setHostName(m_hostName);

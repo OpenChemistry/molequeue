@@ -222,6 +222,9 @@ protected slots:
   virtual void endKillJob();
 
 protected:
+  /**
+   * @return a new SshConnection, the caller assumes ownership
+   */
   virtual SshConnection *newSshConnection();
 
   /**

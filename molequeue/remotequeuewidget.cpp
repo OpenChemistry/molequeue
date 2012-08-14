@@ -20,7 +20,7 @@
 #include "transport/localsocket/localsocketclient.h"
 #include "program.h"
 #include "queues/remote.h"
-#include "sshcommand.h"
+#include "sshcommandfactory.h"
 #include "templatekeyworddialog.h"
 
 #include <QtCore/QTimer>
@@ -146,7 +146,7 @@ void RemoteQueueWidget::testConnection()
   }
 
   // Create SSH connection
-  SshCommand *conn= new SshCommand (this);
+  SshCommand *conn = SshCommandFactory::instance()->newSshCommand();
   conn->setSshCommand(sshCommand);
   conn->setHostName(host);
   conn->setUserName(user);
