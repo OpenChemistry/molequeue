@@ -68,6 +68,7 @@ void QueueRemote::readSettings(QSettings &settings)
   m_scpExecutable = settings.value("scpExecutable", "scp").toString();
   m_hostName = settings.value("hostName").toString();
   m_userName = settings.value("userName").toString();
+  m_identityFile = settings.value("identityFile").toString();
   m_sshPort  = settings.value("sshPort").toInt();
   m_queueUpdateInterval =
       settings.value("queueUpdateInterval",
@@ -88,6 +89,7 @@ void QueueRemote::writeSettings(QSettings &settings) const
   settings.setValue("scpExecutable", m_scpExecutable);
   settings.setValue("hostName", m_hostName);
   settings.setValue("userName", m_userName);
+  settings.setValue("identityFile", m_identityFile);
   settings.setValue("sshPort",  m_sshPort);
   settings.setValue("queueUpdateInterval", m_queueUpdateInterval);
   settings.setValue("defaultMaxWallTime", m_defaultMaxWallTime);
@@ -756,6 +758,7 @@ SshConnection *QueueRemote::newSshConnection()
   command->setScpCommand(m_scpExecutable);
   command->setHostName(m_hostName);
   command->setUserName(m_userName);
+  command->setIdentityFile(m_identityFile);
   command->setPortNumber(m_sshPort);
 
   return command;
