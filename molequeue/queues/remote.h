@@ -290,6 +290,7 @@ protected:
   QList<int> m_allowedQueueRequestExitCodes;
 
   QString m_workingDirectoryBase;
+
 };
 
 } // End namespace

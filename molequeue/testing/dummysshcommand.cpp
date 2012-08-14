@@ -19,7 +19,7 @@
 using namespace MoleQueue;
 
 DummySshCommand::DummySshCommand(QObject *parentObject)
-  : MoleQueue::SshCommand(parentObject)
+  : MoleQueue::OpenSshCommand(parentObject)
 {
 }
 
