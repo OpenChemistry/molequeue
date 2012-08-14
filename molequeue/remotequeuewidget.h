@@ -53,6 +53,9 @@ protected slots:
   void sleepTest();
   void showHelpDialog();
 
+private slots:
+  void showFileDialog();
+
 private:
   Ui::RemoteQueueWidget *ui;
   QueueRemote *m_queue;
