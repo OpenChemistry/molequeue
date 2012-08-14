@@ -106,6 +106,16 @@ public:
     return m_userName;
   }
 
+  void setIdentityFile(const QString &identity)
+  {
+    m_identityFile = identity;
+  }
+
+  QString identityFile() const
+  {
+    return m_identityFile;
+  }
+
   void setSshPort(int port)
   {
     m_sshPort = port;
@@ -267,6 +277,7 @@ protected:
   QString m_scpExecutable;
   QString m_hostName;
   QString m_userName;
+  QString m_identityFile;
   int m_sshPort;
   int m_checkQueueTimerId;
   bool m_isCheckingQueue;
