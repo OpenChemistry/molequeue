@@ -71,7 +71,7 @@
        <widget class="QPlainTextEdit" name="text_launchTemplate">
         <property name="minimumSize">
          <size>
-          <width>600</width>
+          <width>100</width>
           <height>0</height>
          </size>
         </property>
@@ -108,6 +108,18 @@
     <layout class="QVBoxLayout" name="verticalLayout">
      <item>
       <widget class="QGroupBox" name="groupBox">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>300</width>
+         <height>0</height>
+        </size>
+       </property>
        <property name="title">
         <string>Settings</string>
        </property>
