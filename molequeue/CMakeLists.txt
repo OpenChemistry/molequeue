@@ -40,6 +40,7 @@ set(mq_srcs
   jobmanager.cpp
   jobreferencebase.cpp
   jobrequest.cpp
+  jobtableproxymodel.cpp
   jobtablewidget.cpp
   jobview.cpp
   jsonrpc.cpp

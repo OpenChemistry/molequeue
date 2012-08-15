@@ -31,6 +31,8 @@ class JobItemModel : public QAbstractItemModel
 {
   Q_OBJECT
 
+public:
+
   enum ColumnNames {
     MOLEQUEUE_ID = 0,
     JOB_TITLE ,
@@ -42,7 +44,6 @@ class JobItemModel : public QAbstractItemModel
     COLUMN_COUNT // Use to get the total number of columns
   };
 
-public:
   explicit JobItemModel(QObject *parentObject = 0);
 
   // Used with the data() method to get info.

@@ -17,6 +17,8 @@
 #ifndef JOBTABLEWIDGET_H
 #define JOBTABLEWIDGET_H
 
+#include "molequeueglobal.h"
+
 #include <QtGui/QWidget>
 
 namespace Ui {
@@ -28,6 +30,7 @@ namespace MoleQueue
 class Job;
 class JobActionFactory;
 class JobManager;
+class JobTableProxyModel;
 
 /// @brief Widget which encapsulates the Job table MVC classes.
 class JobTableWidget : public QWidget
@@ -41,10 +44,18 @@ public:
   void setJobManager(JobManager *jobManager);
   JobManager * jobManager() const { return m_jobManager; }
 
-  QList<Job> getSelectedJobs();
-
 public slots:
   void clearFinishedJobs();
+
+protected slots:
+  void saveUiState();
+  void restoreUiState();
+
+  void blockFilterUiSignals(bool block = true);
+  void updateFilters();
+
+  void selectAllStatuses();
+  void selectNoStatuses();
 
 protected:
   // Row indices, ascending order
@@ -52,6 +63,7 @@ protected:
 
   Ui::JobTableWidget *ui;
   JobManager *m_jobManager;
+  JobTableProxyModel *m_proxyModel;
 };
 
 } // end namespace MoleQueue
