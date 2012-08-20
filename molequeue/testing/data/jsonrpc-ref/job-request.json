@@ -7,8 +7,9 @@
       "cleanRemoteFiles" : false,
       "description" : "spud slicer 28",
       "hideFromGui" : false,
-      "inputAsPath" : "/tmp/myjob/test.potato",
-      "inputAsString" : "This string will get ignored!",
+      "inputFile" : {
+         "filepath" : "/tmp/myjob/test.potato"
+      },
       "jobState" : 0,
       "localWorkingDirectory" : "",
       "maxWallTime" : -1,

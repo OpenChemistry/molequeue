@@ -89,7 +89,7 @@ protected slots:
    * @param job The Job.
    * @return True on success, false otherwise.
    */
-  bool prepareJobForSubmission(const MoleQueue::Job &job);
+  bool prepareJobForSubmission(Job &job);
 
   /**
    * Called when a process starts.
