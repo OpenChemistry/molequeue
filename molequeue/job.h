@@ -19,6 +19,7 @@
 
 #include "molequeue/jobreferencebase.h"
 
+#include "filespec.h"
 #include "molequeueglobal.h"
 
 #include <QtCore/QMetaType>
@@ -110,19 +111,25 @@ public:
   /// @return newDesc Description of job
   QString description() const;
 
-  /// @param path Path to input file.
-  void setInputAsPath(const QString &path);
+  /// @param filespec FileSpec describing the main input file (called by the
+  /// executable)
+  void setInputFile(const FileSpec &spec);
 
-  /// @return Path to input file.
-  QString inputAsPath() const;
+  /// @return FileSpec describing the main input file (called by the
+  /// executable)
+  FileSpec inputFile() const;
 
-  /// @param input String containing input file contents. Ignored if inputAsPath
-  /// is set.
-  void setInputAsString(const QString &input);
+  /// @param files FileSpecs describing additional input files, to be placed in
+  /// the working directory of the job prior to execution.
+  void setAdditionalInputFiles(const QList<FileSpec> & files);
 
-  /// @return String containing input file contents. Ignored if inputAsPath
-  /// is set.
-  QString inputAsString() const;
+  /// @return FileSpecs describing additional input files, to be placed in
+  /// the working directory of the job prior to execution.
+  QList<FileSpec> additionalInputFiles() const;
+
+  /// @a param spec FileSpec describing an input file to append to the
+  /// additional input file list.
+  void addInputFile(const FileSpec &spec);
 
   /**
    * Set the output directory for the job.

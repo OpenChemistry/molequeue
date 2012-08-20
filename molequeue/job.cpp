@@ -106,30 +106,36 @@ QString Job::description() const
   return QString();
 }
 
-void Job::setInputAsPath(const QString &path)
+void Job::setInputFile(const FileSpec &spec)
 {
   if (warnIfInvalid())
-    m_jobData->setInputAsPath(path);
+    m_jobData->setInputFile(spec);
 }
 
-QString Job::inputAsPath() const
+FileSpec Job::inputFile() const
 {
   if (warnIfInvalid())
-    return m_jobData->inputAsPath();
-  return QString();
+    return m_jobData->inputFile();
+  return FileSpec();
 }
 
-void Job::setInputAsString(const QString &input)
+void Job::setAdditionalInputFiles(const QList<FileSpec> &files)
 {
   if (warnIfInvalid())
-    m_jobData->setInputAsString(input);
+    m_jobData->setAdditionalInputFiles(files);
 }
 
-QString Job::inputAsString() const
+QList<FileSpec> Job::additionalInputFiles() const
 {
   if (warnIfInvalid())
-    return m_jobData->inputAsString();
-  return QString();
+    return m_jobData->additionalInputFiles();
+  return QList<FileSpec>();
+}
+
+void Job::addInputFile(const FileSpec &spec)
+{
+  if (warnIfInvalid())
+    m_jobData->additionalInputFilesRef().append(spec);
 }
 
 void Job::setOutputDirectory(const QString &path)

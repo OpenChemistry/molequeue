@@ -28,6 +28,7 @@ target_link_libraries(testutils molequeue_static)
 set(MyTests
   abstractrpcinterface
   client
+  filespec
   jobmanager
   jsonrpc
   pbs

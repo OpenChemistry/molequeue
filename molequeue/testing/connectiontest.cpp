@@ -279,10 +279,10 @@ void ConnectionTest::testJobStateChangeNotification()
        qApp->processEvents(QEventLoop::AllEvents, 500);
     }
 
-    QCOMPARE(jobStateChangedSpy.count(), 2);
+    QCOMPARE(jobStateChangedSpy.count(), 3);
 
     MoleQueue::JobState state =
-      jobStateChangedSpy.at(1).at(2).value<MoleQueue::JobState>();
+      jobStateChangedSpy.last().at(2).value<MoleQueue::JobState>();
 
     QCOMPARE(state, MoleQueue::Killed);
 }

@@ -26,6 +26,7 @@ set(mq_srcs
   actionfactorymanager.cpp
   addqueuedialog.cpp
   client.cpp
+  filespec.cpp
   importprogramdialog.cpp
   importqueuedialog.cpp
   job.cpp
@@ -133,6 +134,7 @@ install(TARGETS molequeue
 set(mqclient_srcs
   abstractrpcinterface.cpp
   client.cpp
+  filespec.cpp
   job.cpp
   jobdata.cpp
   jobitemmodel.cpp
@@ -150,6 +152,7 @@ set(mqclient_srcs
 set(mqclient_headers
   abstractrpcinterface.h
   client.h
+  filespec.h
   jobreferencebase.h
   jobrequest.h
   molequeueglobal.h

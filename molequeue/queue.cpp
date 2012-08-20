@@ -16,6 +16,7 @@
 
 #include "queue.h"
 
+#include "filespec.h"
 #include "job.h"
 #include "jobmanager.h"
 #include "logentry.h"
@@ -255,28 +256,54 @@ bool Queue::writeInputFiles(const Job &job)
   }
 
   // Create input files
-  if (!program->inputFilename().isEmpty()) {
-    QString inputFilePath = dir.absoluteFilePath(program->inputFilename());
-    if (job.inputAsPath().isEmpty()) {
-      // Open a file and write the input string to it.
-      QFile inputFile (inputFilePath);
-      if (!inputFile.open(QFile::WriteOnly | QFile::Text)) {
-        Logger::logError(tr("Cannot open file for writing: %1")
-                         .arg(inputFilePath),
-                         job.moleQueueId());
-        return false;
-      }
-      inputFile.write(job.inputAsString().toLatin1());
-      inputFile.close();
+  FileSpec inputFile = job.inputFile();
+  if (!program->inputFilename().isEmpty() && inputFile.isValid()) {
+    /// @todo Allow custom file names, only specify extension in program.
+    /// Use $$basename$$ keyword replacement.
+    inputFile.writeFile(dir, program->inputFilename());
+  }
+
+  // Write additional input files
+  QList<FileSpec> additionalInputFiles = job.additionalInputFiles();
+  foreach (const FileSpec &filespec, additionalInputFiles) {
+    if (!filespec.isValid()) {
+      Logger::logError(tr("Writing additional input files...invalid FileSpec:\n"
+                          "%1").arg(filespec.asJsonString()),
+                       job.moleQueueId());
+      return false;
     }
-    else {
-      // Copy the input file to the input path
-      if (!QFile::copy(job.inputAsPath(), inputFilePath)) {
-        Logger::logError(tr("Cannot copy file '%1' --> '%2'.")
-                         .arg(job.inputAsPath()).arg(inputFilePath),
-                         job.moleQueueId());
+    QFileInfo target(dir.absoluteFilePath(filespec.filename()));
+    switch (filespec.format()) {
+    default:
+    case FileSpec::InvalidFileSpec:
+      Logger::logWarning(tr("Cannot write input file. Invalid filespec:\n%1")
+                         .arg(filespec.asJsonString()), job.moleQueueId());
+      continue;
+    case FileSpec::PathFileSpec: {
+      QFileInfo source(filespec.filepath());
+      if (!source.exists()) {
+        Logger::logError(tr("Writing additional input files...Source file "
+                            "does not exist! %1")
+                         .arg(source.absoluteFilePath()), job.moleQueueId());
         return false;
       }
+      if (source == target) {
+        Logger::logWarning(tr("Refusing to copy additional input file...source "
+                              "and target refer to the same file!\nSource: %1"
+                              "\nTarget: %2").arg(source.absoluteFilePath())
+                           .arg(target.absoluteFilePath()), job.moleQueueId());
+        continue;
+      }
+    }
+    case FileSpec::ContentsFileSpec:
+      if (target.exists()) {
+        Logger::logWarning(tr("Writing additional input files...Overwriting "
+                              "existing file: '%1'")
+                           .arg(target.absoluteFilePath()), job.moleQueueId());
+        QFile::remove(target.absoluteFilePath());
+      }
+      filespec.writeFile(dir);
+      continue;
     }
   }
 
