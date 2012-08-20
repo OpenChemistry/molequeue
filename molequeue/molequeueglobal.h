@@ -149,8 +149,10 @@ inline JobState stringToJobState(const char *str)
 enum JobSubmissionErrorCode {
   /// No error occurred.
   Success = 0,
-  /// Requested queue does not exist
-  InvalidQueue
+  /// Requested queue does not exist.
+  InvalidQueue,
+  /// Requested program does not exist on queue.
+  InvalidProgram
 };
 
 /// Default time in between remote queue updates in minutes.
