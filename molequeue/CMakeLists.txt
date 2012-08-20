@@ -56,6 +56,7 @@ set(mq_srcs
   pluginmanager.cpp
   program.cpp
   programconfiguredialog.cpp
+  qtjson.cpp
   queue.cpp
   queuemanager.cpp
   queuemanagerdialog.cpp
@@ -142,6 +143,7 @@ set(mqclient_srcs
   logentry.cpp
   logger.cpp
   molequeueglobal.h
+  qtjson.cpp
   ${jsoncpp_srcs}
 )
 
