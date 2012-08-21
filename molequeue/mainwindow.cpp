@@ -36,8 +36,10 @@
 
 #include <QtGui/QCloseEvent>
 #include <QtGui/QInputDialog>
+#include <QtGui/QLabel>
 #include <QtGui/QMessageBox>
 #include <QtGui/QShortcut>
+#include <QtGui/QStatusBar>
 
 namespace MoleQueue {
 
@@ -51,6 +53,8 @@ MainWindow::MainWindow()
     m_restoreAction(NULL),
     m_trayIcon(NULL),
     m_trayIconMenu(NULL),
+    m_statusTotalJobs(new QLabel(this)),
+    m_statusHiddenJobs(new QLabel(this)),
     m_server(new Server (this)),
     m_errorCount(0)
 {
@@ -64,8 +68,10 @@ MainWindow::MainWindow()
   createShortcuts();
   createMainMenu();
   createTrayIcon();
-  readSettings();
   createJobTable();
+  createStatusBar();
+
+  readSettings();
 
   connect(m_server, SIGNAL(connectionError(MoleQueue::ConnectionListener::Error,QString)),
           this, SLOT(handleServerConnectionError(MoleQueue::ConnectionListener::Error, QString)));
@@ -245,6 +251,23 @@ void MainWindow::handleErrorNotificationLabelAction(const QString &action)
     Logger::resetNewErrorCount();
 }
 
+void MainWindow::updateJobCounts(int totalJobs, int shownJobs)
+{
+  int hiddenJobs = totalJobs - shownJobs;
+  if (hiddenJobs > 0) {
+    m_statusHiddenJobs->setText(tr("%n job(s) are hidden by filters", "",
+                                   hiddenJobs));
+    QPalette pal;
+    pal.setColor(QPalette::Foreground, Qt::darkRed);
+    m_statusHiddenJobs->setPalette(pal);
+    m_statusHiddenJobs->show();
+  }
+  else {
+    m_statusHiddenJobs->hide();
+  }
+  m_statusTotalJobs->setText(tr("%n job(s)", "", totalJobs));
+}
+
 void MainWindow::closeEvent(QCloseEvent *theEvent)
 {
   QSettings settings;
@@ -315,6 +338,8 @@ void MainWindow::createTrayIcon()
 
 void MainWindow::createJobTable()
 {
+  connect(m_ui->jobTableWidget, SIGNAL(jobCountsChanged(int, int)),
+          this, SLOT(updateJobCounts(int,int)));
   m_ui->jobTableWidget->setJobManager(m_server->jobManager());
 }
 
@@ -338,6 +363,14 @@ void MainWindow::createActionFactories()
       new KillJobActionFactory();
   killActionFactory->setServer(m_server);
   manager->addFactory(killActionFactory);
+}
+
+void MainWindow::createStatusBar()
+{
+  statusBar()->addWidget(m_statusTotalJobs);
+  statusBar()->addWidget(m_statusHiddenJobs);
+  m_statusHiddenJobs->hide();
+  statusBar()->show();
 }
 
 } // End namespace

@@ -25,6 +25,14 @@ namespace MoleQueue {
 JobTableProxyModel::JobTableProxyModel(QObject *parent_) :
   QSortFilterProxyModel(parent_)
 {
+  connect(this, SIGNAL(rowsInserted(QModelIndex, int, int)),
+          this, SIGNAL(rowCountChanged()));
+  connect(this, SIGNAL(rowsRemoved(QModelIndex, int, int)),
+          this, SIGNAL(rowCountChanged()));
+  connect(this, SIGNAL(modelReset()),
+          this, SIGNAL(rowCountChanged()));
+  connect(this, SIGNAL(layoutChanged()),
+          this, SIGNAL(rowCountChanged()));
 }
 
 void JobTableProxyModel::setFilterString(const QString &str)
