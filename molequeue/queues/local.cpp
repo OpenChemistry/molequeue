@@ -275,7 +275,7 @@ void QueueLocal::connectProcess(QProcess *proc)
           this, SLOT(processFinished(int,QProcess::ExitStatus)));
 }
 
-bool QueueLocal::checkJobLimit()
+void QueueLocal::checkJobQueue()
 {
   int coresInUse = 0;
   foreach(IdType moleQueueId, m_runningJobs.keys()) {
@@ -305,8 +305,6 @@ bool QueueLocal::checkJobLimit()
     // Cannot start next job yet!
     break;
   }
-
-  return true;
 }
 
 bool QueueLocal::startJob(IdType moleQueueId)
@@ -381,10 +379,6 @@ bool QueueLocal::startJob(IdType moleQueueId)
 
   connectProcess(proc);
 
-  qDebug() << "Starting process:" << command + arguments.join(" ");
-  qDebug() << "workingdir:" <<  proc->workingDirectory();
-  // This next line *should* work, but doesn't....?
-//  proc->start(command, arguments);
   proc->start(command + arguments.join(" "));
   m_runningJobs.insert(job.moleQueueId(), proc);
 
@@ -394,9 +388,7 @@ bool QueueLocal::startJob(IdType moleQueueId)
 void QueueLocal::timerEvent(QTimerEvent *theEvent)
 {
   if (theEvent->timerId() == m_checkJobLimitTimerId) {
-    if (!checkJobLimit()) {
-      qWarning() << Q_FUNC_INFO << "Error checking queue...";
-    }
+    checkJobQueue();
     theEvent->accept();
     return;
   }
