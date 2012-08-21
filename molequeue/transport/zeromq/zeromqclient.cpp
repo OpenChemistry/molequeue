@@ -32,12 +32,9 @@ void ZeroMqClient::connectToServer(const QString &serverName)
 
   if (m_connection && m_connection->isOpen()) {
     if (m_connection->connectionString() == serverName) {
-      DEBUG("connectToServer") "zeromq Socket already connected to" << serverName;
       return;
     }
     else {
-      DEBUG("connectToServer") "Disconnecting from server"
-          << m_connection->connectionString();
       m_connection->close();
       delete m_connection;
       m_connection = NULL;
@@ -47,17 +44,13 @@ void ZeroMqClient::connectToServer(const QString &serverName)
   // New connection
   if (m_connection == NULL) {
     if (serverName.isEmpty()) {
-      DEBUG("connectToServer") "No server specified. Not attempting connection.";
       return;
     }
     else {
-      qDebug() << serverName;
       ZeroMqConnection *connection = new ZeroMqConnection(this, "ipc://" + serverName);
       setConnection(connection);
       connection->open();
       connection->start();
-      DEBUG("connectToServer") "Client connected to server"
-          << m_connection->connectionString();
     }
   }
 }

@@ -98,8 +98,6 @@ QString ZeroMqConnection::connectionString() const
 
 void ZeroMqConnection::send(const Message &msg)
 {
-  qDebug() << msg.data().size();
-  qDebug() << msg.data();
   zmq::message_t message(msg.data().size());
   memcpy(message.data(), msg.data().constData(), msg.data().size());
 
@@ -110,7 +108,7 @@ void ZeroMqConnection::send(const Message &msg)
     bool rc  = m_socket->send(identity, ZMQ_SNDMORE | ZMQ_NOBLOCK);
 
     if (!rc) {
-      qDebug() << "zmq_send failed with EAGAIN";
+      qWarning() << "zmq_send failed with EAGAIN";
       return;
     }
   }
@@ -119,7 +117,7 @@ void ZeroMqConnection::send(const Message &msg)
   bool rc = m_socket->send(message, ZMQ_NOBLOCK);
 
   if (!rc) {
-    qDebug() << "zmq_send failed with EAGAIN";
+    qWarning() << "zmq_send failed with EAGAIN";
   }
 }
 
@@ -132,7 +130,7 @@ void ZeroMqConnection::listen()
     routerReceive();
   }
   else {
-    qDebug() << "Invalid socket type";
+    qWarning() << "Invalid socket type";
   }
 }
 
@@ -168,7 +166,7 @@ void ZeroMqConnection::routerReceive()
     // Now receive the message
     zmq::message_t message;
     if(!m_socket->recv(&message, ZMQ_NOBLOCK)) {
-      qDebug() << "Error no message body received";
+      qWarning() << "Error no message body received";
       return;
     }
 

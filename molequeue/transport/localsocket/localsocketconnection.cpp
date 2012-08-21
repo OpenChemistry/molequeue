@@ -18,14 +18,11 @@
 
 #include "abstractrpcinterface.h"
 #include "transport/message.h"
+#include "logger.h"
 
 #include <QtCore/QDateTime>
 #include <QtCore/QDebug>
 #include <QtNetwork/QLocalSocket>
-
-#define DEBUGOUT(title) \
-  qDebug() << QDateTime::currentDateTime().toString() \
-           << "LocalSocketConnection" << title <<
 
 namespace MoleQueue
 {
@@ -99,11 +96,9 @@ void LocalSocketConnection::readSocket()
     return;
 
   if (m_holdRequests) {
-    DEBUG("readSocket") "Skipping socket read; requests are currently held.";
     return;
   }
 
-  DEBUG("readSocket") "New data available";
   // Check if the data is a new packet or if we're in the middle of reading one.
   if (m_currentPacketSize == 0) {
 
@@ -123,7 +118,6 @@ void LocalSocketConnection::readSocket()
 
   // Are we done?
   if (static_cast<qint64>(m_currentPacket.size()) == m_currentPacketSize) {
-    DEBUG("readSocket") "Packet completed. Size:" << m_currentPacketSize;
     Message msg(m_currentPacket);
     emit newMessage(msg);
     m_currentPacket.clear();
@@ -134,19 +128,10 @@ void LocalSocketConnection::readSocket()
       readSocket();
 
   }
-  else {
-    DEBUG("readSocket") "Packet incomplete. Waiting for more data..."
-        << "current size:" << m_currentPacket.size() << "bytes of"
-        << m_currentPacketSize;
-  }
 }
 
 void LocalSocketConnection::writePacketHeader(const PacketType &packet)
 {
-  DEBUG("writePacketHeader") "Writing packet header."
-      << "Version:" << m_headerVersion
-      << "Size:" << packet.size();
-
   // First write a version identifier
   (*m_dataStream) << m_headerVersion;
 
@@ -156,7 +141,6 @@ void LocalSocketConnection::writePacketHeader(const PacketType &packet)
 
 void LocalSocketConnection::send(const Message &msg)
 {
-  DEBUG("sendPacket") "Sending new packet. Size:" << msg.data().size();
   writePacketHeader(msg.data());
   m_dataStream->writeBytes(msg.data().constData(),
                            static_cast<unsigned int>(msg.data().size()));
@@ -179,16 +163,10 @@ quint32 LocalSocketConnection::readPacketHeader()
 
   (*m_dataStream) >> headerVersion;
 
-  if (headerVersion != m_headerVersion) {
-    qWarning() << "Warning -- MoleQueue client/server version mismatch!";
+  if (headerVersion != m_headerVersion)
     return 0;
-  }
 
   (*m_dataStream) >> packetSize;
-
-  DEBUG("readPacketHeader") "Reading packet header."
-      << "Version:" << headerVersion
-      << "Size:" << packetSize;
 
   return packetSize;
 }
@@ -202,8 +180,6 @@ void LocalSocketConnection::open()
     }
 
     m_socket->connectToServer(m_connectionString);
-
-    DEBUG("open") "Connected to" << m_socket->serverName();
   }
 }
 
@@ -211,9 +187,7 @@ void LocalSocketConnection::start()
 {
   if (m_socket) {
     m_holdRequests = false;
-    DEBUG("start") "Started handling requests.";
     while (m_socket->bytesAvailable() != 0) {
-      DEBUG("start") "Flushing request backlog...";
       readSocket();
     }
   }

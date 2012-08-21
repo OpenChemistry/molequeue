@@ -16,6 +16,8 @@
 
 #include "sshconnection.h"
 
+#include <cstdlib>
+
 namespace MoleQueue {
 
 SshConnection::SshConnection(QObject *parentObject) : QObject(parentObject),
@@ -79,6 +81,12 @@ bool SshConnection::copyDirTo(const QString &, const QString &)
 bool SshConnection::copyDirFrom(const QString &, const QString &)
 {
   return false;
+}
+
+bool SshConnection::debug()
+{
+  const char *val = getenv("MOLEQUEUE_DEBUG_SSH");
+  return (val != NULL && val[0] != '\0');
 }
 
 } // End of namespace

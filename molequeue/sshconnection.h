@@ -202,6 +202,7 @@ signals:
   void requestComplete();
 
 protected:
+  static bool debug();
   bool m_persistent;
   QVariant m_data;
   QString m_userName;
