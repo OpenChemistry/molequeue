@@ -104,8 +104,6 @@ protected:
   QLabel *m_statusHiddenJobs;
 
   Server *m_server;
-
-  int m_errorCount;
 };
 
 } // End namespace

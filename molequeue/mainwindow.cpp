@@ -56,8 +56,7 @@ MainWindow::MainWindow()
     m_trayIconMenu(NULL),
     m_statusTotalJobs(new QLabel(this)),
     m_statusHiddenJobs(new QLabel(this)),
-    m_server(new Server (this)),
-    m_errorCount(0)
+    m_server(new Server (this))
 {
   m_ui->setupUi(this);
 
