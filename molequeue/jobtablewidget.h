@@ -44,6 +44,9 @@ public:
   void setJobManager(JobManager *jobManager);
   JobManager * jobManager() const { return m_jobManager; }
 
+signals:
+  void jobCountsChanged(int totalJobs, int shownJobs);
+
 public slots:
   void clearFinishedJobs();
   void showFilterBar(bool visible = true);
@@ -59,6 +62,8 @@ protected slots:
 
   void selectAllStatuses();
   void selectNoStatuses();
+
+  void modelRowCountChanged();
 
 protected:
   // Row indices, ascending order
