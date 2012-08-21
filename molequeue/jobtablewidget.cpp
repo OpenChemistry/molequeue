@@ -36,6 +36,9 @@ JobTableWidget::JobTableWidget(QWidget *parentObject) :
 {
   ui->setupUi(this);
 
+  connect(m_proxyModel, SIGNAL(rowCountChanged()),
+          this, SLOT(modelRowCountChanged()));
+
   ui->table->setModel(m_proxyModel);
   ui->table->setSortingEnabled(true);
 
@@ -80,7 +83,14 @@ void JobTableWidget::setJobManager(MoleQueue::JobManager *jobMan)
   if (jobMan == m_jobManager)
     return;
 
+  if (m_jobManager) {
+    disconnect(m_jobManager->itemModel(), SIGNAL(rowCountChanged()),
+               this, SLOT(modelRowCountChanged()));
+  }
+
   m_jobManager = jobMan;
+  connect(m_jobManager->itemModel(), SIGNAL(rowCountChanged()),
+          this, SLOT(modelRowCountChanged()));
   m_proxyModel->setSourceModel(jobMan->itemModel());
   m_proxyModel->setDynamicSortFilter(true);
 
@@ -93,6 +103,8 @@ void JobTableWidget::setJobManager(MoleQueue::JobManager *jobMan)
             i, QHeaderView::ResizeToContents);
     }
   }
+
+  modelRowCountChanged();
 }
 
 void JobTableWidget::clearFinishedJobs()
@@ -245,6 +257,13 @@ void JobTableWidget::selectNoStatuses()
   ui->filterStatusError->setChecked(false);
   blockFilterUiSignals(false);
   updateFilters();
+}
+
+void JobTableWidget::modelRowCountChanged()
+{
+  if (m_jobManager)
+    emit jobCountsChanged(m_jobManager->itemModel()->rowCount(),
+                          m_proxyModel->rowCount());
 }
 
 } // end namespace MoleQueue

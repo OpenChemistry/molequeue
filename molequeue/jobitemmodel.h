@@ -80,6 +80,9 @@ public:
 
   friend class MoleQueue::JobManager;
 
+signals:
+  void rowCountChanged();
+
 public slots:
   void jobUpdated(const MoleQueue::Job &job);
 

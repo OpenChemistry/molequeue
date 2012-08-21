@@ -29,6 +29,7 @@ public:
   explicit JobTableProxyModel(QObject *parent_ = 0);
 
 signals:
+  void rowCountChanged();
 
 public slots:
   void setFilterString(const QString &str);

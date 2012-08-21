@@ -27,6 +27,14 @@ JobItemModel::JobItemModel(QObject *parentObject)
   : QAbstractItemModel(parentObject),
     m_jobManager(NULL)
 {
+  connect(this, SIGNAL(rowsInserted(QModelIndex, int, int)),
+          this, SIGNAL(rowCountChanged()));
+  connect(this, SIGNAL(rowsRemoved(QModelIndex, int, int)),
+          this, SIGNAL(rowCountChanged()));
+  connect(this, SIGNAL(modelReset()),
+          this, SIGNAL(rowCountChanged()));
+  connect(this, SIGNAL(layoutChanged()),
+          this, SIGNAL(rowCountChanged()));
 }
 
 void JobItemModel::setJobManager(JobManager *newJobManager)
