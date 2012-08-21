@@ -46,6 +46,9 @@ public:
 
 public slots:
   void clearFinishedJobs();
+  void showFilterBar(bool visible = true);
+  void hideFilterBar() { showFilterBar(false); }
+  void focusInFilter();
 
 protected slots:
   void saveUiState();

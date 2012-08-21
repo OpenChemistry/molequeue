@@ -79,6 +79,7 @@ protected:
   void closeEvent(QCloseEvent *theEvent);
 
   void createActions();
+  void createShortcuts();
   void createMainMenu();
   void createTrayIcon();
   void createJobTable();

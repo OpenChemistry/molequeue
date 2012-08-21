@@ -37,6 +37,7 @@
 #include <QtGui/QCloseEvent>
 #include <QtGui/QInputDialog>
 #include <QtGui/QMessageBox>
+#include <QtGui/QShortcut>
 
 namespace MoleQueue {
 
@@ -60,6 +61,7 @@ MainWindow::MainWindow()
 
   createActions();
   createActionFactories();
+  createShortcuts();
   createMainMenu();
   createTrayIcon();
   readSettings();
@@ -109,6 +111,9 @@ void MainWindow::readSettings()
 
   restoreGeometry(settings.value("geometry").toByteArray());
   restoreState(settings.value("windowState").toByteArray());
+  m_ui->actionViewJobFilter->setChecked(
+        settings.value("viewJobFilter", false).toBool());
+  m_ui->jobTableWidget->showFilterBar(m_ui->actionViewJobFilter->isChecked());
 
   m_server->readSettings(settings);
   ActionFactoryManager::getInstance()->readSettings(settings);
@@ -120,6 +125,7 @@ void MainWindow::writeSettings()
 
   settings.setValue("geometry", saveGeometry());
   settings.setValue("windowState", saveState());
+  settings.setValue("viewJobFilter", m_ui->actionViewJobFilter->isChecked());
 
   m_server->writeSettings(settings);
   ActionFactoryManager::getInstance()->writeSettings(settings);
@@ -264,6 +270,14 @@ void MainWindow::createActions()
   connect(m_ui->actionRestore, SIGNAL(triggered()), this, SLOT(showNormal()));
   connect(m_ui->actionUpdateRemoteQueues, SIGNAL(triggered()),
           m_server->queueManager(), SLOT(updateRemoteQueues()));
+  connect(m_ui->actionViewJobFilter, SIGNAL(toggled(bool)),
+          m_ui->jobTableWidget, SLOT(showFilterBar(bool)));
+}
+
+void MainWindow::createShortcuts()
+{
+  new QShortcut(tr("Ctrl+K", "Jump to filter bar"), m_ui->jobTableWidget,
+                SLOT(focusInFilter()), SLOT(focusInFilter()));
 }
 
 void MainWindow::createMainMenu()
