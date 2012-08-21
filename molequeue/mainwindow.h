@@ -74,11 +74,14 @@ protected slots:
   void handleServerConnectionError(MoleQueue::ConnectionListener::Error,
                                    const QString &);
   void handleErrorNotificationLabelAction(const QString &action);
+  void jumpToFilterBar();
 
 protected:
+  void keyPressEvent(QKeyEvent *);
   void closeEvent(QCloseEvent *theEvent);
 
   void createActions();
+  void createShortcuts();
   void createMainMenu();
   void createTrayIcon();
   void createJobTable();

@@ -117,6 +117,23 @@ void JobTableWidget::clearFinishedJobs()
   m_jobManager->removeJobs(finishedJobs);
 }
 
+void JobTableWidget::showFilterBar(bool visible)
+{
+  if (visible)
+    focusInFilter();
+  else
+    ui->filterBar->hide();
+}
+
+void JobTableWidget::focusInFilter()
+{
+  if (!ui->filterBar->isVisible())
+    ui->filterBar->show();
+
+  ui->filterEdit->setFocus();
+  ui->filterEdit->selectAll();
+}
+
 void JobTableWidget::saveUiState()
 {
   QSettings settings;
