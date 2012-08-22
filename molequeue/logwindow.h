@@ -19,6 +19,8 @@
 
 #include <QtGui/QMainWindow>
 
+#include "molequeueglobal.h"
+
 class QSpinBox;
 class QTextBlockFormat;
 class QTextCharFormat;
@@ -38,7 +40,9 @@ class LogWindow : public QMainWindow
   Q_OBJECT
 
 public:
-  explicit LogWindow(QWidget *theParent = 0);
+  /// If moleQueueId is set to something other than InvalidId, this window will
+  /// filter its contents to only the entries related to the specified job.
+  LogWindow(QWidget *theParent = 0, IdType moleQueueId = InvalidId);
   ~LogWindow();
 
 protected:
@@ -70,6 +74,8 @@ private:
   QTextCharFormat *m_errorFormat;
   QTextCharFormat *m_moleQueueIdFormat;
   QTextCharFormat *m_messageFormat;
+
+  IdType m_moleQueueId;
 };
 
 
