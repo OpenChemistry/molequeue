@@ -36,7 +36,7 @@
 
 namespace MoleQueue {
 
-LogWindow::LogWindow(QWidget *theParent) :
+LogWindow::LogWindow(QWidget *theParent, IdType moleQueueId) :
   QMainWindow(theParent),
   ui(new Ui::LogWindow),
   m_log(NULL),
@@ -48,13 +48,18 @@ LogWindow::LogWindow(QWidget *theParent) :
   m_warningFormat(new QTextCharFormat()),
   m_errorFormat(new QTextCharFormat()),
   m_moleQueueIdFormat(new QTextCharFormat()),
-  m_messageFormat(new QTextCharFormat())
+  m_messageFormat(new QTextCharFormat()),
+  m_moleQueueId(moleQueueId)
 {
   createUi();
 
   // Restore geometry
   QSettings settings;
-  settings.beginGroup("logWindow");
+  // Store in different location for filtered logs.
+  if (m_moleQueueId == InvalidId)
+    settings.beginGroup("logWindow");
+  else
+    settings.beginGroup("logWindow/filtered");
   restoreGeometry(settings.value("geometry").toByteArray());
   restoreState(settings.value("windowState").toByteArray());
   settings.endGroup();
@@ -71,7 +76,11 @@ LogWindow::~LogWindow()
 {
   // Store geometry
   QSettings settings;
-  settings.beginGroup("logWindow");
+  // Store in different location for filtered logs.
+  if (m_moleQueueId == InvalidId)
+    settings.beginGroup("logWindow");
+  else
+    settings.beginGroup("logWindow/filtered");
   settings.setValue("geometry", saveGeometry());
   settings.setValue("windowState", saveState());
   settings.endGroup();
@@ -121,6 +130,9 @@ void LogWindow::showEvent(QShowEvent *e)
 
 void LogWindow::addLogEntry(const LogEntry &entry)
 {
+  if (m_moleQueueId != InvalidId && m_moleQueueId != entry.moleQueueId())
+    return;
+
   QString entryType;
   QTextCharFormat *entryFormat;
   switch (entry.entryType()) {
@@ -192,6 +204,12 @@ void LogWindow::createUi()
   m_log->setReadOnly(true);
   mainLayout->addWidget(m_log);
 
+  // Skip the settings widgets if the molequeueid is set. Update window title
+  if (m_moleQueueId != InvalidId) {
+    setWindowTitle(tr("History for Job %1").arg(m_moleQueueId));
+    return;
+  }
+
   QHBoxLayout *logSettingsLayout = new QHBoxLayout ();
 
   QPushButton *clearLogButton = new QPushButton(tr("&Clear log"), this);
@@ -249,6 +267,7 @@ void LogWindow::setupFormats()
 void LogWindow::initializeLogText()
 {
   m_log->clear();
+
   foreach (const LogEntry &entry, Logger::log())
     addLogEntry(entry);
 

@@ -23,6 +23,7 @@
 #include "jobactionfactories/opendirectoryactionfactory.h"
 #include "jobactionfactories/programmableopenwithactionfactory.h"
 #include "jobactionfactories/removejobactionfactory.h"
+#include "jobactionfactories/viewjoblogactionfactory.h"
 #include "jobmanager.h"
 #include "logentry.h"
 #include "logger.h"
@@ -324,6 +325,11 @@ void MainWindow::createActionFactories()
       new KillJobActionFactory();
   killActionFactory->setServer(m_server);
   manager->addFactory(killActionFactory);
+
+  ViewJobLogActionFactory *viewJobLogActionFactory =
+      new ViewJobLogActionFactory();
+  viewJobLogActionFactory->setServer(m_server);
+  manager->addFactory(viewJobLogActionFactory);
 }
 
 } // End namespace
