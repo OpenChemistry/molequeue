@@ -21,6 +21,7 @@
 
 #include <QtCore/QMap>
 
+class QAbstractButton;
 class QItemSelection;
 class QModelIndex;
 
@@ -61,6 +62,7 @@ protected slots:
   void showProgramConfigDialog(Program *prog);
   void setEnabledProgramButtons(bool enabled);
   void removeProgramDialog();
+  void buttonBoxButtonClicked(QAbstractButton*);
 
 protected:
   void closeEvent(QCloseEvent *);
