@@ -78,6 +78,13 @@ QVariantHash JobData::hash() const
   state.insert("maxWallTime", m_maxWallTime);
   state.insert("moleQueueId", m_moleQueueId);
   state.insert("queueId", m_queueId);
+  if (!m_keywords.isEmpty()) {
+    // QVariant can only hold hashs of QVariantHash type.
+    QVariantHash keywordVariantHash;
+    foreach (const QString &key, m_keywords.keys())
+      keywordVariantHash.insert(key, m_keywords.value(key));
+    state.insert("keywords", keywordVariantHash);
+  }
 
   return state;
 }
@@ -120,6 +127,12 @@ void JobData::setFromHash(const QVariantHash &state)
     m_moleQueueId = static_cast<IdType>(state.value("moleQueueId").toUInt());
   if (state.contains("queueId"))
     m_queueId = static_cast<IdType>(state.value("queueId").toUInt());
+  if (state.contains("keywords")) {
+    m_keywords.clear();
+    QVariantHash keywordVariantHash = state.value("keywords").toHash();
+    foreach (const QString &key, keywordVariantHash.keys())
+      m_keywords.insert(key, keywordVariantHash.value(key).toString());
+  }
 }
 
 } // end namespace MoleQueue

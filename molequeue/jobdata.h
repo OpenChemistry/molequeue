@@ -184,6 +184,18 @@ public:
   /// @return Queue Job ID
   IdType queueId() const { return m_queueId; }
 
+  /// @return A reference to the job's keyword hash
+  QHash<QString, QString> & keywordsRef() { return m_keywords; }
+
+  /// @param keyrep The keyword replacement hash
+  void setKeywords(const QHash<QString, QString> &keyrep)
+  {
+    m_keywords = keyrep;
+  }
+
+  /// @return The keyword replacement hash
+  QHash<QString, QString> keywords() const { return m_keywords; }
+
   /// @return The Job's internal state as a QVariantHash
   QVariantHash hash() const;
 
@@ -234,6 +246,8 @@ protected:
   IdType m_moleQueueId;
   /// Queue Job ID
   IdType m_queueId;
+  /// List of custom keyword replacements for the job's launch script
+  QHash<QString, QString> m_keywords;
 };
 
 } // end namespace MoleQueue
