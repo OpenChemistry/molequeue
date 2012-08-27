@@ -19,6 +19,8 @@
 
 #include <QtGui/QDialog>
 
+class QAbstractButton;
+
 namespace Ui {
 class ProgramConfigureDialog;
 }
@@ -59,6 +61,7 @@ protected slots:
   void setDirty(bool dirty = true) { m_dirty = dirty; }
 
   void showHelpDialog();
+  void buttonBoxButtonClicked(QAbstractButton*);
 
 protected:
   void closeEvent(QCloseEvent *);
