@@ -75,6 +75,7 @@ protected slots:
                                    const QString &);
   void handleErrorNotificationLabelAction(const QString &action);
   void jumpToFilterBar();
+  void showAdvancedJobFilters();
   void updateJobCounts(int totalJobs, int shownJobs);
 
 protected:

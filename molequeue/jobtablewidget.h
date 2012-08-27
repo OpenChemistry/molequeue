@@ -21,12 +21,15 @@
 
 #include <QtGui/QWidget>
 
+#include <QtCore/QPointer> // For advanced filter dialog
+
 namespace Ui {
 class JobTableWidget;
 }
 
 namespace MoleQueue
 {
+class AdvancedFilterDialog;
 class Job;
 class JobActionFactory;
 class JobManager;
@@ -53,15 +56,10 @@ public slots:
   void hideFilterBar() { showFilterBar(false); }
   void focusInFilter();
 
+  void showAdvancedFilterDialog();
+
 protected slots:
-  void saveUiState();
-  void restoreUiState();
-
-  void blockFilterUiSignals(bool block = true);
   void updateFilters();
-
-  void selectAllStatuses();
-  void selectNoStatuses();
 
   void modelRowCountChanged();
 
@@ -72,6 +70,7 @@ protected:
   Ui::JobTableWidget *ui;
   JobManager *m_jobManager;
   JobTableProxyModel *m_proxyModel;
+  QPointer<AdvancedFilterDialog> m_filterDialog;
 };
 
 } // end namespace MoleQueue

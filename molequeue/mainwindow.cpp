@@ -259,6 +259,15 @@ void MainWindow::jumpToFilterBar()
   m_ui->jobTableWidget->focusInFilter();
 }
 
+void MainWindow::showAdvancedJobFilters()
+{
+  // Show the job filter if it is hidden
+  if (!m_ui->actionViewJobFilter->isChecked())
+    m_ui->actionViewJobFilter->activate(QAction::Trigger);
+
+  m_ui->jobTableWidget->showAdvancedFilterDialog();
+}
+
 void MainWindow::keyPressEvent(QKeyEvent *e)
 {
   // Handle escape key:
@@ -317,6 +326,10 @@ void MainWindow::createActions()
           m_server->queueManager(), SLOT(updateRemoteQueues()));
   connect(m_ui->actionViewJobFilter, SIGNAL(toggled(bool)),
           m_ui->jobTableWidget, SLOT(showFilterBar(bool)));
+  connect(m_ui->actionAdvancedJobFilters, SIGNAL(triggered()),
+          this, SLOT(showAdvancedJobFilters()));
+  connect(m_ui->actionClearFinishedJobs, SIGNAL(triggered()),
+          m_ui->jobTableWidget, SLOT(clearFinishedJobs()));
 }
 
 void MainWindow::createShortcuts()
