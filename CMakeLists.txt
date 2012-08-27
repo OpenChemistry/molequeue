@@ -22,6 +22,8 @@ option(BUILD_SHARED_LIBS "Build with shared libraries" ON)
 
 option(USE_ZERO_MQ "Build molequeue with ZeroMQ support" OFF)
 
+option(USE_EZHPC_UIT "Build support for ezHPC UIT intergace" OFF)
+
 if(ENABLE_TESTING)
   include(CTest)
   enable_testing()
