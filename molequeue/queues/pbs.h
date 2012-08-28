@@ -17,7 +17,7 @@
 #ifndef QUEUEPBS_H
 #define QUEUEPBS_H
 
-#include "remote.h"
+#include "remotessh.h"
 
 class QueuePbsTest;
 
@@ -25,7 +25,7 @@ namespace MoleQueue
 {
 
 /// @brief QueueRemote subclass for interacting with a PBS/Torque queue.
-class QueuePbs : public QueueRemote
+class QueuePbs : public QueueRemoteSsh
 {
   Q_OBJECT
 public:

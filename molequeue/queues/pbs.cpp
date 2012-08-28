@@ -24,7 +24,7 @@ namespace MoleQueue
 {
 
 QueuePbs::QueuePbs(QueueManager *parentManager) :
-  QueueRemote("Remote (PBS)", parentManager)
+  QueueRemoteSsh("Remote (PBS)", parentManager)
 {
   m_submissionCommand = "qsub";
   m_killCommand = "qdel";

@@ -67,6 +67,7 @@ set(mq_srcs
   queues/local.cpp
   queues/pbs.cpp
   queues/remote.cpp
+  queues/remotessh.cpp
   queues/sge.cpp
   queuesettingsdialog.cpp
   remotequeuewidget.cpp

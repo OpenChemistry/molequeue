@@ -24,7 +24,7 @@ namespace MoleQueue
 {
 
 QueueSge::QueueSge(QueueManager *parentManager) :
-  QueueRemote("Remote (SGE)", parentManager)
+  QueueRemoteSsh("Remote (SGE)", parentManager)
 {
   m_submissionCommand = "qsub";
   m_killCommand = "qdel";
