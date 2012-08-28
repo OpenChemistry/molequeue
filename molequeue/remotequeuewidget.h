@@ -26,7 +26,7 @@ class RemoteQueueWidget;
 namespace MoleQueue
 {
 class Client;
-class QueueRemote;
+class QueueRemoteSsh;
 class TemplateKeywordDialog;
 
 /**
@@ -41,7 +41,7 @@ class RemoteQueueWidget: public AbstractQueueSettingsWidget
   Q_OBJECT
 
 public:
-  explicit RemoteQueueWidget(QueueRemote *queue, QWidget *parentObject = 0);
+  explicit RemoteQueueWidget(QueueRemoteSsh *queue, QWidget *parentObject = 0);
   ~RemoteQueueWidget();
 
 public slots:
@@ -58,7 +58,7 @@ private slots:
 
 private:
   Ui::RemoteQueueWidget *ui;
-  QueueRemote *m_queue;
+  QueueRemoteSsh *m_queue;
   Client *m_client; // Used for submitting test jobs.
   TemplateKeywordDialog *m_helpDialog;
 };

@@ -17,7 +17,7 @@
 #ifndef QUEUESGE_H
 #define QUEUESGE_H
 
-#include "remote.h"
+#include "remotessh.h"
 
 class QueueSgeTest;
 
@@ -25,7 +25,7 @@ namespace MoleQueue
 {
 
 /// @brief QueueRemote subclass for interacting with Sun Grid Engine.
-class QueueSge : public QueueRemote
+class QueueSge : public QueueRemoteSsh
 {
   Q_OBJECT
 public:
