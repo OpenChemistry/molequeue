@@ -488,13 +488,6 @@ signals:
                               MoleQueue::JobState oldState,
                               MoleQueue::JobState newState) const;
 
-public slots:
-  /// @param b If true, enable debugging output at runtime.
-  void setDebug(bool b) {m_debug = b;}
-
-  /// @return Whether runtime debugging is enabled.
-  bool debug() {return m_debug;}
-
 protected:
   /// Create and return a new JsonCpp JSON-RPC request.
   /// @param id JSON-RPC id
@@ -638,10 +631,6 @@ protected:
 
   /// Lookup hash for pending requests
   QHash<IdType, PacketMethod> m_pendingRequests;
-
-  /// Toggles runtime debugging output
-  bool m_debug;
-
 };
 
 } // end namespace MoleQueue

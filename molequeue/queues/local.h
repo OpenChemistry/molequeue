@@ -110,8 +110,8 @@ protected:
   /// Connect @a proc to handlers prior to submitting job
   void connectProcess(QProcess *proc);
 
-  /// Test if any more jobs can be submitted.
-  bool checkJobLimit();
+  /// Submit any queued jobs that can be started
+  void checkJobQueue();
 
   /// Submit the job with MoleQueue id @a moleQueueId.
   bool startJob(IdType moleQueueId);

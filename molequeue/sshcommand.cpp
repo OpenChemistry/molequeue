@@ -15,7 +15,10 @@
 ******************************************************************************/
 
 #include "sshcommand.h"
+
+#include "logger.h"
 #include "terminalprocess.h"
+
 #include <QtCore/QProcessEnvironment>
 #include <QtCore/QDir>
 #include <QtCore/QDebug>
@@ -152,7 +155,11 @@ void SshCommand::processFinished()
   m_exitCode = m_process->exitCode();
   m_process->close();
 
-  qDebug() << "SshCommand exit:" << m_exitCode << "output:\n" << m_output;
+  if (debug()) {
+    Logger::logDebugMessage(tr("SSH finished (%1) Exit code: %2\n%3")
+                            .arg(reinterpret_cast<quint64>(this))
+                            .arg(m_exitCode).arg(m_output));
+  }
 
   m_isComplete = true;
   emit requestComplete();
@@ -165,7 +172,11 @@ void SshCommand::sendRequest(const QString &command, const QStringList &args)
 
   m_isComplete = false;
 
-  qDebug() << "SshCommand sending request:" << command << args.join(" ");
+  if (debug()) {
+    Logger::logDebugMessage(tr("SSH request (%1): %2 %3")
+                            .arg(reinterpret_cast<quint64>(this))
+                            .arg(command).arg(args.join((" "))));
+  }
 
   m_process->start(command, args);
 }
