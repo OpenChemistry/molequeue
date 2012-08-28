@@ -25,6 +25,8 @@
 #include <QtCore/QStringList>
 #include <QtCore/QDateTime>
 #include <QtCore/QDebug>
+#include <QtCore/QProcess>
+#include <QtGlobal>
 
 #define DEBUG(method) \
   qDebug() << QDateTime::currentDateTime().toString() \
@@ -141,6 +143,35 @@ inline JobState stringToJobState(const char *str)
     return Error;
   else
     return Unknown;
+}
+
+
+/**
+ * Convert a ProcessError value to a string.
+ *
+ * @param error ProcessError
+ * @return C string
+ */
+inline const char * processErrorToString(QProcess::ProcessError error)
+{
+  switch(error)
+  {
+  case QProcess::FailedToStart:
+    return "FailedToStart";
+  case QProcess::Crashed:
+    return "Crashed";
+  case QProcess::Timedout:
+    return "Timedout";
+  case QProcess::WriteError:
+    return "WriteError";
+  case QProcess::ReadError:
+    return "ReadError";
+  case QProcess::UnknownError:
+    return "UnknownError";
+  }
+
+  qFatal("Unrecognized Process Error: %d", error);
+  return NULL;
 }
 
 /**
