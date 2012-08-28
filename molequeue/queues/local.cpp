@@ -273,6 +273,8 @@ void QueueLocal::connectProcess(QProcess *proc)
           this, SLOT(processStarted()));
   connect(proc, SIGNAL(finished(int,QProcess::ExitStatus)),
           this, SLOT(processFinished(int,QProcess::ExitStatus)));
+  connect(proc, SIGNAL(error(QProcess::ProcessError)),
+          this, SLOT(processError(QProcess::ProcessError)));
 }
 
 bool QueueLocal::checkJobLimit()
@@ -402,6 +404,70 @@ void QueueLocal::timerEvent(QTimerEvent *theEvent)
   }
 
   QObject::timerEvent(theEvent);
+}
+
+void QueueLocal::processError(QProcess::ProcessError error)
+{
+  QProcess *process = qobject_cast<QProcess*>(sender());
+  if (!process)
+    return;
+
+  IdType moleQueueId = m_runningJobs.key(process, 0);
+  if (moleQueueId == 0)
+    return;
+
+  // Remove and delete QProcess from queue
+  m_runningJobs.take(moleQueueId)->deleteLater();
+
+  if (!m_server) {
+    Logger::logError(tr("Queue '%1' cannot locate Server instance!")
+                     .arg(m_name), moleQueueId);
+    return;
+  }
+
+  Job job = m_server->jobManager()->lookupJobByMoleQueueId(moleQueueId);
+  if (!job.isValid()) {
+    Logger::logDebugMessage(tr("Queue '%1' Cannot update invalid Job "
+                               "reference!").arg(m_name), moleQueueId);
+    return;
+  }
+
+  QString errorString = QueueLocal::processErrorToString(error);
+  Logger::logError(tr("Execution of \'%1\' failed with process \'%2\': %3")
+                      .arg(job.program()).arg(errorString)
+                      .arg(process->errorString()), moleQueueId);
+
+  job.setJobState(MoleQueue::Error);
+}
+
+
+/**
+ * Convert a ProcessError value to a string.
+ *
+ * @param error ProcessError
+ * @return C string
+ */
+QString QueueLocal::processErrorToString(QProcess::ProcessError error)
+{
+  switch(error)
+  {
+  case QProcess::FailedToStart:
+    return "Failed to start";
+  case QProcess::Crashed:
+    return "Crashed";
+  case QProcess::Timedout:
+    return "Timed out";
+  case QProcess::WriteError:
+    return "Write error";
+  case QProcess::ReadError:
+    return "Read error";
+  case QProcess::UnknownError:
+    return "Unknown error";
+  }
+
+  Logger::logError(tr("Unrecognized Process Error: %1").arg(error));
+
+  return "Unrecognized Process Error";
 }
 
 } // End namespace

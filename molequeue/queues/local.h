@@ -103,6 +103,12 @@ protected slots:
    */
   void processFinished(int exitCode, QProcess::ExitStatus exitStatus);
 
+  /**
+   * Called when a error occurs with a process.
+   * @param error the specific error that occurred
+   */
+  void processError(QProcess::ProcessError error);
+
 protected:
   /// Insert the job into the queue.
   bool addJobToQueue(const Job &job);
@@ -130,6 +136,9 @@ protected:
 
   /// The number of cores available.
   int m_cores;
+
+private:
+  static QString processErrorToString(QProcess::ProcessError error);
 };
 
 } // End namespace
