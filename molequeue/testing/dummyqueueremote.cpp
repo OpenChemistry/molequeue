@@ -20,7 +20,7 @@ using namespace MoleQueue;
 
 DummyQueueRemote::DummyQueueRemote(const QString &queueName,
                                    QueueManager *parentObject)
-  : MoleQueue::QueueRemote(queueName, parentObject),
+  : MoleQueue::QueueRemoteSsh(queueName, parentObject),
     m_dummySsh(NULL)
 {
   m_launchScriptName = "launcher.dummy";

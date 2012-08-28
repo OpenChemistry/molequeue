@@ -19,7 +19,7 @@
 
 #include "transport/localsocket/localsocketclient.h"
 #include "program.h"
-#include "queues/remote.h"
+#include "queues/remotessh.h"
 #include "sshcommandfactory.h"
 #include "templatekeyworddialog.h"
 
@@ -34,7 +34,7 @@
 namespace MoleQueue
 {
 
-RemoteQueueWidget::RemoteQueueWidget(QueueRemote *queue,
+RemoteQueueWidget::RemoteQueueWidget(QueueRemoteSsh *queue,
                                      QWidget *parentObject) :
   AbstractQueueSettingsWidget(parentObject),
   ui(new Ui::RemoteQueueWidget),
