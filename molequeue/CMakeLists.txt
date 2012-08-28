@@ -23,6 +23,7 @@ endif()
 set(mq_srcs
   abstractqueuesettingswidget.cpp
   abstractrpcinterface.cpp
+  advancedfilterdialog.cpp
   actionfactorymanager.cpp
   addqueuedialog.cpp
   client.cpp
@@ -40,6 +41,7 @@ set(mq_srcs
   jobmanager.cpp
   jobreferencebase.cpp
   jobrequest.cpp
+  jobtableproxymodel.cpp
   jobtablewidget.cpp
   jobview.cpp
   jsonrpc.cpp
@@ -82,6 +84,7 @@ endif()
 
 qt4_wrap_ui(ui_srcs
   ui/addqueuedialog.ui
+  ui/advancedfilterdialog.ui
   ui/importprogramdialog.ui
   ui/importqueuedialog.ui
   ui/jobtablewidget.ui
