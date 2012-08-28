@@ -25,6 +25,8 @@
 #include <QtCore/QStringList>
 #include <QtCore/QDateTime>
 #include <QtCore/QDebug>
+#include <QtCore/QProcess>
+#include <QtGlobal>
 
 #define DEBUG(method) \
   qDebug() << QDateTime::currentDateTime().toString() \
