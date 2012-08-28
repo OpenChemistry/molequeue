@@ -17,8 +17,9 @@
 #include "jobtableproxymodel.h"
 
 #include "jobitemmodel.h"
-
 #include "job.h"
+
+#include <QtCore/QSettings>
 
 namespace MoleQueue {
 
@@ -33,6 +34,31 @@ JobTableProxyModel::JobTableProxyModel(QObject *parent_) :
           this, SIGNAL(rowCountChanged()));
   connect(this, SIGNAL(layoutChanged()),
           this, SIGNAL(rowCountChanged()));
+
+  QSettings settings;
+  settings.beginGroup("jobTable");
+  settings.beginGroup("filter");
+
+  m_filterString = settings.value("filterString").toString();
+  m_showHiddenJobs = settings.value("showHidden", true).toBool();
+
+  settings.beginGroup("status");
+  m_showStatusNew = settings.value("new", true).toBool();
+  m_showStatusSubmitted = settings.value("submitted", true).toBool();
+  m_showStatusQueued = settings.value("queued", true).toBool();
+  m_showStatusRunning = settings.value("running", true).toBool();
+  m_showStatusFinished = settings.value("finished", true).toBool();
+  m_showStatusKilled = settings.value("killed", true).toBool();
+  m_showStatusError = settings.value("error", true).toBool();
+  settings.endGroup(); // status
+
+  settings.endGroup(); // filter
+  settings.endGroup(); // jobTable
+}
+
+JobTableProxyModel::~JobTableProxyModel()
+{
+  saveState();
 }
 
 void JobTableProxyModel::setFilterString(const QString &str)
@@ -41,6 +67,7 @@ void JobTableProxyModel::setFilterString(const QString &str)
     return;
 
   m_filterString = str;
+  saveState();
   invalidateFilter();
 }
 
@@ -50,6 +77,7 @@ void JobTableProxyModel::setShowStatusNew(bool show)
     return;
 
   m_showStatusNew = show;
+  saveState();
   invalidateFilter();
 }
 
@@ -59,6 +87,7 @@ void JobTableProxyModel::setShowStatusSubmitted(bool show)
     return;
 
   m_showStatusSubmitted = show;
+  saveState();
   invalidateFilter();
 }
 
@@ -68,6 +97,7 @@ void JobTableProxyModel::setShowStatusQueued(bool show)
     return;
 
   m_showStatusQueued = show;
+  saveState();
   invalidateFilter();
 }
 
@@ -77,6 +107,7 @@ void JobTableProxyModel::setShowStatusRunning(bool show)
     return;
 
   m_showStatusRunning = show;
+  saveState();
   invalidateFilter();
 }
 
@@ -86,6 +117,7 @@ void JobTableProxyModel::setShowStatusFinished(bool show)
     return;
 
   m_showStatusFinished = show;
+  saveState();
   invalidateFilter();
 }
 
@@ -95,6 +127,7 @@ void JobTableProxyModel::setShowStatusKilled(bool show)
     return;
 
   m_showStatusKilled = show;
+  saveState();
   invalidateFilter();
 }
 
@@ -104,6 +137,7 @@ void JobTableProxyModel::setShowStatusError(bool show)
     return;
 
   m_showStatusError = show;
+  saveState();
   invalidateFilter();
 }
 
@@ -113,6 +147,7 @@ void JobTableProxyModel::setShowHiddenJobs(bool show)
     return;
 
   m_showHiddenJobs = show;
+  saveState();
   invalidateFilter();
 }
 
@@ -202,6 +237,29 @@ bool JobTableProxyModel::filterAcceptsRow(int sourceRow,
   } // end if filter string exists
 
   return true;
+}
+
+void JobTableProxyModel::saveState() const
+{
+  QSettings settings;
+  settings.beginGroup("jobTable");
+  settings.beginGroup("filter");
+
+  settings.setValue("filterString", m_filterString);
+  settings.setValue("showHidden", m_showHiddenJobs);
+
+  settings.beginGroup("status");
+  settings.setValue("new", m_showStatusNew);
+  settings.setValue("submitted", m_showStatusSubmitted);
+  settings.setValue("queued", m_showStatusQueued);
+  settings.setValue("running", m_showStatusRunning);
+  settings.setValue("finished", m_showStatusFinished);
+  settings.setValue("killed", m_showStatusKilled);
+  settings.setValue("error", m_showStatusError);
+  settings.endGroup(); // status
+
+  settings.endGroup(); // filter
+  settings.endGroup(); // jobTable
 }
 
 } // namespace MoleQueue

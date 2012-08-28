@@ -27,6 +27,18 @@ class JobTableProxyModel : public QSortFilterProxyModel
   Q_OBJECT
 public:
   explicit JobTableProxyModel(QObject *parent_ = 0);
+  ~JobTableProxyModel();
+
+  QString filterString() const { return m_filterString; }
+  bool showStatusNew() const { return m_showStatusNew; }
+  bool showStatusSubmitted() const { return m_showStatusSubmitted; }
+  bool showStatusQueued() const { return m_showStatusQueued; }
+  bool showStatusRunning() const { return m_showStatusRunning; }
+  bool showStatusFinished() const { return m_showStatusFinished; }
+  bool showStatusKilled() const { return m_showStatusKilled; }
+  bool showStatusError() const { return m_showStatusError; }
+
+  bool showHiddenJobs() const { return m_showHiddenJobs; }
 
 signals:
   void rowCountChanged();
@@ -46,6 +58,8 @@ public slots:
 
 protected:
   bool filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const;
+
+  void saveState() const;
 
 private:
   QString m_filterString;

@@ -60,9 +60,18 @@
      <string>&amp;View</string>
     </property>
     <addaction name="actionViewJobFilter"/>
+    <addaction name="actionAdvancedJobFilters"/>
+   </widget>
+   <widget class="QMenu" name="menuJobs">
+    <property name="title">
+     <string>&amp;Jobs</string>
+    </property>
+    <addaction name="actionClearFinishedJobs"/>
+    <addaction name="separator"/>
    </widget>
    <addaction name="fileMenu"/>
    <addaction name="menuView"/>
+   <addaction name="menuJobs"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="actionQuit">
@@ -129,6 +138,22 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+F</string>
+   </property>
+  </action>
+  <action name="actionClearFinishedJobs">
+   <property name="text">
+    <string>Clear &amp;Finished Jobs</string>
+   </property>
+   <property name="toolTip">
+    <string>Clear finished jobs from MoleQueue</string>
+   </property>
+  </action>
+  <action name="actionAdvancedJobFilters">
+   <property name="text">
+    <string>Ad&amp;vanced Job Filters...</string>
+   </property>
+   <property name="toolTip">
+    <string>Show advance job filtering options</string>
    </property>
   </action>
  </widget>
