@@ -352,7 +352,7 @@ bool QueueLocal::startJob(IdType moleQueueId)
 #ifdef WIN32
     command = "cmd.exe /c " + launchScriptName();
 #else // WIN32
-    command = "sh " + launchScriptName();
+    command = "./" + launchScriptName();
 #endif // WIN32
     break;
   case Program::PLAIN:
