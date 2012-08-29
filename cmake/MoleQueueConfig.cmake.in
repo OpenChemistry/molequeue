@@ -1,0 +1,19 @@
+# MoleQueue CMake configuration file - http://www.openchemistry.org/
+
+# If this file was found, then MoleQueue has been found
+set(MoleQueue_FOUND 1)
+
+set(MoleQueue_VERSION_MAJOR   "@MoleQueue_VERSION_MAJOR@")
+set(MoleQueue_VERSION_MINOR   "@MoleQueue_VERSION_MINOR@")
+set(MoleQueue_VERSION_PATCH   "@MoleQueue_VERSION_PATCH@")
+set(MoleQueue_VERSION         "${MoleQueue_VERSION_MAJOR}.${MoleQueue_VERSION_MINOR}.${MoleQueue_VERSION_PATCH}")
+
+set(MoleQueue_INSTALL_PREFIX  "@CMAKE_INSTALL_PREFIX@")
+set(MoleQueue_INCLUDE_DIRS    "${MoleQueue_INSTALL_PREFIX}/@INSTALL_INCLUDE_DIR@")
+set(MoleQueue_LIBRARY_DIR     "${MoleQueue_INSTALL_PREFIX}/@INSTALL_LIBRARY_DIR@@LIB_SUFFIX@")
+set(MoleQueue_RUNTIME_DIR     "${MoleQueue_INSTALL_PREFIX}/@INSTALL_RUNTIME_DIR@")
+set(MoleQueue_CMAKE_DIR       "${MoleQueue_LIBRARY_DIR}/cmake/molequeue")
+
+if(NOT TARGET molequeueclient)
+  include("${MoleQueue_CMAKE_DIR}/MoleQueueTargets.cmake")
+endif()
