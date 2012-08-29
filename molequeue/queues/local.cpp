@@ -444,22 +444,22 @@ QString QueueLocal::processErrorToString(QProcess::ProcessError error)
   switch(error)
   {
   case QProcess::FailedToStart:
-    return "Failed to start";
+    return tr("Failed to start");
   case QProcess::Crashed:
-    return "Crashed";
+    return tr("Crashed");
   case QProcess::Timedout:
-    return "Timed out";
+    return tr("Timed out");
   case QProcess::WriteError:
-    return "Write error";
+    return tr("Write error");
   case QProcess::ReadError:
-    return "Read error";
+    return tr("Read error");
   case QProcess::UnknownError:
-    return "Unknown error";
+    return tr("Unknown error");
   }
 
   Logger::logError(tr("Unrecognized Process Error: %1").arg(error));
 
-  return "Unrecognized Process Error";
+  return tr("Unrecognized process error");
 }
 
 } // End namespace
