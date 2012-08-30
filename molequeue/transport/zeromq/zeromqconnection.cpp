@@ -21,6 +21,9 @@
 namespace MoleQueue
 {
 
+
+const QString ZeroMqConnection::zeroMqPrefix = "zmq";
+
 ZeroMqConnection::ZeroMqConnection(QObject *parentObject,
                                    zmq::context_t *context,
                                    zmq::socket_t *socket)

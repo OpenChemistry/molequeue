@@ -17,6 +17,7 @@
 #include "zeromqclient.h"
 #include "zeromqconnection.h"
 
+#include <QtCore/QDir>
 
 namespace MoleQueue
   {
@@ -47,7 +48,12 @@ void ZeroMqClient::connectToServer(const QString &serverName)
       return;
     }
     else {
-      ZeroMqConnection *connection = new ZeroMqConnection(this, "ipc://" + serverName);
+
+      QString connectionPath = QDir::temp().path() + "/" +
+                               ZeroMqConnection::zeroMqPrefix + "_" +
+                               serverName;
+      ZeroMqConnection *connection = new ZeroMqConnection(this,
+                                           "ipc://" + connectionPath);
       setConnection(connection);
       connection->open();
       connection->start();
