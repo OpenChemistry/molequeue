@@ -8,6 +8,7 @@ from functools import partial
 import inspect
 import json
 import time
+import tempfile
 
 from utils import underscore_to_camelcase
 from utils import camelcase_to_underscore
@@ -103,7 +104,10 @@ class Client:
   def connect_to_server(self, server):
     self.context = zmq.Context()
     self.socket = self.context.socket(zmq.DEALER)
-    self.socket.connect('ipc://%s' % server)
+
+    tmpdir = tempfile.gettempdir()
+    connection_string  = 'ipc://%s/%s_%s' %  (tmpdir, 'zmq', server)
+    self.socket.connect(connection_string)
 
     io_loop = ioloop.IOLoop(ioloop.ZMQPoller())
 
