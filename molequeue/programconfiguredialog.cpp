@@ -90,9 +90,9 @@ ProgramConfigureDialog::ProgramConfigureDialog(Program *program,
   connect(ui->buttonBox, SIGNAL(clicked(QAbstractButton*)),
           this, SLOT(buttonBoxButtonClicked(QAbstractButton*)));
 
-  launchSyntaxChanged(ui->combo_syntax->currentIndex());
-
   updateGuiFromProgram();
+
+  launchSyntaxChanged(ui->combo_syntax->currentIndex());
 }
 
 ProgramConfigureDialog::~ProgramConfigureDialog()
