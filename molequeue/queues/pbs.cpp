@@ -16,6 +16,8 @@
 
 #include "pbs.h"
 
+#include "logger.h"
+
 #include <QtCore/QDebug>
 
 namespace MoleQueue
@@ -103,8 +105,10 @@ bool QueuePbs::parseQueueLine(const QString &queueListOutput,
       return true;
     }
     else {
-      qWarning() << Q_FUNC_INFO << "unrecognized queue state:" << stateStr
-                 << "\n" << queueListOutput;
+      Logger::logWarning(tr("Unrecognized queue state '%1' in %2 queue '%3'. "
+                            "Queue line:\n%4")
+                         .arg(stateStr).arg(typeName()).arg(name())
+                         .arg(queueListOutput));
       return false;
     }
   }

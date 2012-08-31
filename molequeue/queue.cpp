@@ -81,9 +81,11 @@ void Queue::readSettings(QSettings &settings)
     program->readSettings(settings);
 
     if (!addProgram(program)) {
-      qWarning() << Q_FUNC_INFO << "Could not add program" << progName
-                 << "to queue" << name() << "-- duplicate program name.";
+      Logger::logDebugMessage(tr("Cannot add program '%1' to queue '%2': "
+                                 "program name already exists!")
+                              .arg(progName).arg(name()));
       delete program;
+      program = NULL;
     }
 
     settings.endGroup(); // progName
@@ -150,9 +152,11 @@ void Queue::importConfiguration(QSettings &importer, bool includePrograms)
       program->importConfiguration(importer);
 
       if (!addProgram(program)) {
-        qWarning() << Q_FUNC_INFO << "Could not add program" << progName
-                   << "to queue" << name() << "-- duplicate program name.";
+        Logger::logDebugMessage(tr("Cannot add program '%1' to queue '%2': "
+                                   "program name already exists!")
+                                .arg(progName).arg(name()));
         delete program;
+        program = NULL;
       }
 
       importer.endGroup(); // progName

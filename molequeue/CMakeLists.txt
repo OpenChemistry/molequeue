@@ -23,9 +23,9 @@ endif()
 set(mq_srcs
   abstractqueuesettingswidget.cpp
   abstractrpcinterface.cpp
+  advancedfilterdialog.cpp
   actionfactorymanager.cpp
   addqueuedialog.cpp
-  client.cpp
   filespecification.cpp
   importprogramdialog.cpp
   importqueuedialog.cpp
@@ -40,7 +40,7 @@ set(mq_srcs
   jobitemmodel.cpp
   jobmanager.cpp
   jobreferencebase.cpp
-  jobrequest.cpp
+  jobtableproxymodel.cpp
   jobtablewidget.cpp
   jobview.cpp
   jsonrpc.cpp
@@ -53,6 +53,7 @@ set(mq_srcs
   openwithmanagerdialog.cpp
   openwithexecutablemodel.cpp
   openwithpatternmodel.cpp
+  opensshcommand.cpp
   patterntypedelegate.cpp
   pluginmanager.cpp
   program.cpp
@@ -71,13 +72,19 @@ set(mq_srcs
   remotequeuewidget.cpp
   server.cpp
   sshcommand.cpp
+  sshcommandfactory.cpp
   sshconnection.cpp
   templatekeyworddialog.cpp
   terminalprocess.cpp
 )
 
+if(WIN32)
+  list(APPEND mq_srcs puttycommand.cpp)
+endif()
+
 qt4_wrap_ui(ui_srcs
   ui/addqueuedialog.ui
+  ui/advancedfilterdialog.ui
   ui/importprogramdialog.ui
   ui/importqueuedialog.ui
   ui/jobtablewidget.ui
@@ -158,12 +165,16 @@ set(mqclient_headers
   molequeueglobal.h
 )
 
-add_library(molequeueclient STATIC
-  ${mqclient_srcs})
+add_library(molequeueclient STATIC ${mqclient_srcs})
 set_target_properties(molequeueclient PROPERTIES AUTOMOC TRUE)
 target_link_libraries(molequeueclient
   ${QT_LIBRARIES}
   mqconnection)
+install(TARGETS molequeueclient
+  EXPORT "MoleQueueTargets"
+  RUNTIME DESTINATION "${INSTALL_RUNTIME_DIR}"
+  LIBRARY DESTINATION "${INSTALL_LIBRARY_DIR}"
+  ARCHIVE DESTINATION "${INSTALL_ARCHIVE_DIR}")
 install(FILES ${mqclient_headers}
   DESTINATION "${INSTALL_INCLUDE_DIR}/molequeue")
 

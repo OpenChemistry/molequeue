@@ -15,16 +15,20 @@
 ******************************************************************************/
 
 #include "sshcommand.h"
+
+#include "logger.h"
 #include "terminalprocess.h"
+
 #include <QtCore/QProcessEnvironment>
 #include <QtCore/QDir>
 #include <QtCore/QDebug>
 
 namespace MoleQueue {
 
-SshCommand::SshCommand(QObject *parentObject) : SshConnection(parentObject),
-  m_sshCommand("ssh"),
-  m_scpCommand("scp"),
+SshCommand::SshCommand(QObject *parentObject, QString ssh,
+                       QString scp) : SshConnection(parentObject),
+  m_sshCommand(ssh),
+  m_scpCommand(scp),
   m_exitCode(-1),
   m_process(0),
   m_isComplete(true)
@@ -151,7 +155,11 @@ void SshCommand::processFinished()
   m_exitCode = m_process->exitCode();
   m_process->close();
 
-  qDebug() << "SshCommand exit:" << m_exitCode << "output:\n" << m_output;
+  if (debug()) {
+    Logger::logDebugMessage(tr("SSH finished (%1) Exit code: %2\n%3")
+                            .arg(reinterpret_cast<quint64>(this))
+                            .arg(m_exitCode).arg(m_output));
+  }
 
   m_isComplete = true;
   emit requestComplete();
@@ -164,7 +172,11 @@ void SshCommand::sendRequest(const QString &command, const QStringList &args)
 
   m_isComplete = false;
 
-  qDebug() << "SshCommand sending request:" << command << args.join(" ");
+  if (debug()) {
+    Logger::logDebugMessage(tr("SSH request (%1): %2 %3")
+                            .arg(reinterpret_cast<quint64>(this))
+                            .arg(command).arg(args.join((" "))));
+  }
 
   m_process->start(command, args);
 }
@@ -192,32 +204,6 @@ void SshCommand::initializeProcess()
   connect(m_process, SIGNAL(started()), this, SLOT(processStarted()));
   connect(m_process, SIGNAL(finished(int,QProcess::ExitStatus)),
           this, SLOT(processFinished()));
-}
-
-QStringList SshCommand::sshArgs()
-{
-  QStringList args;
-  // Suppress login banners
-  args << "-q";
-  if (!m_identityFile.isEmpty())
-    args << "-i" << m_identityFile;
-  if (m_portNumber >= 0 && m_portNumber != 22)
-    args << "-p" << QString::number(m_portNumber);
-  return args;
-}
-
-QStringList SshCommand::scpArgs()
-{
-  QStringList args;
-  // Suppress login banners
-  args << "-q";
-  // Ensure the same SSH used for commands is used by scp.
-  args << "-S" << m_sshCommand;
-  if (!m_identityFile.isEmpty())
-    args << "-i" << m_identityFile;
-  if (m_portNumber >= 0 && m_portNumber != 22)
-    args << "-P" << QString::number(m_portNumber);
-  return args;
 }
 
 QString SshCommand::remoteSpec()

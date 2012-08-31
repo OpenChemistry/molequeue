@@ -26,11 +26,6 @@
 #include <QtCore/QDateTime>
 #include <QtCore/QDebug>
 
-#define DEBUG(method) \
-  qDebug() << QDateTime::currentDateTime().toString() \
-           << method \
-           << "(" << __FILE__ << ":" << __LINE__ << ")" <<
-
 #include <limits>
 
 namespace MoleQueue
