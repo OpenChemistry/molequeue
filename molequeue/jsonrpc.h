@@ -504,14 +504,6 @@ protected:
   /// Create and return a new JsonCpp JSON-RPC notification.
   /// @param id JSON-RPC id
   static Json::Value generateEmptyNotification();
-  /// Convert a QHash into a Json object.
-  /// @param hash input hash.
-  /// @return Json object.
-  static Json::Value hashToJson(const QVariantHash &hash);
-  /// Convert a Json object in to a QVariantHash.
-  /// @param object Json object.
-  /// @return input hash.
-  static QVariantHash jsonToHash(const Json::Value &object);
 
   /// Enum describing the types of packets that the implementation is aware of.
   enum PacketForm {

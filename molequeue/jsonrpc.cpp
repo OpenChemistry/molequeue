@@ -19,6 +19,7 @@
 #include "job.h"
 #include "jobdata.h"
 #include "molequeueglobal.h"
+#include "qtjson.h"
 
 #include <json/json.h>
 
@@ -54,7 +55,7 @@ PacketType JsonRpc::generateJobRequest(const Job &job,
 
   packet["method"] = "submitJob";
 
-  Json::Value paramsObject = hashToJson(job.hash());
+  Json::Value paramsObject = QtJson::toJson(job.hash());
 
   packet["params"] = paramsObject;
 
@@ -227,7 +228,7 @@ PacketType JsonRpc::generateLookupJobResponse(const Job &req,
   }
   else {
     packet = generateEmptyResponse(packetId);
-    packet["result"] = hashToJson(req.hash());
+    packet["result"] = QtJson::toJson(req.hash());
   }
 
   Json::StyledWriter writer;
@@ -764,96 +765,6 @@ Json::Value JsonRpc::generateEmptyNotification()
   return ret;
 }
 
-Json::Value JsonRpc::hashToJson(const QVariantHash &hash)
-{
-  Json::Value result(Json::objectValue);
-
-  for (QVariantHash::const_iterator it = hash.constBegin(),
-       it_end = hash.constEnd(); it != it_end; ++it) {
-    Json::Value val;
-    switch (it.value().type()) {
-    case QVariant::Bool:
-      val = it.value().toBool();
-      break;
-    case QVariant::Int:
-      val = it.value().toInt();
-      break;
-    case QVariant::LongLong:
-      val = it.value().toLongLong();
-      break;
-    case QVariant::UInt:
-      val = it.value().toUInt();
-      break;
-    case QVariant::ULongLong:
-      val = it.value().toULongLong();
-      break;
-    case QVariant::Double:
-      val = it.value().toDouble();
-      break;
-    case QVariant::String: {
-      const std::string str = it.value().toString().toStdString();
-      val = str;
-      break;
-    }
-    case QVariant::ByteArray:
-      val = it.value().toByteArray().constData();
-      break;
-    default:
-      continue;
-    } // end switch
-
-    const std::string name = it.key().toStdString();
-    result[name] = val;
-  } // end for
-
-  return result;
-}
-
-QVariantHash JsonRpc::jsonToHash(const Json::Value &object)
-{
-  // Populate options object:
-  QVariantHash result;
-
-  if (!object.isObject())
-    return result;
-
-  result.reserve(object.size());
-
-  // Iterate through options
-  for (Json::Value::const_iterator it = object.begin(),
-       it_end = object.end(); it != it_end; ++it) {
-    const QString name(it.memberName());
-
-    // Extract option data
-    QVariant variant;
-    switch ((*it).type()) {
-    case Json::nullValue:
-      variant = QVariant();
-      break;
-    case Json::intValue:
-      variant = (*it).asLargestInt();
-      break;
-    case Json::uintValue:
-      variant = (*it).asLargestUInt();
-      break;
-    case Json::realValue:
-      variant = (*it).asDouble();
-      break;
-    case Json::stringValue:
-      variant = (*it).asCString();
-      break;
-    case Json::booleanValue:
-      variant = (*it).asBool();
-      break;
-    default:
-      continue;
-    }
-
-    result.insert(name, variant);
-  }
-  return result;
-}
-
 JsonRpc::PacketForm JsonRpc::guessPacketForm(const Json::Value &root) const
 {
   if (!root.isObject())
@@ -1052,7 +963,7 @@ void JsonRpc::handleSubmitJobRequest(Connection *connection,
   }
 
   // Populate options object:
-  QVariantHash optionHash = jsonToHash(paramsObject);
+  QVariantHash optionHash = QtJson::toVariant(paramsObject).toHash();
 
   emit jobSubmissionRequestReceived(connection, replyTo, id, optionHash);
 }
@@ -1191,7 +1102,7 @@ void JsonRpc::handleLookupJobResult(const Json::Value &root) const
     return;
   }
 
-  QVariantHash hash = jsonToHash(resultObject);
+  QVariantHash hash = QtJson::toVariant(resultObject).toHash();
 
   emit lookupJobResponseReceived(id, hash);
 }

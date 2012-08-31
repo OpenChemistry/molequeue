@@ -19,6 +19,8 @@
 
 #include "molequeueglobal.h"
 
+#include "filespecification.h"
+
 #include <QtCore/QMetaType>
 #include <QtCore/QString>
 #include <QtCore/QVariantHash>
@@ -79,19 +81,36 @@ public:
   /// @return newDesc Description of job
   QString description() const { return m_description; }
 
-  /// @param path Path to input file.
-  void setInputAsPath(const QString &path) { m_inputAsPath = path; }
+  /// @param filespec FileSpecification describing the main input file (called
+  /// by the executable)
+  void setInputFile(const FileSpecification &filespec)
+  {
+    m_inputFile = filespec;
+  }
 
-  /// @return Path to input file.
-  QString inputAsPath() const { return m_inputAsPath; }
+  /// @return FileSpecification describing the main input file (called by the
+  /// executable)
+  FileSpecification inputFile() const { return m_inputFile; }
 
-  /// @param input String containing input file contents. Ignored if inputAsPath
-  /// is set.
-  void setInputAsString(const QString &input) { m_inputAsString = input; }
+  /// @param files FileSpecification objects describing additional input files
+  /// to be placed in the working directory of the job prior to execution.
+  void setAdditionalInputFiles(const QList<FileSpecification> & files)
+  {
+    m_additionalInputFiles = files;
+  }
 
-  /// @return String containing input file contents. Ignored if inputAsPath
-  /// is set.
-  QString inputAsString() const { return m_inputAsString; }
+  /// @return FileSpecification objects describing additional input files to be
+  /// placed in the working directory of the job prior to execution.
+  QList<FileSpecification> additionalInputFiles() const
+  {
+    return m_additionalInputFiles;
+  }
+
+  /// @return A reference to the additional input files list.
+  QList<FileSpecification> & additionalInputFilesRef()
+  {
+    return m_additionalInputFiles;
+  }
 
   /// @param path String containing a location to copy the output files to after
   /// the job completes. Ignored if empty.
@@ -202,10 +221,11 @@ protected:
   JobState m_jobState;
   /// Description of job
   QString m_description;
-  /// String containing path to input file.
-  QString m_inputAsPath;
-  /// String containing input file contents. Ignored if m_inputAsPath is set.
-  QString m_inputAsString;
+  /// FileSpecification describing the main input file (called by the executable)
+  FileSpecification m_inputFile;
+  /// FileSpecification objects describing additional input files, to be placed
+  /// in the working directory of the job prior to execution.
+  QList<FileSpecification> m_additionalInputFiles;
   /// String containing a location to copy the output files to after the job
   /// completes. Ignored if empty.
   QString m_outputDirectory;

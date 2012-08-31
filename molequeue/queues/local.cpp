@@ -130,8 +130,7 @@ bool QueueLocal::submitJob(Job job)
 {
   if (job.isValid()) {
     Job(job).setJobState(MoleQueue::Accepted);
-    prepareJobForSubmission(job);
-    return true;
+    return prepareJobForSubmission(job);;
   }
   return false;
 }
@@ -161,10 +160,13 @@ void QueueLocal::killJob(Job job)
   job.setJobState(MoleQueue::Killed);
 }
 
-bool QueueLocal::prepareJobForSubmission(const Job &job)
+bool QueueLocal::prepareJobForSubmission(Job &job)
 {
-  if (!writeInputFiles(job))
+  if (!writeInputFiles(job)) {
+    Logger::logError(tr("Error while writing input files."), job.moleQueueId());
+    job.setJobState(Error);
     return false;
+  }
   if (!addJobToQueue(job))
     return false;
 

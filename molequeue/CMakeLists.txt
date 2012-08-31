@@ -26,6 +26,7 @@ set(mq_srcs
   advancedfilterdialog.cpp
   actionfactorymanager.cpp
   addqueuedialog.cpp
+  filespecification.cpp
   importprogramdialog.cpp
   importqueuedialog.cpp
   job.cpp
@@ -57,6 +58,7 @@ set(mq_srcs
   pluginmanager.cpp
   program.cpp
   programconfiguredialog.cpp
+  qtjson.cpp
   queue.cpp
   queuemanager.cpp
   queuemanagerdialog.cpp
@@ -139,6 +141,7 @@ install(TARGETS molequeue
 set(mqclient_srcs
   abstractrpcinterface.cpp
   client.cpp
+  filespecification.cpp
   job.cpp
   jobdata.cpp
   jobitemmodel.cpp
@@ -149,12 +152,14 @@ set(mqclient_srcs
   logentry.cpp
   logger.cpp
   molequeueglobal.h
+  qtjson.cpp
   ${jsoncpp_srcs}
 )
 
 set(mqclient_headers
   abstractrpcinterface.h
   client.h
+  filespecification.h
   jobreferencebase.h
   jobrequest.h
   molequeueglobal.h
