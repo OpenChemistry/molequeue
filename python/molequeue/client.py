@@ -9,10 +9,12 @@ import inspect
 import json
 import time
 import tempfile
+import sys
 
 from utils import underscore_to_camelcase
 from utils import camelcase_to_underscore
 from utils import JsonRpc
+import threading
 
 class JobState:
   # Unknown status
@@ -216,22 +218,28 @@ class Client:
     self.stream.flush()
 
   def _wait_for_response(self, packet_id, timeout):
-    start = time.time()
-    # wait for the response to come in
-    self._new_response_condition.acquire()
-    while self._request_response_map[packet_id] == None:
-      wait_time = None
-      if timeout != None:
-        wait_time = timeout - (time.time() - start)
-        if wait_time <= 0:
-          break;
-      self._new_response_condition.wait(wait_time)
+    try:
+      start = time.time()
+      # wait for the response to come in
+      self._new_response_condition.acquire()
+      while self._request_response_map[packet_id] == None:
+        # need to set a wait time otherwise the wait can't be interrupted
+        # See http://bugs.python.org/issue8844
+        wait_time = sys.maxint
+        if timeout != None:
+          wait_time = timeout - (time.time() - start)
+          if wait_time <= 0:
+            break;
+        self._new_response_condition.wait(wait_time)
 
-    response = self._request_response_map.pop(packet_id)
+      response = self._request_response_map.pop(packet_id)
 
-    self._new_response_condition.release()
+      self._new_response_condition.release()
 
-    return response
+      return response
+    except KeyboardInterrupt:
+      self.event_loop.stop()
+      raise
 
 def _on_recv(client, msg):
   jsonrpc = json.loads(msg[0])
