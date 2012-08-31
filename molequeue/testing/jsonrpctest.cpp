@@ -16,6 +16,7 @@
 
 #include "jsonrpc.h"
 
+#include "filespecification.h"
 #include "job.h"
 #include "jobdata.h"
 #include "jobmanager.h"
@@ -391,8 +392,7 @@ void JsonRpcTest::generateJobRequest()
   req.setQueue("Some big ol' cluster");
   req.setProgram("Quantum Tater");
   req.setDescription("spud slicer 28");
-  req.setInputAsPath("/tmp/myjob/test.potato");
-  req.setInputAsString("This string will get ignored!");
+  req.setInputFile(FileSpecification(QString("/tmp/myjob/test.potato")));
 
   m_packet = m_rpc.generateJobRequest(req, 14);
   if (!m_rpc.validateRequest(m_packet, true)) {
@@ -457,8 +457,7 @@ void JsonRpcTest::generateJobCancellation()
   req.setQueue("Some big ol' cluster");
   req.setProgram("Quantum Tater");
   req.setDescription("spud slicer 28");
-  req.setInputAsPath("/tmp/myjob/test.potato");
-  req.setInputAsString("This string will get ignored!");
+  req.setInputFile(FileSpecification(QString("/tmp/myjob/test.potato")));
 
   m_packet = m_rpc.generateJobCancellation(req, 15);
   if (!m_rpc.validateRequest(m_packet, true)) {
@@ -523,8 +522,7 @@ void JsonRpcTest::generateLookupJobResponse()
   req.setQueue("Some big ol' cluster");
   req.setProgram("Quantum Tater");
   req.setDescription("spud slicer 28");
-  req.setInputAsPath("/tmp/myjob/test.potato");
-  req.setInputAsString("This string will get ignored!");
+  req.setInputFile(FileSpecification(QString("/tmp/myjob/test.potato")));
 
   // Test successful lookup
   m_packet = m_rpc.generateLookupJobResponse(req, req.moleQueueId(), 12);
