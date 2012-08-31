@@ -150,7 +150,7 @@ class Client:
 
     # if we an error occurred then throw an exception
     if 'error' in response:
-      exception = JobRequestException(response['error']['id'],
+      exception = JobRequestException(response['id'],
                                       response['error']['code'],
                                       response['error']['message'])
       raise exception
@@ -180,7 +180,7 @@ class Client:
 
     # if we an error occurred then throw an exception
     if 'error' in response:
-      exception = JobRequestInformationException(response['error']['id'],
+      exception = JobRequestInformationException(response['id'],
                                                  reponse['error']['data'],
                                                  reponse['error']['code'],
                                                  reponse['error']['message'])
