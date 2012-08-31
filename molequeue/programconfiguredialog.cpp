@@ -19,6 +19,7 @@
 
 #include "program.h"
 #include "queue.h"
+#include "queues/local.h"
 #include "templatekeyworddialog.h"
 
 #include <QtGui/QFileDialog>
@@ -196,8 +197,15 @@ void ProgramConfigureDialog::updateLaunchEditor()
     return;
   }
 
-  QString launchText = m_program->queue() ? m_program->queue()->launchTemplate()
-                                          : QString("$$programExecution$$\n");
+  QString launchText;
+  if (!m_program->queue() ||
+      (qobject_cast<QueueLocal*>(m_program->queue()) &&
+       syntax != Program::CUSTOM)) {
+    launchText = "$$programExecution$$\n";
+  }
+  else {
+    launchText = m_program->queue()->launchTemplate();
+  }
 
   const QString executableName = ui->edit_executableName->text();
   const QString executablePath = ui->edit_executablePath->text();
@@ -244,7 +252,19 @@ void ProgramConfigureDialog::launchSyntaxChanged(int enumVal)
 
 void ProgramConfigureDialog::customizeLauncherClicked()
 {
-  m_customLaunchText = ui->text_launchTemplate->document()->toPlainText();
+  Program::LaunchSyntax syntax = static_cast<Program::LaunchSyntax>(
+        ui->combo_syntax->currentIndex());
+
+  if (qobject_cast<QueueLocal*>(m_program->queue()) &&
+      syntax != Program::CUSTOM) {
+    m_customLaunchText = m_program->queue()->launchTemplate();
+    QString exec = ui->text_launchTemplate->document()->toPlainText();
+    m_customLaunchText.replace("$$programExecution$$", exec);
+  }
+  else {
+    m_customLaunchText = ui->text_launchTemplate->document()->toPlainText();
+  }
+
   ui->combo_syntax->setCurrentIndex(static_cast<int>(Program::CUSTOM));
 }
 
