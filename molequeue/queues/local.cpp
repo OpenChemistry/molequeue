@@ -338,7 +338,7 @@ bool QueueLocal::startJob(IdType moleQueueId)
   proc->setWorkingDirectory(dir.absolutePath());
 
   QStringList arguments;
-  if (program->arguments().isEmpty())
+  if (!program->arguments().isEmpty())
     arguments << program->arguments();
 
   QString command;
@@ -383,7 +383,11 @@ bool QueueLocal::startJob(IdType moleQueueId)
 
   connectProcess(proc);
 
-  proc->start(command + arguments.join(" "));
+  proc->start(command + " " + arguments.join(" "));
+  Logger::logNotification(tr("Executing '%1 %2' in %3", "command, args, dir")
+                          .arg(command).arg(arguments.join(" "))
+                          .arg(proc->workingDirectory()),
+                          job.moleQueueId());
   m_runningJobs.insert(job.moleQueueId(), proc);
 
   return true;
