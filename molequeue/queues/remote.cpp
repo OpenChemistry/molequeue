@@ -243,9 +243,11 @@ void QueueRemote::submitPendingJobs()
 
 void QueueRemote::beginJobSubmission(Job job)
 {
-  if (!writeInputFiles(job))
+  if (!writeInputFiles(job)) {
+    Logger::logError(tr("Error while writing input files."), job.moleQueueId());
+    job.setJobState(Error);
     return;
-
+  }
   // Attempt to copy the files via scp first. Only call mkdir on the remote
   // working directory if the scp call fails.
   copyInputFilesToHost(job);

@@ -6,8 +6,10 @@
       "cleanRemoteFiles" : false,
       "description" : "Test job",
       "hideFromGui" : false,
-      "inputAsPath" : "",
-      "inputAsString" : "I'm a sample input text!",
+      "inputFile" : {
+         "contents" : "I'm a sample input text!",
+         "filename" : "file.ext"
+      },
       "jobState" : 0,
       "localWorkingDirectory" : "",
       "maxWallTime" : -1,
