@@ -27,6 +27,7 @@ list(APPEND hdrs
 
 install(FILES ${hdrs} DESTINATION "${INSTALL_INCLUDE_DIR}/molequeue/transport")
 install(TARGETS mqconnection mqconnectionlistener
+  EXPORT "MoleQueueTargets"
   RUNTIME DESTINATION ${INSTALL_RUNTIME_DIR}
   LIBRARY DESTINATION ${INSTALL_LIBRARY_DIR}
   ARCHIVE DESTINATION ${INSTALL_ARCHIVE_DIR}

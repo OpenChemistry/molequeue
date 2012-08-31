@@ -9,9 +9,18 @@ include(BuildLocation)
 include(CompilerFlags)
 include(InstallLocation)
 
+# Set up our version.
+set(MoleQueue_VERSION_MAJOR   "0")
+set(MoleQueue_VERSION_MINOR   "1")
+set(MoleQueue_VERSION_PATCH   "0")
+set(MoleQueue_VERSION
+  "${MoleQueue_VERSION_MAJOR}.${MoleQueue_VERSION_MINOR}.${MoleQueue_VERSION_PATCH}")
+
 option(ENABLE_TESTING "Enable testing" OFF)
 
 option(BUILD_SHARED_LIBS "Build with shared libraries" ON)
+
+option(USE_ZERO_MQ "Build molequeue with ZeroMQ support" OFF)
 
 if(ENABLE_TESTING)
   include(CTest)
@@ -21,9 +30,6 @@ endif()
 # This is necessary for tests, includes etc.
 include_directories("${MoleQueue_SOURCE_DIR}")
 add_subdirectory(molequeue)
-
-configure_file(${MoleQueue_SOURCE_DIR}/cmake/CTestCustom.cmake.in
-  ${MoleQueue_BINARY_DIR}/CTestCustom.cmake)
 
 option(BUILD_DOCUMENTATION "Build project documentation" OFF)
 
@@ -38,4 +44,17 @@ if(ENABLE_TESTING)
   BuildPackageTest_Add("MoleQueue" "${CMAKE_CURRENT_BINARY_DIR}")
 endif()
 
-option(USE_ZERO_MQ "Build molequeue with ZeroMQ support" OFF)
+configure_file(${MoleQueue_SOURCE_DIR}/cmake/CTestCustom.cmake.in
+  ${MoleQueue_BINARY_DIR}/CTestCustom.cmake)
+
+configure_file("${MoleQueue_SOURCE_DIR}/cmake/MoleQueueConfig.cmake.in"
+  "${MoleQueue_BINARY_DIR}/MoleQueueConfig.cmake" @ONLY)
+configure_file("${MoleQueue_SOURCE_DIR}/cmake/MoleQueueConfigVersion.cmake.in"
+  "${MoleQueue_BINARY_DIR}/MoleQueueConfigVersion.cmake" @ONLY)
+
+install(FILES
+  "${MoleQueue_BINARY_DIR}/MoleQueueConfig.cmake"
+  "${MoleQueue_BINARY_DIR}/MoleQueueConfigVersion.cmake"
+  DESTINATION "${INSTALL_LIBRARY_DIR}/cmake/molequeue")
+install(EXPORT "MoleQueueTargets"
+  DESTINATION "${INSTALL_LIBRARY_DIR}/cmake/molequeue")
