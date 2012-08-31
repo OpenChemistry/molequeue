@@ -229,7 +229,7 @@ void JobManager::insertJobData(JobData *jobdata)
   if (jobdata->moleQueueId() != MoleQueue::InvalidId)
     m_moleQueueMap.insert(jobdata->moleQueueId(), jobdata);
 
-  m_itemModel->insertRow(m_jobs.size());
+  m_itemModel->insertRow(m_jobs.size() - 1);
   emit jobAdded(Job(jobdata));
 }
 
