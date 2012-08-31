@@ -205,7 +205,8 @@ bool Queue::removeProgram(const QString &programName)
   return true;
 }
 
-void Queue::replaceLaunchScriptKeywords(QString &launchScript, const Job &job)
+void Queue::replaceLaunchScriptKeywords(QString &launchScript, const Job &job,
+                                        bool addNewline)
 {
   if (launchScript.contains("$$moleQueueId$$")) {
     launchScript.replace("$$moleQueueId$$",
@@ -218,8 +219,10 @@ void Queue::replaceLaunchScriptKeywords(QString &launchScript, const Job &job)
   }
 
   // Add newline at end if not present
-  if (!launchScript.isEmpty() && !launchScript.endsWith(QChar('\n')))
+  if (addNewline && !launchScript.isEmpty() &&
+      !launchScript.endsWith(QChar('\n'))) {
     launchScript.append(QChar('\n'));
+  }
 }
 
 bool Queue::writeInputFiles(const Job &job)

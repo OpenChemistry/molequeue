@@ -145,7 +145,7 @@ void QueueRemote::setQueueUpdateInterval(int interval)
 }
 
 void QueueRemote::replaceLaunchScriptKeywords(QString &launchScript,
-                                              const Job &job)
+                                              const Job &job, bool addNewline)
 {
   int wallTime = job.maxWallTime();
   if (launchScript.contains("$$$maxWallTime$$$")) {
@@ -177,7 +177,7 @@ void QueueRemote::replaceLaunchScriptKeywords(QString &launchScript,
                          .arg(minutes, 2, 10, QChar('0')));
   }
 
-  Queue::replaceLaunchScriptKeywords(launchScript, job);
+  Queue::replaceLaunchScriptKeywords(launchScript, job, addNewline);
 }
 
 bool QueueRemote::submitJob(Job job)

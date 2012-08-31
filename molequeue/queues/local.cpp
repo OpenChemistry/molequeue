@@ -383,9 +383,13 @@ bool QueueLocal::startJob(IdType moleQueueId)
 
   connectProcess(proc);
 
-  proc->start(command + " " + arguments.join(" "));
+  // Handle any keywords in the arguments
+  QString args = arguments.join(" ");
+  replaceLaunchScriptKeywords(args, job, false);
+
+  proc->start(command + " " + args);
   Logger::logNotification(tr("Executing '%1 %2' in %3", "command, args, dir")
-                          .arg(command).arg(arguments.join(" "))
+                          .arg(command).arg(args)
                           .arg(proc->workingDirectory()),
                           job.moleQueueId());
   m_runningJobs.insert(job.moleQueueId(), proc);
