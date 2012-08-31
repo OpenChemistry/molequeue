@@ -26,7 +26,6 @@ set(mq_srcs
   advancedfilterdialog.cpp
   actionfactorymanager.cpp
   addqueuedialog.cpp
-  client.cpp
   importprogramdialog.cpp
   importqueuedialog.cpp
   job.cpp
@@ -40,7 +39,6 @@ set(mq_srcs
   jobitemmodel.cpp
   jobmanager.cpp
   jobreferencebase.cpp
-  jobrequest.cpp
   jobtableproxymodel.cpp
   jobtablewidget.cpp
   jobview.cpp
