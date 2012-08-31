@@ -25,11 +25,6 @@
 #include <QtCore/QPair>
 #include <QtCore/QVector>
 
-#define DEBUGOUT(title) \
-  if (m_debug)    \
-    qDebug() << QDateTime::currentDateTime().toString() \
-             << "Client" << title <<
-
 namespace MoleQueue
 {
 
@@ -153,7 +148,7 @@ void Client::successfulSubmissionReceived(IdType packetId,
 }
 
 void Client::failedSubmissionReceived(IdType packetId,
-                                      JobSubmissionErrorCode errorCode,
+                                      JobSubmissionErrorCode,
                                       const QString &errorMessage)
 {
   if (!m_submittedLUT->contains(packetId)) {
@@ -168,10 +163,6 @@ void Client::failedSubmissionReceived(IdType packetId,
                   "job that does not exist in the job list.";
     return;
   }
-
-  DEBUGOUT("failedSubmissionReceived") "Job submission failed. Job description:"
-      << ((!req.isValid()) ? QString() : req.description()) << "; Error"
-      << errorCode << ":" << errorMessage;
 
   emit jobSubmitted(req, false, errorMessage);
 }

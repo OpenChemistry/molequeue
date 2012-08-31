@@ -357,21 +357,11 @@ protected:
   // job id --> reply to endpoint for notifications
   QMap<IdType,EndpointId> m_endpointLUT;
 
-public:
-  /// @param d Enable runtime debugging if true.
-  void setDebug(bool d) {m_debug = d;}
-  /// @return Whether runtime debugging is enabled.
-  bool debug() const {return m_debug;}
-
 private:
   void createConnectionListeners();
   QString m_serverName;
   /// The connection listeners
   QList<ConnectionListener*> m_connectionListeners;
-
-protected:
-  /// Toggles runtime debugging
-  bool m_debug;
 };
 
 } // end namespace MoleQueue

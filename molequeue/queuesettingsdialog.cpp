@@ -76,6 +76,8 @@ QueueSettingsDialog::QueueSettingsDialog(Queue *queue, QWidget *parentObject)
   connect(ui->programsTable->selectionModel(),
           SIGNAL(selectionChanged(QItemSelection, QItemSelection)),
           this, SLOT(enableProgramButtons(QItemSelection)));
+  connect(ui->buttonBox, SIGNAL(clicked(QAbstractButton*)),
+          this, SLOT(buttonBoxButtonClicked(QAbstractButton*)));
 
   // Names can't be changed
   ui->nameLineEdit->setDisabled(true);
@@ -253,6 +255,14 @@ void QueueSettingsDialog::removeProgramDialog()
 
   m_programConfigureDialogs.remove(dialog->currentProgram());
   dialog->deleteLater();
+}
+
+void QueueSettingsDialog::buttonBoxButtonClicked(QAbstractButton *button)
+{
+  // "Ok" and "Cancel" are directly connected to accept() and reject(), so only
+  // check for "apply" here:
+  if (button == ui->buttonBox->button(QDialogButtonBox::Apply))
+    m_settingsWidget->save();
 }
 
 void QueueSettingsDialog::closeEvent(QCloseEvent *e)

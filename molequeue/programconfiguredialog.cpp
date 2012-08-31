@@ -87,6 +87,9 @@ ProgramConfigureDialog::ProgramConfigureDialog(Program *program,
   connect(ui->text_launchTemplate, SIGNAL(textChanged()),
           this, SLOT(setDirty()));
 
+  connect(ui->buttonBox, SIGNAL(clicked(QAbstractButton*)),
+          this, SLOT(buttonBoxButtonClicked(QAbstractButton*)));
+
   updateGuiFromProgram();
 
   launchSyntaxChanged(ui->combo_syntax->currentIndex());
@@ -293,6 +296,14 @@ void ProgramConfigureDialog::showHelpDialog()
   if (!m_helpDialog)
     m_helpDialog = new TemplateKeywordDialog(this);
   m_helpDialog->show();
+}
+
+void ProgramConfigureDialog::buttonBoxButtonClicked(QAbstractButton *button)
+{
+  // "Ok" and "Cancel" are directly connected to accept() and reject(), so only
+  // check for "apply" here:
+  if (button == ui->buttonBox->button(QDialogButtonBox::Apply))
+    updateProgramFromGui();
 }
 
 } // end namespace MoleQueue

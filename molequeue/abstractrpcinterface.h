@@ -138,17 +138,6 @@ protected:
 private:
   /// Counter for packet requests @todo client side only? But what about notifications?
   IdType m_packetCounter;
-
-public:
-  /// @param d Enable runtime debugging if true.
-  void setDebug(bool d) {m_debug = d;}
-  /// @return Whether runtime debugging is enabled.
-  bool debug() const {return m_debug;}
-
-protected:
-  /// Toggles runtime debugging
-  bool m_debug;
-
 };
 
 } // end namespace MoleQueue

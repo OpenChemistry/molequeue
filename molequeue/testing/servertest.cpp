@@ -66,7 +66,6 @@ void ServerTest::initTestCase()
   m_connectionString = TestServer::getRandomSocketName();
   m_server = new MoleQueue::Server(this, m_connectionString);
   m_server->m_isTesting = true;
-  m_server->setDebug(true);
 }
 
 void ServerTest::cleanupTestCase()
@@ -127,7 +126,6 @@ void ServerTest::testForceStart()
   // Start a duplicate server to take the socket address
   MoleQueue::Server dupServer(this, m_connectionString);
   dupServer.m_isTesting = true;
-  dupServer.setDebug(true);
   dupServer.start();
 
   // Attempt to start the server. Check that the AddressInUseError is emitted.
