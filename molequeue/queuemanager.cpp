@@ -24,6 +24,7 @@
 #include "queues/local.h"
 #include "queues/pbs.h"
 #include "queues/sge.h"
+#include "queues/uit/queueuit.h"
 
 #include <QtCore/QDebug>
 #include <QtCore/QSettings>
@@ -87,7 +88,7 @@ void QueueManager::writeSettings(QSettings &settings) const
 QStringList QueueManager::availableQueues()
 {
   QStringList result;
-  result << "Local" << "Sun Grid Engine" << "PBS/Torque";
+  result << "Local" << "Sun Grid Engine" << "PBS/Torque" << "ezHPC UIT";
   return result;
 }
 
@@ -113,6 +114,8 @@ Queue * QueueManager::addQueue(const QString &queueName,
     newQueue = new QueueSge(this);
   else if (queueType== "PBS/Torque")
     newQueue = new QueuePbs(this);
+  else if (queueType== "ezHPC UIT")
+    newQueue = new QueueUit(this);
 
   if (!newQueue)
     return NULL;
