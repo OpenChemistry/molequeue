@@ -224,6 +224,25 @@ public:
 
   /// @return Queue Job ID
   IdType queueId() const;
+
+  /// @param keyrep The keyword replacement hash for this job.
+  void setKeywords(const QHash<QString, QString> &keyrep);
+
+  /// @return The keyword replacement hash for this job.
+  QHash<QString, QString> keywords() const;
+
+  /// Add a keyword / replacement pair for this job.
+  void setKeywordReplacement(const QString &keyword,
+                             const QString &replacement);
+
+  /// @return True if the @a keyword has a replacement.
+  bool hasKeywordReplacement(const QString &keyword) const;
+
+  /// @return The replacement string for the @a keyword.
+  QString lookupKeywordReplacement(const QString &keyword) const;
+
+  /// Apply the replacements in the keywords() hash to the @a script.
+  void replaceLaunchScriptKeywords(QString &launchScript) const;
 };
 
 } // end namespace MoleQueue

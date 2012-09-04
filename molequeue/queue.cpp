@@ -208,14 +208,19 @@ bool Queue::removeProgram(const QString &programName)
 void Queue::replaceLaunchScriptKeywords(QString &launchScript, const Job &job,
                                         bool addNewline)
 {
-  if (launchScript.contains("$$moleQueueId$$")) {
-    launchScript.replace("$$moleQueueId$$",
-                         QString::number(job.moleQueueId()));
-  }
+  launchScript.replace("$$moleQueueId$$", QString::number(job.moleQueueId()));
 
-  if (launchScript.contains("$$numberOfCores$$")) {
-    launchScript.replace("$$numberOfCores$$",
-                         QString::number(job.numberOfCores()));
+  launchScript.replace("$$numberOfCores$$",
+                       QString::number(job.numberOfCores()));
+
+  job.replaceLaunchScriptKeywords(launchScript);
+
+  // Remove any unreplaced keywords
+  QRegExp expr("[^\\$]?(\\${2,3}[^\\$\\s]+\\${2,3})[^\\$]?");
+  while (expr.indexIn(launchScript) != -1) {
+    Logger::logWarning(tr("Unhandled keyword in launch script: %1. Removing.")
+                       .arg(expr.cap(1)), job.moleQueueId());
+    launchScript.remove(expr.cap(1));
   }
 
   // Add newline at end if not present

@@ -251,4 +251,37 @@ IdType JobRequest::queueId() const
   return InvalidId;
 }
 
+void JobRequest::setKeywords(const QHash<QString, QString> &keyrep)
+{
+  if (warnIfInvalid())
+    m_jobData->setKeywords(keyrep);
+}
+
+QHash<QString, QString> JobRequest::keywords() const
+{
+  if (warnIfInvalid())
+    return m_jobData->keywords();
+  return QHash<QString, QString>();
+}
+
+void JobRequest::setKeywordReplacement(const QString &keyword, const QString &replacement)
+{
+  if (warnIfInvalid())
+    m_jobData->keywordsRef().insert(keyword, replacement);
+}
+
+bool JobRequest::hasKeywordReplacement(const QString &keyword) const
+{
+  if (warnIfInvalid())
+    return m_jobData->keywords().contains(keyword);
+  return false;
+}
+
+QString JobRequest::lookupKeywordReplacement(const QString &keyword) const
+{
+  if (warnIfInvalid())
+    return m_jobData->keywords().value(keyword);
+  return QString();
+}
+
 } // namespace MoleQueue
