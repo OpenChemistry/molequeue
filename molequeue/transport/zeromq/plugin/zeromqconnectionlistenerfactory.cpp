@@ -17,6 +17,9 @@
 #include "zeromqconnectionlistenerfactory.h"
 
 #include "../zeromqconnectionlistener.h"
+#include "../zeromqconnection.h"
+
+#include <QtCore/QDir>
 
 namespace MoleQueue
 {
@@ -29,7 +32,10 @@ ZeroMqConnectionListenerFactory::ZeroMqConnectionListenerFactory()
 ConnectionListener *ZeroMqConnectionListenerFactory::createConnectionListener(QObject *parentObject,
                                                                               QString connectionString)
 {
-  return new ZeroMqConnectionListener(parentObject, "ipc://" + connectionString);
+  QString connectionPath = QDir::temp().path() + "/" +
+                           ZeroMqConnection::zeroMqPrefix + "_" +
+                           connectionString;
+  return new ZeroMqConnectionListener(parentObject, "ipc://" + connectionPath);
 }
 
 } /* namespace MoleQueue */

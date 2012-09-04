@@ -69,6 +69,8 @@ public:
    */
   QString connectionString() const;
 
+  static const QString zeroMqPrefix;
+
   // needed to call onMessage(...)
   friend class ZeroMqConnectionListener;
   friend class ZeroMqIdentityWrapper;
