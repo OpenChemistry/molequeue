@@ -329,6 +329,7 @@ void MainWindow::createActionFactories()
   ViewJobLogActionFactory *viewJobLogActionFactory =
       new ViewJobLogActionFactory();
   viewJobLogActionFactory->setServer(m_server);
+  viewJobLogActionFactory->setLogWindowParent(this);
   manager->addFactory(viewJobLogActionFactory);
 }
 

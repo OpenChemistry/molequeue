@@ -36,6 +36,8 @@ public:
 
   QList<QAction*> createActions();
 
+  void setLogWindowParent(QWidget *widgy);
+
   unsigned int usefulness() const { return 50; }
 
 public slots:
@@ -43,6 +45,7 @@ public slots:
   void removeSenderFromMap();
 
 private:
+  QWidget *m_logWindowParent;
   QMap<IdType, LogWindow*> m_windowMap;
 };
 

@@ -45,6 +45,9 @@ public:
   LogWindow(QWidget *theParent = 0, IdType moleQueueId = InvalidId);
   ~LogWindow();
 
+signals:
+  void aboutToClose();
+
 protected:
   void changeEvent(QEvent *e);
   void closeEvent(QCloseEvent *);

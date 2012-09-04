@@ -107,6 +107,7 @@ void LogWindow::closeEvent(QCloseEvent *e)
   Logger::silenceNewErrors(false);
   Logger::resetNewErrorCount();
 
+  emit aboutToClose();
   QDialog::closeEvent(e);
 }
 

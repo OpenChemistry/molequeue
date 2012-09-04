@@ -26,6 +26,7 @@ Q_DECLARE_METATYPE(QList<MoleQueue::Job>)
 namespace MoleQueue {
 
 ViewJobLogActionFactory::ViewJobLogActionFactory() :
+  m_logWindowParent(NULL),
   MoleQueue::JobActionFactory()
 {
   qRegisterMetaType<QList<Job> >("QList<Job>");
@@ -64,6 +65,11 @@ QList<QAction *> ViewJobLogActionFactory::createActions()
   return result;
 }
 
+void ViewJobLogActionFactory::setLogWindowParent(QWidget *widgy)
+{
+  m_logWindowParent = widgy;
+}
+
 void ViewJobLogActionFactory::actionTriggered()
 {
   QAction *action = qobject_cast<QAction*>(sender());
@@ -79,10 +85,10 @@ void ViewJobLogActionFactory::actionTriggered()
   IdType moleQueueId = jobs.first().moleQueueId();
   LogWindow *logWindow = m_windowMap.value(moleQueueId, NULL);
   if (!logWindow) {
-    logWindow = new LogWindow(NULL, moleQueueId);
-    logWindow->setAttribute(Qt::WA_DeleteOnClose);
+    logWindow = new LogWindow(m_logWindowParent, moleQueueId);
     m_windowMap.insert(moleQueueId, logWindow);
-    connect(logWindow, SIGNAL(destroyed()), this, SLOT(removeSenderFromMap()));
+    connect(logWindow, SIGNAL(aboutToClose()),
+            this, SLOT(removeSenderFromMap()));
   }
 
   logWindow->show();
@@ -91,10 +97,14 @@ void ViewJobLogActionFactory::actionTriggered()
 
 void ViewJobLogActionFactory::removeSenderFromMap()
 {
-  LogWindow *deadWindow = reinterpret_cast<LogWindow*>(this->sender());
+  LogWindow *deadWindow = qobject_cast<LogWindow*>(this->sender());
+  if (!deadWindow)
+    return;
+
   IdType moleQueueId = m_windowMap.key(deadWindow, InvalidId);
   if (moleQueueId != InvalidId)
     m_windowMap.remove(moleQueueId);
+  deadWindow->deleteLater();
 }
 
 } // namespace MoleQueue
