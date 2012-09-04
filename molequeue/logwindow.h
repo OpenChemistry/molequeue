@@ -17,7 +17,7 @@
 #ifndef MOLEQUEUE_LOGWINDOW_H
 #define MOLEQUEUE_LOGWINDOW_H
 
-#include <QtGui/QMainWindow>
+#include <QtGui/QDialog>
 
 #include "molequeueglobal.h"
 
@@ -35,7 +35,7 @@ namespace MoleQueue
 class LogEntry;
 
 /// Window that displays log contents
-class LogWindow : public QMainWindow
+class LogWindow : public QDialog
 {
   Q_OBJECT
 
