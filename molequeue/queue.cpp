@@ -202,15 +202,10 @@ bool Queue::removeProgram(const QString &programName)
 
 void Queue::replaceLaunchScriptKeywords(QString &launchScript, const Job &job)
 {
-  if (launchScript.contains("$$moleQueueId$$")) {
-    launchScript.replace("$$moleQueueId$$",
-                         QString::number(job.moleQueueId()));
-  }
+  launchScript.replace("$$moleQueueId$$", QString::number(job.moleQueueId()));
 
-  if (launchScript.contains("$$numberOfCores$$")) {
-    launchScript.replace("$$numberOfCores$$",
-                         QString::number(job.numberOfCores()));
-  }
+  launchScript.replace("$$numberOfCores$$",
+                       QString::number(job.numberOfCores()));
 
   job.replaceLaunchScriptKeywords(launchScript);
 

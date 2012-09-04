@@ -318,8 +318,7 @@ void Job::replaceLaunchScriptKeywords(QString &launchScript) const
   const QHash<QString, QString> &keywordHash = m_jobData->keywordsRef();
   foreach (const QString &key, keywordHash.keys()) {
     QString keyword = QString("$$%1$$").arg(key);
-    if (launchScript.contains(keyword))
-      launchScript.replace(keyword, keywordHash.value(key));
+    launchScript.replace(keyword, keywordHash.value(key));
   }
 }
 
