@@ -17,7 +17,7 @@
 #ifndef DUMMYQUEUEREMOTE_H
 #define DUMMYQUEUEREMOTE_H
 
-#include "queues/remote.h"
+#include "queues/remotessh.h"
 
 #include "dummysshcommand.h"
 
@@ -25,7 +25,7 @@
 
 class QueueRemoteTest;
 
-class DummyQueueRemote : public MoleQueue::QueueRemote
+class DummyQueueRemote : public MoleQueue::QueueRemoteSsh
 {
   Q_OBJECT
 public:
