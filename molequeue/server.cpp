@@ -455,6 +455,22 @@ void Server::jobSubmissionRequested(MoleQueue::Connection *connection,
     sendFailedSubmissionResponse(connection, replyTo,
                                  job, MoleQueue::InvalidQueue,
                                  tr("Unknown queue: %1").arg(job.queue()));
+    Logger::logError(tr("Rejecting job: Unknown queue '%1'").arg(job.queue()),
+                     job.moleQueueId());
+    Job(job).setJobState(Error);
+    return;
+  }
+
+  // Check program
+  Program *program = queue->lookupProgram(job.program());
+  if (!program) {
+    sendFailedSubmissionResponse(connection, replyTo,
+                                 job, MoleQueue::InvalidProgram,
+                                 tr("Unknown program: %1").arg(job.program()));
+    Logger::logError(tr("Rejecting job: Program '%1' Does not exist on queue "
+                        "'%2'").arg(job.queue(), job.program()),
+                     job.moleQueueId());
+    Job(job).setJobState(Error);
     return;
   }
 
