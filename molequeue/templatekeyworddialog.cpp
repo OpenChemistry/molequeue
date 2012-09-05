@@ -86,6 +86,11 @@ void TemplateKeywordDialog::buildKeywordLists()
                           "the default walltime set by the queuing system's "
                           "administrator. Only available on remote queuing "
                           "systems."));
+  m_jobKeywords.insert(tr("Custom"),
+                       tr("Certain clients may allow custom keyword "
+                          "replacements in their jobs. Consult the client "
+                          "documentation to see if these are available and how "
+                          "they are to be specified in the template."));
 
   // Queue
   m_queueKeywords.insert("$$programExecution$$",
@@ -129,7 +134,10 @@ void TemplateKeywordDialog::buildDocument()
                  "in '$$' or '$$$' and are case sensitive. Keywords with two "
                  "'$' symbols will be replaced by the appropriate data, while "
                  " those with three '$' have more specialized behavior ("
-                 "see the maxWallTime variants for an example)."), cur);
+                 "see the maxWallTime variants for an example).\n"
+                 "Any unrecognized keywords that are not replaced during script"
+                 " generation will be removed and a warning printed to the "
+                 "log."), cur);
 
   // Jobs
   addKeywordHeader(tr("Job specific keywords:"), cur);

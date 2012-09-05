@@ -218,7 +218,8 @@ public:
    * @param job Job data to use.
    */
   virtual void replaceLaunchScriptKeywords(QString & launchScript,
-                                           const Job &job);
+                                           const Job &job,
+                                           bool addNewline = true);
 
   /// For queue creation
   friend class MoleQueue::QueueManager;

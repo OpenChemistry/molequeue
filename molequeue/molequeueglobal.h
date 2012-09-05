@@ -26,11 +26,6 @@
 #include <QtCore/QDateTime>
 #include <QtCore/QDebug>
 
-#define DEBUG(method) \
-  qDebug() << QDateTime::currentDateTime().toString() \
-           << method \
-           << "(" << __FILE__ << ":" << __LINE__ << ")" <<
-
 #include <limits>
 
 namespace MoleQueue
@@ -149,8 +144,10 @@ inline JobState stringToJobState(const char *str)
 enum JobSubmissionErrorCode {
   /// No error occurred.
   Success = 0,
-  /// Requested queue does not exist
-  InvalidQueue
+  /// Requested queue does not exist.
+  InvalidQueue,
+  /// Requested program does not exist on queue.
+  InvalidProgram
 };
 
 /// Default time in between remote queue updates in minutes.

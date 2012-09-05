@@ -94,30 +94,36 @@ QString JobRequest::description() const
   return QString();
 }
 
-void JobRequest::setInputAsPath(const QString &path)
+void JobRequest::setInputFile(const FileSpecification &spec)
 {
   if (warnIfInvalid())
-    m_jobData->setInputAsPath(path);
+    m_jobData->setInputFile(spec);
 }
 
-QString JobRequest::inputAsPath() const
+FileSpecification JobRequest::inputFile() const
 {
   if (warnIfInvalid())
-    return m_jobData->inputAsPath();
-  return QString();
+    return m_jobData->inputFile();
+  return FileSpecification();
 }
 
-void JobRequest::setInputAsString(const QString &input)
+void JobRequest::setAdditionalInputFiles(const QList<FileSpecification> &files)
 {
   if (warnIfInvalid())
-    m_jobData->setInputAsString(input);
+    m_jobData->setAdditionalInputFiles(files);
 }
 
-QString JobRequest::inputAsString() const
+QList<FileSpecification> JobRequest::additionalInputFiles() const
 {
   if (warnIfInvalid())
-    return m_jobData->inputAsString();
-  return QString();
+    return m_jobData->additionalInputFiles();
+  return QList<FileSpecification>();
+}
+
+void JobRequest::addInputFile(const FileSpecification &spec)
+{
+  if (warnIfInvalid())
+    m_jobData->additionalInputFilesRef().append(spec);
 }
 
 void JobRequest::setOutputDirectory(const QString &path)
@@ -243,6 +249,39 @@ IdType JobRequest::queueId() const
   if (warnIfInvalid())
     return m_jobData->queueId();
   return InvalidId;
+}
+
+void JobRequest::setKeywords(const QHash<QString, QString> &keyrep)
+{
+  if (warnIfInvalid())
+    m_jobData->setKeywords(keyrep);
+}
+
+QHash<QString, QString> JobRequest::keywords() const
+{
+  if (warnIfInvalid())
+    return m_jobData->keywords();
+  return QHash<QString, QString>();
+}
+
+void JobRequest::setKeywordReplacement(const QString &keyword, const QString &replacement)
+{
+  if (warnIfInvalid())
+    m_jobData->keywordsRef().insert(keyword, replacement);
+}
+
+bool JobRequest::hasKeywordReplacement(const QString &keyword) const
+{
+  if (warnIfInvalid())
+    return m_jobData->keywords().contains(keyword);
+  return false;
+}
+
+QString JobRequest::lookupKeywordReplacement(const QString &keyword) const
+{
+  if (warnIfInvalid())
+    return m_jobData->keywords().value(keyword);
+  return QString();
 }
 
 } // namespace MoleQueue

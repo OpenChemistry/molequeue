@@ -106,30 +106,36 @@ QString Job::description() const
   return QString();
 }
 
-void Job::setInputAsPath(const QString &path)
+void Job::setInputFile(const FileSpecification &spec)
 {
   if (warnIfInvalid())
-    m_jobData->setInputAsPath(path);
+    m_jobData->setInputFile(spec);
 }
 
-QString Job::inputAsPath() const
+FileSpecification Job::inputFile() const
 {
   if (warnIfInvalid())
-    return m_jobData->inputAsPath();
-  return QString();
+    return m_jobData->inputFile();
+  return FileSpecification();
 }
 
-void Job::setInputAsString(const QString &input)
+void Job::setAdditionalInputFiles(const QList<FileSpecification> &files)
 {
   if (warnIfInvalid())
-    m_jobData->setInputAsString(input);
+    m_jobData->setAdditionalInputFiles(files);
 }
 
-QString Job::inputAsString() const
+QList<FileSpecification> Job::additionalInputFiles() const
 {
   if (warnIfInvalid())
-    return m_jobData->inputAsString();
-  return QString();
+    return m_jobData->additionalInputFiles();
+  return QList<FileSpecification>();
+}
+
+void Job::addInputFile(const FileSpecification &spec)
+{
+  if (warnIfInvalid())
+    m_jobData->additionalInputFilesRef().append(spec);
 }
 
 void Job::setOutputDirectory(const QString &path)
@@ -275,6 +281,51 @@ IdType Job::queueId() const
   if (warnIfInvalid())
     return m_jobData->queueId();
   return InvalidId;
+}
+
+void Job::setKeywords(const QHash<QString, QString> &keyrep)
+{
+  if (warnIfInvalid())
+    m_jobData->setKeywords(keyrep);
+}
+
+QHash<QString, QString> Job::keywords() const
+{
+  if (warnIfInvalid())
+    return m_jobData->keywords();
+  return QHash<QString, QString>();
+}
+
+void Job::setKeywordReplacement(const QString &keyword, const QString &replacement)
+{
+  if (warnIfInvalid())
+    m_jobData->keywordsRef().insert(keyword, replacement);
+}
+
+bool Job::hasKeywordReplacement(const QString &keyword) const
+{
+  if (warnIfInvalid())
+    return m_jobData->keywords().contains(keyword);
+  return false;
+}
+
+QString Job::lookupKeywordReplacement(const QString &keyword) const
+{
+  if (warnIfInvalid())
+    return m_jobData->keywords().value(keyword);
+  return QString();
+}
+
+void Job::replaceLaunchScriptKeywords(QString &launchScript) const
+{
+  if (!warnIfInvalid())
+    return;
+
+  const QHash<QString, QString> &keywordHash = m_jobData->keywordsRef();
+  foreach (const QString &key, keywordHash.keys()) {
+    QString keyword = QString("$$%1$$").arg(key);
+    launchScript.replace(keyword, keywordHash.value(key));
+  }
 }
 
 } // end namespace MoleQueue

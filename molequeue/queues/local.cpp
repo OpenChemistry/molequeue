@@ -130,8 +130,7 @@ bool QueueLocal::submitJob(Job job)
 {
   if (job.isValid()) {
     Job(job).setJobState(MoleQueue::Accepted);
-    prepareJobForSubmission(job);
-    return true;
+    return prepareJobForSubmission(job);;
   }
   return false;
 }
@@ -161,10 +160,13 @@ void QueueLocal::killJob(Job job)
   job.setJobState(MoleQueue::Killed);
 }
 
-bool QueueLocal::prepareJobForSubmission(const Job &job)
+bool QueueLocal::prepareJobForSubmission(Job &job)
 {
-  if (!writeInputFiles(job))
+  if (!writeInputFiles(job)) {
+    Logger::logError(tr("Error while writing input files."), job.moleQueueId());
+    job.setJobState(Error);
     return false;
+  }
   if (!addJobToQueue(job))
     return false;
 
@@ -273,9 +275,11 @@ void QueueLocal::connectProcess(QProcess *proc)
           this, SLOT(processStarted()));
   connect(proc, SIGNAL(finished(int,QProcess::ExitStatus)),
           this, SLOT(processFinished(int,QProcess::ExitStatus)));
+  connect(proc, SIGNAL(error(QProcess::ProcessError)),
+          this, SLOT(processError(QProcess::ProcessError)));
 }
 
-bool QueueLocal::checkJobLimit()
+void QueueLocal::checkJobQueue()
 {
   int coresInUse = 0;
   foreach(IdType moleQueueId, m_runningJobs.keys()) {
@@ -305,8 +309,6 @@ bool QueueLocal::checkJobLimit()
     // Cannot start next job yet!
     break;
   }
-
-  return true;
 }
 
 bool QueueLocal::startJob(IdType moleQueueId)
@@ -336,7 +338,7 @@ bool QueueLocal::startJob(IdType moleQueueId)
   proc->setWorkingDirectory(dir.absolutePath());
 
   QStringList arguments;
-  if (program->arguments().isEmpty())
+  if (!program->arguments().isEmpty())
     arguments << program->arguments();
 
   QString command;
@@ -352,7 +354,7 @@ bool QueueLocal::startJob(IdType moleQueueId)
 #ifdef WIN32
     command = "cmd.exe /c " + launchScriptName();
 #else // WIN32
-    command = "sh " + launchScriptName();
+    command = "./" + launchScriptName();
 #endif // WIN32
     break;
   case Program::PLAIN:
@@ -381,11 +383,15 @@ bool QueueLocal::startJob(IdType moleQueueId)
 
   connectProcess(proc);
 
-  qDebug() << "Starting process:" << command + arguments.join(" ");
-  qDebug() << "workingdir:" <<  proc->workingDirectory();
-  // This next line *should* work, but doesn't....?
-//  proc->start(command, arguments);
-  proc->start(command + arguments.join(" "));
+  // Handle any keywords in the arguments
+  QString args = arguments.join(" ");
+  replaceLaunchScriptKeywords(args, job, false);
+
+  proc->start(command + " " + args);
+  Logger::logNotification(tr("Executing '%1 %2' in %3", "command, args, dir")
+                          .arg(command).arg(args)
+                          .arg(proc->workingDirectory()),
+                          job.moleQueueId());
   m_runningJobs.insert(job.moleQueueId(), proc);
 
   return true;
@@ -394,14 +400,76 @@ bool QueueLocal::startJob(IdType moleQueueId)
 void QueueLocal::timerEvent(QTimerEvent *theEvent)
 {
   if (theEvent->timerId() == m_checkJobLimitTimerId) {
-    if (!checkJobLimit()) {
-      qWarning() << Q_FUNC_INFO << "Error checking queue...";
-    }
+    checkJobQueue();
     theEvent->accept();
     return;
   }
 
   QObject::timerEvent(theEvent);
+}
+
+void QueueLocal::processError(QProcess::ProcessError error)
+{
+  QProcess *process = qobject_cast<QProcess*>(sender());
+  if (!process)
+    return;
+
+  IdType moleQueueId = m_runningJobs.key(process, 0);
+  if (moleQueueId == 0)
+    return;
+
+  // Remove and delete QProcess from queue
+  m_runningJobs.take(moleQueueId)->deleteLater();
+
+  if (!m_server) {
+    Logger::logError(tr("Queue '%1' cannot locate Server instance!")
+                     .arg(m_name), moleQueueId);
+    return;
+  }
+
+  Job job = m_server->jobManager()->lookupJobByMoleQueueId(moleQueueId);
+  if (!job.isValid()) {
+    Logger::logDebugMessage(tr("Queue '%1' Cannot update invalid Job "
+                               "reference!").arg(m_name), moleQueueId);
+    return;
+  }
+
+  QString errorString = QueueLocal::processErrorToString(error);
+  Logger::logError(tr("Execution of \'%1\' failed with process \'%2\': %3")
+                      .arg(job.program()).arg(errorString)
+                      .arg(process->errorString()), moleQueueId);
+
+  job.setJobState(MoleQueue::Error);
+}
+
+
+/**
+ * Convert a ProcessError value to a string.
+ *
+ * @param error ProcessError
+ * @return C string
+ */
+QString QueueLocal::processErrorToString(QProcess::ProcessError error)
+{
+  switch(error)
+  {
+  case QProcess::FailedToStart:
+    return tr("Failed to start");
+  case QProcess::Crashed:
+    return tr("Crashed");
+  case QProcess::Timedout:
+    return tr("Timed out");
+  case QProcess::WriteError:
+    return tr("Write error");
+  case QProcess::ReadError:
+    return tr("Read error");
+  case QProcess::UnknownError:
+    return tr("Unknown error");
+  }
+
+  Logger::logError(tr("Unrecognized Process Error: %1").arg(error));
+
+  return tr("Unrecognized process error");
 }
 
 } // End namespace

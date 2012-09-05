@@ -27,6 +27,14 @@ JobItemModel::JobItemModel(QObject *parentObject)
   : QAbstractItemModel(parentObject),
     m_jobManager(NULL)
 {
+  connect(this, SIGNAL(rowsInserted(QModelIndex, int, int)),
+          this, SIGNAL(rowCountChanged()));
+  connect(this, SIGNAL(rowsRemoved(QModelIndex, int, int)),
+          this, SIGNAL(rowCountChanged()));
+  connect(this, SIGNAL(modelReset()),
+          this, SIGNAL(rowCountChanged()));
+  connect(this, SIGNAL(layoutChanged()),
+          this, SIGNAL(rowCountChanged()));
 }
 
 void JobItemModel::setJobManager(JobManager *newJobManager)
@@ -94,11 +102,11 @@ QVariant JobItemModel::data(const QModelIndex &modelIndex, int role) const
     if (role == Qt::DisplayRole) {
       switch (modelIndex.column()) {
       case MOLEQUEUE_ID:
-        return QVariant(QString::number(job.moleQueueId()));
+        return QVariant(job.moleQueueId());
       case JOB_TITLE:
         return QVariant(job.description());
       case NUM_CORES:
-        return QVariant(QString::number(job.numberOfCores()));
+        return QVariant(job.numberOfCores());
       case QUEUE_NAME: {
         if (job.queueId() != InvalidId)
           return QVariant(QString("%1 (%2)").arg(job.queue())

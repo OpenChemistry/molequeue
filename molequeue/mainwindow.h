@@ -21,13 +21,13 @@
 #include "transport/connectionlistener.h"
 
 #include <QtGui/QMainWindow>
-
 #include <QtGui/QSystemTrayIcon>
 
 #include <QtNetwork/QAbstractSocket>
 
 class QAction;
 class QIcon;
+class QLabel;
 
 namespace Ui {
 class MainWindow;
@@ -74,15 +74,21 @@ protected slots:
   void handleServerConnectionError(MoleQueue::ConnectionListener::Error,
                                    const QString &);
   void handleErrorNotificationLabelAction(const QString &action);
+  void jumpToFilterBar();
+  void showAdvancedJobFilters();
+  void updateJobCounts(int totalJobs, int shownJobs);
 
 protected:
+  void keyPressEvent(QKeyEvent *);
   void closeEvent(QCloseEvent *theEvent);
 
   void createActions();
+  void createShortcuts();
   void createMainMenu();
   void createTrayIcon();
   void createJobTable();
   void createActionFactories();
+  void createStatusBar();
 
   Ui::MainWindow *m_ui;
   LogWindow *m_logWindow;
@@ -95,10 +101,10 @@ protected:
 
   QSystemTrayIcon *m_trayIcon;
   QMenu *m_trayIconMenu;
+  QLabel *m_statusTotalJobs;
+  QLabel *m_statusHiddenJobs;
 
   Server *m_server;
-
-  int m_errorCount;
 };
 
 } // End namespace

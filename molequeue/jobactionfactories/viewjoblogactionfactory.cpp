@@ -26,8 +26,8 @@ Q_DECLARE_METATYPE(QList<MoleQueue::Job>)
 namespace MoleQueue {
 
 ViewJobLogActionFactory::ViewJobLogActionFactory() :
-  m_logWindowParent(NULL),
-  MoleQueue::JobActionFactory()
+  MoleQueue::JobActionFactory(),
+  m_logWindowParent(NULL)
 {
   qRegisterMetaType<QList<Job> >("QList<Job>");
   m_isMultiJob = false;

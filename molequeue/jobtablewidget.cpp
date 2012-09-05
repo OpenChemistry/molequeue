@@ -17,10 +17,14 @@
 #include "jobtablewidget.h"
 #include "ui_jobtablewidget.h"
 
+#include "advancedfilterdialog.h"
 #include "jobmanager.h"
 #include "jobitemmodel.h"
+#include "jobtableproxymodel.h"
 
 #include <QtGui/QMessageBox>
+
+#include <QtCore/QSettings>
 
 namespace MoleQueue
 {
@@ -28,12 +32,24 @@ namespace MoleQueue
 JobTableWidget::JobTableWidget(QWidget *parentObject) :
   QWidget(parentObject),
   ui(new Ui::JobTableWidget),
-  m_jobManager(NULL)
+  m_jobManager(NULL),
+  m_proxyModel(new JobTableProxyModel (this)),
+  m_filterDialog(NULL)
 {
   ui->setupUi(this);
 
-  connect(ui->push_clearFinished, SIGNAL(clicked()),
-          this, SLOT(clearFinishedJobs()));
+  connect(m_proxyModel, SIGNAL(rowCountChanged()),
+          this, SLOT(modelRowCountChanged()));
+
+  ui->table->setModel(m_proxyModel);
+  ui->table->setSortingEnabled(true);
+
+  connect(ui->filterEdit, SIGNAL(textChanged(QString)),
+          this, SLOT(updateFilters()));
+  connect(ui->filterMore, SIGNAL(clicked()),
+          this, SLOT(showAdvancedFilterDialog()));
+
+  ui->filterEdit->setText(m_proxyModel->filterString());
 }
 
 JobTableWidget::~JobTableWidget()
@@ -47,22 +63,28 @@ void JobTableWidget::setJobManager(MoleQueue::JobManager *jobMan)
   if (jobMan == m_jobManager)
     return;
 
+  if (m_jobManager) {
+    disconnect(m_jobManager->itemModel(), SIGNAL(rowCountChanged()),
+               this, SLOT(modelRowCountChanged()));
+  }
+
   m_jobManager = jobMan;
-  ui->table->setModel(jobMan->itemModel());
-  ui->table->horizontalHeader()->setResizeMode(1, QHeaderView::Stretch);
-}
+  connect(m_jobManager->itemModel(), SIGNAL(rowCountChanged()),
+          this, SLOT(modelRowCountChanged()));
+  m_proxyModel->setSourceModel(jobMan->itemModel());
+  m_proxyModel->setDynamicSortFilter(true);
 
-QList<Job> JobTableWidget::getSelectedJobs()
-{
-  QList<Job> result;
+  for (int i = 0; i < m_proxyModel->columnCount(); ++i) {
+    if (i == JobItemModel::JOB_TITLE) { // stretch description
+      ui->table->horizontalHeader()->setResizeMode(i, QHeaderView::Stretch);
+    }
+    else { // resize to fit others
+      ui->table->horizontalHeader()->setResizeMode(
+            i, QHeaderView::ResizeToContents);
+    }
+  }
 
-  if (!m_jobManager)
-    return result;
-
-  foreach (int row, ui->table->getSelectedRows())
-    result << m_jobManager->jobAt(row);
-
-  return result;
+  modelRowCountChanged();
 }
 
 void JobTableWidget::clearFinishedJobs()
@@ -85,6 +107,45 @@ void JobTableWidget::clearFinishedJobs()
     return;
 
   m_jobManager->removeJobs(finishedJobs);
+}
+
+void JobTableWidget::showFilterBar(bool visible)
+{
+  if (visible)
+    focusInFilter();
+  else
+    ui->filterBar->hide();
+}
+
+void JobTableWidget::focusInFilter()
+{
+  if (!ui->filterBar->isVisible())
+    ui->filterBar->show();
+
+  ui->filterEdit->setFocus();
+  ui->filterEdit->selectAll();
+}
+
+void JobTableWidget::showAdvancedFilterDialog()
+{
+  if (m_filterDialog == NULL) {
+    m_filterDialog = new AdvancedFilterDialog(m_proxyModel, this);
+  }
+
+  m_filterDialog->show();
+  m_filterDialog->raise();
+}
+
+void JobTableWidget::updateFilters()
+{
+  m_proxyModel->setFilterString(ui->filterEdit->text());
+}
+
+void JobTableWidget::modelRowCountChanged()
+{
+  if (m_jobManager)
+    emit jobCountsChanged(m_jobManager->itemModel()->rowCount(),
+                          m_proxyModel->rowCount());
 }
 
 } // end namespace MoleQueue

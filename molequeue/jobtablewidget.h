@@ -17,6 +17,8 @@
 #ifndef JOBTABLEWIDGET_H
 #define JOBTABLEWIDGET_H
 
+#include "molequeueglobal.h"
+
 #include <QtGui/QWidget>
 
 namespace Ui {
@@ -25,9 +27,11 @@ class JobTableWidget;
 
 namespace MoleQueue
 {
+class AdvancedFilterDialog;
 class Job;
 class JobActionFactory;
 class JobManager;
+class JobTableProxyModel;
 
 /// @brief Widget which encapsulates the Job table MVC classes.
 class JobTableWidget : public QWidget
@@ -41,10 +45,21 @@ public:
   void setJobManager(JobManager *jobManager);
   JobManager * jobManager() const { return m_jobManager; }
 
-  QList<Job> getSelectedJobs();
+signals:
+  void jobCountsChanged(int totalJobs, int shownJobs);
 
 public slots:
   void clearFinishedJobs();
+  void showFilterBar(bool visible = true);
+  void hideFilterBar() { showFilterBar(false); }
+  void focusInFilter();
+
+  void showAdvancedFilterDialog();
+
+protected slots:
+  void updateFilters();
+
+  void modelRowCountChanged();
 
 protected:
   // Row indices, ascending order
@@ -52,6 +67,8 @@ protected:
 
   Ui::JobTableWidget *ui;
   JobManager *m_jobManager;
+  JobTableProxyModel *m_proxyModel;
+  AdvancedFilterDialog *m_filterDialog;
 };
 
 } // end namespace MoleQueue

@@ -16,6 +16,7 @@
 
 #include "queue.h"
 
+#include "filespecification.h"
 #include "job.h"
 #include "jobmanager.h"
 #include "logentry.h"
@@ -80,9 +81,11 @@ void Queue::readSettings(QSettings &settings)
     program->readSettings(settings);
 
     if (!addProgram(program)) {
-      qWarning() << Q_FUNC_INFO << "Could not add program" << progName
-                 << "to queue" << name() << "-- duplicate program name.";
+      Logger::logDebugMessage(tr("Cannot add program '%1' to queue '%2': "
+                                 "program name already exists!")
+                              .arg(progName).arg(name()));
       delete program;
+      program = NULL;
     }
 
     settings.endGroup(); // progName
@@ -149,9 +152,11 @@ void Queue::importConfiguration(QSettings &importer, bool includePrograms)
       program->importConfiguration(importer);
 
       if (!addProgram(program)) {
-        qWarning() << Q_FUNC_INFO << "Could not add program" << progName
-                   << "to queue" << name() << "-- duplicate program name.";
+        Logger::logDebugMessage(tr("Cannot add program '%1' to queue '%2': "
+                                   "program name already exists!")
+                                .arg(progName).arg(name()));
         delete program;
+        program = NULL;
       }
 
       importer.endGroup(); // progName
@@ -200,21 +205,29 @@ bool Queue::removeProgram(const QString &programName)
   return true;
 }
 
-void Queue::replaceLaunchScriptKeywords(QString &launchScript, const Job &job)
+void Queue::replaceLaunchScriptKeywords(QString &launchScript, const Job &job,
+                                        bool addNewline)
 {
-  if (launchScript.contains("$$moleQueueId$$")) {
-    launchScript.replace("$$moleQueueId$$",
-                         QString::number(job.moleQueueId()));
-  }
+  launchScript.replace("$$moleQueueId$$", QString::number(job.moleQueueId()));
 
-  if (launchScript.contains("$$numberOfCores$$")) {
-    launchScript.replace("$$numberOfCores$$",
-                         QString::number(job.numberOfCores()));
+  launchScript.replace("$$numberOfCores$$",
+                       QString::number(job.numberOfCores()));
+
+  job.replaceLaunchScriptKeywords(launchScript);
+
+  // Remove any unreplaced keywords
+  QRegExp expr("[^\\$]?(\\${2,3}[^\\$\\s]+\\${2,3})[^\\$]?");
+  while (expr.indexIn(launchScript) != -1) {
+    Logger::logWarning(tr("Unhandled keyword in launch script: %1. Removing.")
+                       .arg(expr.cap(1)), job.moleQueueId());
+    launchScript.remove(expr.cap(1));
   }
 
   // Add newline at end if not present
-  if (!launchScript.isEmpty() && !launchScript.endsWith(QChar('\n')))
+  if (addNewline && !launchScript.isEmpty() &&
+      !launchScript.endsWith(QChar('\n'))) {
     launchScript.append(QChar('\n'));
+  }
 }
 
 bool Queue::writeInputFiles(const Job &job)
@@ -255,28 +268,54 @@ bool Queue::writeInputFiles(const Job &job)
   }
 
   // Create input files
-  if (!program->inputFilename().isEmpty()) {
-    QString inputFilePath = dir.absoluteFilePath(program->inputFilename());
-    if (job.inputAsPath().isEmpty()) {
-      // Open a file and write the input string to it.
-      QFile inputFile (inputFilePath);
-      if (!inputFile.open(QFile::WriteOnly | QFile::Text)) {
-        Logger::logError(tr("Cannot open file for writing: %1")
-                         .arg(inputFilePath),
-                         job.moleQueueId());
-        return false;
-      }
-      inputFile.write(job.inputAsString().toLatin1());
-      inputFile.close();
+  FileSpecification inputFile = job.inputFile();
+  if (!program->inputFilename().isEmpty() && inputFile.isValid()) {
+    /// @todo Allow custom file names, only specify extension in program.
+    /// Use $$basename$$ keyword replacement.
+    inputFile.writeFile(dir, program->inputFilename());
+  }
+
+  // Write additional input files
+  QList<FileSpecification> additionalInputFiles = job.additionalInputFiles();
+  foreach (const FileSpecification &filespec, additionalInputFiles) {
+    if (!filespec.isValid()) {
+      Logger::logError(tr("Writing additional input files...invalid FileSpec:\n"
+                          "%1").arg(filespec.asJsonString()),
+                       job.moleQueueId());
+      return false;
     }
-    else {
-      // Copy the input file to the input path
-      if (!QFile::copy(job.inputAsPath(), inputFilePath)) {
-        Logger::logError(tr("Cannot copy file '%1' --> '%2'.")
-                         .arg(job.inputAsPath()).arg(inputFilePath),
-                         job.moleQueueId());
+    QFileInfo target(dir.absoluteFilePath(filespec.filename()));
+    switch (filespec.format()) {
+    default:
+    case FileSpecification::InvalidFileSpecification:
+      Logger::logWarning(tr("Cannot write input file. Invalid filespec:\n%1")
+                         .arg(filespec.asJsonString()), job.moleQueueId());
+      continue;
+    case FileSpecification::PathFileSpecification: {
+      QFileInfo source(filespec.filepath());
+      if (!source.exists()) {
+        Logger::logError(tr("Writing additional input files...Source file "
+                            "does not exist! %1")
+                         .arg(source.absoluteFilePath()), job.moleQueueId());
         return false;
       }
+      if (source == target) {
+        Logger::logWarning(tr("Refusing to copy additional input file...source "
+                              "and target refer to the same file!\nSource: %1"
+                              "\nTarget: %2").arg(source.absoluteFilePath())
+                           .arg(target.absoluteFilePath()), job.moleQueueId());
+        continue;
+      }
+    }
+    case FileSpecification::ContentsFileSpecification:
+      if (target.exists()) {
+        Logger::logWarning(tr("Writing additional input files...Overwriting "
+                              "existing file: '%1'")
+                           .arg(target.absoluteFilePath()), job.moleQueueId());
+        QFile::remove(target.absoluteFilePath());
+      }
+      filespec.writeFile(dir);
+      continue;
     }
   }
 

@@ -35,7 +35,7 @@ public:
   /** Custom context menu for this view. */
   void contextMenuEvent(QContextMenuEvent *e);
 
-  QList<int> getSelectedRows();
+  QList<Job> selectedJobs();
 };
 
 } // End of namespace

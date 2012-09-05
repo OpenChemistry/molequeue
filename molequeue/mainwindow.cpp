@@ -37,7 +37,11 @@
 
 #include <QtGui/QCloseEvent>
 #include <QtGui/QInputDialog>
+#include <QtGui/QKeyEvent>
+#include <QtGui/QLabel>
 #include <QtGui/QMessageBox>
+#include <QtGui/QShortcut>
+#include <QtGui/QStatusBar>
 
 namespace MoleQueue {
 
@@ -51,8 +55,9 @@ MainWindow::MainWindow()
     m_restoreAction(NULL),
     m_trayIcon(NULL),
     m_trayIconMenu(NULL),
-    m_server(new Server (this)),
-    m_errorCount(0)
+    m_statusTotalJobs(new QLabel(this)),
+    m_statusHiddenJobs(new QLabel(this)),
+    m_server(new Server (this))
 {
   m_ui->setupUi(this);
 
@@ -61,10 +66,13 @@ MainWindow::MainWindow()
 
   createActions();
   createActionFactories();
+  createShortcuts();
   createMainMenu();
   createTrayIcon();
-  readSettings();
   createJobTable();
+  createStatusBar();
+
+  readSettings();
 
   connect(m_server, SIGNAL(connectionError(MoleQueue::ConnectionListener::Error,QString)),
           this, SLOT(handleServerConnectionError(MoleQueue::ConnectionListener::Error, QString)));
@@ -110,6 +118,9 @@ void MainWindow::readSettings()
 
   restoreGeometry(settings.value("geometry").toByteArray());
   restoreState(settings.value("windowState").toByteArray());
+  m_ui->actionViewJobFilter->setChecked(
+        settings.value("viewJobFilter", false).toBool());
+  m_ui->jobTableWidget->showFilterBar(m_ui->actionViewJobFilter->isChecked());
 
   m_server->readSettings(settings);
   ActionFactoryManager::getInstance()->readSettings(settings);
@@ -121,6 +132,7 @@ void MainWindow::writeSettings()
 
   settings.setValue("geometry", saveGeometry());
   settings.setValue("windowState", saveState());
+  settings.setValue("viewJobFilter", m_ui->actionViewJobFilter->isChecked());
 
   m_server->writeSettings(settings);
   ActionFactoryManager::getInstance()->writeSettings(settings);
@@ -240,6 +252,62 @@ void MainWindow::handleErrorNotificationLabelAction(const QString &action)
     Logger::resetNewErrorCount();
 }
 
+void MainWindow::jumpToFilterBar()
+{
+  if (!m_ui->actionViewJobFilter->isChecked())
+    m_ui->actionViewJobFilter->activate(QAction::Trigger);
+
+  m_ui->jobTableWidget->focusInFilter();
+}
+
+void MainWindow::showAdvancedJobFilters()
+{
+  // Show the job filter if it is hidden
+  if (!m_ui->actionViewJobFilter->isChecked())
+    m_ui->actionViewJobFilter->activate(QAction::Trigger);
+
+  m_ui->jobTableWidget->showAdvancedFilterDialog();
+}
+
+void MainWindow::keyPressEvent(QKeyEvent *e)
+{
+  // Handle escape key:
+  if (e->key() == Qt::Key_Escape) {
+    if (m_ui->actionViewJobFilter->isChecked()) {
+      m_ui->actionViewJobFilter->activate(QAction::Trigger);
+      e->accept();
+      return;
+    }
+  }
+
+  QMainWindow::keyPressEvent(e);
+}
+
+void MainWindow::updateJobCounts(int totalJobs, int shownJobs)
+{
+  if (totalJobs == 0) {
+    m_statusTotalJobs->hide();
+  }
+  else {
+    m_statusTotalJobs->setText(tr("%n job(s)", "", totalJobs));
+    m_statusTotalJobs->show();
+  }
+
+  int hiddenJobs = totalJobs - shownJobs;
+  if (hiddenJobs > 0) {
+    m_statusHiddenJobs->setText(tr("%n job(s) are hidden by filters", "",
+                                   hiddenJobs));
+    QPalette pal;
+    pal.setColor(QPalette::Foreground, Qt::darkRed);
+    m_statusHiddenJobs->setPalette(pal);
+    m_statusHiddenJobs->show();
+  }
+  else {
+    m_statusHiddenJobs->hide();
+  }
+
+}
+
 void MainWindow::closeEvent(QCloseEvent *theEvent)
 {
   QSettings settings;
@@ -265,6 +333,18 @@ void MainWindow::createActions()
   connect(m_ui->actionRestore, SIGNAL(triggered()), this, SLOT(showNormal()));
   connect(m_ui->actionUpdateRemoteQueues, SIGNAL(triggered()),
           m_server->queueManager(), SLOT(updateRemoteQueues()));
+  connect(m_ui->actionViewJobFilter, SIGNAL(toggled(bool)),
+          m_ui->jobTableWidget, SLOT(showFilterBar(bool)));
+  connect(m_ui->actionAdvancedJobFilters, SIGNAL(triggered()),
+          this, SLOT(showAdvancedJobFilters()));
+  connect(m_ui->actionClearFinishedJobs, SIGNAL(triggered()),
+          m_ui->jobTableWidget, SLOT(clearFinishedJobs()));
+}
+
+void MainWindow::createShortcuts()
+{
+  new QShortcut(tr("Ctrl+K", "Jump to filter bar"), this,
+                SLOT(jumpToFilterBar()), SLOT(jumpToFilterBar()));
 }
 
 void MainWindow::createMainMenu()
@@ -302,6 +382,8 @@ void MainWindow::createTrayIcon()
 
 void MainWindow::createJobTable()
 {
+  connect(m_ui->jobTableWidget, SIGNAL(jobCountsChanged(int, int)),
+          this, SLOT(updateJobCounts(int,int)));
   m_ui->jobTableWidget->setJobManager(m_server->jobManager());
 }
 
@@ -331,6 +413,14 @@ void MainWindow::createActionFactories()
   viewJobLogActionFactory->setServer(m_server);
   viewJobLogActionFactory->setLogWindowParent(this);
   manager->addFactory(viewJobLogActionFactory);
+}
+
+void MainWindow::createStatusBar()
+{
+  statusBar()->addWidget(m_statusTotalJobs);
+  statusBar()->addWidget(m_statusHiddenJobs);
+  m_statusHiddenJobs->hide();
+  statusBar()->show();
 }
 
 } // End namespace

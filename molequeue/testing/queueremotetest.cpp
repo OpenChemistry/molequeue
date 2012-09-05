@@ -167,7 +167,7 @@ void QueueRemoteTest::testSubmissionPipeline()
   job.setQueue("Dummy");
   job.setProgram("DummyProgram");
   job.setDescription("DummyJob");
-  job.setInputAsString("do stuff, return answers.");
+  job.setInputFile(FileSpecification("file.ext", "do stuff, return answers."));
   job.setOutputDirectory(job.localWorkingDirectory() + "/../output");
   job.setCleanRemoteFiles(true);
   job.setCleanLocalWorkingDirectory(true);
@@ -193,7 +193,7 @@ void QueueRemoteTest::testSubmissionPipeline()
   QVERIFY(QFile::exists(inputFileName));
   QFile inputFile(inputFileName);
   QVERIFY(inputFile.open(QFile::ReadOnly));
-  QCOMPARE(QString(inputFile.readAll()), job.inputAsString());
+  QCOMPARE(QString(inputFile.readAll()), job.inputFile().contents());
 
   QString launchScriptFileName = job.localWorkingDirectory() + "/"
       + m_queue->launchScriptName();
