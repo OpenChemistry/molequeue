@@ -19,6 +19,7 @@
 #include "job.h"
 #include "jobdata.h"
 #include "molequeueglobal.h"
+#include "qtjson.h"
 
 #include <json/json.h>
 
@@ -29,16 +30,11 @@
 #include <QtCore/QPair>
 #include <QtCore/QVariantHash>
 
-#define DEBUGOUT(title) \
-  if (m_debug)    \
-    qDebug() << QDateTime::currentDateTime().toString() << title <<
-
 namespace MoleQueue
 {
 
 JsonRpc::JsonRpc(QObject *parentObject)
-  : QObject(parentObject),
-    m_debug(false)
+  : QObject(parentObject)
 {
   qRegisterMetaType<QDir>("QDir");
   qRegisterMetaType<Json::Value>("Json::Value");
@@ -50,15 +46,6 @@ JsonRpc::JsonRpc(QObject *parentObject)
 
 JsonRpc::~JsonRpc()
 {
-  if (m_debug && m_pendingRequests.size() != 0) {
-    DEBUGOUT("~JsonRpc") "Dangling requests upon destruction:";
-    for (QHash<IdType, PacketMethod>::const_iterator
-         it     = m_pendingRequests.constBegin(),
-         it_end = m_pendingRequests.constEnd(); it != it_end; ++it) {
-      DEBUGOUT("~JsonRpc") "    PacketId:" << it.key() << "Request Method:"
-                                           << it.value();
-    }
-  }
 }
 
 PacketType JsonRpc::generateJobRequest(const Job &job,
@@ -68,15 +55,13 @@ PacketType JsonRpc::generateJobRequest(const Job &job,
 
   packet["method"] = "submitJob";
 
-  Json::Value paramsObject = hashToJson(job.hash());
+  Json::Value paramsObject = QtJson::toJson(job.hash());
 
   packet["params"] = paramsObject;
 
   Json::StyledWriter writer;
   std::string ret_stdstr = writer.write(packet);
   PacketType ret (ret_stdstr.c_str());
-
-  DEBUGOUT("generateJobRequest") "New job request:\n" << ret;
 
   registerRequest(packetId, SUBMIT_JOB);
 
@@ -100,9 +85,6 @@ JsonRpc::generateJobSubmissionConfirmation(IdType moleQueueId,
   std::string ret_stdstr = writer.write(packet);
   PacketType ret (ret_stdstr.c_str());
 
-  DEBUGOUT("generateJobSubmissionConfirmation")
-      "New job confirmation generated:\n" << ret;
-
   return ret;
 }
 
@@ -118,9 +100,6 @@ PacketType JsonRpc::generateErrorResponse(int errorCode,
   Json::StyledWriter writer;
   std::string ret_stdstr = writer.write(packet);
   PacketType ret (ret_stdstr.c_str());
-
-  DEBUGOUT("generateErrorResponse")
-      "New error response generated:\n" << ret;
 
   return ret;
 }
@@ -140,9 +119,6 @@ PacketType JsonRpc::generateErrorResponse(int errorCode,
   std::string ret_stdstr = writer.write(packet);
   PacketType ret (ret_stdstr.c_str());
 
-  DEBUGOUT("generateErrorResponse")
-      "New error response generated:\n" << ret;
-
   return ret;
 }
 
@@ -158,9 +134,6 @@ PacketType JsonRpc::generateErrorResponse(int errorCode,
   Json::StyledWriter writer;
   std::string ret_stdstr = writer.write(packet);
   PacketType ret (ret_stdstr.c_str());
-
-  DEBUGOUT("generateErrorResponse")
-      "New error response generated:\n" << ret;
 
   return ret;
 }
@@ -179,9 +152,6 @@ PacketType JsonRpc::generateErrorResponse(int errorCode,
   Json::StyledWriter writer;
   std::string ret_stdstr = writer.write(packet);
   PacketType ret (ret_stdstr.c_str());
-
-  DEBUGOUT("generateErrorResponse")
-      "New error response generated:\n" << ret;
 
   return ret;
 }
@@ -202,8 +172,6 @@ PacketType JsonRpc::generateJobCancellation(const Job &job,
   std::string ret_stdstr = writer.write(packet);
   PacketType ret (ret_stdstr.c_str());
 
-  DEBUGOUT("generateJobCancellation") "New job cancellation request:\n" << ret;
-
   registerRequest(packetId, CANCEL_JOB);
 
   return ret;
@@ -219,9 +187,6 @@ PacketType JsonRpc::generateJobCancellationConfirmation(IdType moleQueueId,
   Json::StyledWriter writer;
   std::string ret_stdstr = writer.write(packet);
   PacketType ret (ret_stdstr.c_str());
-
-  DEBUGOUT("generateJobCancellationConfirmation")
-      "New job cancellation confirmation generated:\n" << ret;
 
   return ret;
 }
@@ -241,8 +206,6 @@ PacketType JsonRpc::generateLookupJobRequest(IdType moleQueueId,
   Json::StyledWriter writer;
   std::string ret_stdstr = writer.write(packet);
   PacketType ret(ret_stdstr.c_str());
-
-  DEBUGOUT("generateJobCancellation") "New job cancellation request:\n" << ret;
 
   registerRequest(packetId, LOOKUP_JOB);
 
@@ -265,15 +228,12 @@ PacketType JsonRpc::generateLookupJobResponse(const Job &req,
   }
   else {
     packet = generateEmptyResponse(packetId);
-    packet["result"] = hashToJson(req.hash());
+    packet["result"] = QtJson::toJson(req.hash());
   }
 
   Json::StyledWriter writer;
   std::string ret_stdstr = writer.write(packet);
   PacketType ret(ret_stdstr.c_str());
-
-  DEBUGOUT("generateLookupJobResponse") "New job lookup response generated:\n"
-      << ret;
 
   return ret;
 }
@@ -287,8 +247,6 @@ PacketType JsonRpc::generateQueueListRequest(IdType packetId)
   Json::StyledWriter writer;
   std::string ret_stdstr = writer.write(packet);
   PacketType ret (ret_stdstr.c_str());
-
-  DEBUGOUT("generateQueueListRequest") "New queue list request:\n" << ret;
 
   registerRequest(packetId, LIST_QUEUES);
 
@@ -317,8 +275,6 @@ PacketType JsonRpc::generateQueueList(const QueueListType &queueList,
   std::string ret_stdstr = writer.write(packet);
   PacketType ret (ret_stdstr.c_str());
 
-  DEBUGOUT("generateQueueList") "Queue list generated:\n" << ret;
-
   return ret;
 }
 
@@ -342,9 +298,6 @@ JsonRpc::generateJobStateChangeNotification(IdType moleQueueId,
   std::string ret_stdstr = writer.write(packet);
   PacketType ret (ret_stdstr.c_str());
 
-  DEBUGOUT("generateJobStateChangeNotification")
-      "New state change:\n" << ret;
-
   return ret;
 }
 
@@ -358,8 +311,6 @@ void JsonRpc::interpretIncomingPacket(Connection* connection,
   if (!reader.parse(msg.data().constData(),
                     msg.data().constData() + msg.data().size(),
                     root, false)) {
-
-    qDebug() << "msg:  " << msg.data();
     handleUnparsablePacket(connection, msg);
     return;
   }
@@ -412,7 +363,6 @@ void JsonRpc::interpretIncomingJsonRpc(Connection *connection,
 
   switch (method) {
   case IGNORE_METHOD:
-    DEBUGOUT("interpretIncomingJsonRpc") "Ignoring reply to other client.";
     break;
   default:
   case INVALID_METHOD:
@@ -537,10 +487,8 @@ bool JsonRpc::validateRequest(const PacketType &packet, bool strict)
 
 bool JsonRpc::validateRequest(const Json::Value &packet, bool strict)
 {
-  if (!packet.isObject()) {
-    DEBUGOUT("validateRequest") "Invalid: Root node is not an object!";
+  if (!packet.isObject())
     return false;
-  }
 
   Json::Value::Members members = packet.getMemberNames();
 
@@ -570,71 +518,39 @@ bool JsonRpc::validateRequest(const Json::Value &packet, bool strict)
     }
   }
 
-  if (!found_jsonrpc) {
-    DEBUGOUT("validateRequest") "Warn: 'jsonrpc' not found!";
-    if (strict)
+  if (!found_jsonrpc && strict)
       return false;
-  }
-  if (!found_method) {
-    DEBUGOUT("validateRequest") "Invalid: 'method' not found!";
+
+  if (!found_method)
     return false;
-  }
+
   // Params are optional.
-  //  if (!found_params) {
-  //    DEBUGOUT("validateRequest") "Invalid: 'params' not found!";
+  //  if (!found_params)
   //    return false;
-  //  }
-  if (!found_id) {
-    DEBUGOUT("validateRequest") "Invalid: 'id' not found!";
+
+  if (!found_id)
     return false;
-  }
 
   // Validate objects
   // "method" must be a string
-  if (!packet["method"].isString()) {
-    DEBUGOUT("validateRequest") "Invalid: 'method' is not a string!";
+  if (!packet["method"].isString())
     return false;
-  }
+
   // "params" may be omitted, but must be structured if present
-  if (found_params) {
-    if (!packet["params"].isObject() && !packet["params"].isArray()) {
-      DEBUGOUT("validateRequest") "Invalid: 'params' must be either an array "
-          "or an object!";
+  if (found_params &&
+      !packet["params"].isObject() && !packet["params"].isArray()) {
       return false;
-    }
   }
+
   // "id" must be a string, a number, or null, but should not be null or
   // fractional
   const Json::Value & idValue = packet["id"];
-  if (!idValue.isString() && !idValue.isNumeric() && !idValue.isNull()) {
-    DEBUGOUT("validateRequest") "Invalid: id value must be a string, a number, "
-        "or null.";
+  if (!idValue.isString() && !idValue.isNumeric() && !idValue.isNull())
     return false;
-  }
-  else if (idValue.isNumeric() && !idValue.isIntegral()) {
-    DEBUGOUT("validateRequest") "Caution: 'id' should be integral if numeric.";
-  }
-  else if (idValue.isNull()) {
-    DEBUGOUT("validateRequest") "Caution: 'id' should not be null.";
-  }
 
   // Print extra members
-  if (extraMembers.size() != 0) {
-    if (m_debug) {
-      std::string extra;
-      for (Json::Value::Members::const_iterator it = extraMembers.begin(),
-           it_end = extraMembers.end(); it != it_end; ++it) {
-        if (it != extraMembers.begin())
-          extra += ", ";
-        extra += *it;
-      }
-      DEBUGOUT("validateRequest") "Warn: Extra top-level members found:"
-          << extra.c_str();
-    }
-
-    if (strict)
-      return false;
-  }
+  if (extraMembers.size() != 0 && strict)
+    return false;
 
   return true;
 }
@@ -650,10 +566,8 @@ bool JsonRpc::validateResponse(const PacketType &packet, bool strict)
 
 bool JsonRpc::validateResponse(const Json::Value &packet, bool strict)
 {
-  if (!packet.isObject()) {
-    DEBUGOUT("validateResponse") "Invalid: Root node is not an object!";
+  if (!packet.isObject())
     return false;
-  }
 
   Json::Value::Members members = packet.getMemberNames();
 
@@ -683,78 +597,42 @@ bool JsonRpc::validateResponse(const Json::Value &packet, bool strict)
     }
   }
 
-  if (!found_jsonrpc) {
-    DEBUGOUT("validateResponse") "Warn: 'jsonrpc' not found!";
-    if (strict)
-      return false;
-  }
-  if (!found_result && !found_error) {
-    DEBUGOUT("validateResponse") "Invalid: neither 'result' nor 'error' found!";
+  if (!found_jsonrpc && strict)
     return false;
-  }
-  if (found_result && found_error) {
-    DEBUGOUT("validateResponse") "Invalid: both 'result' and 'error' present!";
+
+  if (!found_result && !found_error)
     return false;
-  }
-  if (!found_id) {
-    DEBUGOUT("validateResponse") "Invalid: 'id' not found!";
+
+  if (found_result && found_error)
     return false;
-  }
+
+  if (!found_id)
+    return false;
 
   // Validate error object if present
   if (found_error) {
     const Json::Value & errorObject = packet["error"];
-    if (!errorObject.isObject()) {
-      DEBUGOUT("validateResponse") "Invalid: Error member is not object.";
+    if (!errorObject.isObject())
       return false;
-    }
 
     // "code" must be an integer
-    if (!errorObject["code"].isIntegral()) {
-      DEBUGOUT("validateResponse") "Invalid: Error code is not integral.";
+    if (!errorObject["code"].isIntegral())
       return false;
-    }
 
     // "message" must be a string
-    if (!errorObject["message"].isString()) {
-      DEBUGOUT("validateResponse") "Invalid: Error message is invalid.";
+    if (!errorObject["message"].isString())
       return false;
-    }
   }
 
   // "id" must be a string, a number, or null, but should not be null or
   // fractional
   const Json::Value & idValue = packet["id"];
-  if (!idValue.isString() && !idValue.isNumeric() && !idValue.isNull()) {
-    DEBUGOUT("validateResponse") "Invalid: id value must be a string, a number, "
-        "or null.";
+  if (!idValue.isString() && !idValue.isNumeric() && !idValue.isNull())
     return false;
-  }
-  else if (idValue.isNumeric() && !idValue.isIntegral()) {
-    DEBUGOUT("validateResponse") "Caution: 'id' should be integral if numeric.";
-  }
-  else if (idValue.isNull()) {
-    DEBUGOUT("validateResponse") "Caution: 'id' should not be null.";
-  }
 
   // Print extra members
-  if (extraMembers.size() != 0) {
-    if (m_debug) {
-      std::string extra;
-      for (Json::Value::Members::const_iterator it = extraMembers.begin(),
-           it_end = extraMembers.end(); it != it_end; ++it) {
-        if (it != extraMembers.begin())
-          extra += ", ";
-        extra += *it;
-      }
-      DEBUGOUT("validateResponse") "Warn: Extra top-level members found:"
-          << extra.c_str();
-    }
-
-    if (strict)
-      return false;
-  }
-
+  if (extraMembers.size() != 0 && strict)
+    return false;
 
   return true;
 }
@@ -770,10 +648,8 @@ bool JsonRpc::validateNotification(const PacketType &packet, bool strict)
 
 bool JsonRpc::validateNotification(const Json::Value &packet, bool strict)
 {
-  if (!packet.isObject()) {
-    DEBUGOUT("validateNotification") "Invalid: Root node is not an object!";
+  if (!packet.isObject())
     return false;
-  }
 
   Json::Value::Members members = packet.getMemberNames();
 
@@ -803,57 +679,33 @@ bool JsonRpc::validateNotification(const Json::Value &packet, bool strict)
     }
   }
 
-  if (!found_jsonrpc) {
-    DEBUGOUT("validateNotification") "Warn: 'jsonrpc' not found!";
-    if (strict)
+  if (!found_jsonrpc && strict)
       return false;
-  }
-  if (!found_method) {
-    DEBUGOUT("validateNotification") "Invalid: 'method' not found!";
+
+  if (!found_method)
     return false;
-  }
-// Params are optional.
-//  if (!found_params) {
-//    DEBUGOUT("validateNotification") "Invalid: 'params' not found!";
-//    return false;
-//  }
-  if (found_id) {
-    DEBUGOUT("validateNotification") "Invalid: 'id' found!";
+
+  // Params are optional.
+  //  if (!found_params)
+  //    return false;
+
+  if (found_id)
     return false;
-  }
 
   // Validate objects
   // "method" must be a string
-  if (!packet["method"].isString()) {
-    DEBUGOUT("validateNotification") "Invalid: 'method' is not a string!";
+  if (!packet["method"].isString())
     return false;
-  }
+
   // "params" may be omitted, but must be structured if present
-  if (found_params) {
-    if (!packet["params"].isObject() && !packet["params"].isArray()) {
-      DEBUGOUT("validateNotification") "Invalid: 'params' must be either an array "
-          "or an object!";
-      return false;
-    }
+  if (found_params &&
+      !packet["params"].isObject() && !packet["params"].isArray()) {
+    return false;
   }
 
   // Print extra members
-  if (extraMembers.size() != 0) {
-    if (m_debug) {
-      std::string extra;
-      for (Json::Value::Members::const_iterator it = extraMembers.begin(),
-           it_end = extraMembers.end(); it != it_end; ++it) {
-        if (it != extraMembers.begin())
-          extra += ", ";
-        extra += *it;
-      }
-      DEBUGOUT("validateNotification") "Warn: Extra top-level members found:"
-          << extra.c_str();
-    }
-
-    if (strict)
-      return false;
-  }
+  if (extraMembers.size() != 0 && strict)
+    return false;
 
   return true;
 }
@@ -913,102 +765,10 @@ Json::Value JsonRpc::generateEmptyNotification()
   return ret;
 }
 
-Json::Value JsonRpc::hashToJson(const QVariantHash &hash)
-{
-  Json::Value result(Json::objectValue);
-
-  for (QVariantHash::const_iterator it = hash.constBegin(),
-       it_end = hash.constEnd(); it != it_end; ++it) {
-    Json::Value val;
-    switch (it.value().type()) {
-    case QVariant::Bool:
-      val = it.value().toBool();
-      break;
-    case QVariant::Int:
-      val = it.value().toInt();
-      break;
-    case QVariant::LongLong:
-      val = it.value().toLongLong();
-      break;
-    case QVariant::UInt:
-      val = it.value().toUInt();
-      break;
-    case QVariant::ULongLong:
-      val = it.value().toULongLong();
-      break;
-    case QVariant::Double:
-      val = it.value().toDouble();
-      break;
-    case QVariant::String: {
-      const std::string str = it.value().toString().toStdString();
-      val = str;
-      break;
-    }
-    case QVariant::ByteArray:
-      val = it.value().toByteArray().constData();
-      break;
-    default:
-      continue;
-    } // end switch
-
-    const std::string name = it.key().toStdString();
-    result[name] = val;
-  } // end for
-
-  return result;
-}
-
-QVariantHash JsonRpc::jsonToHash(const Json::Value &object)
-{
-  // Populate options object:
-  QVariantHash result;
-
-  if (!object.isObject())
-    return result;
-
-  result.reserve(object.size());
-
-  // Iterate through options
-  for (Json::Value::const_iterator it = object.begin(),
-       it_end = object.end(); it != it_end; ++it) {
-    const QString name(it.memberName());
-
-    // Extract option data
-    QVariant variant;
-    switch ((*it).type()) {
-    case Json::nullValue:
-      variant = QVariant();
-      break;
-    case Json::intValue:
-      variant = (*it).asLargestInt();
-      break;
-    case Json::uintValue:
-      variant = (*it).asLargestUInt();
-      break;
-    case Json::realValue:
-      variant = (*it).asDouble();
-      break;
-    case Json::stringValue:
-      variant = (*it).asCString();
-      break;
-    case Json::booleanValue:
-      variant = (*it).asBool();
-      break;
-    default:
-      continue;
-    }
-
-    result.insert(name, variant);
-  }
-  return result;
-}
-
 JsonRpc::PacketForm JsonRpc::guessPacketForm(const Json::Value &root) const
 {
-  if (!root.isObject()) {
-    DEBUGOUT("guessPacketType") "Invalid packet: root node is not an Object.";
+  if (!root.isObject())
     return INVALID_PACKET;
-  }
 
   if (root["method"] != Json::nullValue) {
     if (root["id"] != Json::nullValue)
@@ -1021,25 +781,19 @@ JsonRpc::PacketForm JsonRpc::guessPacketForm(const Json::Value &root) const
   else if (root["error"] != Json::nullValue)
     return ERROR_PACKET;
 
-  DEBUGOUT("guessPacketType") "Invalid packet: No recognized keys.";
   return INVALID_PACKET;
 }
 
 JsonRpc::PacketMethod JsonRpc::guessPacketMethod(const Json::Value &root) const
 {
-  if (!root.isObject()) {
-    DEBUGOUT("guessPacketMethod") "Invalid packet: root node is not an Object.";
+  if (!root.isObject())
     return INVALID_METHOD;
-  }
 
   const Json::Value & methodValue = root["method"];
 
   if (methodValue != Json::nullValue) {
-    if (!methodValue.isString()) {
-      DEBUGOUT("guessPacketMethod")
-          "Invalid packet: Contains non-string 'method' member.";
+    if (!methodValue.isString())
       return INVALID_METHOD;
-    }
 
     const char *methodCString = methodValue.asCString();
 
@@ -1054,8 +808,6 @@ JsonRpc::PacketMethod JsonRpc::guessPacketMethod(const Json::Value &root) const
     else if (qstrcmp(methodCString, "jobStateChanged") == 0)
       return JOB_STATE_CHANGED;
 
-    DEBUGOUT("guessPacketMethod") "Invalid packet: Contains unrecognized "
-        "'method' member:" << methodCString;
     return UNRECOGNIZED_METHOD;
   }
 
@@ -1211,7 +963,7 @@ void JsonRpc::handleSubmitJobRequest(Connection *connection,
   }
 
   // Populate options object:
-  QVariantHash optionHash = jsonToHash(paramsObject);
+  QVariantHash optionHash = QtJson::toVariant(paramsObject).toHash();
 
   emit jobSubmissionRequestReceived(connection, replyTo, id, optionHash);
 }
@@ -1238,11 +990,6 @@ void JsonRpc::handleSubmitJobResult(const Json::Value &root) const
         resultObject["moleQueueId"].asLargestUInt());
   workingDirectory = QDir(QString(
                             resultObject["workingDirectory"].asCString()));
-
-  if (!workingDirectory.exists())
-    qWarning() << "Warning: Working directory '"
-               << workingDirectory.absolutePath() << "' for MoleQueue job id"
-               << moleQueueId << "does not exist.";
 
   emit successfulSubmissionReceived(id, moleQueueId, workingDirectory);
 }
@@ -1355,7 +1102,7 @@ void JsonRpc::handleLookupJobResult(const Json::Value &root) const
     return;
   }
 
-  QVariantHash hash = jsonToHash(resultObject);
+  QVariantHash hash = QtJson::toVariant(resultObject).toHash();
 
   emit lookupJobResponseReceived(id, hash);
 }
@@ -1410,15 +1157,11 @@ void JsonRpc::handleJobStateChangedNotification(const Json::Value &root) const
 void JsonRpc::registerRequest(IdType packetId,
                               JsonRpc::PacketMethod method)
 {
-  DEBUGOUT("registerRequest")
-      "New request -- packetId:" << packetId << "method:" << method;
-
   m_pendingRequests[packetId] = method;
 }
 
 void JsonRpc::registerReply(IdType packetId)
 {
-  DEBUGOUT("registerReply") "New reply -- packetId:" << packetId;
   m_pendingRequests.remove(packetId);
 }
 

@@ -16,6 +16,7 @@
 
 #include "queuemanager.h"
 
+#include "logger.h"
 #include "queue.h"
 #include "server.h"
 
@@ -56,10 +57,13 @@ void QueueManager::readSettings(QSettings &settings)
 
     Queue *queue = addQueue(queueName, queueType, this);
 
-    if (queue != NULL)
+    if (queue != NULL) {
       queue->readSettings(settings);
-    else
-      qWarning() << Q_FUNC_INFO << "Unrecognized Queue type:" << queueType;
+    }
+    else {
+      Logger::logWarning(tr("Cannot add queue '%1' with unknown type '%2'.")
+                         .arg(queueName, queueType));
+    }
 
     settings.endGroup(); // queueName
   }

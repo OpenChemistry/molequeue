@@ -16,13 +16,15 @@
 
 #include "sge.h"
 
+#include "logger.h"
+
 #include <QtCore/QDebug>
 
 namespace MoleQueue
 {
 
 QueueSge::QueueSge(QueueManager *parentManager) :
-  QueueRemote("Remote (SGE)", parentManager)
+  QueueRemoteSsh("Remote (SGE)", parentManager)
 {
   m_submissionCommand = "qsub";
   m_killCommand = "qdel";
@@ -116,8 +118,10 @@ bool QueueSge::parseQueueLine(const QString &queueListOutput,
       return true;
     }
     else {
-      qWarning() << Q_FUNC_INFO << "unrecognized queue state:" << stateStr
-                 << "\n" << queueListOutput;
+      Logger::logWarning(tr("Unrecognized queue state '%1' in %2 queue '%3'. "
+                            "Queue line:\n%4")
+                         .arg(stateStr).arg(typeName()).arg(name())
+                         .arg(queueListOutput));
       return false;
     }
   }

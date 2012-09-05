@@ -20,6 +20,7 @@
 #include "job.h"
 #include "jobactionfactory.h"
 #include "jobitemmodel.h"
+#include "jobtableproxymodel.h"
 
 #include <QtGui/QContextMenuEvent>
 #include <QtGui/QDesktopServices>
@@ -41,7 +42,7 @@ JobView::~JobView()
 {
 }
 
-void JobView::contextMenuEvent(QContextMenuEvent *event)
+void JobView::contextMenuEvent(QContextMenuEvent *e)
 {
   // list of action factories. Map to sort by usefulness
   QMap<unsigned int, JobActionFactory*> factoryMap;
@@ -53,19 +54,11 @@ void JobView::contextMenuEvent(QContextMenuEvent *event)
 
   // Get job under cursor
   Job cursorJob =
-      model()->data(indexAt(event->pos()),
+      model()->data(indexAt(e->pos()),
                     JobItemModel::FetchJobRole).value<Job>();
 
   // Get selected jobs
-  QList<int> selectedRows = getSelectedRows();
-  int numSelectedRows = selectedRows.size();
-  QList<Job> jobs;
-  jobs.reserve(numSelectedRows);
-  foreach (int row, selectedRows) {
-    jobs.push_back(
-          model()->data(model()->index(row, 0),
-                        JobItemModel::FetchJobRole).value<Job>());
-  }
+  QList<Job> jobs = selectedJobs();
 
   QMenu *menu = new QMenu(this);
 
@@ -97,18 +90,33 @@ void JobView::contextMenuEvent(QContextMenuEvent *event)
   menu->exec(QCursor::pos());
 }
 
-QList<int> JobView::getSelectedRows()
+QList<Job> JobView::selectedJobs()
 {
-  QItemSelection sel (selectionModel()->selection());
+  QList<Job> result;
 
-  QList<int> rows;
-  foreach (const QModelIndex &ind, sel.indexes()) {
-    if (!rows.contains(ind.row()))
-      rows << ind.row();
+  JobTableProxyModel *proxyModel = qobject_cast<JobTableProxyModel*>(model());
+
+  if (!proxyModel)
+    return result;
+
+  JobItemModel *sourceModel =
+      qobject_cast<JobItemModel*>(proxyModel->sourceModel());
+
+  if (!sourceModel)
+    return result;
+
+  QModelIndexList proxySelection = selectionModel()->selectedRows();
+
+  foreach (const QModelIndex &ind, proxySelection) {
+    Job job = sourceModel->data(proxyModel->mapToSource(ind),
+                                JobItemModel::FetchJobRole).value<Job>();
+
+    if (job.isValid())
+      result << job;
+
   }
 
-  qSort(rows);
-  return rows;
+  return result;
 }
 
 } // End of namespace

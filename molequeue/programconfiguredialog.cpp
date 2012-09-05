@@ -19,6 +19,7 @@
 
 #include "program.h"
 #include "queue.h"
+#include "queues/local.h"
 #include "templatekeyworddialog.h"
 
 #include <QtGui/QFileDialog>
@@ -87,9 +88,12 @@ ProgramConfigureDialog::ProgramConfigureDialog(Program *program,
   connect(ui->text_launchTemplate, SIGNAL(textChanged()),
           this, SLOT(setDirty()));
 
-  launchSyntaxChanged(ui->combo_syntax->currentIndex());
+  connect(ui->buttonBox, SIGNAL(clicked(QAbstractButton*)),
+          this, SLOT(buttonBoxButtonClicked(QAbstractButton*)));
 
   updateGuiFromProgram();
+
+  launchSyntaxChanged(ui->combo_syntax->currentIndex());
 }
 
 ProgramConfigureDialog::~ProgramConfigureDialog()
@@ -193,8 +197,15 @@ void ProgramConfigureDialog::updateLaunchEditor()
     return;
   }
 
-  QString launchText = m_program->queue() ? m_program->queue()->launchTemplate()
-                                          : QString("$$programExecution$$\n");
+  QString launchText;
+  if (!m_program->queue() ||
+      (qobject_cast<QueueLocal*>(m_program->queue()) &&
+       syntax != Program::CUSTOM)) {
+    launchText = "$$programExecution$$\n";
+  }
+  else {
+    launchText = m_program->queue()->launchTemplate();
+  }
 
   const QString executableName = ui->edit_executableName->text();
   const QString executablePath = ui->edit_executablePath->text();
@@ -241,7 +252,19 @@ void ProgramConfigureDialog::launchSyntaxChanged(int enumVal)
 
 void ProgramConfigureDialog::customizeLauncherClicked()
 {
-  m_customLaunchText = ui->text_launchTemplate->document()->toPlainText();
+  Program::LaunchSyntax syntax = static_cast<Program::LaunchSyntax>(
+        ui->combo_syntax->currentIndex());
+
+  if (qobject_cast<QueueLocal*>(m_program->queue()) &&
+      syntax != Program::CUSTOM) {
+    m_customLaunchText = m_program->queue()->launchTemplate();
+    QString execStr = ui->text_launchTemplate->document()->toPlainText();
+    m_customLaunchText.replace("$$programExecution$$", execStr);
+  }
+  else {
+    m_customLaunchText = ui->text_launchTemplate->document()->toPlainText();
+  }
+
   ui->combo_syntax->setCurrentIndex(static_cast<int>(Program::CUSTOM));
 }
 
@@ -293,6 +316,14 @@ void ProgramConfigureDialog::showHelpDialog()
   if (!m_helpDialog)
     m_helpDialog = new TemplateKeywordDialog(this);
   m_helpDialog->show();
+}
+
+void ProgramConfigureDialog::buttonBoxButtonClicked(QAbstractButton *button)
+{
+  // "Ok" and "Cancel" are directly connected to accept() and reject(), so only
+  // check for "apply" here:
+  if (button == ui->buttonBox->button(QDialogButtonBox::Apply))
+    updateProgramFromGui();
 }
 
 } // end namespace MoleQueue

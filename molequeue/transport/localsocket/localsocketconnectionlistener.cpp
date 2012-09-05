@@ -45,15 +45,10 @@ LocalSocketConnectionListener::~LocalSocketConnectionListener()
 void LocalSocketConnectionListener::start()
 {
   if (!m_server->listen(m_connectionString)) {
-    DEBUG("start") "Error starting local socket server. Error type:"
-        << m_server->serverError() << m_server->errorString();
     emit connectionError(toConnectionListenerError(m_server->serverError()),
                m_server->errorString());
     return;
   }
-
-  DEBUG("start") "Local socket server started listening on address:"
-      << m_server->serverName();
 }
 
 void LocalSocketConnectionListener::stop(bool force)
@@ -77,22 +72,14 @@ QString LocalSocketConnectionListener::connectionString() const
 
 void LocalSocketConnectionListener::newConnectionAvailable()
 {
-  if (!m_server->hasPendingConnections()) {
-    DEBUG("newConnectionAvailable") "Aborting -- no pending connections "
-        "available.";
+  if (!m_server->hasPendingConnections())
     return;
-  }
 
   QLocalSocket *socket = m_server->nextPendingConnection();
-
-  /// @todo make connections between the new ServerConnection and the rest of
-  /// the MoleQueue application here.
-  /// The comment was copied over from Server implementation. (cjh)
 
   LocalSocketConnection *conn = new LocalSocketConnection(this, socket);
 
   emit newConnection(conn);
-  DEBUG("newConnectionAvailable") "New connection added:" << conn;
 }
 
 ConnectionListener::Error LocalSocketConnectionListener::toConnectionListenerError(

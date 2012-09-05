@@ -28,6 +28,7 @@ target_link_libraries(testutils molequeue_static)
 set(MyTests
   abstractrpcinterface
   client
+  filespecification
   jobmanager
   jsonrpc
   pbs
@@ -41,7 +42,7 @@ set(MyTests
   )
 
 foreach(test ${MyTests})
-  add_executable(${test}test ${test}test.cpp)
+  add_executable(${test}test MACOSX_BUNDLE ${test}test.cpp)
   set_target_properties(${test}test PROPERTIES AUTOMOC TRUE)
   target_link_libraries(${test}test
     molequeue_static
@@ -70,7 +71,7 @@ target_link_libraries(mqconnectiontest
 
 foreach(test ${mq_connection_tests})
   set(test_SRC ${test}test.cpp)
-  add_executable(${test}test ${test}test.cpp)
+  add_executable(${test}test MACOSX_BUNDLE ${test}test.cpp)
   set_target_properties(${test}test PROPERTIES AUTOMOC TRUE)
   set(mq_client_libs mqlocalsocketclient)
   if(USE_ZERO_MQ)

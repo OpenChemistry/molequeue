@@ -16,6 +16,7 @@
 
 #include <QtTest>
 
+#include "filespecification.h"
 #include "job.h"
 #include "jobrequest.h"
 #include "jobmanager.h"
@@ -109,7 +110,8 @@ void ClientTest::testJobSubmission()
   req.setQueue("Some queue");
   req.setProgram("Some program");
   req.setDescription("Test job");
-  req.setInputAsString("I'm a sample input text!");
+  req.setInputFile(MoleQueue::FileSpecification("file.ext",
+                                                "I'm a sample input text!"));
 
   m_client->submitJobRequest(req);
 

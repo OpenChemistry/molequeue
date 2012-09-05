@@ -26,19 +26,13 @@
 #include <QtGlobal>
 #include "assert.h"
 
-#define DEBUGOUT(title) \
-  if (m_debug)    \
-    qDebug() << QDateTime::currentDateTime().toString() \
-             << "AbstractRpcInterface" << title <<
-
 namespace MoleQueue
 {
 
 AbstractRpcInterface::AbstractRpcInterface(QObject *parentObject) :
   QObject(parentObject),
   m_jsonrpc(new JsonRpc (this)),
-  m_packetCounter(0),
-  m_debug(false)
+  m_packetCounter(0)
 {
   // Randomize the packet counter's starting value.
   qsrand(static_cast<uint>(QDateTime::currentMSecsSinceEpoch()));
@@ -88,8 +82,6 @@ void AbstractRpcInterface::readPacket(const MoleQueue::Message msg)
 
   assert(conn != NULL);
 
-  DEBUGOUT("readPacket") "Interpreting new packet.";
-
   m_jsonrpc->interpretIncomingPacket(conn, msg);
 }
 
@@ -98,7 +90,6 @@ void AbstractRpcInterface::replyToInvalidPacket(MoleQueue::Connection *connectio
                                                 const Json::Value &packetId,
                                                 const Json::Value &errorDataObject)
 {
-  DEBUGOUT("replyToInvalidPacket") "replying to an invalid packet.";
   PacketType packet = m_jsonrpc->generateErrorResponse(
         -32700, "Parse error", errorDataObject, packetId);
 
@@ -112,7 +103,6 @@ void AbstractRpcInterface::replyToInvalidRequest(MoleQueue::Connection *connecti
                                                  const Json::Value &packetId,
                                                  const Json::Value &errorDataObject)
 {
-  DEBUGOUT("replyToInvalidRequest") "replying to an invalid request.";
   PacketType packet = m_jsonrpc->generateErrorResponse(
         -32600, "Invalid request", errorDataObject, packetId);
 
@@ -126,7 +116,6 @@ void AbstractRpcInterface::replyToUnrecognizedRequest(MoleQueue::Connection *con
                                                       const Json::Value &packetId,
                                                       const Json::Value &errorDataObject)
 {
-  DEBUGOUT("replyToUnrecognizedRequest") "replying to an unrecognized method.";
   PacketType packet = m_jsonrpc->generateErrorResponse(
         -32601, "Method not found", errorDataObject, packetId);
 
@@ -140,7 +129,6 @@ void AbstractRpcInterface::replyToinvalidRequestParams(MoleQueue::Connection *co
                                                        const Json::Value &packetId,
                                                        const Json::Value &errorDataObject)
 {
-  DEBUGOUT("replyToInvalidRequestParam") "replying to an ill-formed request.";
   PacketType packet = m_jsonrpc->generateErrorResponse(
         -32602, "Invalid params", errorDataObject, packetId);
 
@@ -154,7 +142,6 @@ void AbstractRpcInterface::replyWithInternalError(MoleQueue::Connection *connect
                                                   const Json::Value &packetId,
                                                   const Json::Value &errorDataObject)
 {
-  DEBUGOUT("replyWithInternalError") "Notifying peer of internal error.";
   PacketType packet = m_jsonrpc->generateErrorResponse(
         -32603, "Internal error", errorDataObject, packetId);
 

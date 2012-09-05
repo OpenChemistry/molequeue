@@ -19,6 +19,7 @@
 
 #include "molequeue/jobreferencebase.h"
 
+#include "filespecification.h"
 #include "molequeueglobal.h"
 
 #include <QtCore/QMetaType>
@@ -110,19 +111,25 @@ public:
   /// @return newDesc Description of job
   QString description() const;
 
-  /// @param path Path to input file.
-  void setInputAsPath(const QString &path);
+  /// @param filespec FileSpecification describing the main input file (called
+  /// by the executable)
+  void setInputFile(const FileSpecification &spec);
 
-  /// @return Path to input file.
-  QString inputAsPath() const;
+  /// @return FileSpecification describing the main input file (called by the
+  /// executable)
+  FileSpecification inputFile() const;
 
-  /// @param input String containing input file contents. Ignored if inputAsPath
-  /// is set.
-  void setInputAsString(const QString &input);
+  /// @param files FileSpecification objects describing additional input files
+  /// to be placed in the working directory of the job prior to execution.
+  void setAdditionalInputFiles(const QList<FileSpecification> & files);
 
-  /// @return String containing input file contents. Ignored if inputAsPath
-  /// is set.
-  QString inputAsString() const;
+  /// @return FileSpecification objects describing additional input files to be
+  /// placed in the working directory of the job prior to execution.
+  QList<FileSpecification> additionalInputFiles() const;
+
+  /// @a param spec FileSpecification describing an input file to append to the
+  /// additional input file list.
+  void addInputFile(const FileSpecification &spec);
 
   /**
    * Set the output directory for the job.
@@ -217,6 +224,25 @@ public:
 
   /// @return Queue Job ID
   IdType queueId() const;
+
+  /// @param keyrep The keyword replacement hash for this job.
+  void setKeywords(const QHash<QString, QString> &keyrep);
+
+  /// @return The keyword replacement hash for this job.
+  QHash<QString, QString> keywords() const;
+
+  /// Add a keyword / replacement pair for this job.
+  void setKeywordReplacement(const QString &keyword,
+                             const QString &replacement);
+
+  /// @return True if the @a keyword has a replacement.
+  bool hasKeywordReplacement(const QString &keyword) const;
+
+  /// @return The replacement string for the @a keyword.
+  QString lookupKeywordReplacement(const QString &keyword) const;
+
+  /// Apply the replacements in the keywords() hash to the @a script.
+  void replaceLaunchScriptKeywords(QString &launchScript) const;
 };
 
 } // end namespace MoleQueue

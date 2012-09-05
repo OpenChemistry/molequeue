@@ -41,8 +41,8 @@ JobData::JobData(const MoleQueue::JobData &other)
     m_program(other.m_program),
     m_jobState(other.m_jobState),
     m_description(other.m_description),
-    m_inputAsPath(other.m_inputAsPath),
-    m_inputAsString(other.m_inputAsString),
+    m_inputFile(other.m_inputFile),
+    m_additionalInputFiles(other.m_additionalInputFiles),
     m_outputDirectory(other.m_outputDirectory),
     m_localWorkingDirectory(other.m_localWorkingDirectory),
     m_cleanRemoteFiles(other.m_cleanRemoteFiles),
@@ -65,8 +65,14 @@ QVariantHash JobData::hash() const
   state.insert("program", m_program);
   state.insert("jobState", m_jobState);
   state.insert("description", m_description);
-  state.insert("inputAsPath", m_inputAsPath);
-  state.insert("inputAsString", m_inputAsString);
+  state.insert("inputFile", m_inputFile.asVariantHash());
+  if (!m_additionalInputFiles.isEmpty()) {
+    QList<QVariant> additionalFiles;
+    foreach (const FileSpecification &spec, m_additionalInputFiles) {
+      additionalFiles.append(spec.asVariantHash());
+    }
+    state.insert("additionalInputFiles", additionalFiles);
+  }
   state.insert("outputDirectory", m_outputDirectory);
   state.insert("localWorkingDirectory", m_localWorkingDirectory);
   state.insert("cleanRemoteFiles", m_cleanRemoteFiles);
@@ -78,6 +84,13 @@ QVariantHash JobData::hash() const
   state.insert("maxWallTime", m_maxWallTime);
   state.insert("moleQueueId", m_moleQueueId);
   state.insert("queueId", m_queueId);
+  if (!m_keywords.isEmpty()) {
+    // QVariant can only hold hashs of QVariantHash type.
+    QVariantHash keywordVariantHash;
+    foreach (const QString &key, m_keywords.keys())
+      keywordVariantHash.insert(key, m_keywords.value(key));
+    state.insert("keywords", keywordVariantHash);
+  }
 
   return state;
 }
@@ -92,10 +105,15 @@ void JobData::setFromHash(const QVariantHash &state)
     m_description = state.value("description").toString();
   if (state.contains("jobState"))
     m_jobState = static_cast<JobState>(state.value("jobState").toInt());
-  if (state.contains("inputAsPath"))
-    m_inputAsPath = state.value("inputAsPath").toString();
-  if (state.contains("inputAsString"))
-    m_inputAsString = state.value("inputAsString").toString();
+  if (state.contains("inputFile"))
+    m_inputFile = FileSpecification(state.value("inputFile").toHash());
+  m_additionalInputFiles.clear();
+  if (state.contains("additionalInputFiles")) {
+    foreach(const QVariant &variantHash,
+            state.value("additionalInputFiles").toList()) {
+      m_additionalInputFiles.append(FileSpecification(variantHash.toHash()));
+    }
+  }
   if (state.contains("outputDirectory"))
     m_outputDirectory = state.value("outputDirectory").toString();
   if (state.contains("localWorkingDirectory"))
@@ -120,6 +138,12 @@ void JobData::setFromHash(const QVariantHash &state)
     m_moleQueueId = static_cast<IdType>(state.value("moleQueueId").toUInt());
   if (state.contains("queueId"))
     m_queueId = static_cast<IdType>(state.value("queueId").toUInt());
+  if (state.contains("keywords")) {
+    m_keywords.clear();
+    QVariantHash keywordVariantHash = state.value("keywords").toHash();
+    foreach (const QString &key, keywordVariantHash.keys())
+      m_keywords.insert(key, keywordVariantHash.value(key).toString());
+  }
 }
 
 } // end namespace MoleQueue

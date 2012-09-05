@@ -165,6 +165,17 @@ void QueueTest::testReplaceLaunchScriptKeywords()
   script = "Ain't no newline!";
   queue.replaceLaunchScriptKeywords(script, job);
   QCOMPARE(script, QString("Ain't no newline!\n"));
+
+  // Job specific keywords:
+  job.setKeywordReplacement("Failure", "Success");
+  script = "$$Failure$$\n";
+  queue.replaceLaunchScriptKeywords(script, job);
+  QCOMPARE(script, QString("Success\n"));
+
+  // Unhandled keywords:
+  script = "$$aTerriblyLongKeywordThatYouWontRememberAnddWilLieklyMissspel$$\n";
+  queue.replaceLaunchScriptKeywords(script, job);
+  QCOMPARE(script, QString("\n"));
 }
 
 QTEST_MAIN(QueueTest)
