@@ -42,7 +42,7 @@ JobView::~JobView()
 {
 }
 
-void JobView::contextMenuEvent(QContextMenuEvent *)
+void JobView::contextMenuEvent(QContextMenuEvent *e)
 {
   // list of action factories. Map to sort by usefulness
   QMap<unsigned int, JobActionFactory*> factoryMap;
@@ -51,6 +51,11 @@ void JobView::contextMenuEvent(QContextMenuEvent *)
            manager->getFactories(JobActionFactory::ContextItem)) {
     factoryMap.insertMulti(factory->usefulness(), factory);
   }
+
+  // Get job under cursor
+  Job cursorJob =
+      model()->data(indexAt(e->pos()),
+                    JobItemModel::FetchJobRole).value<Job>();
 
   // Get selected jobs
   QList<Job> jobs = selectedJobs();
@@ -62,18 +67,22 @@ void JobView::contextMenuEvent(QContextMenuEvent *)
 
   foreach (JobActionFactory *factory, factories) {
     factory->clearJobs();
-    if ((jobs.size() > 1 && factory->isMultiJob()) ||
-        jobs.size() == 1) {
+    // Add all selected jobs if the factory is multijob. Otherwise just the one
+    // under the cursor.
+    if (factory->isMultiJob()) {
       foreach (const Job &job, jobs)
         factory->addJobIfValid(job);
+    }
+    else {
+      factory->addJobIfValid(cursorJob);
+    }
 
-      if (factory->hasValidActions()) {
-        if (menu->actions().size())
-          menu->addSeparator();
-        foreach (QAction *action, factory->createActions()) {
-          menu->addAction(action);
-          action->setParent(menu);
-        }
+    if (factory->hasValidActions()) {
+      if (menu->actions().size())
+        menu->addSeparator();
+      foreach (QAction *action, factory->createActions()) {
+        menu->addAction(action);
+        action->setParent(menu);
       }
     }
   }

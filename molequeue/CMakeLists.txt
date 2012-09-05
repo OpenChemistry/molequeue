@@ -36,6 +36,7 @@ set(mq_srcs
   jobactionfactories/openwithactionfactory.cpp
   jobactionfactories/programmableopenwithactionfactory.cpp
   jobactionfactories/removejobactionfactory.cpp
+  jobactionfactories/viewjoblogactionfactory.cpp
   jobdata.cpp
   jobitemmodel.cpp
   jobmanager.cpp

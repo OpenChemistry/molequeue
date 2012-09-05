@@ -36,8 +36,8 @@
 
 namespace MoleQueue {
 
-LogWindow::LogWindow(QWidget *theParent) :
-  QMainWindow(theParent),
+LogWindow::LogWindow(QWidget *theParent, IdType moleQueueId) :
+  QDialog(theParent),
   ui(new Ui::LogWindow),
   m_log(NULL),
   m_maxEntries(NULL),
@@ -48,15 +48,19 @@ LogWindow::LogWindow(QWidget *theParent) :
   m_warningFormat(new QTextCharFormat()),
   m_errorFormat(new QTextCharFormat()),
   m_moleQueueIdFormat(new QTextCharFormat()),
-  m_messageFormat(new QTextCharFormat())
+  m_messageFormat(new QTextCharFormat()),
+  m_moleQueueId(moleQueueId)
 {
   createUi();
 
   // Restore geometry
   QSettings settings;
-  settings.beginGroup("logWindow");
+  // Store in different location for filtered logs.
+  if (m_moleQueueId == InvalidId)
+    settings.beginGroup("logWindow");
+  else
+    settings.beginGroup("logWindow/filtered");
   restoreGeometry(settings.value("geometry").toByteArray());
-  restoreState(settings.value("windowState").toByteArray());
   settings.endGroup();
 
   setupFormats();
@@ -71,9 +75,12 @@ LogWindow::~LogWindow()
 {
   // Store geometry
   QSettings settings;
-  settings.beginGroup("logWindow");
+  // Store in different location for filtered logs.
+  if (m_moleQueueId == InvalidId)
+    settings.beginGroup("logWindow");
+  else
+    settings.beginGroup("logWindow/filtered");
   settings.setValue("geometry", saveGeometry());
-  settings.setValue("windowState", saveState());
   settings.endGroup();
 
   delete ui;
@@ -92,7 +99,7 @@ void LogWindow::changeEvent(QEvent *e)
   if (e->type() == QEvent::ActivationChange && isActiveWindow())
     Logger::resetNewErrorCount();
 
-  QMainWindow::changeEvent(e);
+  QDialog::changeEvent(e);
 }
 
 void LogWindow::closeEvent(QCloseEvent *e)
@@ -100,7 +107,8 @@ void LogWindow::closeEvent(QCloseEvent *e)
   Logger::silenceNewErrors(false);
   Logger::resetNewErrorCount();
 
-  QMainWindow::closeEvent(e);
+  emit aboutToClose();
+  QDialog::closeEvent(e);
 }
 
 void LogWindow::hideEvent(QHideEvent *e)
@@ -108,7 +116,7 @@ void LogWindow::hideEvent(QHideEvent *e)
   Logger::silenceNewErrors(false);
   Logger::resetNewErrorCount();
 
-  QMainWindow::hideEvent(e);
+  QDialog::hideEvent(e);
 }
 
 void LogWindow::showEvent(QShowEvent *e)
@@ -116,11 +124,14 @@ void LogWindow::showEvent(QShowEvent *e)
   Logger::silenceNewErrors(true);
   Logger::resetNewErrorCount();
 
-  QMainWindow::showEvent(e);
+  QDialog::showEvent(e);
 }
 
 void LogWindow::addLogEntry(const LogEntry &entry)
 {
+  if (m_moleQueueId != InvalidId && m_moleQueueId != entry.moleQueueId())
+    return;
+
   QString entryType;
   QTextCharFormat *entryFormat;
   switch (entry.entryType()) {
@@ -184,13 +195,18 @@ void LogWindow::createUi()
 {
   ui->setupUi(this);
 
-  QWidget *widget = new QWidget (this);
-  setCentralWidget(widget);
-  QVBoxLayout *mainLayout = new QVBoxLayout (widget);
+  QVBoxLayout *mainLayout = new QVBoxLayout (this);
+  setLayout(mainLayout);
 
   m_log = new QTextEdit(this);
   m_log->setReadOnly(true);
   mainLayout->addWidget(m_log);
+
+  // Skip the settings widgets if the molequeueid is set. Update window title
+  if (m_moleQueueId != InvalidId) {
+    setWindowTitle(tr("History for Job %1").arg(m_moleQueueId));
+    return;
+  }
 
   QHBoxLayout *logSettingsLayout = new QHBoxLayout ();
 
@@ -249,6 +265,7 @@ void LogWindow::setupFormats()
 void LogWindow::initializeLogText()
 {
   m_log->clear();
+
   foreach (const LogEntry &entry, Logger::log())
     addLogEntry(entry);
 
