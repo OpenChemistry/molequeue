@@ -231,14 +231,19 @@ void ConnectionTest::testSuccessfulJobCancellation()
 
 void ConnectionTest::testJobStateChangeNotification()
 {
-  QString qn = "fifo";
+  QString queueName = "fifo";
+  QString programName = "program.exe";
   // Setup a queue
   MoleQueue::QueueManager* qmanager = m_server->queueManager();
-  qmanager->addQueue("fifo", QString("Local"), TRUE);
+  MoleQueue::Queue *queue = qmanager->addQueue(queueName, QString("Local"));
+  MoleQueue::Program *program = new MoleQueue::Program(queue);
+  program->setName(programName);
+  queue->addProgram(program);
 
   MoleQueue::Job req = m_client->newJobRequest();
   req.setLocalWorkingDirectory("/tmp/some/path");
-  req.setQueue(qn);
+  req.setQueue(queueName);
+  req.setProgram(programName);
 
   QSignalSpy jobSubmittedSpy(m_client,
                              SIGNAL(jobSubmitted(const MoleQueue::JobRequest&,
