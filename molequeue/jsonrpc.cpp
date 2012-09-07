@@ -41,7 +41,7 @@ JsonRpc::JsonRpc(QObject *parentObject)
   qRegisterMetaType<IdType>("MoleQueue::IdType");
   qRegisterMetaType<JobState>("MoleQueue::JobState");
   qRegisterMetaType<QueueListType>("MoleQueue::QueueListType");
-  qRegisterMetaType<JobSubmissionErrorCode>("MoleQueue::JobSubmissionErrorCode");
+  qRegisterMetaType<ErrorCode>("MoleQueue::ErrorCode");
 }
 
 JsonRpc::~JsonRpc()
@@ -1007,7 +1007,7 @@ void JsonRpc::handleSubmitJobError(const Json::Value &root) const
     return;
   }
 
-  const JobSubmissionErrorCode errorCode = static_cast<JobSubmissionErrorCode>(
+  const ErrorCode errorCode = static_cast<ErrorCode>(
         root["error"]["code"].asLargestInt());
 
   const QString errorMessage (root["error"]["message"].asCString());

@@ -202,7 +202,7 @@ public slots:
   void sendFailedSubmissionResponse(MoleQueue::Connection *connection,
                                     MoleQueue::EndpointId replyTo,
                                     const MoleQueue::Job &req,
-                                    MoleQueue::JobSubmissionErrorCode ec,
+                                    MoleQueue::ErrorCode ec,
                                     const QString &errorMessage);
 
   /**

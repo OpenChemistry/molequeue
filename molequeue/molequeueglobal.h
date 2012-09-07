@@ -139,9 +139,9 @@ inline JobState stringToJobState(const char *str)
 }
 
 /**
-  * Enumeration defining possible job submission error codes.
+  * Enumeration defining possible error codes.
   */
-enum JobSubmissionErrorCode {
+enum ErrorCode {
   /// No error occurred.
   Success = 0,
   /// Requested queue does not exist.
@@ -166,6 +166,6 @@ Q_DECLARE_METATYPE(MoleQueue::IdType)
 Q_DECLARE_METATYPE(MoleQueue::PacketType)
 Q_DECLARE_METATYPE(MoleQueue::QueueListType)
 Q_DECLARE_METATYPE(MoleQueue::JobState)
-Q_DECLARE_METATYPE(MoleQueue::JobSubmissionErrorCode)
+Q_DECLARE_METATYPE(MoleQueue::ErrorCode)
 
 #endif // MOLEQUEUEGLOBAL_H

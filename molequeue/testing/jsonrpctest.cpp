@@ -712,7 +712,7 @@ void JsonRpcTest::interpretIncomingPacket_submitJobError()
 {
   QSignalSpy spy (&m_rpc, SIGNAL(
                     failedSubmissionReceived(MoleQueue::IdType,
-                                             MoleQueue::JobSubmissionErrorCode,
+                                             MoleQueue::ErrorCode,
                                              QString)));
   // Create the error response first
   m_packet = m_rpc.generateErrorResponse(None, "Not a real error!",

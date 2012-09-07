@@ -51,10 +51,10 @@ Client::Client(QObject *parentObject) :
                                                   QDir)));
   connect(m_jsonrpc,
           SIGNAL(failedSubmissionReceived(MoleQueue::IdType,
-                                          MoleQueue::JobSubmissionErrorCode,
+                                          MoleQueue::ErrorCode,
                                           QString)),
           this, SLOT(failedSubmissionReceived(MoleQueue::IdType,
-                                              MoleQueue::JobSubmissionErrorCode,
+                                              MoleQueue::ErrorCode,
                                               QString)));
   connect(m_jsonrpc,
           SIGNAL(jobCancellationConfirmationReceived(MoleQueue::IdType,
@@ -148,7 +148,7 @@ void Client::successfulSubmissionReceived(IdType packetId,
 }
 
 void Client::failedSubmissionReceived(IdType packetId,
-                                      JobSubmissionErrorCode,
+                                      ErrorCode,
                                       const QString &errorMessage)
 {
   if (!m_submittedLUT->contains(packetId)) {
