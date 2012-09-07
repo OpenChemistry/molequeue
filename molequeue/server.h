@@ -215,6 +215,18 @@ public slots:
                                           IdType moleQueueId);
 
   /**
+   * Sends a reply to the client informing them that the job cancellation was
+   * unsuccessful.
+   * @param moleQueueId The id of the job being cancelled
+   * @param
+   */
+  void sendFailedCancellationResponse(MoleQueue::Connection *connection,
+                                      MoleQueue::EndpointId replyTo,
+                                      IdType moleQueueId,
+                                      MoleQueue::ErrorCode error,
+                                      const QString &message);
+
+  /**
    * Sends a requested job details to the client.
    * @param packetId The id of the request packet
    * @param req The Job

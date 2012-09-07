@@ -229,6 +229,18 @@ protected slots:
                                            MoleQueue::IdType moleQueueId);
 
   /**
+   * Called when the JsonRpc instance handles a job cancellation response.
+   *
+   * @param moleQueueId Unique MoleQueue identifier for the job.
+    * @param errorCode Error code.
+    * @param message String describing error.
+   */
+  void jobCancellationErrorReceived(
+      MoleQueue::IdType, MoleQueue::IdType moleQueueId,
+      MoleQueue::ErrorCode errorCode,
+      const QString &message);
+
+  /**
    * Called when the JsonRpc instance handles a successful lookupJob response.
    *
    * @param hash Hash representing the requested Job's internal state.

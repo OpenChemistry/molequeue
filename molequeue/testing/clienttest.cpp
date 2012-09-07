@@ -59,6 +59,7 @@ private slots:
   void testSuccessfulSubmissionReceived();
   void testFailedSubmissionReceived();
   void testJobCancellationConfirmationReceived();
+  void testJobCancellationErrorReceived();
   void testLookupJobResponseReceived();
   void testLookupJobErrorReceived();
   void testJobStateChangeReceived();
@@ -290,6 +291,44 @@ void ClientTest::testFailedSubmissionReceived()
 }
 
 void ClientTest::testJobCancellationConfirmationReceived()
+{
+  // First send a cancelJob request, then parse out the id for the response.
+  MoleQueue::JobRequest req = m_client->newJobRequest();
+  m_client->submitJobRequest(req);
+
+  QVERIFY2(m_server->waitForPacket(), "Timeout waiting for reply.");
+  m_packet.clear();
+
+  m_client->cancelJob(req);
+
+  QVERIFY2(m_server->waitForPacket(), "Timeout waiting for reply.");
+
+  QRegExp capture ("\\n\\s+\"id\"\\s+:\\s+(\\d+)\\s*,\\s*\\n");
+  int pos = capture.indexIn(m_packet);
+  QVERIFY2(pos >= 0, "id not found in job cancellation request!");
+  MoleQueue::IdType id = static_cast<MoleQueue::IdType>(capture.cap(1).toULong());
+
+  QSignalSpy spy (m_client, SIGNAL(jobCanceled(MoleQueue::JobRequest,
+                                               bool, QString)));
+
+  MoleQueue::PacketType response =
+      readReferenceString("client-ref/job-canceled.json");
+
+  response.replace("%id%", MoleQueue::PacketType::number(id));
+
+  m_server->sendPacket(response);
+
+  qApp->processEvents(QEventLoop::AllEvents, 1000);
+  QCOMPARE(spy.count(), 1);
+  QCOMPARE(spy.first().size(), 3);
+
+  const bool success = spy.first()[1].toBool();
+  const QString err = spy.first()[2].toString();
+  QVERIFY(success);
+  QVERIFY(err.isEmpty());
+}
+
+void ClientTest::testJobCancellationErrorReceived()
 {
   // First send a cancelJob request, then parse out the id for the response.
   MoleQueue::JobRequest req = m_client->newJobRequest();

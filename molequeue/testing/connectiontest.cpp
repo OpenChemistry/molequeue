@@ -182,7 +182,7 @@ void ConnectionTest::testSuccessfulJobCancellation()
   QString qn = "fifo";
   // Setup a queue
   MoleQueue::QueueManager* qmanager = m_server->queueManager();
-  qmanager->addQueue("fifo", QString("sge"), true);
+  qmanager->addQueue("fifo", QString("Sun Grid Engine"), true);
 
   m_client->connectToServer(m_connectionName);
 
@@ -208,25 +208,122 @@ void ConnectionTest::testSuccessfulJobCancellation()
 
   QCOMPARE(jobSubmittedSpy.count(), 1);
 
-  QSignalSpy jobCancelledSpy (m_client,
+  QSignalSpy jobCanceledSpy (m_client,
                               SIGNAL(jobCanceled(const MoleQueue::JobRequest&,
                                                  bool, const QString&)));
 
+  MoleQueue::Job serverSideReq = m_server->jobManager()->lookupJobByMoleQueueId(
+        req.moleQueueId());
+  serverSideReq.setJobState(MoleQueue::RunningRemote);
   m_client->cancelJob(req);
 
   timer.start(10000);
-  while (timer.isActive() && jobCancelledSpy.isEmpty()) {
+  while (timer.isActive() && jobCanceledSpy.isEmpty()) {
     qApp->processEvents(QEventLoop::AllEvents, 500);
   }
 
-  QCOMPARE(jobCancelledSpy.count(), 1);
+  QCOMPARE(jobCanceledSpy.count(), 1);
 
-  bool success = jobCancelledSpy.first().at(1).value<bool>();
-  QString errorString  = jobCancelledSpy.first().at(2).value<QString>();
+  bool success = jobCanceledSpy.first().at(1).value<bool>();
+  QString errorString  = jobCanceledSpy.first().at(2).value<QString>();
 
   QCOMPARE(success, true);
   QCOMPARE(errorString, QString());
 
+}
+
+void ConnectionTest::testUnsuccessfulJobCancellation()
+{
+  QString qn = "fifo";
+  // Setup a queue
+  MoleQueue::QueueManager* qmanager = m_server->queueManager();
+  qmanager->addQueue("fifo", QString("Sun Grid Engine"), true);
+
+  m_client->connectToServer(m_connectionName);
+
+  MoleQueue::Job req = m_client->newJobRequest();
+  req.setLocalWorkingDirectory("/tmp/some/path");
+  req.setMoleQueueId(1);
+  req.setQueueId(1439932);
+  req.setQueue(qn);
+  m_client->m_jobManager->setJobQueueId(req.moleQueueId(), req.queueId());
+
+  QSignalSpy jobSubmittedSpy (m_client,
+                              SIGNAL(jobSubmitted(const MoleQueue::JobRequest&,
+                                                  bool, const QString&)));
+
+  m_client->submitJobRequest(req);
+
+  QTimer timer;
+  timer.setSingleShot(true);
+  timer.start(10000);
+  while (timer.isActive() && jobSubmittedSpy.isEmpty()) {
+    qApp->processEvents(QEventLoop::AllEvents, 500);
+  }
+
+  QCOMPARE(jobSubmittedSpy.count(), 1);
+
+  QSignalSpy jobCanceledSpy (m_client,
+                             SIGNAL(jobCanceled(const MoleQueue::JobRequest&,
+                                                bool, const QString&)));
+
+  MoleQueue::Job badMQID = m_client->newJobRequest();
+  badMQID.setMoleQueueId(6543);
+  m_client->cancelJob(badMQID);
+
+  timer.start(10000);
+  while (timer.isActive() && jobCanceledSpy.isEmpty()) {
+    qApp->processEvents(QEventLoop::AllEvents, 500);
+  }
+
+  QCOMPARE(jobCanceledSpy.count(), 1);
+
+  bool success = jobCanceledSpy.first().at(1).value<bool>();
+  QString errorString = jobCanceledSpy.first().at(2).value<QString>();
+
+  QCOMPARE(success, false);
+  QCOMPARE(errorString, QString("Unrecognized molequeue id: 6543"));
+
+  // Test bad state
+  jobCanceledSpy.clear();
+  MoleQueue::Job serverSideReq = m_server->jobManager()->lookupJobByMoleQueueId(
+        req.moleQueueId());
+  serverSideReq.setJobState(MoleQueue::Error);
+  m_client->cancelJob(req);
+
+  timer.start(10000);
+  while (timer.isActive() && jobCanceledSpy.isEmpty()) {
+    qApp->processEvents(QEventLoop::AllEvents, 500);
+  }
+
+  QCOMPARE(jobCanceledSpy.count(), 1);
+
+  success = jobCanceledSpy.first().at(1).value<bool>();
+  errorString = jobCanceledSpy.first().at(2).value<QString>();
+
+  QCOMPARE(success, false);
+  QCOMPARE(errorString,
+           QString("Cannot kill non-running job 1 (job state: Error)"));
+
+  // Test bad queue
+  jobCanceledSpy.clear();
+  serverSideReq.setQueue("NotAQueue");
+  serverSideReq.setJobState(MoleQueue::RunningRemote);
+  m_client->cancelJob(req);
+
+  timer.start(10000);
+  while (timer.isActive() && jobCanceledSpy.isEmpty()) {
+    qApp->processEvents(QEventLoop::AllEvents, 500);
+  }
+
+  QCOMPARE(jobCanceledSpy.count(), 1);
+
+  success = jobCanceledSpy.first().at(1).value<bool>();
+  errorString = jobCanceledSpy.first().at(2).value<QString>();
+
+  QCOMPARE(success, false);
+  QCOMPARE(errorString,
+           QString("Cannot kill job 1. Unknown queue (NotAQueue)"));
 }
 
 void ConnectionTest::testJobStateChangeNotification()

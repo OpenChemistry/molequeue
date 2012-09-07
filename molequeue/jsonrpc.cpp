@@ -191,6 +191,23 @@ PacketType JsonRpc::generateJobCancellationConfirmation(IdType moleQueueId,
   return ret;
 }
 
+PacketType JsonRpc::generateJobCancellationError(
+    ErrorCode errorCode, const QString &message,
+    IdType moleQueueId, IdType packetId)
+{
+  Json::Value packet = generateEmptyError(packetId);
+
+  packet["error"]["code"]    = errorCode;
+  packet["error"]["message"] = message.toStdString();
+  packet["error"]["data"]    = moleQueueId;
+
+  Json::StyledWriter writer;
+  std::string ret_stdstr = writer.write(packet);
+  PacketType ret (ret_stdstr.c_str());
+
+  return ret;
+}
+
 PacketType JsonRpc::generateLookupJobRequest(IdType moleQueueId,
                                              IdType packetId)
 {
@@ -1061,8 +1078,26 @@ void JsonRpc::handleCancelJobResult(const Json::Value &root) const
 
 void JsonRpc::handleCancelJobError(const Json::Value &root) const
 {
-  Q_UNUSED(root);
-  qWarning() << Q_FUNC_INFO << "is not implemented.";
+  const IdType id = static_cast<IdType>(root["id"].asLargestUInt());
+
+  if (!root["error"]["code"].isIntegral() ||
+      !root["error"]["data"].isIntegral() ||
+      !root["error"]["message"].isString()) {
+    Json::StyledWriter writer;
+    const std::string responseString = writer.write(root);
+    qWarning() << "Job lookup failure response is ill-formed:\n"
+               << responseString.c_str();
+    return;
+  }
+
+  const ErrorCode errorCode =
+      static_cast<ErrorCode>(
+        root["error"]["code"].asLargestUInt());
+  const QString message(root["error"]["message"].asCString());
+  const IdType moleQueueId =
+      static_cast<IdType>(root["error"]["data"].asLargestUInt());
+
+  emit jobCancellationErrorReceived(id, moleQueueId, errorCode, message);
 }
 
 void JsonRpc::handleLookupJobRequest(Connection *connection,
