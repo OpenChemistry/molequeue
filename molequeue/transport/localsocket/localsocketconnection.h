@@ -124,44 +124,11 @@ private:
    */
   void setSocket(QLocalSocket *socket);
 
-  /**
-   * Read the data header containing the packet size and protocol version from
-   * the socket.
-   *
-   * @return The size of incoming packet in bytes.
-   */
-  quint32 readPacketHeader();
-
-  /**
-   * @return Whether or not the socket header is complete and ready to read.
-   */
-  bool canReadPacketHeader();
-
-  /**
-   * Write a data header containing the packet size and protocol version to the
-   * socket.
-   *
-   * @param packet The packet
-   */
-  void writePacketHeader(const PacketType &packet);
-
   /// The address the socket is connected to.
   QString m_connectionString;
 
   /// The underlying local socket
   QLocalSocket *m_socket;
-
-  /// Current version of the packet header
-  quint32 m_headerVersion;
-
-  /// Size of the packet header
-  const quint32 m_headerSize;
-
-  /// The size of the currently read packet
-  quint32 m_currentPacketSize;
-
-  /// The packet currently being read
-  PacketType m_currentPacket;
 
   /// The data stream used to interface with the local socket
   QDataStream *m_dataStream;

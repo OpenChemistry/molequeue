@@ -32,10 +32,6 @@ LocalSocketConnection::LocalSocketConnection(QObject *parentObject,
   : Connection(parentObject),
     m_connectionString(socket->serverName()),
     m_socket(NULL),
-    m_headerVersion(1),
-    m_headerSize(sizeof(quint32) + sizeof(quint32)),
-    m_currentPacketSize(0),
-    m_currentPacket(),
     m_dataStream(new QDataStream ()),
     m_holdRequests(true)
 {
@@ -47,10 +43,6 @@ LocalSocketConnection::LocalSocketConnection(QObject *parentObject,
   : Connection(parentObject),
     m_connectionString(serverName),
     m_socket(NULL),
-    m_headerVersion(1),
-    m_headerSize(sizeof(quint32) + sizeof(quint32)),
-    m_currentPacketSize(0),
-    m_currentPacket(),
     m_dataStream(new QDataStream ()),
     m_holdRequests(true)
 {
@@ -100,76 +92,22 @@ void LocalSocketConnection::readSocket()
     return;
   }
 
-  // Check if the data is a new packet or if we're in the middle of reading one.
-  if (m_currentPacketSize == 0) {
+  PacketType packet;
+  (*m_dataStream) >> packet;
 
-    // Read header info (e.g. packet size) if enough data is available.
-    // Otherwise, wait for more data.
-    if (canReadPacketHeader())
-      m_currentPacketSize = readPacketHeader();
-    else
-      return;
-  }
+  const Message msg(packet);
 
-  PacketType block;
-  (*m_dataStream) >> block;
+  emit newMessage(msg);
 
-  // Add this block to the packet which is in progress
-  m_currentPacket.append(block);
-
-  // Are we done?
-  if (static_cast<qint64>(m_currentPacket.size()) == m_currentPacketSize) {
-    Message msg(m_currentPacket);
-    emit newMessage(msg);
-    m_currentPacket.clear();
-    m_currentPacketSize = 0;
-
-    // if there are more bytes available call again
-    if(m_socket->bytesAvailable())
-      readSocket();
-
-  }
-}
-
-void LocalSocketConnection::writePacketHeader(const PacketType &packet)
-{
-  // First write a version identifier
-  (*m_dataStream) << m_headerVersion;
-
-  // Next is the packet size as 32-bit unsigned integer
-  (*m_dataStream) << static_cast<quint32>(packet.size());
+  // if there are more bytes available call again
+  if(m_socket->bytesAvailable())
+    readSocket();
 }
 
 void LocalSocketConnection::send(const Message &msg)
 {
-  writePacketHeader(msg.data());
-  m_dataStream->writeBytes(msg.data().constData(),
-                           static_cast<unsigned int>(msg.data().size()));
+  (*m_dataStream) << msg.data();
   m_socket->flush();
-}
-
-bool LocalSocketConnection::canReadPacketHeader()
-{
-  return (m_socket->bytesAvailable() >= m_headerSize);
-}
-
-quint32 LocalSocketConnection::readPacketHeader()
-{
-  Q_ASSERT_X(m_socket->bytesAvailable() >= m_headerSize, Q_FUNC_INFO,
-             "Not enough data available to read header! This should not "
-             "happen.");
-
-  quint32 headerVersion;
-  quint32 packetSize;
-
-  (*m_dataStream) >> headerVersion;
-
-  if (headerVersion != m_headerVersion)
-    return 0;
-
-  (*m_dataStream) >> packetSize;
-
-  return packetSize;
 }
 
 void LocalSocketConnection::open()
