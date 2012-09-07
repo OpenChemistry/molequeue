@@ -47,12 +47,7 @@ public:
   {
     QDataStream out (m_socket);
     out.setVersion(QDataStream::Qt_4_7);
-//    qDebug() << "Test server writing" << packet.size() << "bytes.";
 
-    // Create header
-    out << static_cast<quint32>(1);
-    out << static_cast<quint32>(packet.size());
-    // write data
     out << packet;
     m_socket->flush();
   }
@@ -101,17 +96,9 @@ private slots:
     QDataStream in (m_socket);
     in.setVersion(QDataStream::Qt_4_7);
 
-    quint32 version;
-    quint32 size;
     MoleQueue::PacketType packet;
 
-    in >> version;
-    in >> size;
-    in >> packet;
-
-//    qDebug() << "Received packet. Version" << version << "Size" << size;
-
-    m_target->append(packet);
+    in >> *m_target;
   }
 };
 
