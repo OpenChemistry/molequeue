@@ -17,9 +17,9 @@
 #ifndef MOLEQUEUE_JOBREQUEST_H
 #define MOLEQUEUE_JOBREQUEST_H
 
-#include "jobreferencebase.h"
+#include <molequeue/jobreferencebase.h>
 
-#include "filespecification.h"
+#include <molequeue/filespecification.h>
 
 namespace MoleQueue
 {

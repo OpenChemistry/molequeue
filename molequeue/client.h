@@ -17,10 +17,10 @@
 #ifndef CLIENT_H
 #define CLIENT_H
 
-#include "abstractrpcinterface.h"
+#include <molequeue/abstractrpcinterface.h>
 
-#include "jobrequest.h"
-#include "molequeueglobal.h"
+#include <molequeue/jobrequest.h>
+#include <molequeue/molequeueglobal.h>
 
 #include <QtCore/QtContainerFwd>
 
