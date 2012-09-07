@@ -37,7 +37,11 @@ set_property(TARGET mqlocalsocketclient APPEND
   PROPERTY COMPILE_FLAGS ${molequeue_export_flags})
 
 install(FILES ${hdrs} DESTINATION "${INSTALL_INCLUDE_DIR}/molequeue/localsocketclient")
-install(TARGETS mqlocalsocketconnection mqlocalsocketclient
+install(
+  TARGETS
+    mqlocalsocketconnection
+    mqlocalsocketclient
+    mqlocalsocketconnectionlistener
   EXPORT "MoleQueueTargets"
   RUNTIME DESTINATION ${INSTALL_RUNTIME_DIR}
   LIBRARY DESTINATION ${INSTALL_LIBRARY_DIR}
