@@ -36,7 +36,12 @@ add_compiler_export_flags(molequeue_export_flags)
 set_property(TARGET mqlocalsocketclient APPEND
   PROPERTY COMPILE_FLAGS ${molequeue_export_flags})
 
-install(FILES ${hdrs} DESTINATION "${INSTALL_INCLUDE_DIR}/molequeue/localsocketclient")
+list(APPEND hdrs
+  localsocketconnection.h
+  localsocketconnectionlistener.h
+  )
+
+install(FILES ${hdrs} DESTINATION "${INSTALL_INCLUDE_DIR}/molequeue/transport")
 install(
   TARGETS
     mqlocalsocketconnection
