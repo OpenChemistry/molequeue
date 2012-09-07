@@ -87,6 +87,7 @@ void LocalSocketConnection::setSocket(QLocalSocket *socket)
             this, SLOT(socketDestroyed()));
   }
   m_dataStream->setDevice(socket);
+  m_dataStream->setVersion(QDataStream::Qt_4_8);
   m_socket = socket;
 }
 
