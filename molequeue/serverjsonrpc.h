@@ -57,6 +57,19 @@ public:
                                                  IdType packetId);
 
   /**
+    * Generate a JSON-RPC packet indicating a job cancellation error.
+    *
+    * @param errorCode Error code
+    * @param message Descriptive string describing error.
+    * @param moleQueueId MoleQueue internal identifer for the canceled job.
+    * @param packetId The JSON-RPC id for the request.
+    * @return A PacketType, ready to send to a Connection.
+    */
+  PacketType generateJobCancellationError(
+      MoleQueue::ErrorCode errorCode, const QString &message,
+      IdType moleQueueId, IdType packetId);
+
+  /**
     * Generate a JSON-RPC packet to respond to a lookupJob request. If the Job
     * is invalid, an error response will be generated.
     *

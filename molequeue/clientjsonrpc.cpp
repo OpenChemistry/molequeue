@@ -352,8 +352,26 @@ void ClientJsonRpc::handleCancelJobResult(const Json::Value &root) const
 
 void ClientJsonRpc::handleCancelJobError(const Json::Value &root) const
 {
-  Q_UNUSED(root);
-  qWarning() << Q_FUNC_INFO << "is not implemented.";
+  const IdType id = static_cast<IdType>(root["id"].asLargestUInt());
+
+  if (!root["error"]["code"].isIntegral() ||
+      !root["error"]["data"].isIntegral() ||
+      !root["error"]["message"].isString()) {
+    Json::StyledWriter writer;
+    const std::string responseString = writer.write(root);
+    qWarning() << "Job lookup failure response is ill-formed:\n"
+               << responseString.c_str();
+    return;
+  }
+
+  const ErrorCode errorCode =
+      static_cast<ErrorCode>(
+        root["error"]["code"].asLargestUInt());
+  const QString message(root["error"]["message"].asCString());
+  const IdType moleQueueId =
+      static_cast<IdType>(root["error"]["data"].asLargestUInt());
+
+  emit jobCancellationErrorReceived(id, moleQueueId, errorCode, message);
 }
 
 void ClientJsonRpc::handleLookupJobResult(const Json::Value &root) const
