@@ -218,7 +218,7 @@ protected slots:
    * @param errorMessage Descriptive string detail the failure.
    */
   void failedSubmissionReceived(MoleQueue::IdType,
-                                MoleQueue::JobSubmissionErrorCode errorCode,
+                                MoleQueue::ErrorCode errorCode,
                                 const QString &errorMessage);
 
   /**

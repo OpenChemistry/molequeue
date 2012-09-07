@@ -315,7 +315,7 @@ void Server::sendSuccessfulSubmissionResponse(MoleQueue::Connection *connection,
 void Server::sendFailedSubmissionResponse(MoleQueue::Connection *connection,
                                           MoleQueue::EndpointId replyTo,
                                           const Job &job,
-                                          JobSubmissionErrorCode ec,
+                                          ErrorCode ec,
                                           const QString &errorMessage)
 {
   // Lookup the moleQueueId in the hash so that we can send the correct packetId

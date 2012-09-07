@@ -116,7 +116,7 @@ signals:
     * @param errorMessage Descriptive string identifying the error.
     */
   void failedSubmissionReceived(MoleQueue::IdType packetId,
-                                MoleQueue::JobSubmissionErrorCode errorCode,
+                                MoleQueue::ErrorCode errorCode,
                                 const QString &errorMessage) const;
 
   /**

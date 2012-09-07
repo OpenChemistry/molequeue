@@ -321,7 +321,7 @@ void ClientJsonRpc::handleSubmitJobError(const Json::Value &root) const
     return;
   }
 
-  const JobSubmissionErrorCode errorCode = static_cast<JobSubmissionErrorCode>(
+  const ErrorCode errorCode = static_cast<ErrorCode>(
         root["error"]["code"].asLargestInt());
 
   const QString errorMessage(root["error"]["message"].asCString());
