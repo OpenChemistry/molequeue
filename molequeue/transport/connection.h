@@ -18,8 +18,8 @@
 #define CONNECTION_H
 
 #include "mqconnectionexport.h"
-#include "molequeueglobal.h"
-#include "message.h"
+#include <molequeue/molequeueglobal.h>
+#include <molequeue/transport/message.h>
 
 #include <QtCore/QObject>
 
