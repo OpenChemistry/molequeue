@@ -18,7 +18,7 @@
 #define CONNECTIONLISTENER_H_
 
 #include "mqconnectionlistenerexport.h"
-#include "molequeueglobal.h"
+#include <molequeue/molequeueglobal.h>
 #include "connection.h"
 
 #include <QtCore/QObject>

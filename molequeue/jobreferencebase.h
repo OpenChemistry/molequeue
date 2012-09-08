@@ -17,7 +17,7 @@
 #ifndef MOLEQUEUE_JOBREFERENCEBASE_H
 #define MOLEQUEUE_JOBREFERENCEBASE_H
 
-#include "molequeueglobal.h"
+#include <molequeue/molequeueglobal.h>
 
 #include <QtCore/QDebug>
 
