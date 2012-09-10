@@ -24,6 +24,8 @@
 #include <QtCore/QObject>
 #include <QtCore/QVariantHash>
 
+#include "mqconnectionexport.h"
+
 class QDir;
 class QVariant;
 
@@ -83,7 +85,7 @@ class Connection;
  * packet. Finally, the AbstractRpcInterface subclass sends the response or
  * error packet back to the client.
  */
-class JsonRpc : public QObject
+class MQCONNECTION_EXPORT JsonRpc : public QObject
 {
   Q_OBJECT
 public:

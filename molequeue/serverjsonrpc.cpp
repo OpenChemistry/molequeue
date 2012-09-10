@@ -17,7 +17,7 @@
 #include "serverjsonrpc.h"
 
 #include "job.h"
-#include "qtjson.h"
+#include "transport/qtjson.h"
 
 #include <json/json.h>
 

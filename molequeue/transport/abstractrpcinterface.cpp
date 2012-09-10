@@ -17,8 +17,8 @@
 #include "abstractrpcinterface.h"
 
 #include "jsonrpc.h"
-#include "transport/connection.h"
-#include "transport/message.h"
+#include "connection.h"
+#include "message.h"
 
 #include <QtCore/QDataStream>
 #include <QtCore/QDateTime>

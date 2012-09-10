@@ -18,9 +18,9 @@
 
 #include "dummyjsonrpc.h"
 
-#include "abstractrpcinterface.h"
 #include "molequeueglobal.h"
 #include "testserver.h"
+#include "transport/abstractrpcinterface.h"
 #include "transport/localsocket/localsocketconnection.h"
 
 #include <QtNetwork/QLocalSocket>

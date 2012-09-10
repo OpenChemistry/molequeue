@@ -1,4 +1,11 @@
-add_library(mqconnection message.cpp connection.h)
+add_library(mqconnection
+  abstractrpcinterface.cpp
+  connection.h
+  jsonrpc.cpp
+  message.cpp
+  qtjson.cpp
+  ${jsoncpp_srcs}
+)
 set_target_properties(mqconnection PROPERTIES AUTOMOC TRUE)
 target_link_libraries(mqconnection ${QT_LIBRARIES})
 
@@ -7,9 +14,11 @@ set_target_properties(mqconnectionlistener PROPERTIES AUTOMOC TRUE)
 target_link_libraries(mqconnectionlistener ${QT_LIBRARIES})
 
 set(hdrs
+  abstractrpcinterface.h
   connection.h
   connectionlistener.h
   connectionlistenerfactory.h
+  jsonrpc.h
   message.h)
 
 generate_export_header(mqconnection EXPORT_FILE_NAME mqconnectionexport.h)

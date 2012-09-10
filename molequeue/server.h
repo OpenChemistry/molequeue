@@ -17,12 +17,12 @@
 #ifndef SERVER_H
 #define SERVER_H
 
-#include "abstractrpcinterface.h"
+#include "transport/abstractrpcinterface.h"
 
 #include "job.h"
 #include "molequeueglobal.h"
 #include "transport/connectionlistener.h"
-#include "jsonrpc.h"
+#include "transport/jsonrpc.h"
 
 #include <QtCore/QObject>
 #include <QtCore/QList>

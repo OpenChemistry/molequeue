@@ -17,7 +17,7 @@
 #ifndef CLIENT_H
 #define CLIENT_H
 
-#include <molequeue/abstractrpcinterface.h>
+#include <molequeue/transport/abstractrpcinterface.h>
 
 #include <molequeue/jobrequest.h>
 #include <molequeue/molequeueglobal.h>

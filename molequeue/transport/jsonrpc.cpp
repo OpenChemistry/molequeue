@@ -16,8 +16,6 @@
 
 #include "jsonrpc.h"
 
-#include "job.h"
-#include "jobdata.h"
 #include "molequeueglobal.h"
 #include "qtjson.h"
 

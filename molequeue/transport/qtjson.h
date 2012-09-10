@@ -21,6 +21,8 @@
 
 #include <QtCore/QVariant>
 
+#include "mqconnectionexport.h"
+
 namespace QtJson
 {
 /// Convert a QVariant into a JSON Value. If the Variant is a string-keyed hash,
@@ -29,14 +31,14 @@ namespace QtJson
 /// converted to their corresponding json types.
 /// @param variant input QVariant.
 /// @return Json value.
-Json::Value toJson(const QVariant &variant);
+MQCONNECTION_EXPORT Json::Value toJson(const QVariant &variant);
 /// Convert a JSON Value to a QVariant. If the value is a dictionary object, a
 /// QVariantHash is returned. If the value is an array, a QList is returned.
 /// Other simple types (and members of the mentioned containers) are interpreted
 /// and wrapped in a QVariant.
 /// @param value Json value.
 /// @return input hash.
-QVariant toVariant(const Json::Value &value);
+MQCONNECTION_EXPORT QVariant toVariant(const Json::Value &value);
 }
 
 #endif // QTJSON_H
