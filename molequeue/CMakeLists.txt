@@ -73,6 +73,7 @@ set(mq_srcs
   queuesettingsdialog.cpp
   remotequeuewidget.cpp
   server.cpp
+  serverjsonrpc.cpp
   sshcommand.cpp
   sshcommandfactory.cpp
   sshconnection.cpp
@@ -143,6 +144,7 @@ install(TARGETS molequeue
 set(mqclient_srcs
   abstractrpcinterface.cpp
   client.cpp
+  clientjsonrpc.cpp
   filespecification.cpp
   job.cpp
   jobdata.cpp

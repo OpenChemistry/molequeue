@@ -127,6 +127,9 @@ protected slots:
 
 protected:
 
+  /// Set the JsonRpc object for this interface.
+  virtual void setJsonRpc(JsonRpc *jsonrpc);
+
   /**
    * @return The next packet id.
    */

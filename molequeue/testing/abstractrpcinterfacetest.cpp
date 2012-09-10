@@ -16,6 +16,8 @@
 
 #include <QtTest>
 
+#include "dummyjsonrpc.h"
+
 #include "abstractrpcinterface.h"
 #include "molequeueglobal.h"
 #include "testserver.h"
@@ -52,7 +54,6 @@ private slots:
   void testInternalError();
 };
 
-
 MoleQueue::PacketType
 AbstractRpcInterfaceTest::readReferenceString(const QString &filename)
 {
@@ -71,6 +72,7 @@ void AbstractRpcInterfaceTest::initTestCase()
 {
   m_server = new TestServer(&m_packet);
   m_rpc = new MoleQueue::AbstractRpcInterface();
+  m_rpc->setJsonRpc(new DummyJsonRpc(m_rpc));
   m_connection =
       new MoleQueue::LocalSocketConnection(this, m_server->socketName());
   m_connection->open();

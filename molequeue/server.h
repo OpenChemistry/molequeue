@@ -40,6 +40,7 @@ class Job;
 class JobManager;
 class QueueManager;
 class ServerConnection;
+class ServerJsonRpc;
 
 /**
  * @class Server server.h <molequeue/server.h>
@@ -323,6 +324,15 @@ protected:
    * found.
    */
   ServerConnection * lookupConnection(IdType moleQueueId);
+
+  /// Reimplemented from base class
+  void setJsonRpc(JsonRpc *jsonrpc);
+
+  /// Get the internal JsonRpc instance as a ServerJsonRpc object.
+  ServerJsonRpc *serverJsonRpc()
+  {
+    return reinterpret_cast<ServerJsonRpc*>(m_jsonrpc);
+  }
 
   /// List of active connections
   QList<Connection*> m_connections;
