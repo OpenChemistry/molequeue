@@ -41,6 +41,7 @@ QueuePbs::QueuePbs(QueueManager *parentManager) :
       "#PBS -l procs=$$numberOfCores$$\n"
       "#PBS -l walltime=$$maxWallTime$$\n"
       "\n"
+      "cd $PBS_O_WORKDIR\n"
       "$$programExecution$$\n";
 
   // qstat will return an exit code of 153 if a job has completed.

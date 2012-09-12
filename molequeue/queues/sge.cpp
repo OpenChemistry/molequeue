@@ -41,6 +41,7 @@ QueueSge::QueueSge(QueueManager *parentManager) :
       "#$ -pe NODETYPE $$numberOfCores$$\n"
       "#$ -l h_rt=$$maxWallTime$$\n"
       "\n"
+      "cd $SGE_O_WORKDIR\n"
       "$$programExecution$$\n";
 }
 
