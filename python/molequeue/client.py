@@ -40,13 +40,21 @@ class JobState:
   # Job has been terminated due to an error.
   ERROR = 9
 
+class FilePath:
+  def __init__(self):
+    self.path = None
+
+class FileContents:
+  def __init__(self):
+    self.filename = None
+    self.contents = None
+
 class JobRequest:
   def __init__(self):
     self.queue = None
     self.program = None
     self.description = ''
-    self.input_as_path = None
-    self.input_as_string = None
+    self.input_file = None
     self.output_directory = None
     self.local_working_directory = None
     self.clean_remote_files = False
@@ -135,11 +143,12 @@ class Client:
     pass
 
   def submit_job_request(self, request, timeout=None):
-    params = JsonRpc.jobrequest_to_json_params(request)
+    params = JsonRpc.object_to_json_params(request)
     packet_id = self._next_packet_id()
+
     jsonrpc = JsonRpc.generate_request(packet_id,
-                                      'submitJob',
-                                      params)
+                                       'submitJob',
+                                       params)
 
     self._send_request(packet_id, jsonrpc)
     response = self._wait_for_response(packet_id, timeout)

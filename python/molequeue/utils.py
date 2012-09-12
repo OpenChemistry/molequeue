@@ -1,6 +1,7 @@
 import json
 import re
 import itertools
+import types
 import molequeue
 
 class JsonRpc:
@@ -29,10 +30,15 @@ class JsonRpc:
     return jobrequest
 
   @staticmethod
-  def jobrequest_to_json_params(jobrequest):
+  def object_to_json_params(jobrequest):
     params = {}
+
     for key, value in jobrequest.__dict__.iteritems():
       field = underscore_to_camelcase(key)
+
+      if type(value) == types.InstanceType:
+        value = JsonRpc.object_to_json_params(value)
+
       params[field] = value
 
     return params

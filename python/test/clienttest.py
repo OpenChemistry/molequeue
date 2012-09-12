@@ -14,6 +14,11 @@ class TestClient(unittest.TestCase):
     job_request.queue = 'salix'
     job_request.program = 'sleep (testing)'
 
+    file_path = molequeue.FilePath()
+    file_path.path = "/tmp/test"
+
+    job_request.input_file = file_path
+
     molequeue_id = client.submit_job_request(job_request)
 
     print "MoleQueue ID: ", molequeue_id
@@ -70,6 +75,11 @@ class TestClient(unittest.TestCase):
     expected_job_request.description = 'This is a test job'
     expected_job_request.hide_from_gui = True
     expected_job_request.popup_on_state_change = False
+
+    file_contents = molequeue.FileContents()
+    file_contents.filename = 'test.in'
+    file_contents.contents = 'Hello'
+    expected_job_request.input_file = file_contents
 
     molequeue_id = client.submit_job_request(expected_job_request)
 
