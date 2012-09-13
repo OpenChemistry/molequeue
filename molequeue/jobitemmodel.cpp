@@ -164,7 +164,7 @@ void JobItemModel::jobUpdated(const Job &job)
 
   int row = m_jobManager->indexOf(job);
   if (row >= 0)
-    emit dataChanged(index(row, 0), index(row, COLUMN_COUNT));
+    emit dataChanged(index(row, 0), index(row, COLUMN_COUNT - 1));
 }
 
 } // End of namespace
