@@ -16,7 +16,7 @@
 
 #include "localsocketconnection.h"
 
-#include "abstractrpcinterface.h"
+#include "transport/abstractrpcinterface.h"
 #include "transport/message.h"
 #include "logger.h"
 

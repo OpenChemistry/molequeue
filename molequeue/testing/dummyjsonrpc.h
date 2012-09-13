@@ -17,7 +17,7 @@
 #ifndef DUMMYJSONRPC_H
 #define DUMMYJSONRPC_H
 
-#include "jsonrpc.h"
+#include "transport/jsonrpc.h"
 
 class DummyJsonRpc : public MoleQueue::JsonRpc
 {

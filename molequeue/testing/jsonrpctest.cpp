@@ -14,7 +14,7 @@
 
 ******************************************************************************/
 
-#include "jsonrpc.h"
+#include "transport/jsonrpc.h"
 #include "dummyjsonrpc.h"
 
 #include <json/json.h>

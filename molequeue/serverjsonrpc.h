@@ -17,7 +17,7 @@
 #ifndef MOLEQUEUE_SERVERJSONRPC_H
 #define MOLEQUEUE_SERVERJSONRPC_H
 
-#include "jsonrpc.h"
+#include "transport/jsonrpc.h"
 
 #include "molequeueglobal.h"
 #include "transport/message.h"

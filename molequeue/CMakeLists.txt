@@ -22,7 +22,6 @@ endif()
 
 set(mq_srcs
   abstractqueuesettingswidget.cpp
-  abstractrpcinterface.cpp
   advancedfilterdialog.cpp
   actionfactorymanager.cpp
   addqueuedialog.cpp
@@ -44,7 +43,6 @@ set(mq_srcs
   jobtableproxymodel.cpp
   jobtablewidget.cpp
   jobview.cpp
-  jsonrpc.cpp
   localqueuewidget.cpp
   logentry.cpp
   logger.cpp
@@ -59,7 +57,6 @@ set(mq_srcs
   pluginmanager.cpp
   program.cpp
   programconfiguredialog.cpp
-  qtjson.cpp
   queue.cpp
   queuemanager.cpp
   queuemanagerdialog.cpp
@@ -142,7 +139,6 @@ install(TARGETS molequeue
 
 # Client library
 set(mqclient_srcs
-  abstractrpcinterface.cpp
   client.cpp
   clientjsonrpc.cpp
   filespecification.cpp
@@ -152,16 +148,13 @@ set(mqclient_srcs
   jobmanager.cpp
   jobreferencebase.cpp
   jobrequest.cpp
-  jsonrpc.cpp
   logentry.cpp
   logger.cpp
   molequeueglobal.h
-  qtjson.cpp
   ${jsoncpp_srcs}
 )
 
 set(mqclient_headers
-  abstractrpcinterface.h
   client.h
   filespecification.h
   jobreferencebase.h
