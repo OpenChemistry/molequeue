@@ -74,6 +74,11 @@ class JobRequest:
   def queue_id(self):
     return self._queue_id
 
+class Queue:
+  def __init__(self):
+    self.name = None;
+    self.programs = [];
+
 class EventLoop(Thread):
   def __init__(self, io_loop):
     Thread.__init__(self)
@@ -139,8 +144,23 @@ class Client:
     assert callable(callback)
     self._notification_callbacks.append(callback)
 
-  def request_queue_list_update(self):
-    pass
+  def request_queue_list_update(self, timeout=None):
+    packet_id = self._next_packet_id()
+
+    jsonrpc = JsonRpc.generate_request(packet_id,
+                                       'listQueues',
+                                       None)
+
+    self._send_request(packet_id, jsonrpc)
+    response = self._wait_for_response(packet_id, timeout)
+
+    # Timeout
+    if response == None:
+      return None
+
+    queues = JsonRpc.json_to_queues(response)
+
+    return queues
 
   def submit_job_request(self, request, timeout=None):
     params = JsonRpc.object_to_json_params(request)

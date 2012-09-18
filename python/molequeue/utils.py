@@ -13,7 +13,8 @@ class JsonRpc:
     request['jsonrpc'] = "2.0"
     request['id'] = packet_id
     request['method'] = method
-    request['params'] = parameters
+    if parameters != None:
+      request['params'] = parameters
 
     return json.dumps(request)
 
@@ -28,6 +29,18 @@ class JsonRpc:
       jobrequest.__dict__[field] = value
 
     return jobrequest
+
+  @staticmethod
+  def json_to_queues(json):
+    queues = []
+
+    for name, programs in json['result'].iteritems():
+      queue = molequeue.Queue();
+      queue.name = name
+      queue.programs = programs
+      queues.append(queue)
+
+    return queues;
 
   @staticmethod
   def object_to_json_params(jobrequest):

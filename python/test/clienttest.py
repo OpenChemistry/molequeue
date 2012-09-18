@@ -98,5 +98,17 @@ class TestClient(unittest.TestCase):
 
     client.disconnect()
 
+  def test_request_queue_list_update(self):
+    client = molequeue.Client()
+    client.connect_to_server('MoleQueue')
+
+    queues = client.request_queue_list_update()
+
+    for q in queues:
+      print q.name, ", ", q.programs;
+
+    client.disconnect()
+
+
 if __name__ == '__main__':
     unittest.main()
