@@ -16,6 +16,13 @@
 
 #include "jobdata.h"
 #include "jobmanager.h"
+#include "logger.h"
+#include "transport/qtjson.h"
+
+#include <QtCore/QDir>
+#include <QtCore/QFile>
+
+#include <json/json.h>
 
 namespace MoleQueue
 {
@@ -31,7 +38,8 @@ JobData::JobData(JobManager *parentManager)
     m_numberOfCores(DEFAULT_NUM_CORES),
     m_maxWallTime(-1), // use default queue time
     m_moleQueueId(InvalidId),
-    m_queueId(InvalidId)
+    m_queueId(InvalidId),
+    m_needsSync(true)
 {
 }
 
@@ -53,7 +61,8 @@ JobData::JobData(const MoleQueue::JobData &other)
     m_numberOfCores(other.m_numberOfCores),
     m_maxWallTime(other.m_maxWallTime),
     m_moleQueueId(other.m_moleQueueId),
-    m_queueId(other.m_queueId)
+    m_queueId(other.m_queueId),
+    m_needsSync(true)
 {
 }
 
@@ -144,6 +153,121 @@ void JobData::setFromHash(const QVariantHash &state)
     foreach (const QString &key, keywordVariantHash.keys())
       m_keywords.insert(key, keywordVariantHash.value(key).toString());
   }
+
+  modified();
+}
+
+bool JobData::load(const QString &stateFilename)
+{
+  if (!QFile::exists(stateFilename))
+    return false;
+
+  QFile stateFile(stateFilename);
+  if (!stateFile.open(QFile::ReadOnly | QFile::Text)) {
+    Logger::logError(Logger::tr("Cannot read job information from %1.")
+                     .arg(stateFilename));
+    return false;
+  }
+
+  Json::Value root;
+
+  // Try to read existing data in
+  Json::Reader reader;
+  QByteArray inputText = stateFile.readAll();
+  if (!reader.parse(inputText.begin(), inputText.end(), root, false)) {
+    Logger::logError(Logger::tr("Cannot parse job state from %1:\n%2")
+                     .arg(stateFilename).arg(inputText.data()));
+    stateFile.close();
+    return false;
+  }
+
+  if (!root.isObject()) {
+    Logger::logError(Logger::tr("Error reading job state from %1: "
+                                "root is not an object!\n%2")
+                     .arg(stateFilename)
+                     .arg(inputText.data()));
+    stateFile.close();
+    return false;
+  }
+
+  QVariantHash jobHash = QtJson::toVariant(root).toHash();
+  if (!jobHash.contains("moleQueueId")) {
+    Logger::logError(Logger::tr("Error reading job state from %1: "
+                                "No moleQueueId member!\n%2")
+                     .arg(stateFilename).arg(inputText.data()));
+    stateFile.close();
+    return false;
+  }
+
+  setFromHash(jobHash);
+
+  m_needsSync = false;
+
+  return true;
+}
+
+bool JobData::save()
+{
+  QString stateFilename = m_localWorkingDirectory +
+      "/mqjobinfo.json";
+  QFile stateFile(stateFilename);
+  if (!stateFile.open(QFile::ReadWrite | QFile::Text)) {
+    Logger::logError(Logger::tr("Cannot save job information for job %1 in %2.")
+                     .arg(moleQueueId()).arg(stateFilename), moleQueueId());
+    return false;
+  }
+
+  Json::Value root;
+
+  // Try to read existing data in
+  QByteArray inputText = stateFile.readAll();
+  if (!inputText.isEmpty()) {
+    Json::Reader reader;
+    if (!reader.parse(inputText.begin(), inputText.end(), root, true)) {
+      Logger::logError(Logger::tr("Cannot parse existing state for job %1 in "
+                                  "%2:\n%3").arg(moleQueueId())
+                       .arg(stateFilename).arg(inputText.data()), moleQueueId());
+      stateFile.close();
+      return false;
+    }
+  }
+
+  if (!root.isObject()) {
+    Logger::logError(Logger::tr("Internal error writing state for job %1 in %2:"
+                                " root is not an object!")
+                     .arg(moleQueueId()).arg(stateFilename), moleQueueId());
+    stateFile.close();
+    return false;
+  }
+
+  // Get the data from the job
+  Json::Value jobRoot = QtJson::toJson(hash());
+
+  if (!jobRoot.isObject()) {
+    Logger::logError(Logger::tr("Internal error writing state for job %1 in %2:"
+                                " jobRoot is not an object!")
+                     .arg(moleQueueId()).arg(stateFilename), moleQueueId());
+    stateFile.close();
+    return false;
+  }
+
+  // Overlay jobRoot onto root:
+  for (Json::ValueIterator it = jobRoot.begin(), it_end = jobRoot.end();
+       it != it_end; ++it) {
+    if (it.memberName()[0] != '\0') {
+      root[it.memberName()] = *it;
+    }
+  }
+
+  // Write the data back out:
+  stateFile.resize(0);
+  std::string outputText = root.toStyledString();
+  stateFile.write(QByteArray(outputText.c_str()));
+  stateFile.close();
+
+  m_needsSync = false;
+
+  return true;
 }
 
 } // end namespace MoleQueue

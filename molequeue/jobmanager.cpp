@@ -21,7 +21,8 @@
 #include "jobitemmodel.h"
 #include "logger.h"
 
-#include <QtCore/QSettings>
+#include <QtCore/QDir>
+#include <QtCore/QFile>
 
 namespace MoleQueue
 {
@@ -46,30 +47,37 @@ JobManager::~JobManager()
   m_jobs.clear();
 }
 
-void JobManager::readSettings(QSettings &settings)
+void JobManager::loadJobState(const QString &path)
 {
-  int numJobs = settings.beginReadArray("Jobs");
-  for (int i = 0; i < numJobs; ++i) {
-    settings.setArrayIndex(i);
-    QVariantHash hash = settings.value("hash").toHash();
+
+  QDir dir(path);
+  foreach (const QString &subDirName,
+           dir.entryList(QDir::AllDirs | QDir::NoDotAndDotDot)) {
+    QString stateFilename(QDir::cleanPath(dir.absolutePath() + "/" +
+                                          subDirName + "/mqjobinfo.json"));
+    if (!QFile::exists(stateFilename))
+      continue;
+
     JobData *jobdata = new JobData(this);
-    jobdata->setFromHash(hash);
-    m_jobs.append(jobdata);
-    insertJobData(jobdata);
+    if (jobdata->load(stateFilename)) {
+      m_jobs.append(jobdata);
+      insertJobData(jobdata);
+    }
+    else {
+      delete jobdata;
+    }
   }
-  settings.endArray();
 
   m_itemModel->reset();
 }
 
-void JobManager::writeSettings(QSettings &settings) const
+void JobManager::syncJobState() const
 {
-  settings.beginWriteArray("Jobs", m_jobs.size());
-  for (int i = 0; i < m_jobs.size(); ++i) {
-    settings.setArrayIndex(i);
-    settings.setValue("hash", m_jobs.at(i)->hash());
+  foreach (JobData *jobdata, m_jobs) {
+    if (jobdata->needsSync())
+      jobdata->save();
   }
-  settings.endArray(); // Jobs
+
 }
 
 Job JobManager::newJob()
@@ -109,6 +117,11 @@ void JobManager::removeJob(JobData *jobdata)
   m_jobs.removeAt(jobsIndex);
   m_itemModel->removeRow(jobsIndex);
   m_moleQueueMap.remove(moleQueueId);
+
+  // Save job state and move it so it won't get loaded next time.
+  jobdata->save();
+  QFile::rename(jobdata->localWorkingDirectory() + "/mqjobinfo.json",
+                jobdata->localWorkingDirectory() + "/mqjobinfo-archived.json");
 
   delete jobdata;
 

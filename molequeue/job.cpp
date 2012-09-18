@@ -134,8 +134,10 @@ QList<FileSpecification> Job::additionalInputFiles() const
 
 void Job::addInputFile(const FileSpecification &spec)
 {
-  if (warnIfInvalid())
+  if (warnIfInvalid()) {
     m_jobData->additionalInputFilesRef().append(spec);
+    m_jobData->modified();
+  }
 }
 
 void Job::setOutputDirectory(const QString &path)
@@ -298,8 +300,10 @@ QHash<QString, QString> Job::keywords() const
 
 void Job::setKeywordReplacement(const QString &keyword, const QString &replacement)
 {
-  if (warnIfInvalid())
+  if (warnIfInvalid()) {
     m_jobData->keywordsRef().insert(keyword, replacement);
+    m_jobData->modified();
+  }
 }
 
 bool Job::hasKeywordReplacement(const QString &keyword) const

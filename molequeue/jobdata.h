@@ -58,25 +58,49 @@ public:
   JobManager *jobManager() const { return m_jobManager; }
 
   /// @param newQueue name of the queue.
-  void setQueue(const QString &newQueue) { m_queue = newQueue; }
+  void setQueue(const QString &newQueue)
+  {
+    if (m_queue != newQueue) {
+      m_queue = newQueue;
+      modified();
+    }
+  }
 
   /// @return Name of queue to use.
   QString queue() const { return m_queue; }
 
   /// @param newProgram Name of the program.
-  void setProgram(const QString &newProgram) { m_program = newProgram; }
+  void setProgram(const QString &newProgram)
+  {
+    if (m_program != newProgram) {
+      m_program = newProgram;
+      modified();
+    }
+  }
 
   /// @return Name of program to run.
   QString program() const { return m_program; }
 
   /// @param state Status of job
-  void setJobState(JobState state) { m_jobState = state; }
+  void setJobState(JobState state)
+  {
+    if (m_jobState != state) {
+      m_jobState = state;
+      modified();
+    }
+  }
 
   /// @return Status of job
   JobState jobState() const { return m_jobState; }
 
   /// @param newDesc Description of job
-  void setDescription(const QString &newDesc) { m_description = newDesc; }
+  void setDescription(const QString &newDesc)
+  {
+    if (m_description != newDesc) {
+      m_description = newDesc;
+      modified();
+    }
+  }
 
   /// @return newDesc Description of job
   QString description() const { return m_description; }
@@ -86,6 +110,7 @@ public:
   void setInputFile(const FileSpecification &filespec)
   {
     m_inputFile = filespec;
+    modified();
   }
 
   /// @return FileSpecification describing the main input file (called by the
@@ -97,6 +122,7 @@ public:
   void setAdditionalInputFiles(const QList<FileSpecification> & files)
   {
     m_additionalInputFiles = files;
+    modified();
   }
 
   /// @return FileSpecification objects describing additional input files to be
@@ -114,7 +140,13 @@ public:
 
   /// @param path String containing a location to copy the output files to after
   /// the job completes. Ignored if empty.
-  void setOutputDirectory(const QString &path) { m_outputDirectory = path; }
+  void setOutputDirectory(const QString &path)
+  {
+    if (m_outputDirectory != path) {
+      m_outputDirectory = path;
+      modified();
+    }
+  }
 
   /// @return String containing a location to copy the output files to after
   /// the job completes. Ignored if empty.
@@ -124,7 +156,10 @@ public:
   /// execution.
   void setLocalWorkingDirectory(const QString &path)
   {
-    m_localWorkingDirectory = path;
+    if (m_localWorkingDirectory != path) {
+      m_localWorkingDirectory = path;
+      modified();
+    }
   }
 
   /// @return Temporary working directory where files are stored during job
@@ -133,14 +168,26 @@ public:
 
   /// @param clean If true, delete any working files on the remote server.
   /// Default: false.
-  void setCleanRemoteFiles(bool clean) { m_cleanRemoteFiles = clean; }
+  void setCleanRemoteFiles(bool clean)
+  {
+    if (m_cleanRemoteFiles != clean) {
+      m_cleanRemoteFiles = clean;
+      modified();
+    }
+  }
 
   /// @return If true, delete any working files on the remote server.
   /// Default: false.
   bool cleanRemoteFiles() const { return m_cleanRemoteFiles; }
 
   /// @param b If true, copies files back from remote server. Default: true
-  void setRetrieveOutput(bool b) { m_retrieveOutput = b; }
+  void setRetrieveOutput(bool b)
+  {
+    if (m_retrieveOutput != b) {
+      m_retrieveOutput = b;
+      modified();
+    }
+  }
 
   /// @return If true, copies files back from remote server. Default: true
   bool retrieveOutput() const { return m_retrieveOutput; }
@@ -149,7 +196,10 @@ public:
   /// complete. Should be used with setOutputDirectory. Default: false
   void setCleanLocalWorkingDirectory(bool b)
   {
-    m_cleanLocalWorkingDirectory = b;
+    if (m_cleanLocalWorkingDirectory != b) {
+      m_cleanLocalWorkingDirectory = b;
+      modified();
+    }
   }
 
   /// @return If true, the local working files are removed after job is
@@ -160,14 +210,26 @@ public:
   }
 
   /// @param b If true, the job will not appear in the queue. Default: false
-  void setHideFromGui(bool b) { m_hideFromGui = b; }
+  void setHideFromGui(bool b)
+  {
+    if (m_hideFromGui != b) {
+      m_hideFromGui = b;
+      modified();
+    }
+  }
 
   /// @return If true, the job will not appear in the queue. Default: false
   bool hideFromGui() const { return m_hideFromGui; }
 
   /// @param b If true, changes in the job state will trigger a popup
   /// notification from the MoleQueue system tray icon. Default: false
-  void setPopupOnStateChange(bool b) { m_popupOnStateChange = b; }
+  void setPopupOnStateChange(bool b)
+  {
+    if (m_popupOnStateChange != b) {
+      m_popupOnStateChange = b;
+      modified();
+    }
+  }
 
   /// @return If true, changes in the job state will trigger a popup
   /// notification from the MoleQueue system tray icon. Default: false
@@ -175,7 +237,13 @@ public:
 
   /// @param num The total number of processor cores to use (if applicable).
   /// Default: 1
-  void setNumberOfCores(int num) { m_numberOfCores = num; }
+  void setNumberOfCores(int num)
+  {
+    if (m_numberOfCores != num) {
+      m_numberOfCores = num;
+      modified();
+    }
+  }
 
   /// @return The total number of processor cores to use (if applicable).
   /// Default: 1
@@ -184,7 +252,13 @@ public:
   /// @param minutes The maximum walltime for this job in minutes. Setting this
   /// to a value <= 0 will use the queue-specific default max walltime. Only
   /// available for remote queues. Default is -1.
-  void setMaxWallTime(int minutes) { m_maxWallTime = minutes; }
+  void setMaxWallTime(int minutes)
+  {
+    if (m_maxWallTime != minutes) {
+      m_maxWallTime = minutes;
+      modified();
+    }
+  }
 
   /// @return The maximum walltime for this job in minutes. Setting this to a
   /// value <= 0 will use the queue-specific default max walltime. Only
@@ -192,13 +266,25 @@ public:
   int maxWallTime() const { return m_maxWallTime; }
 
   /// @param id Internal MoleQueue identifier
-  void setMoleQueueId(IdType id) { m_moleQueueId = id; }
+  void setMoleQueueId(IdType id)
+  {
+    if (m_moleQueueId != id) {
+      m_moleQueueId = id;
+      modified();
+    }
+  }
 
   /// @return Internal MoleQueue identifier
   IdType moleQueueId() const { return m_moleQueueId; }
 
   /// @param id Queue Job ID
-  void setQueueId(IdType id) { m_queueId = id; }
+  void setQueueId(IdType id)
+  {
+    if (m_queueId != id) {
+      m_queueId = id;
+      modified();
+    }
+  }
 
   /// @return Queue Job ID
   IdType queueId() const { return m_queueId; }
@@ -209,7 +295,10 @@ public:
   /// @param keyrep The keyword replacement hash
   void setKeywords(const QHash<QString, QString> &keyrep)
   {
-    m_keywords = keyrep;
+    if (m_keywords != keyrep) {
+      m_keywords = keyrep;
+      modified();
+    }
   }
 
   /// @return The keyword replacement hash
@@ -221,6 +310,19 @@ public:
   /// Update the Job's internal state from a QVariantHash
   /// @param hash The Job
   void setFromHash(const QVariantHash &state);
+
+  /// Initialize the JobData from the state in JSON file @a stateFileName
+  bool load(const QString& stateFilename);
+
+  /// Write a mqjobinfo.json file to the JobData's local working directory with
+  /// the job state.
+  bool save();
+
+  /// @return true if the JobData has changed since load() or save() was called.
+  bool needsSync() const { return m_needsSync; }
+
+  /// Called when the JobData is modified.
+  void modified() { m_needsSync = true; }
 
 protected:
   /// Parent JobManager
@@ -268,6 +370,9 @@ protected:
   IdType m_queueId;
   /// List of custom keyword replacements for the job's launch script
   QHash<QString, QString> m_keywords;
+
+  /// True if the JobData has changed since load() or save() was called.
+  bool m_needsSync;
 };
 
 } // end namespace MoleQueue

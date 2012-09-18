@@ -317,6 +317,12 @@ private slots:
   void jobRemoved(MoleQueue::IdType moleQueueId);
 
 protected:
+
+  /**
+   * @brief timerEvent Reimplemented from QObject.
+   */
+  void timerEvent(QTimerEvent *);
+
   /**
    * Find the ServerConnection that owns the Job with the request MoleQueue id.
    * @param moleQueueId MoleQueue id of Job.
@@ -372,6 +378,10 @@ private:
   QString m_serverName;
   /// The connection listeners
   QList<ConnectionListener*> m_connectionListeners;
+
+  /// The timer id for the job sync event. jobManager()->syncJobState() is
+  /// call regularly by this timer.
+  int m_jobSyncTimer;
 };
 
 } // end namespace MoleQueue
