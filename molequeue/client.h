@@ -17,7 +17,7 @@
 #ifndef CLIENT_H
 #define CLIENT_H
 
-#include <molequeue/abstractrpcinterface.h>
+#include <molequeue/transport/abstractrpcinterface.h>
 
 #include <molequeue/jobrequest.h>
 #include <molequeue/molequeueglobal.h>
@@ -31,6 +31,7 @@ class ConnectionTest;
 
 namespace MoleQueue
 {
+class ClientJsonRpc;
 class JobManager;
 
 /**
@@ -254,6 +255,15 @@ protected slots:
                               MoleQueue::JobState newState);
 
 protected:
+
+  /// Reimplemented from base class.
+  void setJsonRpc(JsonRpc *jsonrpc);
+
+  /// Get the internal JsonRpc instance as a ServerJsonRpc object.
+  ClientJsonRpc *clientJsonRpc()
+  {
+    return reinterpret_cast<ClientJsonRpc*>(m_jsonrpc);
+  }
 
   /// JobManager for this client.
   JobManager *m_jobManager;

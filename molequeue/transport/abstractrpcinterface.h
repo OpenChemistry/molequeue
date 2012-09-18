@@ -22,6 +22,8 @@
 #include <molequeue/molequeueglobal.h>
 #include <molequeue/transport/message.h>
 
+#include "mqconnectionexport.h"
+
 class AbstractRpcInterfaceTest;
 
 namespace Json
@@ -37,10 +39,10 @@ class Message;
 
 /**
  * @class AbstractRpcInterface abstractrpcinterface.h <molequeue/abstractrpcinterface.h>
- * @brief Shared functionality between Client and Server
+ * @brief Bridge between application and JSON-RPC interprocess communication.
  * @author David C. Lonie
  */
-class AbstractRpcInterface : public QObject
+class MQCONNECTION_EXPORT AbstractRpcInterface : public QObject
 {
   Q_OBJECT
 public:
@@ -126,6 +128,9 @@ protected slots:
                               const Json::Value &errorDataObject);
 
 protected:
+
+  /// Set the JsonRpc object for this interface.
+  virtual void setJsonRpc(JsonRpc *jsonrpc);
 
   /**
    * @return The next packet id.

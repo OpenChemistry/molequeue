@@ -17,7 +17,7 @@
 #include "filespecification.h"
 
 #include "logger.h"
-#include "qtjson.h"
+#include "transport/qtjson.h"
 
 #include <QtCore/QDir>
 #include <QtCore/QFile>

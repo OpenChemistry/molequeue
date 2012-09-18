@@ -17,8 +17,8 @@
 #include "abstractrpcinterface.h"
 
 #include "jsonrpc.h"
-#include "transport/connection.h"
-#include "transport/message.h"
+#include "connection.h"
+#include "message.h"
 
 #include <QtCore/QDataStream>
 #include <QtCore/QDateTime>
@@ -31,43 +31,12 @@ namespace MoleQueue
 
 AbstractRpcInterface::AbstractRpcInterface(QObject *parentObject) :
   QObject(parentObject),
-  m_jsonrpc(new JsonRpc (this)),
+  m_jsonrpc(NULL),
   m_packetCounter(0)
 {
   // Randomize the packet counter's starting value.
   qsrand(static_cast<uint>(QDateTime::currentMSecsSinceEpoch()));
   m_packetCounter = static_cast<IdType>(qrand());
-
-  connect(m_jsonrpc, SIGNAL(invalidPacketReceived(MoleQueue::Connection*,
-                                                  MoleQueue::EndpointId,
-                                                  Json::Value,Json::Value)),
-          this, SLOT(replyToInvalidPacket(MoleQueue::Connection*,
-                                          MoleQueue::EndpointId,
-                                          Json::Value,Json::Value)));
-  connect(m_jsonrpc, SIGNAL(invalidRequestReceived(MoleQueue::Connection*,
-                                                   MoleQueue::EndpointId,
-                                                   Json::Value,Json::Value)),
-          this, SLOT(replyToInvalidRequest(MoleQueue::Connection*,
-                                           MoleQueue::EndpointId,
-                                           Json::Value,Json::Value)));
-  connect(m_jsonrpc, SIGNAL(unrecognizedRequestReceived(MoleQueue::Connection*,
-                                                        MoleQueue::EndpointId,
-                                                        Json::Value,Json::Value)),
-          this, SLOT(replyToUnrecognizedRequest(MoleQueue::Connection*,
-                                                MoleQueue::EndpointId,
-                                                Json::Value,Json::Value)));
-  connect(m_jsonrpc, SIGNAL(invalidRequestParamsReceived(MoleQueue::Connection*,
-                                                         MoleQueue::EndpointId,
-                                                         Json::Value,Json::Value)),
-          this, SLOT(replyToinvalidRequestParams(MoleQueue::Connection*,
-                                                 MoleQueue::EndpointId,
-                                                 Json::Value,Json::Value)));
-  connect(m_jsonrpc, SIGNAL(internalErrorOccurred(MoleQueue::Connection*,
-                                                  MoleQueue::EndpointId,
-                                                  Json::Value,Json::Value)),
-          this, SLOT(replyWithInternalError(MoleQueue::Connection*,
-                                            MoleQueue::EndpointId,
-                                            Json::Value,Json::Value)));
 }
 
 AbstractRpcInterface::~AbstractRpcInterface()
@@ -148,6 +117,42 @@ void AbstractRpcInterface::replyWithInternalError(MoleQueue::Connection *connect
   Message msg(replyTo, packet);
 
   connection->send(msg);
+}
+
+void AbstractRpcInterface::setJsonRpc(JsonRpc *jsonrpc)
+{
+  m_jsonrpc = jsonrpc;
+
+  connect(m_jsonrpc, SIGNAL(invalidPacketReceived(MoleQueue::Connection*,
+                                                  MoleQueue::EndpointId,
+                                                  Json::Value,Json::Value)),
+          this, SLOT(replyToInvalidPacket(MoleQueue::Connection*,
+                                          MoleQueue::EndpointId,
+                                          Json::Value,Json::Value)));
+  connect(m_jsonrpc, SIGNAL(invalidRequestReceived(MoleQueue::Connection*,
+                                                   MoleQueue::EndpointId,
+                                                   Json::Value,Json::Value)),
+          this, SLOT(replyToInvalidRequest(MoleQueue::Connection*,
+                                           MoleQueue::EndpointId,
+                                           Json::Value,Json::Value)));
+  connect(m_jsonrpc, SIGNAL(unrecognizedRequestReceived(MoleQueue::Connection*,
+                                                        MoleQueue::EndpointId,
+                                                        Json::Value,Json::Value)),
+          this, SLOT(replyToUnrecognizedRequest(MoleQueue::Connection*,
+                                                MoleQueue::EndpointId,
+                                                Json::Value,Json::Value)));
+  connect(m_jsonrpc, SIGNAL(invalidRequestParamsReceived(MoleQueue::Connection*,
+                                                         MoleQueue::EndpointId,
+                                                         Json::Value,Json::Value)),
+          this, SLOT(replyToinvalidRequestParams(MoleQueue::Connection*,
+                                                 MoleQueue::EndpointId,
+                                                 Json::Value,Json::Value)));
+  connect(m_jsonrpc, SIGNAL(internalErrorOccurred(MoleQueue::Connection*,
+                                                  MoleQueue::EndpointId,
+                                                  Json::Value,Json::Value)),
+          this, SLOT(replyWithInternalError(MoleQueue::Connection*,
+                                            MoleQueue::EndpointId,
+                                            Json::Value,Json::Value)));
 }
 
 IdType AbstractRpcInterface::nextPacketId()
