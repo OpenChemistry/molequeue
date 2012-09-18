@@ -218,7 +218,7 @@ protected slots:
    * @param errorMessage Descriptive string detail the failure.
    */
   void failedSubmissionReceived(MoleQueue::IdType,
-                                MoleQueue::JobSubmissionErrorCode errorCode,
+                                MoleQueue::ErrorCode errorCode,
                                 const QString &errorMessage);
 
   /**
@@ -228,6 +228,18 @@ protected slots:
    */
   void jobCancellationConfirmationReceived(MoleQueue::IdType,
                                            MoleQueue::IdType moleQueueId);
+
+  /**
+   * Called when the JsonRpc instance handles a job cancellation response.
+   *
+   * @param moleQueueId Unique MoleQueue identifier for the job.
+    * @param errorCode Error code.
+    * @param message String describing error.
+   */
+  void jobCancellationErrorReceived(
+      MoleQueue::IdType, MoleQueue::IdType moleQueueId,
+      MoleQueue::ErrorCode errorCode,
+      const QString &message);
 
   /**
    * Called when the JsonRpc instance handles a successful lookupJob response.

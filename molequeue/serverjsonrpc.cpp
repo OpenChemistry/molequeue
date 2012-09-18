@@ -64,6 +64,23 @@ PacketType ServerJsonRpc::generateJobCancellationConfirmation(
   return ret;
 }
 
+PacketType ServerJsonRpc::generateJobCancellationError(
+    ErrorCode errorCode, const QString &message,
+    IdType moleQueueId, IdType packetId)
+{
+  Json::Value packet = generateEmptyError(packetId);
+
+  packet["error"]["code"]    = errorCode;
+  packet["error"]["message"] = message.toStdString();
+  packet["error"]["data"]    = moleQueueId;
+
+  Json::StyledWriter writer;
+  std::string ret_stdstr = writer.write(packet);
+  PacketType ret (ret_stdstr.c_str());
+
+  return ret;
+}
+
 PacketType ServerJsonRpc::generateLookupJobResponse(
     const Job &req, IdType moleQueueId, IdType packetId)
 {

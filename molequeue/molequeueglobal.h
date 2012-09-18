@@ -139,15 +139,19 @@ inline JobState stringToJobState(const char *str)
 }
 
 /**
-  * Enumeration defining possible job submission error codes.
+  * Enumeration defining possible error codes.
   */
-enum JobSubmissionErrorCode {
+enum ErrorCode {
   /// No error occurred.
-  Success = 0,
+  NoError = 0,
   /// Requested queue does not exist.
   InvalidQueue,
   /// Requested program does not exist on queue.
-  InvalidProgram
+  InvalidProgram,
+  /// Job with specified MoleQueue id does not exist.
+  InvalidMoleQueueId,
+  /// Job is not in the proper state for the requested operation
+  InvalidJobState
 };
 
 /// Default time in between remote queue updates in minutes.
@@ -166,6 +170,6 @@ Q_DECLARE_METATYPE(MoleQueue::IdType)
 Q_DECLARE_METATYPE(MoleQueue::PacketType)
 Q_DECLARE_METATYPE(MoleQueue::QueueListType)
 Q_DECLARE_METATYPE(MoleQueue::JobState)
-Q_DECLARE_METATYPE(MoleQueue::JobSubmissionErrorCode)
+Q_DECLARE_METATYPE(MoleQueue::ErrorCode)
 
 #endif // MOLEQUEUEGLOBAL_H

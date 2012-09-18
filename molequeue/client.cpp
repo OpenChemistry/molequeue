@@ -114,7 +114,7 @@ void Client::successfulSubmissionReceived(IdType packetId,
 }
 
 void Client::failedSubmissionReceived(IdType packetId,
-                                      JobSubmissionErrorCode,
+                                      ErrorCode,
                                       const QString &errorMessage)
 {
   if (!m_submittedLUT->contains(packetId)) {
@@ -155,6 +155,31 @@ void Client::jobCancellationConfirmationReceived(IdType packetId,
   }
 
   emit jobCanceled(req, true, QString());
+}
+
+void Client::jobCancellationErrorReceived(IdType packetId, IdType moleQueueId,
+                                          ErrorCode,
+                                          const QString &message)
+{
+  if (!m_canceledLUT->contains(packetId)) {
+    qWarning() << "Client received a submission confirmation with an "
+                  "unrecognized packet id.";
+    return;
+  }
+
+  JobRequest req = m_canceledLUT->take(packetId);
+  if (!req.isValid()) {
+    qWarning() << "Client received a successful job cancellation response for a "
+                  "job that does not exist in the job list.";
+    return;
+  }
+
+  if (req.moleQueueId() != moleQueueId) {
+    qWarning() << "Warning: MoleQueue id of canceled job does not match packet"
+                  " id.";
+  }
+
+  emit jobCanceled(req, false, message);
 }
 
 void Client::lookupJobResponseReceived(IdType,
@@ -223,16 +248,24 @@ void Client::setJsonRpc(JsonRpc *jsonrpc)
                                                   QDir)));
   connect(clientJsonRpc(),
           SIGNAL(failedSubmissionReceived(MoleQueue::IdType,
-                                          MoleQueue::JobSubmissionErrorCode,
+                                          MoleQueue::ErrorCode,
                                           QString)),
           this, SLOT(failedSubmissionReceived(MoleQueue::IdType,
-                                              MoleQueue::JobSubmissionErrorCode,
+                                              MoleQueue::ErrorCode,
                                               QString)));
   connect(clientJsonRpc(),
           SIGNAL(jobCancellationConfirmationReceived(MoleQueue::IdType,
                                                      MoleQueue::IdType)),
           this, SLOT(jobCancellationConfirmationReceived(MoleQueue::IdType,
                                                          MoleQueue::IdType)));
+  connect(m_jsonrpc,
+          SIGNAL(jobCancellationErrorReceived(MoleQueue::IdType,
+                                              MoleQueue::IdType,
+                                              MoleQueue::ErrorCode,QString)),
+          this, SLOT(jobCancellationErrorReceived(MoleQueue::IdType,
+                                                  MoleQueue::IdType,
+                                                  MoleQueue::ErrorCode,
+                                                  QString)));
   connect(clientJsonRpc(), SIGNAL(lookupJobResponseReceived(MoleQueue::IdType,
                                                             QVariantHash)),
           this, SLOT(lookupJobResponseReceived(MoleQueue::IdType,

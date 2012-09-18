@@ -198,18 +198,49 @@ void Server::jobCancellationRequestReceived(MoleQueue::Connection *connection,
   if (!job.isValid()) {
     Logger::logWarning(tr("Received cancellation request for job with invalid "
                           "MoleQueue id '%1'.").arg(moleQueueId));
+    QString err(tr("Unrecognized molequeue id: %1").arg(moleQueueId));
+    this->sendFailedCancellationResponse(connection, replyTo, moleQueueId,
+                                         InvalidMoleQueueId, err);
+    return;
   }
-  else {
-    Queue *queue = m_queueManager->lookupQueue(job.queue());
-    if (!queue) {
-      Logger::logWarning(tr("Cannot cancel job with MoleQueue id '%1': Unknown "
-                            "Queue ('%2').").arg(job.moleQueueId())
-                         .arg(job.queue()));
-    }
-    else {
-      queue->killJob(job);
-    }
+
+  JobState state = job.jobState();
+  bool stateValid = false;
+  switch (state) {
+  case MoleQueue::LocalQueued:
+  case MoleQueue::Submitted:
+  case MoleQueue::RemoteQueued:
+  case MoleQueue::RunningLocal:
+  case MoleQueue::RunningRemote:
+    stateValid = true;
+  default:
+    break;
   }
+
+  if (!stateValid) {
+    Logger::logWarning(tr("Cannot cancel job with MoleQueue id '%1': Invalid "
+                          "job state ('%2').").arg(job.moleQueueId())
+                       .arg(jobStateToString(state)));
+    QString err(tr("Cannot kill non-running job %1 (job state: %2)")
+                .arg(moleQueueId).arg(jobStateToString(state)));
+    this->sendFailedCancellationResponse(connection, replyTo, moleQueueId,
+                                         InvalidJobState, err);
+    return;
+  }
+
+  Queue *queue = m_queueManager->lookupQueue(job.queue());
+  if (!queue) {
+    Logger::logWarning(tr("Cannot cancel job with MoleQueue id '%1': Unknown "
+                          "Queue ('%2').").arg(job.moleQueueId())
+                       .arg(job.queue()));
+    QString err(tr("Cannot kill job %1. Unknown queue (%2)").arg(moleQueueId)
+                .arg(job.queue()));
+    this->sendFailedCancellationResponse(connection, replyTo, moleQueueId,
+                                         InvalidQueue, err);
+    return;
+  }
+
+  queue->killJob(job);
 
   sendSuccessfulCancellationResponse(connection, replyTo, moleQueueId);
 }
@@ -315,7 +346,7 @@ void Server::sendSuccessfulSubmissionResponse(MoleQueue::Connection *connection,
 void Server::sendFailedSubmissionResponse(MoleQueue::Connection *connection,
                                           MoleQueue::EndpointId replyTo,
                                           const Job &job,
-                                          JobSubmissionErrorCode ec,
+                                          ErrorCode ec,
                                           const QString &errorMessage)
 {
   // Lookup the moleQueueId in the hash so that we can send the correct packetId
@@ -349,6 +380,28 @@ void Server::sendSuccessfulCancellationResponse(MoleQueue::Connection *connectio
   const IdType packetId = m_cancellationLUT.take(moleQueueId);
   PacketType packet = serverJsonRpc()->generateJobCancellationConfirmation(
       moleQueueId, packetId);
+
+  Message msg(replyTo, packet);
+
+  connection->send(msg);
+}
+
+void Server::sendFailedCancellationResponse(Connection *connection,
+                                            EndpointId replyTo,
+                                            IdType moleQueueId,
+                                            ErrorCode error,
+                                            const QString &message)
+{
+  // Lookup the moleQueueId in the hash so that we can send the correct packetId
+  if (!m_cancellationLUT.contains(moleQueueId)) {
+    Logger::logWarning(tr("Cannot reply to job cancellation of unrecognized "
+                          "MoleQueue id '%1'").arg(moleQueueId), moleQueueId);
+    return;
+  }
+
+  const IdType packetId = m_cancellationLUT.take(moleQueueId);
+  PacketType packet =  serverJsonRpc()->generateJobCancellationError(
+        error, message, moleQueueId, packetId);
 
   Message msg(replyTo, packet);
 

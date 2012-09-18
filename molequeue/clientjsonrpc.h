@@ -116,7 +116,7 @@ signals:
     * @param errorMessage Descriptive string identifying the error.
     */
   void failedSubmissionReceived(MoleQueue::IdType packetId,
-                                MoleQueue::JobSubmissionErrorCode errorCode,
+                                MoleQueue::ErrorCode errorCode,
                                 const QString &errorMessage) const;
 
   /**
@@ -127,6 +127,19 @@ signals:
     */
   void jobCancellationConfirmationReceived(MoleQueue::IdType packetId,
                                            MoleQueue::IdType moleQueueId) const;
+
+  /**
+    * Emitted when a job cancellation error is received.
+    *
+    * @param packetId The JSON-RPC id for the packet.
+    * @param moleQueueId The internal MoleQueue identifier for the canceled job.
+    * @param errorCode Error code.
+    * @param message String describing error.
+    */
+  void jobCancellationErrorReceived(
+      MoleQueue::IdType packetId, MoleQueue::IdType moleQueueId,
+      MoleQueue::ErrorCode errorCode,
+      const QString &message) const;
 
   /**
     * Emitted when a successful lookupJob response is received.
