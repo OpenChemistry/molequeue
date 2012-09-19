@@ -32,8 +32,10 @@ ServerJsonRpc::~ServerJsonRpc()
 {
 }
 
-PacketType ServerJsonRpc::generateJobSubmissionConfirmation(
-    IdType moleQueueId, const QString &workingDir, IdType packetId)
+PacketType
+ServerJsonRpc::generateJobSubmissionConfirmation(IdType moleQueueId,
+                                                 const QString &workingDir,
+                                                 const MessageIdType &packetId)
 {
   Json::Value packet = generateEmptyResponse(packetId);
 
@@ -51,7 +53,7 @@ PacketType ServerJsonRpc::generateJobSubmissionConfirmation(
 }
 
 PacketType ServerJsonRpc::generateJobCancellationConfirmation(
-    IdType moleQueueId, IdType packetId)
+    IdType moleQueueId, const MessageIdType &packetId)
 {
   Json::Value packet = generateEmptyResponse(packetId);
 
@@ -66,7 +68,7 @@ PacketType ServerJsonRpc::generateJobCancellationConfirmation(
 
 PacketType ServerJsonRpc::generateJobCancellationError(
     ErrorCode errorCode, const QString &message,
-    IdType moleQueueId, IdType packetId)
+    IdType moleQueueId, const MessageIdType &packetId)
 {
   Json::Value packet = generateEmptyError(packetId);
 
@@ -81,8 +83,10 @@ PacketType ServerJsonRpc::generateJobCancellationError(
   return ret;
 }
 
-PacketType ServerJsonRpc::generateLookupJobResponse(
-    const Job &req, IdType moleQueueId, IdType packetId)
+PacketType
+ServerJsonRpc::generateLookupJobResponse(const Job &req,
+                                         IdType moleQueueId,
+                                         const MessageIdType &packetId)
 {
   Json::Value packet;
 
@@ -107,7 +111,7 @@ PacketType ServerJsonRpc::generateLookupJobResponse(
 }
 
 PacketType ServerJsonRpc::generateQueueList(const QueueListType &queueList,
-                                            IdType packetId)
+                                            const MessageIdType &packetId)
 {
   Json::Value packet = generateEmptyResponse(packetId);
 
@@ -169,160 +173,137 @@ int ServerJsonRpc::mapMethodNameToInt(const QString &methodName) const
   return UNRECOGNIZED_METHOD;
 }
 
-void ServerJsonRpc::handlePacket(int method, JsonRpc::PacketForm type,
-                                 Connection *conn, const EndpointId replyTo,
-                                 const Json::Value &root)
+void ServerJsonRpc::handleMessage(int method, const Message &msg)
 {
   switch (method) {
   case LIST_QUEUES:
   {
-    switch (type) {
+    switch (msg.type()) {
     default:
-    case INVALID_PACKET:
-    case NOTIFICATION_PACKET:
-    case RESULT_PACKET:
-    case ERROR_PACKET:
-      handleInvalidRequest(conn, replyTo, root);
+    case Message::INVALID_MESSAGE:
+    case Message::NOTIFICATION_MESSAGE:
+    case Message::RESULT_MESSAGE:
+    case Message::ERROR_MESSAGE:
+      handleInvalidRequest(msg);
       break;
-    case REQUEST_PACKET:
-      handleListQueuesRequest(conn, replyTo, root);
+    case Message::REQUEST_MESSAGE:
+      handleListQueuesRequest(msg);
       break;
     }
     break;
   }
   case SUBMIT_JOB:
   {
-    switch (type) {
+    switch (msg.type()) {
     default:
-    case INVALID_PACKET:
-    case NOTIFICATION_PACKET:
-    case RESULT_PACKET:
-    case ERROR_PACKET:
-      handleInvalidRequest(conn, replyTo, root);
+    case Message::INVALID_MESSAGE:
+    case Message::NOTIFICATION_MESSAGE:
+    case Message::RESULT_MESSAGE:
+    case Message::ERROR_MESSAGE:
+      handleInvalidRequest(msg);
       break;
-    case REQUEST_PACKET:
-      handleSubmitJobRequest(conn, replyTo, root);
+    case Message::REQUEST_MESSAGE:
+      handleSubmitJobRequest(msg);
       break;
     }
     break;
   }
   case CANCEL_JOB:
   {
-    switch (type) {
+    switch (msg.type()) {
     default:
-    case INVALID_PACKET:
-    case NOTIFICATION_PACKET:
-    case RESULT_PACKET:
-    case ERROR_PACKET:
-      handleInvalidRequest(conn, replyTo, root);
+    case Message::INVALID_MESSAGE:
+    case Message::NOTIFICATION_MESSAGE:
+    case Message::RESULT_MESSAGE:
+    case Message::ERROR_MESSAGE:
+      handleInvalidRequest(msg);
       break;
-    case REQUEST_PACKET:
-      handleCancelJobRequest(conn, replyTo, root);
+    case Message::REQUEST_MESSAGE:
+      handleCancelJobRequest(msg);
       break;
     }
     break;
   }
   case LOOKUP_JOB:
   {
-    switch (type) {
+    switch (msg.type()) {
     default:
-    case INVALID_PACKET:
-    case NOTIFICATION_PACKET:
-    case RESULT_PACKET:
-    case ERROR_PACKET:
-      handleInvalidRequest(conn, replyTo, root);
+    case Message::INVALID_MESSAGE:
+    case Message::NOTIFICATION_MESSAGE:
+    case Message::RESULT_MESSAGE:
+    case Message::ERROR_MESSAGE:
+      handleInvalidRequest(msg);
       break;
-    case REQUEST_PACKET:
-      handleLookupJobRequest(conn, replyTo, root);
+    case Message::REQUEST_MESSAGE:
+      handleLookupJobRequest(msg);
       break;
     }
     break;
   }
   case JOB_STATE_CHANGED:
   {
-    handleInvalidRequest(conn, replyTo, root);
+    handleInvalidRequest(msg);
     break;
   }
   default:
-    handleInvalidRequest(conn, replyTo, root);
+    handleInvalidRequest(msg);
     break;
   }
 
 }
 
-void ServerJsonRpc::handleListQueuesRequest(Connection *connection,
-                                            const EndpointId replyTo,
-                                            const Json::Value &root) const
+void ServerJsonRpc::handleListQueuesRequest(const Message &msg) const
 {
-  const IdType id = static_cast<IdType>(root["id"].asLargestUInt());
-  emit queueListRequestReceived(connection, replyTo, id);
+  emit queueListRequestReceived(msg);
 }
 
-void ServerJsonRpc::handleSubmitJobRequest(Connection *connection,
-                                           const EndpointId replyTo,
-                                           const Json::Value &root) const
+void ServerJsonRpc::handleSubmitJobRequest(const Message &msg) const
 {
-  const IdType id = static_cast<IdType>(root["id"].asLargestUInt());
-
-  const Json::Value &paramsObject = root["params"];
+  const Json::Value &paramsObject = msg.json()["params"];
   if (!paramsObject.isObject()) {
-    Json::StyledWriter writer;
-    const std::string requestString = writer.write(root);
     qWarning() << "Error: submitJob request is ill-formed:\n"
-               << requestString.c_str();
+               << msg.data();
     return;
   }
 
   // Populate options object:
   QVariantHash optionHash = QtJson::toVariant(paramsObject).toHash();
 
-  emit jobSubmissionRequestReceived(connection, replyTo, id, optionHash);
+  emit jobSubmissionRequestReceived(msg, optionHash);
 }
 
-void ServerJsonRpc::handleCancelJobRequest(Connection *connection,
-                                           const EndpointId replyTo,
-                                           const Json::Value &root) const
+void ServerJsonRpc::handleCancelJobRequest(const Message &msg) const
 {
-  const IdType id = static_cast<IdType>(root["id"].asLargestUInt());
-
-  const Json::Value &paramsObject = root["params"];
+  const Json::Value &paramsObject = msg.json()["params"];
 
   if (!paramsObject.isObject() ||
       !paramsObject["moleQueueId"].isIntegral()) {
-    Json::StyledWriter writer;
-    const std::string responseString = writer.write(root);
     qWarning() << "Job cancellation request is ill-formed:\n"
-               << responseString.c_str();
+               << msg.data();
     return;
   }
 
   const IdType moleQueueId = static_cast<IdType>(
         paramsObject["moleQueueId"].asLargestUInt());
 
-  emit jobCancellationRequestReceived(connection, replyTo, id, moleQueueId);
+  emit jobCancellationRequestReceived(msg, moleQueueId);
 }
 
-void ServerJsonRpc::handleLookupJobRequest(Connection *connection,
-                                           const EndpointId replyTo,
-                                           const Json::Value &root) const
+void ServerJsonRpc::handleLookupJobRequest(const Message &msg) const
 {
-  const IdType id = static_cast<IdType>(root["id"].asLargestUInt());
-
-  const Json::Value &paramsObject = root["params"];
+  const Json::Value &paramsObject = msg.json()["params"];
 
   if (!paramsObject.isObject() ||
       !paramsObject["moleQueueId"].isIntegral()) {
-    Json::StyledWriter writer;
-    const std::string responseString = writer.write(root);
     qWarning() << "Job lookup request is ill-formed:\n"
-               << responseString.c_str();
+               << msg.data();
     return;
   }
 
   const IdType moleQueueId = static_cast<IdType>(
         paramsObject["moleQueueId"].asLargestUInt());
 
-  emit lookupJobRequestReceived(connection, replyTo, id, moleQueueId);
+  emit lookupJobRequestReceived(msg, moleQueueId);
 }
 
 } // namespace MoleQueue

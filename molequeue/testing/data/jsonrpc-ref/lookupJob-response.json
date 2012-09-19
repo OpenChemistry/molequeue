@@ -1,5 +1,5 @@
 {
-   "id" : 12,
+   "id" : "12",
    "jsonrpc" : "2.0",
    "result" : {
       "cleanLocalWorkingDirectory" : false,

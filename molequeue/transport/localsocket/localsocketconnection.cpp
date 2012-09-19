@@ -95,7 +95,7 @@ void LocalSocketConnection::readSocket()
   PacketType packet;
   (*m_dataStream) >> packet;
 
-  const Message msg(packet);
+  const Message msg(this, EndpointIdType(), packet);
 
   emit newMessage(msg);
 

@@ -13,45 +13,131 @@
   limitations under the License.
 
 ******************************************************************************/
+#include "connection.h"
 #include "molequeueglobal.h"
 #include "message.h"
 
 namespace MoleQueue
 {
 
-Message::Message(PacketType packet)
-  : m_to(), m_replyTo(), m_data(packet)
+Message::Message()
+  : m_connection(NULL), m_endpoint(), m_data(),
+    m_json(Json::nullValue), m_id(), m_type(INVALID_MESSAGE)
 {
-
 }
 
-Message::Message(EndpointId toEndpoint, PacketType packet)
-  : m_to(toEndpoint), m_replyTo(), m_data(packet)
+Message::Message(const PacketType &data_)
+  : m_connection(NULL), m_endpoint(), m_data(data_),
+    m_json(Json::nullValue), m_id(), m_type(INVALID_MESSAGE)
 {
-
+  parse();
 }
 
-Message::Message(EndpointId toEndpoint, EndpointId replyToEndpoint,
-                 PacketType packet)
-  : m_to(toEndpoint), m_replyTo(replyToEndpoint), m_data(packet)
+Message::Message(const Json::Value &json_)
+  : m_connection(NULL), m_endpoint(), m_data(),
+    m_json(json_), m_id(), m_type(INVALID_MESSAGE)
 {
-
+  write();
 }
 
-EndpointId Message::to() const
+Message::Message(Connection *connection_, const EndpointIdType &endpoint_)
+  : m_connection(connection_), m_endpoint(endpoint_), m_data(),
+    m_json(Json::nullValue), m_id(), m_type(INVALID_MESSAGE)
 {
-  return m_to;
 }
 
-
-EndpointId Message::replyTo() const
+Message::Message(Connection *connection_, const EndpointIdType &endpoint_,
+                 const PacketType &data_)
+  : m_connection(connection_), m_endpoint(endpoint_), m_data(data_),
+    m_json(Json::nullValue), m_id(), m_type(INVALID_MESSAGE)
 {
-  return m_replyTo;
+  parse();
 }
 
-PacketType Message::data() const
+Message::Message(Connection *connection_, const EndpointIdType &endpoint_,
+                 const Json::Value &json_)
+  : m_connection(connection_), m_endpoint(endpoint_), m_data(),
+    m_json(json_), m_id(), m_type(INVALID_MESSAGE)
 {
-  return m_data;
+  write();
 }
 
+Message::Message(const Message &other)
+  : m_connection(other.m_connection),
+    m_endpoint(other.m_endpoint),
+    m_data(other.m_data),
+    m_json(other.m_json),
+    m_id(other.m_id),
+    m_type(other.m_type)
+{
 }
+
+Message::Message(const Message &other, const PacketType &data_)
+  : m_connection(other.m_connection),
+    m_endpoint(other.m_endpoint),
+    m_data(data_),
+    m_json(),
+    m_id(other.m_id),
+    m_type(INVALID_MESSAGE)
+{
+  parse();
+}
+
+Message::Message(const Message &other, const Json::Value &json_)
+  : m_connection(other.m_connection),
+    m_endpoint(other.m_endpoint),
+    m_data(),
+    m_json(json_),
+    m_id(other.m_id),
+    m_type(INVALID_MESSAGE)
+{
+  write();
+}
+
+Message &Message::operator=(const Message &other)
+{
+  m_connection = other.m_connection;
+  m_endpoint = other.m_endpoint;
+  m_data = other.m_data;
+  m_json = other.m_json;
+  m_id = other.m_id;
+  m_type = other.m_type;
+  return *this;
+}
+
+void Message::setData(const PacketType &data_)
+{
+  m_data = data_;
+  parse();
+}
+
+void Message::setJson(const Json::Value &json_)
+{
+  m_json = json_;
+  write();
+}
+
+bool Message::parse()
+{
+  Json::Reader reader;
+  bool b = reader.parse(m_data.constBegin(), m_data.constEnd(), m_json, false);
+  if (!b)
+    m_json = Json::nullValue;
+  return b;
+}
+
+void Message::write()
+{
+  m_data = m_json.toStyledString().c_str();
+}
+
+bool Message::send() const
+{
+  if (!m_connection || !m_connection->isOpen())
+    return false;
+
+  m_connection->send(*this);
+  return true;
+}
+
+} // end namespace MoleQueue

@@ -4,6 +4,6 @@
       "data" : 32,
       "message" : "Unknown MoleQueue ID"
    },
-   "id" : 12,
+   "id" : "12",
    "jsonrpc" : "2.0"
 }

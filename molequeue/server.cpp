@@ -170,36 +170,30 @@ void Server::dispatchJobStateChange(const Job &job, JobState oldState,
                                     JobState newState)
 {
   Connection *connection = m_connectionLUT.value(job.moleQueueId());
-  EndpointId replyTo = m_endpointLUT.value(job.moleQueueId());
+  EndpointIdType endpoint = m_endpointLUT.value(job.moleQueueId());
 
   if (connection == NULL)
     return;
 
-  sendJobStateChangeNotification(connection,
-                                 replyTo,
-                                 job, oldState, newState);
+  Message msg(connection, endpoint);
+
+  sendJobStateChangeNotification(msg, job, oldState, newState);
 }
 
-void Server::queueListRequestReceived(MoleQueue::Connection *connection,
-                                      MoleQueue::EndpointId replyTo,
-                                      MoleQueue::IdType packetId)
+void Server::queueListRequestReceived(const Message &request)
 {
-  sendQueueList(connection, replyTo, packetId, m_queueManager->toQueueList());
+  sendQueueList(request, m_queueManager->toQueueList());
 }
 
-void Server::jobCancellationRequestReceived(MoleQueue::Connection *connection,
-                                            MoleQueue::EndpointId replyTo,
-                                            MoleQueue::IdType packetId,
+void Server::jobCancellationRequestReceived(const Message &request,
                                             IdType moleQueueId)
 {
-  m_cancellationLUT.insert(moleQueueId, packetId);
-
   Job job = m_jobManager->lookupJobByMoleQueueId(moleQueueId);
   if (!job.isValid()) {
     Logger::logWarning(tr("Received cancellation request for job with invalid "
                           "MoleQueue id '%1'.").arg(moleQueueId));
     QString err(tr("Unrecognized molequeue id: %1").arg(moleQueueId));
-    this->sendFailedCancellationResponse(connection, replyTo, moleQueueId,
+    this->sendFailedCancellationResponse(request, moleQueueId,
                                          InvalidMoleQueueId, err);
     return;
   }
@@ -223,7 +217,7 @@ void Server::jobCancellationRequestReceived(MoleQueue::Connection *connection,
                        .arg(jobStateToString(state)));
     QString err(tr("Cannot kill non-running job %1 (job state: %2)")
                 .arg(moleQueueId).arg(jobStateToString(state)));
-    this->sendFailedCancellationResponse(connection, replyTo, moleQueueId,
+    this->sendFailedCancellationResponse(request, moleQueueId,
                                          InvalidJobState, err);
     return;
   }
@@ -235,25 +229,24 @@ void Server::jobCancellationRequestReceived(MoleQueue::Connection *connection,
                        .arg(job.queue()));
     QString err(tr("Cannot kill job %1. Unknown queue (%2)").arg(moleQueueId)
                 .arg(job.queue()));
-    this->sendFailedCancellationResponse(connection, replyTo, moleQueueId,
-                                         InvalidQueue, err);
+    this->sendFailedCancellationResponse(request, moleQueueId, InvalidQueue,
+                                         err);
     return;
   }
 
   queue->killJob(job);
 
-  sendSuccessfulCancellationResponse(connection, replyTo, moleQueueId);
+  sendSuccessfulCancellationResponse(request, moleQueueId);
 }
 
-void Server::lookupJobRequestReceived(Connection *connection,
-                                      EndpointId replyTo, IdType packetId,
+void Server::lookupJobRequestReceived(const MoleQueue::Message &request,
                                       IdType moleQueueId)
 {
   Job job = m_jobManager->lookupJobByMoleQueueId(moleQueueId);
   if (job.isValid())
-    sendSuccessfulLookupJobResponse(connection, replyTo, packetId, job);
+    sendSuccessfulLookupJobResponse(request, job);
   else
-    sendFailedLookupJobResponse(connection, replyTo, packetId, moleQueueId);
+    sendFailedLookupJobResponse(request, moleQueueId);
 }
 
 void Server::jobAboutToBeAdded(Job job)
@@ -277,7 +270,7 @@ void Server::newConnectionAvailable(Connection *connection)
 {
   m_connections.append(connection);
   connect(connection, SIGNAL(newMessage(const MoleQueue::Message)),
-          this, SLOT(readPacket(const MoleQueue::Message)));
+          this, SLOT(readMessage(const MoleQueue::Message)));
 
   connect(connection, SIGNAL(disconnected()), this, SLOT(clientDisconnected()));
 
@@ -310,170 +303,102 @@ void Server::clientDisconnected()
   conn->deleteLater();
 }
 
-void Server::sendQueueList(Connection* connection,
-                           EndpointId to,
-                           MoleQueue::IdType packetId,
+void Server::sendQueueList(const Message &request,
                            const QueueListType &queueList)
 {
-  PacketType packet = serverJsonRpc()->generateQueueList(queueList, packetId);
-
-  Message msg(to, packet);
-
-  connection->send(msg);
+  PacketType packet = serverJsonRpc()->generateQueueList(queueList,
+                                                         request.id());
+  Message msg(request, packet);
+  msg.send();
 }
 
-void Server::sendSuccessfulSubmissionResponse(MoleQueue::Connection *connection,
-                                              MoleQueue::EndpointId replyTo,
+void Server::sendSuccessfulSubmissionResponse(const Message &request,
                                               const Job &job)
 {
-  // Lookup the moleQueueId in the hash so that we can send the correct packetId
   const IdType moleQueueId = job.moleQueueId();
-  if (!m_submissionLUT.contains(moleQueueId)) {
-    Logger::logWarning(tr("Cannot confirm job submission for unrecognized "
-                          "MoleQueue id '%1'").arg(moleQueueId), moleQueueId);
-    return;
-  }
-
-  const IdType packetId = m_submissionLUT.take(moleQueueId);
   PacketType packet =  serverJsonRpc()->generateJobSubmissionConfirmation(
-        moleQueueId, job.localWorkingDirectory(), packetId);
+        moleQueueId, job.localWorkingDirectory(), request.id());
 
-  Message msg(replyTo, packet);
-
-  connection->send(msg);
+  Message msg(request, packet);
+  msg.send();
 }
 
-void Server::sendFailedSubmissionResponse(MoleQueue::Connection *connection,
-                                          MoleQueue::EndpointId replyTo,
-                                          const Job &job,
+void Server::sendFailedSubmissionResponse(const Message &request,
                                           ErrorCode ec,
                                           const QString &errorMessage)
 {
-  // Lookup the moleQueueId in the hash so that we can send the correct packetId
-  const IdType moleQueueId = job.moleQueueId();
-  if (!m_submissionLUT.contains(moleQueueId)) {
-    Logger::logWarning(tr("Cannot send job failure message for unrecognized "
-                          "MoleQueue id '%1'").arg(moleQueueId), moleQueueId);
-    return;
-  }
-
-  const IdType packetId = m_submissionLUT.take(moleQueueId);
-
   PacketType packet = serverJsonRpc()->generateErrorResponse(
-        static_cast<int>(ec), errorMessage, packetId);
-  Message msg(replyTo, packet);
-
-  connection->send(msg);
+        static_cast<int>(ec), errorMessage, request.id());
+  Message msg(request, packet);
+  msg.send();
 }
 
-void Server::sendSuccessfulCancellationResponse(MoleQueue::Connection *connection,
-                                                MoleQueue::EndpointId replyTo,
+void Server::sendSuccessfulCancellationResponse(const Message &request,
                                                 IdType moleQueueId)
 {
-  // Lookup the moleQueueId in the hash so that we can send the correct packetId
-  if (!m_cancellationLUT.contains(moleQueueId)) {
-    Logger::logWarning(tr("Cannot confirm job cancellation for unrecognized "
-                          "MoleQueue id '%1'").arg(moleQueueId), moleQueueId);
-    return;
-  }
-
-  const IdType packetId = m_cancellationLUT.take(moleQueueId);
   PacketType packet = serverJsonRpc()->generateJobCancellationConfirmation(
-      moleQueueId, packetId);
-
-  Message msg(replyTo, packet);
-
-  connection->send(msg);
+      moleQueueId, request.id());
+  Message msg(request, packet);
+  msg.send();
 }
 
-void Server::sendFailedCancellationResponse(Connection *connection,
-                                            EndpointId replyTo,
+void Server::sendFailedCancellationResponse(const Message &request,
                                             IdType moleQueueId,
                                             ErrorCode error,
                                             const QString &message)
 {
-  // Lookup the moleQueueId in the hash so that we can send the correct packetId
-  if (!m_cancellationLUT.contains(moleQueueId)) {
-    Logger::logWarning(tr("Cannot reply to job cancellation of unrecognized "
-                          "MoleQueue id '%1'").arg(moleQueueId), moleQueueId);
-    return;
-  }
-
-  const IdType packetId = m_cancellationLUT.take(moleQueueId);
   PacketType packet =  serverJsonRpc()->generateJobCancellationError(
-        error, message, moleQueueId, packetId);
+        error, message, moleQueueId, request.id());
 
-  Message msg(replyTo, packet);
-
-  connection->send(msg);
+  Message msg(request, packet);
+  msg.send();
 }
 
-void Server::sendSuccessfulLookupJobResponse(Connection *connection,
-                                             EndpointId replyTo,
-                                             IdType packetId, const Job &req)
+void Server::sendSuccessfulLookupJobResponse(const Message &request,
+                                             const Job &req)
 {
   PacketType packet = serverJsonRpc()->generateLookupJobResponse(
-        req, req.moleQueueId(), packetId);
-  Message msg(replyTo, packet);
-  connection->send(msg);
+        req, req.moleQueueId(), request.id());
+  Message msg(request, packet);
+  msg.send();
 }
 
-void Server::sendFailedLookupJobResponse(Connection *connection,
-                                         EndpointId replyTo, IdType packetId,
+void Server::sendFailedLookupJobResponse(const Message &request,
                                          IdType moleQueueId)
 {
   PacketType packet = serverJsonRpc()->generateLookupJobResponse(Job(),
                                                                  moleQueueId,
-                                                                 packetId);
-  Message msg(replyTo, packet);
-  connection->send(msg);
+                                                                 request.id());
+  Message msg(request, packet);
+  msg.send();
 }
 
-void Server::sendJobStateChangeNotification(MoleQueue::Connection *connection,
-                                            MoleQueue::EndpointId to,
+void Server::sendJobStateChangeNotification(const Message &connectionInfo,
                                             const Job &job, JobState oldState,
                                             JobState newState)
 {
   PacketType packet = serverJsonRpc()->generateJobStateChangeNotification(
         job.moleQueueId(), oldState, newState);
-
-  Message msg(to, packet);
-
-  connection->send(msg);
+  Message msg(connectionInfo, packet);
+  msg.send();
 }
 
-void Server::jobSubmissionRequestReceived(MoleQueue::Connection *connection,
-                                          MoleQueue::EndpointId replyTo,
-                                          IdType packetId,
+void Server::jobSubmissionRequestReceived(const Message &request,
                                           const QVariantHash &options)
 {
   Job job = jobManager()->newJob(options);
 
-  m_submissionLUT.insert(job.moleQueueId(), packetId);
-  m_connectionLUT.insert(job.moleQueueId(), connection);
-  m_endpointLUT.insert(job.moleQueueId(), replyTo);
+  m_connectionLUT.insert(job.moleQueueId(), request.connection());
+  m_endpointLUT.insert(job.moleQueueId(), request.endpoint());
   m_ownedJobMoleQueueIds.append(job.moleQueueId());
 
-  jobSubmissionRequested(connection, replyTo, job);
-}
-
-void Server::jobSubmissionRequested(MoleQueue::Connection *connection,
-                                    MoleQueue::EndpointId replyTo,
-                                    const Job &job)
-{
-  QString stateString;
-  QVariantHash jobHash = job.hash();
-  foreach (const QString &key, jobHash.keys()) {
-    stateString += QString("%1: '%2' ").arg(key)
-        .arg(jobHash.value(key).toString());
-  }
-  Logger::logDebugMessage(tr("Job submission requested:\n%1").arg(stateString));
+  Logger::logDebugMessage(tr("Job submission requested:\n%1")
+                          .arg(request.data().constData()), job.moleQueueId());
 
   // Lookup queue and submit job.
   Queue *queue = m_queueManager->lookupQueue(job.queue());
   if (!queue) {
-    sendFailedSubmissionResponse(connection, replyTo,
-                                 job, MoleQueue::InvalidQueue,
+    sendFailedSubmissionResponse(request, MoleQueue::InvalidQueue,
                                  tr("Unknown queue: %1").arg(job.queue()));
     Logger::logError(tr("Rejecting job: Unknown queue '%1'").arg(job.queue()),
                      job.moleQueueId());
@@ -484,8 +409,7 @@ void Server::jobSubmissionRequested(MoleQueue::Connection *connection,
   // Check program
   Program *program = queue->lookupProgram(job.program());
   if (!program) {
-    sendFailedSubmissionResponse(connection, replyTo,
-                                 job, MoleQueue::InvalidProgram,
+    sendFailedSubmissionResponse(request, MoleQueue::InvalidProgram,
                                  tr("Unknown program: %1").arg(job.program()));
     Logger::logError(tr("Rejecting job: Program '%1' Does not exist on queue "
                         "'%2'").arg(job.queue(), job.program()),
@@ -496,7 +420,7 @@ void Server::jobSubmissionRequested(MoleQueue::Connection *connection,
 
   // Send the submission confirmation first so that the client can update the
   // MoleQueue id and properly handle packets sent during job submission.
-  sendSuccessfulSubmissionResponse(connection, replyTo, job);
+  sendSuccessfulSubmissionResponse(request, job);
 
   if (!queue->submitJob(job)) {
     Logger::logError(tr("Error starting job! (Refused by queue)"),
@@ -515,47 +439,24 @@ void Server::setJsonRpc(JsonRpc *jsonrpc)
 {
   AbstractRpcInterface::setJsonRpc(jsonrpc);
 
-  connect(serverJsonRpc(),
-          SIGNAL(queueListRequestReceived(MoleQueue::Connection*,
-                                          MoleQueue::EndpointId,
-                                          MoleQueue::IdType)),
-          this,
-          SLOT(queueListRequestReceived(MoleQueue::Connection*,
-                                        MoleQueue::EndpointId,
-                                        MoleQueue::IdType)));
+  connect(serverJsonRpc(), SIGNAL(queueListRequestReceived(MoleQueue::Message)),
+          this, SLOT(queueListRequestReceived(MoleQueue::Message)));
 
   connect(serverJsonRpc(),
-          SIGNAL(jobSubmissionRequestReceived(MoleQueue::Connection*,
-                                              MoleQueue::EndpointId,
-                                              MoleQueue::IdType,
-                                              QVariantHash)),
+          SIGNAL(jobSubmissionRequestReceived(MoleQueue::Message,QVariantHash)),
           this,
-          SLOT(jobSubmissionRequestReceived(MoleQueue::Connection*,
-                                            MoleQueue::EndpointId,
-                                            MoleQueue::IdType,
-                                            QVariantHash)));
+          SLOT(jobSubmissionRequestReceived(MoleQueue::Message,QVariantHash)));
 
   connect(serverJsonRpc(),
-          SIGNAL(jobCancellationRequestReceived(MoleQueue::Connection*,
-                                                MoleQueue::EndpointId,
-                                                MoleQueue::IdType,
+          SIGNAL(jobCancellationRequestReceived(MoleQueue::Message,
                                                 MoleQueue::IdType)),
-          this,
-          SLOT(jobCancellationRequestReceived(MoleQueue::Connection*,
-                                              MoleQueue::EndpointId,
-                                              MoleQueue::IdType,
-                                              MoleQueue::IdType)));
+          this, SLOT(jobCancellationRequestReceived(MoleQueue::Message,
+                                                    MoleQueue::IdType)));
 
-  connect(serverJsonRpc(),
-          SIGNAL(lookupJobRequestReceived(MoleQueue::Connection*,
-                                          MoleQueue::EndpointId,
-                                          MoleQueue::IdType,
-                                          MoleQueue::IdType)),
-          this,
-          SLOT(lookupJobRequestReceived(MoleQueue::Connection*,
-                                        MoleQueue::EndpointId,
-                                        MoleQueue::IdType,
-                                        MoleQueue::IdType)));
+  connect(serverJsonRpc(), SIGNAL(lookupJobRequestReceived(MoleQueue::Message,
+                                                           MoleQueue::IdType)),
+          this, SLOT(lookupJobRequestReceived(MoleQueue::Message,
+                                              MoleQueue::IdType)));
 }
 
 } // end namespace MoleQueue

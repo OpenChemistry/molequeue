@@ -5,12 +5,12 @@
       "jsonrpc" : "2.0"
    },
    {
-      "id" : 23,
+      "id" : "23",
       "params" : [ 1, 2, 3 ],
       "jsonrpc" : "2.0"
    },
    {
-      "id" : 23,
+      "id" : "23",
       "method" : "listQueues",
       "params" : 1,
       "jsonrpc" : "2.0"

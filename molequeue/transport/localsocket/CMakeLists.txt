@@ -1,5 +1,7 @@
 set(mq_localsocket_connection_srcs
-  localsocketconnection.cpp)
+  localsocketconnection.cpp
+  ${jsoncpp_srcs}
+)
 
 set(mq_localsocket_connectionlistener_srcs
   localsocketconnectionlistener.cpp)
@@ -7,14 +9,14 @@ set(mq_localsocket_connectionlistener_srcs
 set(mq_client_localsocket_srcs
   localsocketclient.cpp)
 
-add_library(mqlocalsocketconnection STATIC localsocketconnection.cpp)
+add_library(mqlocalsocketconnection STATIC ${mq_localsocket_connection_srcs})
 set_target_properties(mqlocalsocketconnection PROPERTIES AUTOMOC TRUE)
 target_link_libraries(mqlocalsocketconnection
   mqconnection
   ${QT_LIBRARIES})
 
 add_library(mqlocalsocketconnectionlistener STATIC
-  localsocketconnectionlistener.cpp)
+  ${mq_localsocket_connectionlistener_srcs})
 set_target_properties(mqlocalsocketconnectionlistener PROPERTIES AUTOMOC TRUE)
 target_link_libraries(mqlocalsocketconnectionlistener
   mqconnectionlistener
@@ -22,7 +24,7 @@ target_link_libraries(mqlocalsocketconnectionlistener
   ${QT_LIBRARIES})
 
 # local socket client
-add_library(mqlocalsocketclient localsocketclient.cpp)
+add_library(mqlocalsocketclient ${mq_client_localsocket_srcs})
 set_target_properties(mqlocalsocketclient PROPERTIES AUTOMOC TRUE)
 target_link_libraries(mqlocalsocketclient
   molequeueclient

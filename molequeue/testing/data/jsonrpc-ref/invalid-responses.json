@@ -5,7 +5,7 @@
          "message" : "Method not found: 'justDoWhatIWant'",
          "data" : ["Some", "data"]
       },
-      "id" : 19,
+      "id" : "19",
       "jsonrpc" : "2.0"
    },
    {
@@ -14,7 +14,7 @@
          "message" : 12,
          "data" : { "Some" : "more", "data" : null }
       },
-      "id" : 19,
+      "id" : "19",
       "jsonrpc" : "2.0"
    },
    {
@@ -37,11 +37,11 @@
       "jsonrpc" : "2.0"
    },
    {
-      "id" : 19,
+      "id" : "19",
       "jsonrpc" : "2.0"
    },
    {
-      "id" : 14,
+      "id" : "14",
       "jsonrpc" : "2.0",
       "error" : {
          "code" : 1,

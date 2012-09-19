@@ -3,6 +3,6 @@
       "code" : -32601,
       "message" : "Method not found: 'justDoWhatIWant'"
    },
-   "id" : 19,
+   "id" : "19",
    "jsonrpc" : "2.0"
 }

@@ -55,6 +55,10 @@ private slots:
   void validateRequest();
   void validateResponse();
   void validateNotification();
+
+  void interpretIncomingMessage_unparsable();
+  void interpretIncomingMessage_invalidRequest();
+  void interpretIncomingMessage_unrecognizedRequest();
 };
 
 PacketType JsonRpcTest::readReferenceString(const QString &filename)
@@ -80,7 +84,7 @@ void JsonRpcTest::printNode(const Json::Value &root)
 void JsonRpcTest::initTestCase()
 {
   qRegisterMetaType<MoleQueue::Connection*>("MoleQueue::Connection*");
-  qRegisterMetaType<MoleQueue::EndpointId>("MoleQueue::EndpointId");
+  qRegisterMetaType<MoleQueue::EndpointIdType>("MoleQueue::EndpointIdType");
 }
 
 void JsonRpcTest::cleanupTestCase()
@@ -112,7 +116,7 @@ void JsonRpcTest::validateRequest()
   else {
     for (Json::Value::iterator it = m_root.begin(), it_end = m_root.end();
          it != it_end; ++it) {
-      if (!m_rpc.validateRequest(*it, false)) {
+      if (!m_rpc.validateRequest(Message(*it), false)) {
         qDebug() << "Valid request failed validation:";
         printNode(*it);
         m_error = true;
@@ -131,7 +135,7 @@ void JsonRpcTest::validateRequest()
   else {
     for (Json::Value::iterator it = m_root.begin(), it_end = m_root.end();
          it != it_end; ++it) {
-      if (m_rpc.validateRequest(*it, false)) {
+      if (m_rpc.validateRequest(Message(*it), false)) {
         qDebug() << "Invalid request passed validation:";
         printNode(*it);
         m_error = true;
@@ -151,12 +155,12 @@ void JsonRpcTest::validateRequest()
   else {
     for (Json::Value::iterator it = m_root.begin(), it_end = m_root.end();
          it != it_end; ++it) {
-      if (m_rpc.validateRequest(*it, true)) {
+      if (m_rpc.validateRequest(Message(*it), true)) {
         qDebug() << "Strictly invalid request passed strict validation:";
         printNode(*it);
         m_error = true;
       }
-      if (!m_rpc.validateRequest(*it, false)) {
+      if (!m_rpc.validateRequest(Message(*it), false)) {
         qDebug() << "Strictly invalid request failed loose validation:";
         printNode(*it);
         m_error = true;
@@ -180,7 +184,7 @@ void JsonRpcTest::validateResponse()
   else {
     for (Json::Value::iterator it = m_root.begin(), it_end = m_root.end();
          it != it_end; ++it) {
-      if (!m_rpc.validateResponse(*it, false)) {
+      if (!m_rpc.validateResponse(Message(*it), false)) {
         qDebug() << "Valid response failed validation:";
         printNode(*it);
         m_error = true;
@@ -199,7 +203,7 @@ void JsonRpcTest::validateResponse()
   else {
     for (Json::Value::iterator it = m_root.begin(), it_end = m_root.end();
          it != it_end; ++it) {
-      if (m_rpc.validateResponse(*it, false)) {
+      if (m_rpc.validateResponse(Message(*it), false)) {
         qDebug() << "Invalid response passed validation:";
         printNode(*it);
         m_error = true;
@@ -219,12 +223,12 @@ void JsonRpcTest::validateResponse()
   else {
     for (Json::Value::iterator it = m_root.begin(), it_end = m_root.end();
          it != it_end; ++it) {
-      if (m_rpc.validateResponse(*it, true)) {
+      if (m_rpc.validateResponse(Message(*it), true)) {
         qDebug() << "Strictly invalid response passed strict validation:";
         printNode(*it);
         m_error = true;
       }
-      if (!m_rpc.validateResponse(*it, false)) {
+      if (!m_rpc.validateResponse(Message(*it), false)) {
         qDebug() << "Strictly invalid response failed loose validation:";
         printNode(*it);
         m_error = true;
@@ -248,7 +252,7 @@ void JsonRpcTest::validateNotification()
   else {
     for (Json::Value::iterator it = m_root.begin(), it_end = m_root.end();
          it != it_end; ++it) {
-      if (!m_rpc.validateNotification(*it, false)) {
+      if (!m_rpc.validateNotification(Message(*it), false)) {
         qDebug() << "Valid notification failed validation:";
         printNode(*it);
         m_error = true;
@@ -268,7 +272,7 @@ void JsonRpcTest::validateNotification()
   else {
     for (Json::Value::iterator it = m_root.begin(), it_end = m_root.end();
          it != it_end; ++it) {
-      if (m_rpc.validateNotification(*it, false)) {
+      if (m_rpc.validateNotification(Message(*it), false)) {
         qDebug() << "Invalid notification passed validation:";
         printNode(*it);
         m_error = true;
@@ -288,12 +292,12 @@ void JsonRpcTest::validateNotification()
   else {
     for (Json::Value::iterator it = m_root.begin(), it_end = m_root.end();
          it != it_end; ++it) {
-      if (m_rpc.validateNotification(*it, true)) {
+      if (m_rpc.validateNotification(Message(*it), true)) {
         qDebug() << "Strictly invalid notification passed strict validation:";
         printNode(*it);
         m_error = true;
       }
-      if (!m_rpc.validateNotification(*it, false)) {
+      if (!m_rpc.validateNotification(Message(*it), false)) {
         qDebug() << "Strictly invalid notification failed loose validation:";
         printNode(*it);
         m_error = true;
@@ -302,6 +306,37 @@ void JsonRpcTest::validateNotification()
   }
 
   QVERIFY(m_error == false);
+}
+
+void JsonRpcTest::interpretIncomingMessage_unparsable()
+{
+  QSignalSpy spy(&m_rpc, SIGNAL(invalidMessageReceived(MoleQueue::Message,
+                                                       Json::Value)));
+  m_packet = "[I'm not valid JSON!}";
+  m_rpc.interpretIncomingMessage(Message(m_packet));
+
+  QCOMPARE(spy.count(), 1);
+}
+
+void JsonRpcTest::interpretIncomingMessage_invalidRequest()
+{
+  QSignalSpy spy(&m_rpc, SIGNAL(invalidRequestReceived(MoleQueue::Message,
+                                                       Json::Value)));
+  m_packet = "{\"I'm valid JSON\" : \"but not JSON-RPC\"}";
+  m_rpc.interpretIncomingMessage(Message(m_packet));
+
+  QCOMPARE(spy.count(), 1);
+}
+
+void JsonRpcTest::interpretIncomingMessage_unrecognizedRequest()
+{
+  QSignalSpy spy(&m_rpc,
+                 SIGNAL(unrecognizedRequestReceived(MoleQueue::Message,
+                                                    Json::Value)));
+  m_packet = "{ \"jsonrpc\" : \"2.0\", \"id\" : \"0\", \"method\" : \"asdf\" }";
+  m_rpc.interpretIncomingMessage(Message(m_packet));
+
+  QCOMPARE(spy.count(), 1);
 }
 
 QTEST_MAIN(JsonRpcTest)
