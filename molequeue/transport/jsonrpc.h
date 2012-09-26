@@ -111,7 +111,7 @@ public:
     */
   PacketType generateErrorResponse(int errorCode,
                                    const QString &message,
-                                   IdType packetId);
+                                   const MessageIdType &packetId);
 
   /**
     * Generate a JSON-RPC response packet to notify of an error.
@@ -126,7 +126,7 @@ public:
   PacketType generateErrorResponse(int errorCode,
                                    const QString &message,
                                    const Json::Value &data,
-                                   IdType packetId);
+                                   const MessageIdType &packetId);
 
   /**
     * Generate a JSON-RPC response packet to notify of an error.
@@ -157,165 +157,106 @@ public:
                                    const Json::Value &packetId);
 
   /**
-    * Read a newly received packet.
-    * The packet(s) are split and interpreted, and signals are emitted
-    * depending on the type of packets.
+    * Read a newly received message.
+    * The message(s) are split and interpreted, and signals are emitted
+    * depending on the type and method of message.
     *
-    * @param connection The connection the RPC was recieved on
-    * @param msg A packet containing a single or batch JSON-RPC transmission.
-    * @return A QVector containing the packetIds of the data.
-    */
-  void interpretIncomingPacket(Connection *connection,
-                               const Message msg);
-
-  /**
-    * Process a JSON-RPC packet and return a QVector containing the packetId(s).
-    * The packet(s) are split and interpreted, and signals are emitted
-    * depending on the type of packets.
-    *
-    * @param connection The connection the RPC was received on
-    * @param replyTo The reply to endpoint to identify the client.
-    * @param data A JsonCpp value containing a single or batch JSON-RPC
+    * @param msg A Message object containing a single or batch JSON-RPC
     * transmission.
-    * @return A QVector containing the packetIds of the data.
     */
-  void interpretIncomingJsonRpc(Connection *connection,
-                                EndpointId replyTo,
-                                const Json::Value &data);
+  void interpretIncomingMessage(const Message &msg);
 
   /**
-    * @param strict If false, minor errors (e.g. extra keys) will result in a
-    * warning, but will not cause the function to return false.
-    * @return True if the input JSON snippet is a valid JSON-RPC 2.0 request.
-    */
-  bool validateRequest(const PacketType &, bool strict = false);
-
-  /**
-    * @param strict If false, minor errors (e.g. extra keys) will result in a
-    * warning, but will not cause the function to return false.
+    * @param strict If false, minor errors (e.g. extra keys)
+    * will not cause the function to return false.
     * @return True if the input JSON object is a valid JSON-RPC 2.0 request.
     */
-  bool validateRequest(const Json::Value &, bool strict = false);
+  bool validateRequest(const Message &msg, bool strict = false);
 
   /**
-    * @param strict If false, minor errors (e.g. extra keys) will result in a
-    * warning, but will not cause the function to return false.
-    * @return True if the input JSON snippet is a valid JSON-RPC 2.0 response.
-    */
-  bool validateResponse(const PacketType &, bool strict = false);
-
-  /**
-    * @param strict If false, minor errors (e.g. extra keys) will result in a
-    * warning, but will not cause the function to return false.
+    * @param strict If false, minor errors (e.g. extra keys)
+    * will not cause the function to return false.
     * @return True if the input JSON object is a valid JSON-RPC 2.0 response.
     */
-  bool validateResponse(const Json::Value &, bool strict = false);
+  bool validateResponse(const Message &msg, bool strict = false);
 
   /**
-    * @param strict If false, minor errors (e.g. extra keys) will result in a
-    * warning, but will not cause the function to return false.
-    * @return True if the input JSON snippet is a valid JSON-RPC 2.0
-    * notification.
-    */
-  bool validateNotification(const PacketType &, bool strict = false);
-
-  /**
-    * @param strict If false, minor errors (e.g. extra keys) will result in a
-    * warning, but will not cause the function to return false.
+    * @param strict If false, minor errors (e.g. extra keys)
+    * but will not cause the function to return false.
     * @return True if the input JSON object is a valid JSON-RPC 2.0
     * notification.
     */
-  bool validateNotification(const Json::Value &, bool strict = false);
+  bool validateNotification(const Message &msg, bool strict = false);
 
 signals:
 
   /**
     * Emitted when a packet containing invalid JSON is received. The connected
-    * client or server must send an error -32700 "Parse error".
+    * AbstractRpcInterface subclass will send an error -32700 "Parse error".
     *
-    * @param connection The connection the invalid packet was received on
-    * @param replyTo The reply to endpoint to identify the client.
-    * @param packetId JSON value representing the packetId
+    * @param request The invalid request Message.
     * @param errorDataObject JSON object to be used as the data value in the
     * error object.
     */
-  void invalidPacketReceived(MoleQueue::Connection *connection,
-                             const MoleQueue::EndpointId replyTo,
-                             const Json::Value &packetId,
-                             const Json::Value &errorDataObject) const;
+  void invalidMessageReceived(const MoleQueue::Message &request,
+                              const Json::Value &errorDataObject) const;
 
   /**
     * Emitted when an invalid JSON-RPC request is received. The connected
-    * client or server must send an error -32600 "Invalid request".
+    * AbstractRpcInterface subclass will send an error -32600 "Invalid request".
     *
-    * @param connection The connection the invalid request was received on
-    * @param replyTo The reply to endpoint to identify the client.
-    * @param packetId JSON value representing the packetId
+    * @param request The invalid request Message.
     * @param errorDataObject JSON object to be used as the data value in the
     * error object.
     */
-  void invalidRequestReceived(MoleQueue::Connection *connection,
-                              const MoleQueue::EndpointId replyTo,
-                              const Json::Value &packetId,
+  void invalidRequestReceived(const MoleQueue::Message &request,
                               const Json::Value &errorDataObject) const;
 
   /**
     * Emitted when a valid JSON-RPC request with an unknown method is received.
-    * The connected client or server must send an error -32601
+    * The connected AbstractRpcInterface subclass will send an error -32601
     * "Method not found".
     *
-    * @param connection The connection the unrecognized request was received on
-    * @param replyTo The reply to endpoint to identify the client.
-    * @param packetId JSON value representing the packetId
+    * @param request The invalid request Message.
     * @param errorDataObject JSON object to be used as the data value in the
     * error object.
     */
-  void unrecognizedRequestReceived(MoleQueue::Connection *connection,
-                                   const MoleQueue::EndpointId replyTo,
-                                   const Json::Value &packetId,
+  void unrecognizedRequestReceived(const MoleQueue::Message &request,
                                    const Json::Value &errorDataObject) const;
 
   /**
     * Emitted when a valid JSON-RPC request with a known method and invalid
-    * parameters is received. The connected client or server must send an
-    * error -32602 "Invalid params".
+    * parameters is received. The connected AbstractRpcInterface subclass will
+    * send an error -32602 "Invalid params".
     *
-    * @param connection The connection the request was received on
-    * @param replyTo The reply to endpoint to identify the client.
-    * @param packetId JSON value representing the packetId
+    * @param request The invalid request Message.
     * @param errorDataObject JSON object to be used as the data value in the
     * error object.
     */
-  void invalidRequestParamsReceived(MoleQueue::Connection *connection,
-                                    const MoleQueue::EndpointId replyTo,
-                                    const Json::Value &packetId,
+  void invalidRequestParamsReceived(const MoleQueue::Message &request,
                                     const Json::Value &errorDataObject) const;
 
   /**
-    * Emitted when an internal JSON-RPC error occurs. The connected client or
-    * server must send an error -32603 "Internal error".
+    * Emitted when an internal JSON-RPC error occurs. The connected
+    * AbstractRpcInterface subclass will send an error -32603 "Internal error".
     *
-    * @param connection The connection TODO DOCUMENT
-    * @param replyTo The reply to endpoint to identify the client.
-    * @param packetId JSON value representing the packetId
+    * @param request The invalid request Message.
     * @param errorDataObject JSON object to be used as the data value in the
     * error object.
     */
-  void internalErrorOccurred(MoleQueue::Connection *connection,
-                             const MoleQueue::EndpointId replyTo,
-                             const Json::Value &packetId,
+  void internalErrorOccurred(const MoleQueue::Message &request,
                              const Json::Value &errorDataObject) const;
 
 protected:
   /// Create and return a new JsonCpp JSON-RPC request.
   /// @param id JSON-RPC id
-  static Json::Value generateEmptyRequest(IdType id);
+  static Json::Value generateEmptyRequest(const MessageIdType &id);
   /// Create and return a new JsonCpp JSON-RPC response.
   /// @param id JSON-RPC id
-  static Json::Value generateEmptyResponse(IdType id);
+  static Json::Value generateEmptyResponse(const MessageIdType &id);
   /// Create and return a new JsonCpp JSON-RPC error response.
   /// @param id JSON-RPC id
-  static Json::Value generateEmptyError(IdType id);
+  static Json::Value generateEmptyError(const MessageIdType &id);
   /// Create and return a new JsonCpp JSON-RPC error response.
   /// @param id JSON-RPC id
   static Json::Value generateEmptyError(const Json::Value &id);
@@ -323,33 +264,24 @@ protected:
   /// @param id JSON-RPC id
   static Json::Value generateEmptyNotification();
 
-  /// Enum describing the types of packets that the implementation is aware of.
-  enum PacketForm {
-    INVALID_PACKET = -1,
-    REQUEST_PACKET,
-    RESULT_PACKET,
-    ERROR_PACKET,
-    NOTIFICATION_PACKET
-  };
-
   /// Enum describing the invalid/erronous methods to be handled by this class.
-  /// All members must be negative
+  /// All members must be negative.
   enum InvalidMethod {
     /// Packet is a response to a request originating from a different client.
     IGNORE_METHOD = -1,
-    /// Method is not known
+    /// Method is not known.
     UNRECOGNIZED_METHOD = -2,
-    /// Method member is not valid (e.g. not a string)
+    /// Method member is not valid (e.g. not a string).
     INVALID_METHOD = -3
   };
 
-  /// @param root Input JSOC-RPC packet
-  /// @return The PacketType of the packet
-  PacketForm guessPacketForm(const Json::Value &root) const;
+  /// @param msg Input JSOC-RPC Message.
+  /// @return The Message::Type of the Message.
+  Message::Type guessMessageType(const Message &msg) const;
 
-  /// @param root Input JSOC-RPC packet
-  /// @return The PacketMethod of a request/notification
-  int guessPacketMethod(const Json::Value &root) const;
+  /// @param msg Input JSOC-RPC Message
+  /// @return The method of the request, reply, or error message.
+  int guessMessageMethod(const Message &msg) const;
 
   /**
    * @brief mapMethodNameToInt Convert \a methodName into a subclass specific
@@ -366,7 +298,7 @@ protected:
   virtual int mapMethodNameToInt(const QString &methodName) const = 0;
 
   /**
-   * @brief handlePacket Handle a well-formed incoming packet.
+   * @brief handleMessage Handle a well-formed incoming message.
    *
    * Implement this method in derived classes to handle incoming messages. The
    * \a msg will be of type \a type (i.e. request, result, error, notification),
@@ -375,29 +307,18 @@ protected:
    *
    * @param method Non-negative integer representing a known method. Guaranteed
    * to be a return value from mapMethodNameToInt.
-   * @param conn Originating connection
+   * @param message Message object
    */
-  virtual void handlePacket(int method, PacketForm type,
-                            MoleQueue::Connection *conn,
-                            const EndpointId replyTo,
-                            const Json::Value &root) = 0;
+  virtual void handleMessage(int method, const Message &message) = 0;
 
   /// Extract data and emit signal for unparsable JSON.
-  /// @param root Invalid request data
-  void handleUnparsablePacket(MoleQueue::Connection *connection,
-                              const Message msg) const;
+  void handleUnparsableMessage(const Message &msg) const;
 
   /// Extract data and emit signal for a invalid request.
-  /// @param root Invalid request data
-  void handleInvalidRequest(MoleQueue::Connection *connection,
-                            const EndpointId replyTo,
-                            const Json::Value &root) const;
+  void handleInvalidRequest(const Message &msg) const;
 
   /// Extract data and emit signal for a unrecognized request method.
-  /// @param root Invalid request data
-  void handleUnrecognizedRequest(MoleQueue::Connection *connection,
-                                 const EndpointId replyTo,
-                                 const Json::Value &root) const;
+  void handleUnrecognizedRequest(const Message &msg) const;
 
   /**
     * Record that a new request has been sent. This is necessary to identify the
@@ -408,7 +329,7 @@ protected:
     * @param method Non-negative integer unique to request method. Must be
     * consistent with the mapMethodNameToInt method.
     */
-  void registerRequest(IdType packetId, int method);
+  void registerRequest(const MessageIdType &packetId, int method);
 
   /**
     * Register that a reply has been received. This removes the request from the
@@ -418,10 +339,10 @@ protected:
     *
     * @param packetId JSON-RPC 'id' value
     */
-  void registerReply(IdType packetId);
+  void registerReply(const MessageIdType &packetId);
 
   /// Lookup hash for pending requests. Maps packet id to method identifier.
-  QHash<IdType, int> m_pendingRequests;
+  QHash<MessageIdType, int> m_pendingRequests;
 };
 
 } // end namespace MoleQueue

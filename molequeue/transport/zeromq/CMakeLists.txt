@@ -4,7 +4,11 @@ include_directories(${ZeroMQ_INCLUDE_DIR})
 
 add_definitions(-DUSE_ZERO_MQ)
 
-add_library(mqzeromqconnection STATIC zeromqconnection.cpp)
+add_library(mqzeromqconnection STATIC
+  zeromqconnection.cpp
+  ${jsoncpp_srcs}
+)
+
 set_target_properties(mqzeromqconnection PROPERTIES AUTOMOC TRUE)
 target_link_libraries(mqzeromqconnection
   mqconnection
@@ -12,6 +16,7 @@ target_link_libraries(mqzeromqconnection
   ${ZeroMQ_LIBRARIES})
 
 add_library(mqzeromqconnectionlistener STATIC zeromqconnectionlistener.cpp)
+
 set_target_properties(mqzeromqconnectionlistener PROPERTIES AUTOMOC TRUE)
 target_link_libraries(mqzeromqconnectionlistener
   mqconnectionlistener

@@ -55,7 +55,7 @@ public:
     * @param packetId The JSON-RPC id for the request.
     * @return A PacketType, ready to send to a Connection.
     */
-  PacketType generateJobRequest(const Job &req, IdType packetId);
+  PacketType generateJobRequest(const Job &req, const MessageIdType &packetId);
 
   /**
     * Generate a JSON-RPC packet for requesting a job cancellation.
@@ -65,7 +65,7 @@ public:
     * @return A PacketType, ready to send to a Connection.
     */
   PacketType generateJobCancellation(const Job &req,
-                                     IdType packetId);
+                                     const MessageIdType &packetId);
 
   /**
     * Generate a JSON-RPC packet for requesting a job lookup.
@@ -74,7 +74,8 @@ public:
     * @param packetId The JSON-RPC id for the request.
     * @return A PacketType, ready to send to a Connection.
     */
-  PacketType generateLookupJobRequest(IdType moleQueueId, IdType packetId);
+  PacketType generateLookupJobRequest(IdType moleQueueId,
+                                      const MessageIdType &packetId);
 
   /**
     * Generate a JSON-RPC packet for requesting a list of available Queues and
@@ -83,7 +84,7 @@ public:
     * @param packetId The JSON-RPC id for the request.
     * @return A PacketType, ready to send to a Connection.
     */
-  PacketType generateQueueListRequest(IdType packetId);
+  PacketType generateQueueListRequest(const MessageIdType &packetId);
 
 signals:
 
@@ -93,7 +94,7 @@ signals:
     * @param packetId The JSON-RPC id for the packet
     * @param options List of Queues/Programs
     */
-  void queueListReceived(MoleQueue::IdType packetId,
+  void queueListReceived(const MoleQueue::MessageIdType &packetId,
                          const MoleQueue::QueueListType &list) const;
 
   /**
@@ -104,7 +105,7 @@ signals:
     * @param workingDir The local directory where the temporary files will be
     * stored.
     */
-  void successfulSubmissionReceived(MoleQueue::IdType packetId,
+  void successfulSubmissionReceived(const MoleQueue::MessageIdType &packetId,
                                     MoleQueue::IdType moleQueueId,
                                     const QDir &workingDir) const;
 
@@ -115,7 +116,7 @@ signals:
     * @param errorCode Error code categorizing the error.
     * @param errorMessage Descriptive string identifying the error.
     */
-  void failedSubmissionReceived(MoleQueue::IdType packetId,
+  void failedSubmissionReceived(const MoleQueue::MessageIdType &packetId,
                                 MoleQueue::ErrorCode errorCode,
                                 const QString &errorMessage) const;
 
@@ -125,7 +126,7 @@ signals:
     * @param packetId The JSON-RPC id for the packet
     * @param moleQueueId The internal MoleQueue identifier for the canceled job.
     */
-  void jobCancellationConfirmationReceived(MoleQueue::IdType packetId,
+  void jobCancellationConfirmationReceived(const MoleQueue::MessageIdType &packetId,
                                            MoleQueue::IdType moleQueueId) const;
 
   /**
@@ -137,7 +138,7 @@ signals:
     * @param message String describing error.
     */
   void jobCancellationErrorReceived(
-      MoleQueue::IdType packetId, MoleQueue::IdType moleQueueId,
+      const MoleQueue::MessageIdType &packetId, MoleQueue::IdType moleQueueId,
       MoleQueue::ErrorCode errorCode,
       const QString &message) const;
 
@@ -147,7 +148,7 @@ signals:
     * @param packetId The JSON-RPC id for the packet.
     * @param hash The requested Job information as a QVariantHash.
     */
-  void lookupJobResponseReceived(MoleQueue::IdType packetId,
+  void lookupJobResponseReceived(const MoleQueue::MessageIdType &packetId,
                                  const QVariantHash &hash) const;
 
   /**
@@ -156,7 +157,7 @@ signals:
     * @param moleQueueId The requested MoleQueue id.
     * @param packetId The JSON-RPC id for the packet.
     */
-  void lookupJobErrorReceived(MoleQueue::IdType packetId,
+  void lookupJobErrorReceived(const MoleQueue::MessageIdType &packetId,
                               MoleQueue::IdType moleQueueId) const;
 
   /**
@@ -184,40 +185,31 @@ protected:
   int mapMethodNameToInt(const QString &methodName) const;
 
   /// Reimplemented from base class.
-  void handlePacket(int method, PacketForm type, Connection *conn,
-                    const EndpointId replyTo, const Json::Value &root);
+  void handleMessage(int method, const Message &msg);
 
   /// Extract data and emit signal for a listQueues result.
-  /// @param root Root of request
-  void handleListQueuesResult(const Json::Value &root) const;
+  void handleListQueuesResult(const Message &msg) const;
 
   /// Extract data and emit signal for a submitJob result.
-  /// @param root Root of request
-  void handleSubmitJobResult(const Json::Value &root) const;
+  void handleSubmitJobResult(const Message &msg) const;
 
   /// Extract data and emit signal for a submitJob error.
-  /// @param root Root of request
-  void handleSubmitJobError(const Json::Value &root) const;
+  void handleSubmitJobError(const Message &msg) const;
 
   /// Extract data and emit signal for a cancelJob result.
-  /// @param root Root of request
-  void handleCancelJobResult(const Json::Value &root) const;
+  void handleCancelJobResult(const Message &msg) const;
 
   /// Extract data and emit signal for a cancelJob error.
-  /// @param root Root of request
-  void handleCancelJobError(const Json::Value &root) const;
+  void handleCancelJobError(const Message &msg) const;
 
   /// Extract data and emit signal for a lookupJob result.
-  /// @param root Root of request
-  void handleLookupJobResult(const Json::Value &root) const;
+  void handleLookupJobResult(const Message &msg) const;
 
   /// Extract data and emit signal for a lookupJob error.
-  /// @param root Root of request
-  void handleLookupJobError(const Json::Value &root) const;
+  void handleLookupJobError(const Message &msg) const;
 
   /// Extract data and emit signal for a jobStateChanged notification.
-  /// @param root Root of request
-  void handleJobStateChangedNotification(const Json::Value &root) const;
+  void handleJobStateChangedNotification(const Message &msg) const;
 
 };
 

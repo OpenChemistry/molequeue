@@ -92,7 +92,7 @@ public:
   void setConnection(Connection *connecton);
 
   /// Used for internal lookup structures
-  typedef QMap<IdType, JobRequest> PacketLookupTable;
+  typedef QMap<MessageIdType, JobRequest> PacketLookupTable;
 
   /// Used for unit testing
   friend class ::ClientTest;
@@ -198,7 +198,7 @@ protected slots:
    * Called when the JsonRpc instance handles a listQueues response.
    * @param list List of supported Queues/Programs
    */
-  void queueListReceived(MoleQueue::IdType,
+  void queueListReceived(const MoleQueue::MessageIdType&,
                          const MoleQueue::QueueListType &list);
 
   /**
@@ -207,7 +207,7 @@ protected slots:
    * @param moleQueueId Unique MoleQueue identifier for job.
    * @param workingDir Local working directory for temporary files.
    */
-  void successfulSubmissionReceived(MoleQueue::IdType,
+  void successfulSubmissionReceived(const MoleQueue::MessageIdType&,
                                     MoleQueue::IdType moleQueueId,
                                     const QDir &workingDir);
 
@@ -217,7 +217,7 @@ protected slots:
    * @param errorCode Indication of why the job failed.
    * @param errorMessage Descriptive string detail the failure.
    */
-  void failedSubmissionReceived(MoleQueue::IdType,
+  void failedSubmissionReceived(const MoleQueue::MessageIdType&,
                                 MoleQueue::ErrorCode errorCode,
                                 const QString &errorMessage);
 
@@ -226,7 +226,7 @@ protected slots:
    *
    * @param moleQueueId Unique MoleQueue identifier for the job.
    */
-  void jobCancellationConfirmationReceived(MoleQueue::IdType,
+  void jobCancellationConfirmationReceived(const MoleQueue::MessageIdType&,
                                            MoleQueue::IdType moleQueueId);
 
   /**
@@ -236,24 +236,25 @@ protected slots:
     * @param errorCode Error code.
     * @param message String describing error.
    */
-  void jobCancellationErrorReceived(
-      MoleQueue::IdType, MoleQueue::IdType moleQueueId,
-      MoleQueue::ErrorCode errorCode,
-      const QString &message);
+  void jobCancellationErrorReceived(const MoleQueue::MessageIdType&,
+                                    MoleQueue::IdType moleQueueId,
+                                    MoleQueue::ErrorCode errorCode,
+                                    const QString &message);
 
   /**
    * Called when the JsonRpc instance handles a successful lookupJob response.
    *
    * @param hash Hash representing the requested Job's internal state.
    */
-  void lookupJobResponseReceived(MoleQueue::IdType,
-                                 const QVariantHash & hash);
+  void lookupJobResponseReceived(const MoleQueue::MessageIdType&,
+                                 const QVariantHash &hash);
 
   /**
    * Called when the JsonRpc instance handles an unsuccessful lookupJob reply.
    * @param moleQueueId Requested MoleQueue id.
    */
-  void lookupJobErrorReceived(MoleQueue::IdType, MoleQueue::IdType moleQueueId);
+  void lookupJobErrorReceived(const MoleQueue::MessageIdType &,
+                              MoleQueue::IdType moleQueueId);
 
   /**
    * Called when the JsonRpc instance handles a job state change notification.

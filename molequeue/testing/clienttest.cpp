@@ -122,7 +122,7 @@ void ClientTest::testJobSubmission()
       readReferenceString("client-ref/job-submission.json");
 
   // Strip out the random ids in the packets
-  QRegExp strip ("\\n\\s+\"id\"\\s+:\\s+\\d+\\s*,\\s*\\n");
+  QRegExp strip ("\\n\\s+\"id\"\\s+:\\s+\"\\d+\"\\s*,\\s*\\n");
   QString strippedPacket = QString(m_packet);
   QString strippedRefPacket = QString(refPacket);
 
@@ -143,7 +143,7 @@ void ClientTest::testJobCancellation()
       readReferenceString("client-ref/job-cancellation.json");
 
   // Strip out the random ids in the packets
-  QRegExp strip("\\n\\s+\"id\"\\s+:\\s+\\d+\\s*,\\s*\\n");
+  QRegExp strip("\\n\\s+\"id\"\\s+:\\s+\"\\d+\"\\s*,\\s*\\n");
   QString strippedPacket = QString(m_packet);
   QString strippedRefPacket = QString(refPacket);
 
@@ -163,7 +163,7 @@ void ClientTest::testLookupJob()
       readReferenceString("client-ref/lookupJob-request.json");
 
   // Strip out the random ids in the packets
-  QRegExp strip ("\\n\\s+\"id\"\\s+:\\s+\\d+\\s*,\\s*\\n");
+  QRegExp strip ("\\n\\s+\"id\"\\s+:\\s+\"\\d+\"\\s*,\\s*\\n");
   QString strippedPacket = QString(m_packet);
   QString strippedRefPacket = QString(refPacket);
 
@@ -183,7 +183,7 @@ void ClientTest::testRequestQueueListUpdate()
       readReferenceString("client-ref/queue-list-request.json");
 
   // Strip out the random ids in the packets
-  QRegExp strip ("\\n\\s+\"id\"\\s+:\\s+\\d+\\s*,\\s*\\n");
+  QRegExp strip ("\\n\\s+\"id\"\\s+:\\s+\"\\d+\"\\s*,\\s*\\n");
   QString strippedPacket = QString(m_packet);
   QString strippedRefPacket = QString(refPacket);
 
@@ -200,17 +200,17 @@ void ClientTest::testQueueListReceived()
 
   QVERIFY2(m_server->waitForPacket(), "Timeout waiting for reply.");
 
-  QRegExp capture ("\\n\\s+\"id\"\\s+:\\s+(\\d+)\\s*,\\s*\\n");
+  QRegExp capture ("\\n\\s+\"id\"\\s+:\\s+(\"\\d+\")\\s*,\\s*\\n");
   int pos = capture.indexIn(m_packet);
   QVERIFY2(pos >= 0, "id not found in queue list request!");
-  MoleQueue::IdType id = static_cast<MoleQueue::IdType>(capture.cap(1).toULong());
+  MoleQueue::MessageIdType id = capture.cap(1).toLocal8Bit();
 
   QSignalSpy spy (m_client, SIGNAL(queueListUpdated(MoleQueue::QueueListType)));
 
   MoleQueue::PacketType queueList =
       readReferenceString("client-ref/queue-list.json");
 
-  queueList.replace("%id%", MoleQueue::PacketType::number(id));
+  queueList.replace("%id%", id);
 
   m_server->sendPacket(queueList);
 
@@ -232,18 +232,18 @@ void ClientTest::testSuccessfulSubmissionReceived()
 
   QVERIFY2(m_server->waitForPacket(), "Timeout waiting for reply.");
 
-  QRegExp capture ("\\n\\s+\"id\"\\s+:\\s+(\\d+)\\s*,\\s*\\n");
+  QRegExp capture ("\\n\\s+\"id\"\\s+:\\s+(\"\\d+\")\\s*,\\s*\\n");
   int pos = capture.indexIn(m_packet);
   QVERIFY2(pos >= 0, "id not found in job submission request!");
-  MoleQueue::IdType id = static_cast<MoleQueue::IdType>(capture.cap(1).toULong());
+  MoleQueue::MessageIdType id = capture.cap(1).toLocal8Bit();
 
   QSignalSpy spy (m_client, SIGNAL(jobSubmitted(MoleQueue::JobRequest,
-                                                bool,QString)));
+                                                bool, QString)));
 
   MoleQueue::PacketType response =
       readReferenceString("client-ref/successful-submission.json");
 
-  response.replace("%id%", MoleQueue::PacketType::number(id));
+  response.replace("%id%", id);
 
   m_server->sendPacket(response);
 
@@ -265,10 +265,10 @@ void ClientTest::testFailedSubmissionReceived()
 
   QVERIFY2(m_server->waitForPacket(), "Timeout waiting for reply.");
 
-  QRegExp capture ("\\n\\s+\"id\"\\s+:\\s+(\\d+)\\s*,\\s*\\n");
+  QRegExp capture ("\\n\\s+\"id\"\\s+:\\s+(\"\\d+\")\\s*,\\s*\\n");
   int pos = capture.indexIn(m_packet);
   QVERIFY2(pos >= 0, "id not found in job submission request!");
-  MoleQueue::IdType id = static_cast<MoleQueue::IdType>(capture.cap(1).toULong());
+  MoleQueue::MessageIdType id = capture.cap(1).toLocal8Bit();
 
   QSignalSpy spy (m_client, SIGNAL(jobSubmitted(MoleQueue::JobRequest,
                                                 bool,QString)));
@@ -276,7 +276,7 @@ void ClientTest::testFailedSubmissionReceived()
   MoleQueue::PacketType response =
       readReferenceString("client-ref/failed-submission.json");
 
-  response.replace("%id%", MoleQueue::PacketType::number(id));
+  response.replace("%id%", id);
 
   m_server->sendPacket(response);
 
@@ -303,10 +303,10 @@ void ClientTest::testJobCancellationConfirmationReceived()
 
   QVERIFY2(m_server->waitForPacket(), "Timeout waiting for reply.");
 
-  QRegExp capture ("\\n\\s+\"id\"\\s+:\\s+(\\d+)\\s*,\\s*\\n");
+  QRegExp capture ("\\n\\s+\"id\"\\s+:\\s+(\"\\d+\")\\s*,\\s*\\n");
   int pos = capture.indexIn(m_packet);
   QVERIFY2(pos >= 0, "id not found in job cancellation request!");
-  MoleQueue::IdType id = static_cast<MoleQueue::IdType>(capture.cap(1).toULong());
+  MoleQueue::MessageIdType id = capture.cap(1).toLocal8Bit();
 
   QSignalSpy spy (m_client, SIGNAL(jobCanceled(MoleQueue::JobRequest,
                                                bool, QString)));
@@ -314,7 +314,7 @@ void ClientTest::testJobCancellationConfirmationReceived()
   MoleQueue::PacketType response =
       readReferenceString("client-ref/job-canceled.json");
 
-  response.replace("%id%", MoleQueue::PacketType::number(id));
+  response.replace("%id%", id);
 
   m_server->sendPacket(response);
 
@@ -341,10 +341,10 @@ void ClientTest::testJobCancellationErrorReceived()
 
   QVERIFY2(m_server->waitForPacket(), "Timeout waiting for reply.");
 
-  QRegExp capture ("\\n\\s+\"id\"\\s+:\\s+(\\d+)\\s*,\\s*\\n");
+  QRegExp capture ("\\n\\s+\"id\"\\s+:\\s+(\"\\d+\")\\s*,\\s*\\n");
   int pos = capture.indexIn(m_packet);
   QVERIFY2(pos >= 0, "id not found in job cancellation request!");
-  MoleQueue::IdType id = static_cast<MoleQueue::IdType>(capture.cap(1).toULong());
+  MoleQueue::MessageIdType id = capture.cap(1).toLocal8Bit();
 
   QSignalSpy spy (m_client, SIGNAL(jobCanceled(MoleQueue::JobRequest,
                                                bool, QString)));
@@ -352,7 +352,7 @@ void ClientTest::testJobCancellationErrorReceived()
   MoleQueue::PacketType response =
       readReferenceString("client-ref/job-canceled.json");
 
-  response.replace("%id%", MoleQueue::PacketType::number(id));
+  response.replace("%id%", id);
 
   m_server->sendPacket(response);
 
@@ -374,11 +374,10 @@ void ClientTest::testLookupJobResponseReceived()
 
   QVERIFY2(m_server->waitForPacket(), "Timeout waiting for reply.");
 
-  QRegExp capture ("\\n\\s+\"id\"\\s+:\\s+(\\d+)\\s*,\\s*\\n");
+  QRegExp capture ("\\n\\s+\"id\"\\s+:\\s+(\"\\d+\")\\s*,\\s*\\n");
   int pos = capture.indexIn(m_packet);
   QVERIFY2(pos >= 0, "id not found in lookupJob request!");
-  const MoleQueue::IdType packetId =
-      static_cast<MoleQueue::IdType>(capture.cap(1).toULong());
+  const MoleQueue::MessageIdType packetId = capture.cap(1).toLocal8Bit();
 
   QSignalSpy spy(m_client, SIGNAL(lookupJobComplete(MoleQueue::JobRequest,
                                                     MoleQueue::IdType)));
@@ -386,7 +385,7 @@ void ClientTest::testLookupJobResponseReceived()
   MoleQueue::PacketType response =
       readReferenceString("client-ref/lookupJob-response.json");
 
-  response.replace("%id%", MoleQueue::PacketType::number(packetId));
+  response.replace("%id%", packetId);
 
   m_server->sendPacket(response);
 
@@ -408,11 +407,10 @@ void ClientTest::testLookupJobErrorReceived()
 
   QVERIFY2(m_server->waitForPacket(), "Timeout waiting for reply.");
 
-  QRegExp capture("\\n\\s+\"id\"\\s+:\\s+(\\d+)\\s*,\\s*\\n");
+  QRegExp capture("\\n\\s+\"id\"\\s+:\\s+(\"\\d+\")\\s*,\\s*\\n");
   int pos = capture.indexIn(m_packet);
   QVERIFY2(pos >= 0, "id not found in lookupJob request!");
-  const MoleQueue::IdType packetId =
-      static_cast<MoleQueue::IdType>(capture.cap(1).toULong());
+  const MoleQueue::MessageIdType packetId = capture.cap(1).toLocal8Bit();
 
   QSignalSpy spy(m_client, SIGNAL(lookupJobComplete(MoleQueue::JobRequest,
                                                     MoleQueue::IdType)));
@@ -420,7 +418,7 @@ void ClientTest::testLookupJobErrorReceived()
   MoleQueue::PacketType response =
       readReferenceString("client-ref/lookupJob-error.json");
 
-  response.replace("%id%", MoleQueue::PacketType::number(packetId));
+  response.replace("%id%", packetId);
 
   m_server->sendPacket(response);
 

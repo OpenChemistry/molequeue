@@ -45,7 +45,7 @@ public:
     */
   PacketType generateJobSubmissionConfirmation(IdType moleQueueId,
                                                const QString &workingDir,
-                                               IdType packetId);
+                                               const MessageIdType &packetId);
   /**
     * Generate a JSON-RPC packet confirming a job cancellation.
     *
@@ -54,7 +54,7 @@ public:
     * @return A PacketType, ready to send to a Connection.
     */
   PacketType generateJobCancellationConfirmation(IdType moleQueueId,
-                                                 IdType packetId);
+                                                 const MessageIdType &packetId);
 
   /**
     * Generate a JSON-RPC packet indicating a job cancellation error.
@@ -67,7 +67,7 @@ public:
     */
   PacketType generateJobCancellationError(
       MoleQueue::ErrorCode errorCode, const QString &message,
-      IdType moleQueueId, IdType packetId);
+      IdType moleQueueId, const MessageIdType &packetId);
 
   /**
     * Generate a JSON-RPC packet to respond to a lookupJob request. If the Job
@@ -79,7 +79,7 @@ public:
     * @return A PacketType, ready to send to a Connection.
     */
   PacketType generateLookupJobResponse(const Job &req, IdType moleQueueId,
-                                       IdType packetId);
+                                       const MessageIdType &packetId);
 
   /**
     * Generate a JSON-RPC packet to request a listing of all available Queues
@@ -90,7 +90,7 @@ public:
     * @return A PacketType, ready to send to a Connection.
     */
   PacketType generateQueueList(const QueueListType &queueList,
-                               IdType packetId);
+                               const MessageIdType &packetId);
 
   /**
     * Generate a JSON-RPC packet to notify listeners that a job has changed
@@ -106,57 +106,42 @@ public:
                                                 JobState newState);
 
 signals:
+
   /**
     * Emitted when a request for a list of available Queues/Programs is
     * received.
     *
-    * @param connection The connection the request was received on
-    * @param replyTo The reply to endpoint to identify the client.
-    * @param packetId The JSON-RPC id for the packet
+    * @param request The request Message object.
     */
-  void queueListRequestReceived(MoleQueue::Connection *connection,
-                                const MoleQueue::EndpointId replyTo,
-                                MoleQueue::IdType packetId) const;
+  void queueListRequestReceived(const MoleQueue::Message &request) const;
 
   /**
     * Emitted when a request to submit a new job is received.
     *
-    * @param connection The connection the request was received on
-    * @param replyTo The reply to endpoint to identify the client.
-    * @param packetId The JSON-RPC id for the packet
+    * @param request The request Message object.
     * @param options Options for the job.
     */
-  void jobSubmissionRequestReceived(MoleQueue::Connection *connection,
-                                    const MoleQueue::EndpointId replyTo,
-                                    MoleQueue::IdType packetId,
+  void jobSubmissionRequestReceived(const MoleQueue::Message &request,
                                     const QVariantHash &options) const;
 
   /**
     * Emitted when a request to cancel a job is received.
     *
-    * @param connection The connection the request was received on
-    * @param replyTo The reply to endpoint to identify the client.
-    * @param packetId The JSON-RPC id for the packet
+    * @param request The request Message object.
     * @param moleQueueId The internal MoleQueue identifier for the job to
     * cancel.
     */
-  void jobCancellationRequestReceived(MoleQueue::Connection *connection,
-                                      const MoleQueue::EndpointId replyTo,
-                                      MoleQueue::IdType packetId,
+  void jobCancellationRequestReceived(const MoleQueue::Message &request,
                                       MoleQueue::IdType moleQueueId) const;
 
   /**
     * Emitted when a lookupJob request is received.
     *
-    * @param connection The connection the request was received on.
-    * @param replyTo The reply to endpoint to identify the client.
-    * @param packetId The JSON-RPC id for the packet.
+    * @param request The request Message object.
     * @param moleQueueId The internal MoleQueue identifier for the requested
     * job.
     */
-  void lookupJobRequestReceived(MoleQueue::Connection *connection,
-                                const MoleQueue::EndpointId replyTo,
-                                MoleQueue::IdType packetId,
+  void lookupJobRequestReceived(const MoleQueue::Message &request,
                                 MoleQueue::IdType moleQueueId) const;
 
 protected:
@@ -173,32 +158,19 @@ protected:
   int mapMethodNameToInt(const QString &methodName) const;
 
   /// Reimplemented from base class.
-  void handlePacket(int method, PacketForm type, Connection *conn,
-                    const EndpointId replyTo, const Json::Value &root);
+  void handleMessage(int method, const Message &msg);
 
   /// Extract data and emit signal for a listQueues request.
-  /// @param root Root of request
-  void handleListQueuesRequest(MoleQueue::Connection *connection,
-                               const EndpointId replyTo,
-                               const Json::Value &root) const;
+  void handleListQueuesRequest(const Message &msg) const;
 
   /// Extract data and emit signal for a submitJob request.
-  /// @param root Root of request
-  void handleSubmitJobRequest(MoleQueue::Connection *connection,
-                              const EndpointId replyTo,
-                              const Json::Value &root) const;
+  void handleSubmitJobRequest(const Message &msg) const;
 
   /// Extract data and emit signal for a cancelJob request.
-  /// @param root Root of request
-  void handleCancelJobRequest(MoleQueue::Connection *connection,
-                              const EndpointId replyTo,
-                              const Json::Value &root) const;
+  void handleCancelJobRequest(const Message &msg) const;
 
   /// Extract data and emit signal for a lookupJob request.
-  /// @param root Root of request
-  void handleLookupJobRequest(MoleQueue::Connection *connection,
-                              const EndpointId replyTo,
-                              const Json::Value &root) const;
+  void handleLookupJobRequest(const Message &msg) const;
 };
 
 } // namespace MoleQueue

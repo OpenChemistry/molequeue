@@ -5,7 +5,7 @@
          "message" : "Method not found: 'justDoWhatIWant'",
          "data" : ["Some", "data"]
       },
-      "id" : 19,
+      "id" : "19",
       "jsonrpc" : "2.0"
    },
    {
@@ -14,7 +14,7 @@
          "message" : "Method not found: 'justDoWhatIWant'",
          "data" : { "Some" : "more", "data" : null }
       },
-      "id" : 19,
+      "id" : "19",
       "jsonrpc" : "2.0"
    },
    {
@@ -22,7 +22,7 @@
          "code" : -32601,
          "message" : "Method not found: 'justDoWhatIWant'"
       },
-      "id" : 19,
+      "id" : "19",
       "jsonrpc" : "2.0"
    },
    {
@@ -31,11 +31,11 @@
          "message" : "Unsigned integer error code test...",
          "data" : ["Some", "data"]
       },
-      "id" : 19,
+      "id" : "19",
       "jsonrpc" : "2.0"
    },
    {
-      "id" : 14,
+      "id" : "14",
       "jsonrpc" : "2.0",
       "result" : {
          "moleQueueId" : 12,
@@ -44,17 +44,17 @@
       }
    },
    {
-      "id" : 14,
+      "id" : "14",
       "jsonrpc" : "2.0",
       "result" : ["mo", "qu", "wo"]
    },
    {
-      "id" : 14,
+      "id" : "14",
       "jsonrpc" : "2.0",
       "result" : 12
    },
    {
-      "id" : 14,
+      "id" : "14",
       "jsonrpc" : "2.0",
       "result" : "Single string"
    }

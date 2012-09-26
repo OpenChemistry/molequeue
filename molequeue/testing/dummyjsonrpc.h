@@ -19,6 +19,10 @@
 
 #include "transport/jsonrpc.h"
 
+namespace MoleQueue {
+class Message;
+}
+
 class DummyJsonRpc : public MoleQueue::JsonRpc
 {
   Q_OBJECT
@@ -27,9 +31,7 @@ public:
 
 protected:
   int mapMethodNameToInt(const QString &methodName) const;
-  void handlePacket(int method, PacketForm type, MoleQueue::Connection *conn,
-                    const MoleQueue::EndpointId replyTo,
-                    const Json::Value &root);
+  void handleMessage(int method, const MoleQueue::Message &);
 };
 
 #endif // DUMMYJSONRPC_H

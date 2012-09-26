@@ -37,6 +37,8 @@ JsonRpc::JsonRpc(QObject *parentObject)
   qRegisterMetaType<QDir>("QDir");
   qRegisterMetaType<Json::Value>("Json::Value");
   qRegisterMetaType<IdType>("MoleQueue::IdType");
+  qRegisterMetaType<Message>("MoleQueue::Message");
+  qRegisterMetaType<MessageIdType>("MoleQueue::MessageIdType");
   qRegisterMetaType<JobState>("MoleQueue::JobState");
   qRegisterMetaType<QueueListType>("MoleQueue::QueueListType");
   qRegisterMetaType<ErrorCode>("MoleQueue::ErrorCode");
@@ -48,7 +50,7 @@ JsonRpc::~JsonRpc()
 
 PacketType JsonRpc::generateErrorResponse(int errorCode,
                                           const QString &message,
-                                          IdType packetId)
+                                          const MessageIdType &packetId)
 {
   Json::Value packet = generateEmptyError(packetId);
 
@@ -65,7 +67,7 @@ PacketType JsonRpc::generateErrorResponse(int errorCode,
 PacketType JsonRpc::generateErrorResponse(int errorCode,
                                           const QString &message,
                                           const Json::Value &data,
-                                          IdType packetId)
+                                          const MessageIdType &packetId)
 {
   Json::Value packet = generateEmptyError(packetId);
 
@@ -114,101 +116,116 @@ PacketType JsonRpc::generateErrorResponse(int errorCode,
   return ret;
 }
 
-void JsonRpc::interpretIncomingPacket(Connection* connection,
-                                      const Message msg)
+void JsonRpc::interpretIncomingMessage(const Message &msg_orig)
 {
-  // Read packet into a Json value
-  Json::Reader reader;
-  Json::Value root;
-
-  if (!reader.parse(msg.data().constData(),
-                    msg.data().constData() + msg.data().size(),
-                    root, false)) {
-    handleUnparsablePacket(connection, msg);
-    return;
-  }
-
-  // Submit the root node for processing
-  interpretIncomingJsonRpc(connection, msg.replyTo(), root);
-}
-
-void JsonRpc::interpretIncomingJsonRpc(Connection *connection,
-                                       EndpointId replyTo,
-                                       const Json::Value &data)
-{
-  // Handle batch requests recursively:
-  if (data.isArray()) {
-    for (Json::Value::const_iterator it = data.begin(), it_end = data.end();
-         it != it_end; ++it) {
-      interpretIncomingJsonRpc(connection, replyTo, *it);
+  Message msg(msg_orig);
+  // Parse the message contents if the json value is null.
+  if (msg.json().isNull()) {
+    // A truly empty message? Nothing to do!
+    if (msg.data().isEmpty())
+      return;
+    if (!msg.parse()) {
+      handleUnparsableMessage(msg);
+      return;
     }
+  }
 
+  // Handle batch requests recursively:
+  if (msg.json().isArray()) {
+    for (Json::Value::const_iterator it = msg.json().begin(),
+         it_end = msg.json().end(); it != it_end; ++it) {
+      Message subMessage(msg);
+      subMessage.setJson(*it);
+      interpretIncomingMessage(subMessage);
+    }
+    return;
+  }
+  if (!msg.json().isObject()) {
+    handleInvalidRequest(msg);
     return;
   }
 
-  if (!data.isObject()) {
-    handleInvalidRequest(connection, replyTo, data);
-    return;
-  }
-
-  PacketForm form = guessPacketForm(data);
-  int method = guessPacketMethod(data);
+  msg.setType(guessMessageType(msg));
 
   // Validate detected type
-  switch (form) {
-  case REQUEST_PACKET:
-    if (!validateRequest(data, false))
-      form = INVALID_PACKET;
+  switch (msg.type()) {
+  case Message::REQUEST_MESSAGE:
+    if (!validateRequest(msg, false))
+      msg.setType(Message::INVALID_MESSAGE);
     break;
-  case RESULT_PACKET:
-  case ERROR_PACKET:
-    if (!validateResponse(data, false))
-      form = INVALID_PACKET;
+  case Message::RESULT_MESSAGE:
+  case Message::ERROR_MESSAGE:
+    if (!validateResponse(msg, false))
+      msg.setType(Message::INVALID_MESSAGE);
     break;
-  case NOTIFICATION_PACKET:
-    if (!validateNotification(data, false))
-      form = INVALID_PACKET;
+  case Message::NOTIFICATION_MESSAGE:
+    if (!validateNotification(msg, false))
+      msg.setType(Message::INVALID_MESSAGE);
     break;
   default:
-  case INVALID_PACKET:
+  case Message::INVALID_MESSAGE:
     break;
   }
+
+  // Set id if needed -- must be done before guessMessageMethod()
+  switch (msg.type()) {
+  case Message::REQUEST_MESSAGE:
+  case Message::RESULT_MESSAGE:
+  case Message::ERROR_MESSAGE: {
+    const Json::Value &idmember = msg.json()["id"];
+    if (idmember.isNull()) {
+      msg.setIdToNull();
+    }
+    else {
+      if (idmember.isNull()) {
+        msg.setIdToNull();
+      }
+      else if (idmember.isString()) {
+        msg.setId(MessageIdType(idmember.asCString()));
+      }
+      else {
+        // This isn't strictly valid JSON-RPC...just convert it to a string.
+        msg.setId(MessageIdType(idmember.toStyledString().c_str()));
+      }
+    }
+  }
+    break;
+  default:
+  case Message::INVALID_MESSAGE:
+  case Message::NOTIFICATION_MESSAGE:
+    break;
+  }
+
+  int method = guessMessageMethod(msg);
 
   switch (method) {
   case IGNORE_METHOD:
     break;
   case INVALID_METHOD:
-    handleInvalidRequest(connection, replyTo, data);
+    handleInvalidRequest(msg);
     break;
   case UNRECOGNIZED_METHOD:
-    handleUnrecognizedRequest(connection, replyTo, data);
+    handleUnrecognizedRequest(msg);
     break;
   default:
-    handlePacket(method, form, connection, replyTo, data);
+    handleMessage(method, msg);
     break;
   }
 
   // Remove responses from pendingRequests lookup table
   // id is guaranteed to exist after earlier validation
-  if (form == RESULT_PACKET || form == ERROR_PACKET)
-    registerReply(static_cast<IdType>(data["id"].asLargestUInt()));
+  if (msg.type() == Message::RESULT_MESSAGE ||
+      msg.type() == Message::ERROR_MESSAGE) {
+    registerReply(msg.id());
+  }
 }
 
-bool JsonRpc::validateRequest(const PacketType &packet, bool strict)
+bool JsonRpc::validateRequest(const Message &msg, bool strict)
 {
-  Json::Value root;
-  Json::Reader reader;
-  reader.parse(packet.constData(), packet.constData() + packet.size(),
-               root, false);
-  return validateRequest(root, strict);
-}
-
-bool JsonRpc::validateRequest(const Json::Value &packet, bool strict)
-{
-  if (!packet.isObject())
+  if (!msg.json().isObject())
     return false;
 
-  Json::Value::Members members = packet.getMemberNames();
+  Json::Value::Members members = msg.json().getMemberNames();
 
   // Check that the required members are present
   bool found_jsonrpc = false;
@@ -251,20 +268,25 @@ bool JsonRpc::validateRequest(const Json::Value &packet, bool strict)
 
   // Validate objects
   // "method" must be a string
-  if (!packet["method"].isString())
+  if (!msg.json()["method"].isString())
     return false;
 
   // "params" may be omitted, but must be structured if present
   if (found_params &&
-      !packet["params"].isObject() && !packet["params"].isArray()) {
+      !msg.json()["params"].isObject() && !msg.json()["params"].isArray()) {
       return false;
   }
 
   // "id" must be a string, a number, or null, but should not be null or
   // fractional
-  const Json::Value & idValue = packet["id"];
-  if (!idValue.isString() && !idValue.isNumeric() && !idValue.isNull())
+  const Json::Value & idValue = msg.json()["id"];
+  if (strict) {
+    if (!idValue.isString())
+      return false;
+  }
+  else if (!idValue.isString() && !idValue.isNumeric() && !idValue.isNull()) {
     return false;
+  }
 
   // Print extra members
   if (extraMembers.size() != 0 && strict)
@@ -273,21 +295,12 @@ bool JsonRpc::validateRequest(const Json::Value &packet, bool strict)
   return true;
 }
 
-bool JsonRpc::validateResponse(const PacketType &packet, bool strict)
+bool JsonRpc::validateResponse(const Message &msg, bool strict)
 {
-  Json::Value root;
-  Json::Reader reader;
-  reader.parse(packet.constData(), packet.constData() + packet.size(),
-               root, false);
-  return validateResponse(root, strict);
-}
-
-bool JsonRpc::validateResponse(const Json::Value &packet, bool strict)
-{
-  if (!packet.isObject())
+  if (!msg.json().isObject())
     return false;
 
-  Json::Value::Members members = packet.getMemberNames();
+  Json::Value::Members members = msg.json().getMemberNames();
 
   // Check that the required members are present
   bool found_jsonrpc = false;
@@ -329,7 +342,7 @@ bool JsonRpc::validateResponse(const Json::Value &packet, bool strict)
 
   // Validate error object if present
   if (found_error) {
-    const Json::Value & errorObject = packet["error"];
+    const Json::Value & errorObject = msg.json()["error"];
     if (!errorObject.isObject())
       return false;
 
@@ -344,9 +357,14 @@ bool JsonRpc::validateResponse(const Json::Value &packet, bool strict)
 
   // "id" must be a string, a number, or null, but should not be null or
   // fractional
-  const Json::Value & idValue = packet["id"];
-  if (!idValue.isString() && !idValue.isNumeric() && !idValue.isNull())
+  const Json::Value & idValue = msg.json()["id"];
+  if (strict) {
+    if (!idValue.isString())
+      return false;
+  }
+  else if (!idValue.isString() && !idValue.isNumeric() && !idValue.isNull()) {
     return false;
+  }
 
   // Print extra members
   if (extraMembers.size() != 0 && strict)
@@ -355,21 +373,12 @@ bool JsonRpc::validateResponse(const Json::Value &packet, bool strict)
   return true;
 }
 
-bool JsonRpc::validateNotification(const PacketType &packet, bool strict)
+bool JsonRpc::validateNotification(const Message &msg, bool strict)
 {
-  Json::Value root;
-  Json::Reader reader;
-  reader.parse(packet.constData(), packet.constData() + packet.size(),
-               root, false);
-  return validateNotification(root, strict);
-}
-
-bool JsonRpc::validateNotification(const Json::Value &packet, bool strict)
-{
-  if (!packet.isObject())
+  if (!msg.json().isObject())
     return false;
 
-  Json::Value::Members members = packet.getMemberNames();
+  Json::Value::Members members = msg.json().getMemberNames();
 
   // Check that the required members are present
   bool found_jsonrpc = false;
@@ -412,12 +421,12 @@ bool JsonRpc::validateNotification(const Json::Value &packet, bool strict)
 
   // Validate objects
   // "method" must be a string
-  if (!packet["method"].isString())
+  if (!msg.json()["method"].isString())
     return false;
 
   // "params" may be omitted, but must be structured if present
   if (found_params &&
-      !packet["params"].isObject() && !packet["params"].isArray()) {
+      !msg.json()["params"].isObject() && !msg.json()["params"].isArray()) {
     return false;
   }
 
@@ -428,27 +437,29 @@ bool JsonRpc::validateNotification(const Json::Value &packet, bool strict)
   return true;
 }
 
-Json::Value JsonRpc::generateEmptyRequest(IdType id)
+Json::Value JsonRpc::generateEmptyRequest(const MessageIdType &id)
 {
   Json::Value ret (Json::objectValue);
   ret["jsonrpc"] = "2.0";
   ret["method"] = Json::nullValue;
-  ret["id"] = id;
+  ret["id"] = id.isNull() ? Json::Value(Json::nullValue)
+                          : Json::Value(id.data());
 
   return ret;
 }
 
-Json::Value JsonRpc::generateEmptyResponse(IdType id)
+Json::Value JsonRpc::generateEmptyResponse(const MessageIdType &id)
 {
   Json::Value ret (Json::objectValue);
   ret["jsonrpc"] = "2.0";
   ret["result"] = Json::nullValue;
-  ret["id"] = id;
+  ret["id"] = id.isNull() ? Json::Value(Json::nullValue)
+                          : Json::Value(id.data());
 
   return ret;
 }
 
-Json::Value JsonRpc::generateEmptyError(IdType id)
+Json::Value JsonRpc::generateEmptyError(const MessageIdType &id)
 {
   Json::Value ret (Json::objectValue);
   ret["jsonrpc"] = "2.0";
@@ -456,7 +467,8 @@ Json::Value JsonRpc::generateEmptyError(IdType id)
   errorValue["code"] = Json::nullValue;
   errorValue["message"] = Json::nullValue;
   ret["error"] = Json::nullValue;
-  ret["id"] = id;
+  ret["id"] = id.isNull() ? Json::Value(Json::nullValue)
+                          : Json::Value(id.data());
 
   return ret;
 }
@@ -483,105 +495,76 @@ Json::Value JsonRpc::generateEmptyNotification()
   return ret;
 }
 
-JsonRpc::PacketForm JsonRpc::guessPacketForm(const Json::Value &root) const
+Message::Type JsonRpc::guessMessageType(const Message &msg) const
 {
-  if (!root.isObject())
-    return INVALID_PACKET;
+  if (!msg.json().isObject())
+    return Message::INVALID_MESSAGE;
 
-  if (root["method"] != Json::nullValue) {
-    if (root["id"] != Json::nullValue)
-      return REQUEST_PACKET;
+  if (msg.json()["method"] != Json::nullValue) {
+    if (msg.json()["id"] != Json::nullValue)
+      return Message::REQUEST_MESSAGE;
     else
-      return NOTIFICATION_PACKET;
+      return Message::NOTIFICATION_MESSAGE;
   }
-  else if (root["result"] != Json::nullValue)
-    return RESULT_PACKET;
-  else if (root["error"] != Json::nullValue)
-    return ERROR_PACKET;
+  else if (msg.json()["result"] != Json::nullValue)
+    return Message::RESULT_MESSAGE;
+  else if (msg.json()["error"] != Json::nullValue)
+    return Message::ERROR_MESSAGE;
 
-  return INVALID_PACKET;
+  return Message::INVALID_MESSAGE;
 }
 
-int JsonRpc::guessPacketMethod(const Json::Value &root) const
+int JsonRpc::guessMessageMethod(const Message &msg) const
 {
-  if (!root.isObject())
+  if (!msg.json().isObject())
     return INVALID_METHOD;
 
-  const Json::Value & methodValue = root["method"];
+  const Json::Value & methodValue = msg.json()["method"];
 
   if (methodValue != Json::nullValue) {
     if (!methodValue.isString())
       return INVALID_METHOD;
 
-    const char *methodCString = methodValue.asCString();
-
-    return mapMethodNameToInt(QString(methodCString));
+    return mapMethodNameToInt(QString(methodValue.asCString()));
   }
 
   // No method present -- this is a reply. Determine if it's a reply to this
   // client.
-  const Json::Value & idValue = root["id"];
-
-  if (idValue != Json::nullValue) {
-    // We will only submit unsigned integral ids
-    if (!idValue.isIntegral())
-      return IGNORE_METHOD;
-
-    IdType packetId = static_cast<IdType>(idValue.asLargestUInt());
-
-    if (m_pendingRequests.contains(packetId)) {
-      return m_pendingRequests[packetId];
-    }
-
-    // if the packetId isn't in the lookup table, it's not from us
-    return IGNORE_METHOD;
+  if (!msg.idIsNull()) {
+    return m_pendingRequests.value(msg.id(), IGNORE_METHOD);
   }
 
   // No method or id present?
   return INVALID_METHOD;
 }
 
-void JsonRpc::handleUnparsablePacket(Connection *connection,
-                                     const Message msg) const
+void JsonRpc::handleUnparsableMessage(const Message &msg) const
 {
-  Json::Value errorData (Json::objectValue);
-
+  Json::Value errorData(Json::objectValue);
   errorData["receivedPacket"] = msg.data().constData();
-
-  emit invalidPacketReceived(connection, msg.replyTo(), Json::nullValue,
-                             errorData);
+  emit invalidMessageReceived(msg, errorData);
 }
 
-void JsonRpc::handleInvalidRequest(Connection *connection,
-                                   EndpointId replyTo,
-                                   const Json::Value &root) const
+void JsonRpc::handleInvalidRequest(const Message &msg) const
 {
-  Json::Value errorData (Json::objectValue);
-
-  errorData["receivedJson"] = Json::Value(root);
-
-  emit invalidRequestReceived(connection, replyTo,
-                              (root.isObject()) ? root["id"] : Json::nullValue,
-                              errorData);
+  Json::Value errorData(Json::objectValue);
+  errorData["receivedJson"] = msg.json();
+  emit invalidRequestReceived(msg, errorData);
 }
 
-void JsonRpc::handleUnrecognizedRequest(Connection *connection,
-                                        EndpointId replyTo,
-                                        const Json::Value &root) const
+void JsonRpc::handleUnrecognizedRequest(const Message &msg) const
 {
-  Json::Value errorData (Json::objectValue);
-
-  errorData["receivedJson"] = root;
-
-  emit unrecognizedRequestReceived(connection, replyTo, root["id"], errorData);
+  Json::Value errorData(Json::objectValue);
+  errorData["receivedJson"] = msg.json();
+  emit unrecognizedRequestReceived(msg, errorData);
 }
 
-void JsonRpc::registerRequest(IdType packetId, int method)
+void JsonRpc::registerRequest(const MessageIdType &packetId, int method)
 {
   m_pendingRequests[packetId] = method;
 }
 
-void JsonRpc::registerReply(IdType packetId)
+void JsonRpc::registerReply(const MessageIdType &packetId)
 {
   m_pendingRequests.remove(packetId);
 }

@@ -106,8 +106,8 @@ void ZeroMqConnection::send(const Message &msg)
 
   // If on the server side send the endpoint id first
   if (m_socketType == ZMQ_ROUTER) {
-    zmq::message_t identity(msg.to().size());
-    memcpy(identity.data(), msg.to().data(), msg.to().size());
+    zmq::message_t identity(msg.endpoint().size());
+    memcpy(identity.data(), msg.endpoint().data(), msg.endpoint().size());
     bool rc  = m_socket->send(identity, ZMQ_SNDMORE | ZMQ_NOBLOCK);
 
     if (!rc) {
@@ -144,13 +144,9 @@ void ZeroMqConnection::dealerReceive()
   if(m_socket->recv(&message, ZMQ_NOBLOCK)) {
 
     int size = message.size();
-    PacketType messageBuffer;
+    PacketType messageBuffer(static_cast<char*>(message.data()), size);
 
-    messageBuffer.append(QString::fromLocal8Bit(static_cast<char*>(message.data()),
-                                                size));
-
-    Message msg(messageBuffer);
-
+    Message msg(this, EndpointIdType(), messageBuffer);
     emit newMessage(msg);
   }
 }
@@ -162,9 +158,7 @@ void ZeroMqConnection::routerReceive()
   if (m_socket->recv(&address, ZMQ_NOBLOCK)) {
 
     int size = address.size();
-
-    EndpointId replyTo(static_cast<char*>(address.data()),
-                       size);
+    EndpointIdType replyTo(static_cast<char*>(address.data()), size);
 
     // Now receive the message
     zmq::message_t message;
@@ -174,10 +168,9 @@ void ZeroMqConnection::routerReceive()
     }
 
     size = message.size();
-    PacketType packet(static_cast<char*>(message.data()),
-                      size);
+    PacketType packet(static_cast<char*>(message.data()), size);
 
-    Message msg(EndpointId(), replyTo, packet);
+    Message msg(this, replyTo, packet);
 
     emit newMessage(msg);
   }

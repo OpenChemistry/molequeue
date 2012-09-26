@@ -47,7 +47,7 @@ private slots:
   /// Called after every test function.
   void cleanup();
 
-  void testInvalidPacket();
+  void testInvalidMessage();
   void testInvalidRequest();
   void testInvalidMethod();
   void testInvalidParams();
@@ -79,8 +79,7 @@ void AbstractRpcInterfaceTest::initTestCase()
   m_connection->start();
 
   connect(m_connection, SIGNAL(newMessage(const MoleQueue::Message)),
-          m_rpc, SLOT(readPacket(const MoleQueue::Message)));
-
+          m_rpc, SLOT(readMessage(MoleQueue::Message)));
 
   // Let the event loop run a bit to handle the connections
   qApp->processEvents(QEventLoop::AllEvents, 1000);
@@ -102,7 +101,7 @@ void AbstractRpcInterfaceTest::cleanup()
 {
 }
 
-void AbstractRpcInterfaceTest::testInvalidPacket()
+void AbstractRpcInterfaceTest::testInvalidMessage()
 {
   MoleQueue::PacketType packet =
       "{ 42 \"I'm malformed JSON! ]";
@@ -132,7 +131,8 @@ void AbstractRpcInterfaceTest::testInvalidRequest()
 void AbstractRpcInterfaceTest::testInvalidMethod()
 {
   MoleQueue::PacketType packet =
-      "{ \"jsonrpc\" : \"2.0\", \"id\" : 0, \"method\" : \"notARealMethod\"}";
+      "{ \"jsonrpc\" : \"2.0\", \"id\" : \"0\", \"method\" : "
+      "\"notARealMethod\"}";
   m_server->sendPacket(packet);
 
   QVERIFY2(m_server->waitForPacket(), "Timeout waiting for reply.");

@@ -70,9 +70,6 @@ private slots:
   void generateLookupJobRequest();
   void generateQueueListRequest();
 
-  void interpretIncomingPacket_unparsable();
-  void interpretIncomingPacket_invalidRequest();
-  void interpretIncomingPacket_unrecognizedRequest();
   void interpretIncomingPacket_listQueuesResult();
   void interpretIncomingPacket_listQueuesError();
   void interpretIncomingPacket_submitJobResult();
@@ -120,7 +117,7 @@ void ClientJsonRpcTest::printNode(const Json::Value &root)
 
 void ClientJsonRpcTest::initTestCase()
 {
-//  m_rpc.setDebug(true);
+  //  m_rpc.setDebug(true);
 
   Queue *queueTmp = m_qmanager.addQueue("Some big ol' cluster",
                                         "Sun Grid Engine");
@@ -147,7 +144,7 @@ void ClientJsonRpcTest::initTestCase()
   m_connection = new TestConnection(this);
 
   qRegisterMetaType<MoleQueue::Connection*>("MoleQueue::Connection*");
-  qRegisterMetaType<MoleQueue::EndpointId>("MoleQueue::EndpointId");
+  qRegisterMetaType<MoleQueue::EndpointIdType>("MoleQueue::EndpointId");
 }
 
 void ClientJsonRpcTest::cleanupTestCase()
@@ -176,8 +173,8 @@ void ClientJsonRpcTest::generateJobRequest()
   req.setDescription("spud slicer 28");
   req.setInputFile(FileSpecification(QString("/tmp/myjob/test.potato")));
 
-  m_packet = m_rpc.generateJobRequest(req, 14);
-  if (!m_rpc.validateRequest(m_packet, true)) {
+  m_packet = m_rpc.generateJobRequest(req, "14");
+  if (!m_rpc.validateRequest(Message(m_packet), true)) {
     qDebug() << "Job request packet failed validation!";
     m_error = true;
   }
@@ -202,8 +199,8 @@ void ClientJsonRpcTest::generateJobCancellation()
   req.setDescription("spud slicer 28");
   req.setInputFile(FileSpecification(QString("/tmp/myjob/test.potato")));
 
-  m_packet = m_rpc.generateJobCancellation(req, 15);
-  if (!m_rpc.validateRequest(m_packet, true)) {
+  m_packet = m_rpc.generateJobCancellation(req, "15");
+  if (!m_rpc.validateRequest(Message(m_packet), true)) {
     qDebug() << "Job cancellation request packet failed validation!";
     m_error = true;
   }
@@ -220,8 +217,8 @@ void ClientJsonRpcTest::generateJobCancellation()
 
 void ClientJsonRpcTest::generateLookupJobRequest()
 {
-  m_packet = m_rpc.generateLookupJobRequest(17, 12);
-  if (!m_rpc.validateRequest(m_packet, true)) {
+  m_packet = m_rpc.generateLookupJobRequest(17, "12");
+  if (!m_rpc.validateRequest(Message(m_packet), true)) {
     qDebug() << "Job lookup request packet failed validation!";
     m_error = true;
   }
@@ -239,8 +236,8 @@ void ClientJsonRpcTest::generateLookupJobRequest()
 
 void ClientJsonRpcTest::generateQueueListRequest()
 {
-  m_packet = m_rpc.generateQueueListRequest(23);
-  if (!m_rpc.validateRequest(m_packet, true)) {
+  m_packet = m_rpc.generateQueueListRequest("23");
+  if (!m_rpc.validateRequest(Message(m_packet), true)) {
     qDebug() << "Queue list request packet failed validation!";
     m_error = true;
   }
@@ -255,57 +252,16 @@ void ClientJsonRpcTest::generateQueueListRequest()
   QVERIFY(m_error == false);
 }
 
-void ClientJsonRpcTest::interpretIncomingPacket_unparsable()
-{
-  QSignalSpy spy (&m_rpc, SIGNAL(
-                    invalidPacketReceived(MoleQueue::Connection*,
-                                          MoleQueue::EndpointId,
-                                          Json::Value,Json::Value)));
-  m_packet = "[I'm not valid JSON!}";
-  m_rpc.interpretIncomingPacket(m_connection, m_packet);
-
-  QCOMPARE(spy.count(), 1);
-  QVariantList list = spy.takeFirst();
-  QCOMPARE(list.size(), 4);
-  ///TODO verify that the connection is provided ...
-  QVERIFY(list[2].value<Json::Value>().isNull());
-  QCOMPARE(list[3].value<Json::Value>()["receivedPacket"].asCString(),
-           m_packet.constData());
-}
-
-void ClientJsonRpcTest::interpretIncomingPacket_invalidRequest()
-{
-  QSignalSpy spy (&m_rpc, SIGNAL(
-                    invalidRequestReceived(MoleQueue::Connection*,
-                                           MoleQueue::EndpointId,
-                                           Json::Value,Json::Value)));
-  m_packet = "{\"I'm valid JSON\" : \"but not JSON-RPC\"}";
-  m_rpc.interpretIncomingPacket(m_connection, m_packet);
-
-  QCOMPARE(spy.count(), 1);
-}
-
-void ClientJsonRpcTest::interpretIncomingPacket_unrecognizedRequest()
-{
-  QSignalSpy spy (&m_rpc, SIGNAL(
-                    unrecognizedRequestReceived(MoleQueue::Connection*,
-                                                MoleQueue::EndpointId,
-                                                Json::Value,Json::Value)));
-  m_packet = "{ \"jsonrpc\" : \"2.0\", \"id\" : 0, \"method\" : \"notReal\" }";
-  m_rpc.interpretIncomingPacket(m_connection, m_packet);
-
-  QCOMPARE(spy.count(), 1);
-}
-
 void ClientJsonRpcTest::interpretIncomingPacket_listQueuesResult()
 {
-  QSignalSpy spy (&m_rpc, SIGNAL(
-                    queueListReceived(MoleQueue::IdType,
-                                      MoleQueue::QueueListType)));
+  QSignalSpy spy(&m_rpc, SIGNAL(queueListReceived(MoleQueue::MessageIdType,
+                                                  MoleQueue::QueueListType)));
+
   // Register the packet id with this method for JsonRpc:
-  m_rpc.generateQueueListRequest(23);
+  m_rpc.generateQueueListRequest("23");
   m_packet = readReferenceString("jsonrpc-ref/queue-list.json");
-  m_rpc.interpretIncomingPacket(m_connection, m_packet);
+  m_rpc.interpretIncomingMessage(Message(m_connection, EndpointIdType(),
+                                         m_packet));
 
   QCOMPARE(spy.count(), 1);
 }
@@ -317,44 +273,50 @@ void ClientJsonRpcTest::interpretIncomingPacket_listQueuesError()
 
 void ClientJsonRpcTest::interpretIncomingPacket_submitJobResult()
 {
-  QSignalSpy spy (&m_rpc, SIGNAL(
-                    successfulSubmissionReceived(MoleQueue::IdType,
-                                                 MoleQueue::IdType,QDir)));
+  QSignalSpy spy(&m_rpc,
+                 SIGNAL(successfulSubmissionReceived(MoleQueue::MessageIdType,
+                                                     MoleQueue::IdType,QDir)));
+
   // Register the packet id with this method for JsonRpc:
-  m_rpc.generateJobRequest(0,14);
+  m_rpc.generateJobRequest(0,"14");
   m_packet = readReferenceString("jsonrpc-ref/job-submit-success.json");
-  m_rpc.interpretIncomingPacket(m_connection, m_packet);
+  m_rpc.interpretIncomingMessage(Message(m_connection, EndpointIdType(),
+                                         m_packet));
 
   QCOMPARE(spy.count(), 1);
 }
 
 void ClientJsonRpcTest::interpretIncomingPacket_submitJobError()
 {
-  QSignalSpy spy (&m_rpc, SIGNAL(
-                    failedSubmissionReceived(MoleQueue::IdType,
-                                             MoleQueue::ErrorCode,
-                                             QString)));
+  QSignalSpy spy(&m_rpc,
+                 SIGNAL(failedSubmissionReceived(MoleQueue::MessageIdType,
+                                                 MoleQueue::ErrorCode,
+                                                 QString)));
+
   // Create the error response first
-  m_packet = m_rpc.generateErrorResponse(None, "Not a real error!",
-                                         Json::nullValue, 15);
+  m_packet = m_rpc.generateErrorResponse(0, "Not a real error!",
+                                         Json::nullValue, MessageIdType("15"));
   // Register the packet id with this method for JsonRpc:
   MoleQueue::Job req;
-  m_rpc.generateJobRequest(req, 15);
-  m_rpc.interpretIncomingPacket(m_connection, m_packet);
+  m_rpc.generateJobRequest(req, "15");
+  m_rpc.interpretIncomingMessage(Message(m_connection, EndpointIdType(),
+                                         m_packet));
 
   QCOMPARE(spy.count(), 1);
 }
 
 void ClientJsonRpcTest::interpretIncomingPacket_cancelJobResult()
 {
-  QSignalSpy spy (&m_rpc, SIGNAL(
-                    jobCancellationConfirmationReceived(MoleQueue::IdType,
-                                                        MoleQueue::IdType)));
+  QSignalSpy spy(&m_rpc, SIGNAL(jobCancellationConfirmationReceived(
+                                  MoleQueue::MessageIdType,
+                                  MoleQueue::IdType)));
+
   // Register the packet id with this method for JsonRpc:
   MoleQueue::Job req;
-  m_rpc.generateJobCancellation(req, 15);
+  m_rpc.generateJobCancellation(req, "15");
   m_packet = readReferenceString("jsonrpc-ref/job-cancellation-confirm.json");
-  m_rpc.interpretIncomingPacket(m_connection, m_packet);
+  m_rpc.interpretIncomingMessage(Message(m_connection, EndpointIdType(),
+                                         m_packet));
 
   QCOMPARE(spy.count(), 1);
 }
@@ -366,12 +328,13 @@ void ClientJsonRpcTest::interpretIncomingPacket_cancelJobError()
 
 void ClientJsonRpcTest::interpretIncomingPacket_jobStateChange()
 {
-  QSignalSpy spy (&m_rpc, SIGNAL(
-                    jobStateChangeReceived(MoleQueue::IdType,
-                                           MoleQueue::JobState,
-                                           MoleQueue::JobState)));
+  QSignalSpy spy(&m_rpc, SIGNAL(jobStateChangeReceived(
+                                  MoleQueue::IdType, MoleQueue::JobState,
+                                  MoleQueue::JobState)));
+
   m_packet = readReferenceString("jsonrpc-ref/jobstate-change.json");
-  m_rpc.interpretIncomingPacket(m_connection, m_packet);
+  m_rpc.interpretIncomingMessage(Message(m_connection, EndpointIdType(),
+                                         m_packet));
 
   QCOMPARE(spy.count(), 1);
 }

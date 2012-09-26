@@ -35,7 +35,7 @@ ClientJsonRpc::~ClientJsonRpc()
 }
 
 PacketType ClientJsonRpc::generateJobRequest(const Job &job,
-                                             IdType packetId)
+                                             const MessageIdType &packetId)
 {
   Json::Value packet = generateEmptyRequest(packetId);
 
@@ -55,7 +55,7 @@ PacketType ClientJsonRpc::generateJobRequest(const Job &job,
 }
 
 PacketType ClientJsonRpc::generateJobCancellation(const Job &req,
-                                                  IdType packetId)
+                                                  const MessageIdType &packetId)
 {
   Json::Value packet = generateEmptyRequest(packetId);
 
@@ -75,8 +75,8 @@ PacketType ClientJsonRpc::generateJobCancellation(const Job &req,
   return ret;
 }
 
-PacketType ClientJsonRpc::generateLookupJobRequest(IdType moleQueueId,
-                                                   IdType packetId)
+PacketType ClientJsonRpc::generateLookupJobRequest(
+    IdType moleQueueId, const MessageIdType &packetId)
 {
   Json::Value packet = generateEmptyRequest(packetId);
 
@@ -96,7 +96,8 @@ PacketType ClientJsonRpc::generateLookupJobRequest(IdType moleQueueId,
   return ret;
 }
 
-PacketType ClientJsonRpc::generateQueueListRequest(IdType packetId)
+PacketType
+ClientJsonRpc::generateQueueListRequest(const MessageIdType &packetId)
 {
   Json::Value packet = generateEmptyRequest(packetId);
 
@@ -127,113 +128,107 @@ int ClientJsonRpc::mapMethodNameToInt(const QString &methodName) const
   return UNRECOGNIZED_METHOD;
 }
 
-void ClientJsonRpc::handlePacket(int method, JsonRpc::PacketForm type,
-                                 Connection *conn, const EndpointId replyTo,
-                                 const Json::Value &root)
+void ClientJsonRpc::handleMessage(int method, const Message &msg)
 {
   switch (method) {
   case LIST_QUEUES:
   {
-    switch (type) {
+    switch (msg.type()) {
     default:
-    case INVALID_PACKET:
-    case NOTIFICATION_PACKET:
-    case ERROR_PACKET:
-    case REQUEST_PACKET:
-      handleInvalidRequest(conn, replyTo, root);
+    case Message::INVALID_MESSAGE:
+    case Message::NOTIFICATION_MESSAGE:
+    case Message::ERROR_MESSAGE:
+    case Message::REQUEST_MESSAGE:
+      handleInvalidRequest(msg);
       break;
-    case RESULT_PACKET:
-      handleListQueuesResult(root);
+    case Message::RESULT_MESSAGE:
+      handleListQueuesResult(msg);
       break;
     }
     break;
   }
   case SUBMIT_JOB:
   {
-    switch (type) {
+    switch (msg.type()) {
     default:
-    case INVALID_PACKET:
-    case NOTIFICATION_PACKET:
-    case REQUEST_PACKET:
-      handleInvalidRequest(conn, replyTo, root);
+    case Message::INVALID_MESSAGE:
+    case Message::NOTIFICATION_MESSAGE:
+    case Message::REQUEST_MESSAGE:
+      handleInvalidRequest(msg);
       break;
-    case RESULT_PACKET:
-      handleSubmitJobResult(root);
+    case Message::RESULT_MESSAGE:
+      handleSubmitJobResult(msg);
       break;
-    case ERROR_PACKET:
-      handleSubmitJobError(root);
+    case Message::ERROR_MESSAGE:
+      handleSubmitJobError(msg);
       break;
     }
     break;
   }
   case CANCEL_JOB:
   {
-    switch (type) {
+    switch (msg.type()) {
     default:
-    case INVALID_PACKET:
-    case NOTIFICATION_PACKET:
-    case REQUEST_PACKET:
-      handleInvalidRequest(conn, replyTo, root);
+    case Message::INVALID_MESSAGE:
+    case Message::NOTIFICATION_MESSAGE:
+    case Message::REQUEST_MESSAGE:
+      handleInvalidRequest(msg);
       break;
-    case RESULT_PACKET:
-      handleCancelJobResult(root);
+    case Message::RESULT_MESSAGE:
+      handleCancelJobResult(msg);
       break;
-    case ERROR_PACKET:
-      handleCancelJobError(root);
+    case Message::ERROR_MESSAGE:
+      handleCancelJobError(msg);
       break;
     }
     break;
   }
   case LOOKUP_JOB:
   {
-    switch (type) {
+    switch (msg.type()) {
     default:
-    case INVALID_PACKET:
-    case NOTIFICATION_PACKET:
-    case REQUEST_PACKET:
-      handleInvalidRequest(conn, replyTo, root);
+    case Message::INVALID_MESSAGE:
+    case Message::NOTIFICATION_MESSAGE:
+    case Message::REQUEST_MESSAGE:
+      handleInvalidRequest(msg);
       break;
-    case RESULT_PACKET:
-      handleLookupJobResult(root);
+    case Message::RESULT_MESSAGE:
+      handleLookupJobResult(msg);
       break;
-    case ERROR_PACKET:
-      handleLookupJobError(root);
+    case Message::ERROR_MESSAGE:
+      handleLookupJobError(msg);
       break;
     }
     break;
   }
   case JOB_STATE_CHANGED:
   {
-    switch (type) {
+    switch (msg.type()) {
     default:
-    case INVALID_PACKET:
-    case REQUEST_PACKET:
-    case RESULT_PACKET:
-    case ERROR_PACKET:
-      handleInvalidRequest(conn, replyTo, root);
+    case Message::INVALID_MESSAGE:
+    case Message::REQUEST_MESSAGE:
+    case Message::RESULT_MESSAGE:
+    case Message::ERROR_MESSAGE:
+      handleInvalidRequest(msg);
       break;
-    case NOTIFICATION_PACKET:
-      handleJobStateChangedNotification(root);
+    case Message::NOTIFICATION_MESSAGE:
+      handleJobStateChangedNotification(msg);
       break;
     }
     break;
   }
   default:
-    handleInvalidRequest(conn, replyTo, root);
+    handleInvalidRequest(msg);
     break;
   }
 }
 
-void ClientJsonRpc::handleListQueuesResult(const Json::Value &root) const
+void ClientJsonRpc::handleListQueuesResult(const Message &msg) const
 {
-  const IdType id = static_cast<IdType>(root["id"].asLargestUInt());
-
-  const Json::Value &resultObject = root["result"];
+  const Json::Value &resultObject = msg.json()["result"];
   if (!resultObject.isObject()) {
-    Json::StyledWriter writer;
-    const std::string requestString = writer.write(root);
     qWarning() << "Error: Queue list result is ill-formed:\n"
-               << requestString.c_str();
+               << msg.data();
     return;
   }
 
@@ -278,25 +273,20 @@ void ClientJsonRpc::handleListQueuesResult(const Json::Value &root) const
     queueList.insert(queueName, programList);
   }
 
-
-  emit queueListReceived(id, queueList);
+  emit queueListReceived(msg.id(), queueList);
 }
 
-void ClientJsonRpc::handleSubmitJobResult(const Json::Value &root) const
+void ClientJsonRpc::handleSubmitJobResult(const Message &msg) const
 {
-  const IdType id = static_cast<IdType>(root["id"].asLargestUInt());
-
-  const Json::Value &resultObject = root["result"];
+  const Json::Value &resultObject = msg.json()["result"];
 
   IdType moleQueueId;
   QDir workingDirectory;
 
   if (!resultObject["moleQueueId"].isIntegral() ||
       !resultObject["workingDirectory"].isString()) {
-    Json::StyledWriter writer;
-    const std::string responseString = writer.write(root);
     qWarning() << "Job submission result is ill-formed:\n"
-               << responseString.c_str();
+               << msg.data();
     return;
   }
 
@@ -305,118 +295,97 @@ void ClientJsonRpc::handleSubmitJobResult(const Json::Value &root) const
   workingDirectory = QDir(QString(
                             resultObject["workingDirectory"].asCString()));
 
-  emit successfulSubmissionReceived(id, moleQueueId, workingDirectory);
+  emit successfulSubmissionReceived(msg.id(), moleQueueId, workingDirectory);
 }
 
-void ClientJsonRpc::handleSubmitJobError(const Json::Value &root) const
+void ClientJsonRpc::handleSubmitJobError(const Message &msg) const
 {
-  const IdType id = static_cast<IdType>(root["id"].asLargestUInt());
-
-  if (!root["error"]["code"].isIntegral() ||
-      !root["error"]["message"].isString()) {
-    Json::StyledWriter writer;
-    const std::string responseString = writer.write(root);
+  if (!msg.json()["error"]["code"].isIntegral() ||
+      !msg.json()["error"]["message"].isString()) {
     qWarning() << "Job submission failure response is ill-formed:\n"
-               << responseString.c_str();
+               << msg.data();
     return;
   }
 
   const ErrorCode errorCode = static_cast<ErrorCode>(
-        root["error"]["code"].asLargestInt());
+        msg.json()["error"]["code"].asLargestInt());
 
-  const QString errorMessage(root["error"]["message"].asCString());
+  const QString errorMessage(msg.json()["error"]["message"].asCString());
 
-  emit failedSubmissionReceived(id, errorCode, errorMessage);
+  emit failedSubmissionReceived(msg.id(), errorCode, errorMessage);
 }
 
-void ClientJsonRpc::handleCancelJobResult(const Json::Value &root) const
+void ClientJsonRpc::handleCancelJobResult(const Message &msg) const
 {
-  const IdType id = static_cast<IdType>(root["id"].asLargestUInt());
-
-  const Json::Value &resultObject = root["result"];
+  const Json::Value &resultObject = msg.json()["result"];
 
   IdType moleQueueId;
 
   if (!resultObject.isIntegral()) {
-    Json::StyledWriter writer;
-    const std::string responseString = writer.write(root);
     qWarning() << "Job cancellation result is ill-formed:\n"
-               << responseString.c_str();
+               << msg.data();
     return;
   }
 
   moleQueueId = static_cast<IdType>(resultObject.asLargestUInt());
 
-  emit jobCancellationConfirmationReceived(id, moleQueueId);
+  emit jobCancellationConfirmationReceived(msg.id(), moleQueueId);
 }
 
-void ClientJsonRpc::handleCancelJobError(const Json::Value &root) const
+void ClientJsonRpc::handleCancelJobError(const Message &msg) const
 {
-  const IdType id = static_cast<IdType>(root["id"].asLargestUInt());
-
-  if (!root["error"]["code"].isIntegral() ||
-      !root["error"]["data"].isIntegral() ||
-      !root["error"]["message"].isString()) {
-    Json::StyledWriter writer;
-    const std::string responseString = writer.write(root);
+  if (!msg.json()["error"]["code"].isIntegral() ||
+      !msg.json()["error"]["data"].isIntegral() ||
+      !msg.json()["error"]["message"].isString()) {
     qWarning() << "Job lookup failure response is ill-formed:\n"
-               << responseString.c_str();
+               << msg.data();
     return;
   }
 
   const ErrorCode errorCode =
       static_cast<ErrorCode>(
-        root["error"]["code"].asLargestUInt());
-  const QString message(root["error"]["message"].asCString());
+        msg.json()["error"]["code"].asLargestUInt());
+  const QString message(msg.json()["error"]["message"].asCString());
   const IdType moleQueueId =
-      static_cast<IdType>(root["error"]["data"].asLargestUInt());
+      static_cast<IdType>(msg.json()["error"]["data"].asLargestUInt());
 
-  emit jobCancellationErrorReceived(id, moleQueueId, errorCode, message);
+  emit jobCancellationErrorReceived(msg.id(), moleQueueId, errorCode, message);
 }
 
-void ClientJsonRpc::handleLookupJobResult(const Json::Value &root) const
+void ClientJsonRpc::handleLookupJobResult(const Message &msg) const
 {
-  const IdType id = static_cast<IdType>(root["id"].asLargestUInt());
-
-  const Json::Value &resultObject = root["result"];
+  const Json::Value &resultObject = msg.json()["result"];
 
   if (!resultObject.isObject()) {
-    Json::StyledWriter writer;
-    const std::string responseString = writer.write(root);
     qWarning() << "Job lookup result is ill-formed:\n"
-               << responseString.c_str();
+               << msg.data();
     return;
   }
 
   QVariantHash hash = QtJson::toVariant(resultObject).toHash();
 
-  emit lookupJobResponseReceived(id, hash);
+  emit lookupJobResponseReceived(msg.id(), hash);
 }
 
-void ClientJsonRpc::handleLookupJobError(const Json::Value &root) const
+void ClientJsonRpc::handleLookupJobError(const Message &msg) const
 {
-  const IdType id = static_cast<IdType>(root["id"].asLargestUInt());
-
-  if (!root["error"]["code"].isIntegral() ||
-      !root["error"]["data"].isIntegral() ||
-      !root["error"]["message"].isString()) {
-    Json::StyledWriter writer;
-    const std::string responseString = writer.write(root);
+  if (!msg.json()["error"]["code"].isIntegral() ||
+      !msg.json()["error"]["data"].isIntegral() ||
+      !msg.json()["error"]["message"].isString()) {
     qWarning() << "Job lookup failure response is ill-formed:\n"
-               << responseString.c_str();
+               << msg.data();
     return;
   }
 
   const IdType moleQueueId =
-      static_cast<IdType>(root["error"]["data"].asLargestUInt());
+      static_cast<IdType>(msg.json()["error"]["data"].asLargestUInt());
 
-  emit lookupJobErrorReceived(id, moleQueueId);
+  emit lookupJobErrorReceived(msg.id(), moleQueueId);
 }
 
-void ClientJsonRpc::handleJobStateChangedNotification(
-    const Json::Value &root) const
+void ClientJsonRpc::handleJobStateChangedNotification(const Message &msg) const
 {
-  const Json::Value &paramsObject = root["params"];
+  const Json::Value &paramsObject = msg.json()["params"];
 
   IdType moleQueueId;
   JobState oldState;
@@ -426,10 +395,8 @@ void ClientJsonRpc::handleJobStateChangedNotification(
       !paramsObject["moleQueueId"].isIntegral() ||
       !paramsObject["oldState"].isString() ||
       !paramsObject["newState"].isString() ){
-    Json::StyledWriter writer;
-    const std::string requestString = writer.write(root);
     qWarning() << "Job cancellation result is ill-formed:\n"
-               << requestString.c_str();
+               << msg.data();
     return;
   }
 

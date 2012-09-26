@@ -20,6 +20,7 @@
 #include <QtCore/QObject>
 
 #include "molequeueglobal.h"
+#include "transport/message.h"
 
 #include <QtGlobal>
 

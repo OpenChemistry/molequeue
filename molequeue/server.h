@@ -100,7 +100,7 @@ public:
   QString workingDirectoryBase() const {return m_workingDirectoryBase;}
 
   /// Used for internal lookup structures
-  typedef QMap<IdType, IdType> PacketLookupTable;
+  typedef QMap<IdType, MessageIdType> PacketLookupTable;
 
   /// Used for unit testing
   friend class ::ServerConnectionTest;
@@ -177,85 +177,79 @@ public slots:
   /**
    * Sends the @a list to the connected client.
    *
-   * @param id The id for the rpc
+   * @param request The request Message
    * @param queueList The queue List
    */
-  void sendQueueList(MoleQueue::Connection *connection,
-                     MoleQueue::EndpointId to,
-                     MoleQueue::IdType id,
+  void sendQueueList(const MoleQueue::Message &request,
                      const MoleQueue::QueueListType &queueList);
 
   /**
    * Sends a reply to the client informing them that the job submission was
    * successful.
-   * @param req The Job
+   * @param request The request Message
+   * @param job The Job
    */
-  void sendSuccessfulSubmissionResponse(MoleQueue::Connection *connection,
-                                        MoleQueue::EndpointId replyTo,
-                                        const MoleQueue::Job &req);
+  void sendSuccessfulSubmissionResponse(const MoleQueue::Message &request,
+                                        const MoleQueue::Job &job);
 
   /**
    * Sends a reply to the client informing them that the job submission failed.
-   * @param req The Job
+   * @param request The request Message
    * @param ec Error code
    * @param errorMessage Descriptive string
    */
-  void sendFailedSubmissionResponse(MoleQueue::Connection *connection,
-                                    MoleQueue::EndpointId replyTo,
-                                    const MoleQueue::Job &req,
+  void sendFailedSubmissionResponse(const MoleQueue::Message &request,
                                     MoleQueue::ErrorCode ec,
                                     const QString &errorMessage);
 
   /**
    * Sends a reply to the client informing them that the job cancellation was
    * successful.
+   * @param request The request Message
    * @param moleQueueId The id of the job being cancelled
    */
-  void sendSuccessfulCancellationResponse(MoleQueue::Connection *connection,
-                                          MoleQueue::EndpointId replyTo,
+  void sendSuccessfulCancellationResponse(const MoleQueue::Message &request,
                                           IdType moleQueueId);
 
   /**
    * Sends a reply to the client informing them that the job cancellation was
    * unsuccessful.
+   * @param request The request Message
    * @param moleQueueId The id of the job being cancelled
-   * @param
+   * @param error The ErrorCode describing the failure
+   * @param message A descriptive string detailing the failure.
    */
-  void sendFailedCancellationResponse(MoleQueue::Connection *connection,
-                                      MoleQueue::EndpointId replyTo,
-                                      IdType moleQueueId,
+  void sendFailedCancellationResponse(const MoleQueue::Message &request,
+                                      MoleQueue::IdType moleQueueId,
                                       MoleQueue::ErrorCode error,
                                       const QString &message);
 
   /**
    * Sends a requested job details to the client.
-   * @param packetId The id of the request packet
+   * @param request The request Message
    * @param req The Job
    */
-  void sendSuccessfulLookupJobResponse(MoleQueue::Connection *connection,
-                                       MoleQueue::EndpointId replyTo,
-                                       MoleQueue::IdType packetId,
+  void sendSuccessfulLookupJobResponse(const MoleQueue::Message &request,
                                        const MoleQueue::Job &req);
 
   /**
    * Sends a reply to the client informing them that the job lookup failed.
-   * @param packetId The id of the request packet
+   * @param request The request Message
    * @param moleQueueId The unknown MoleQueue id.
    */
-  void sendFailedLookupJobResponse(MoleQueue::Connection *connection,
-                                   MoleQueue::EndpointId replyTo,
-                                   MoleQueue::IdType packetId,
+  void sendFailedLookupJobResponse(const MoleQueue::Message &request,
                                    MoleQueue::IdType moleQueueId);
 
   /**
    * Sends a notification to the connected client informing them that a job
    * has changed status.
-   * @param req
-   * @param oldState
-   * @param newState
+   * @param connectionInfo A Message object populated with connection details
+   * for routing the message.
+   * @param req The Job that changed JobState.
+   * @param oldState The old JobState
+   * @param newState The new JobState
    */
-  void sendJobStateChangeNotification(MoleQueue::Connection *connection,
-                                      MoleQueue::EndpointId to,
+  void sendJobStateChangeNotification(const MoleQueue::Message &connectionInfo,
                                       const MoleQueue::Job &req,
                                       MoleQueue::JobState oldState,
                                       MoleQueue::JobState newState);
@@ -282,43 +276,27 @@ protected slots:
   /**
    * Called when the JsonRpc instance handles a listQueues request.
    */
-  void queueListRequestReceived(MoleQueue::Connection *,
-                                MoleQueue::EndpointId replyTo,
-                                MoleQueue::IdType);
+  void queueListRequestReceived(const MoleQueue::Message &request);
 
   /**
    * Called when the JsonRpc instance handles a submitJob request.
    * @param options Option hash (see Job::hash())
    */
-  void jobSubmissionRequestReceived(MoleQueue::Connection *connection,
-                                    MoleQueue::EndpointId replyTo,
-                                    MoleQueue::IdType,
+  void jobSubmissionRequestReceived(const MoleQueue::Message &request,
                                     const QVariantHash &options);
-
-  /**
-   * Called when a Client submits a new job.
-   * @param req The new Job request.
-   */
-  void jobSubmissionRequested(MoleQueue::Connection *connection,
-                              MoleQueue::EndpointId replyTo,
-                              const Job &req);
 
   /**
    * Called when the JsonRpc instance handles a cancelJob request.
    * @param moleQueueId The MoleQueue identifier of the job to cancel.
    */
-  void jobCancellationRequestReceived(MoleQueue::Connection *connection,
-                                      MoleQueue::EndpointId replyTo,
-                                      MoleQueue::IdType packetId,
+  void jobCancellationRequestReceived(const MoleQueue::Message &request,
                                       MoleQueue::IdType moleQueueId);
 
   /**
    * Called when the JsonRpc instance handles a lookupJob request.
    * @param moleQueueId The MoleQueue identifier of the requested job.
    */
-  void lookupJobRequestReceived(MoleQueue::Connection *connection,
-                                MoleQueue::EndpointId replyTo,
-                                MoleQueue::IdType packetId,
+  void lookupJobRequestReceived(const MoleQueue::Message &request,
                                 MoleQueue::IdType moleQueueId);
 
 private slots:
@@ -367,17 +345,11 @@ protected:
   /// Tracks MoleQueue ids belonging to this connection
   QList<IdType> m_ownedJobMoleQueueIds;
 
-  /// Tracks job submission requests: moleQueueId --> packetId
-  PacketLookupTable m_submissionLUT;
-
-  /// Tracks job cancellation requests: moleQueueId --> packetId
-  PacketLookupTable m_cancellationLUT;
-
   // job id --> connection for notifications.
-  QMap<IdType,Connection*> m_connectionLUT;
+  QMap<IdType, Connection*> m_connectionLUT;
 
   // job id --> reply to endpoint for notifications
-  QMap<IdType,EndpointId> m_endpointLUT;
+  QMap<IdType, EndpointIdType> m_endpointLUT;
 
 private:
   void createConnectionListeners();

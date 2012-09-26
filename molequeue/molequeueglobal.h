@@ -35,9 +35,6 @@ namespace MoleQueue
 typedef quint32 IdType;
 const IdType InvalidId = std::numeric_limits<IdType>::max();
 
-/// Type for RPC packets
-typedef QByteArray PacketType;
-
 /// Type for list queue/program names. Key is queue, value is list of supported
 /// programs
 typedef QHash<QString, QStringList> QueueListType;
@@ -167,7 +164,6 @@ const int DEFAULT_MAX_WALLTIME = 1440;
 } // end namespace MoleQueue
 
 Q_DECLARE_METATYPE(MoleQueue::IdType)
-Q_DECLARE_METATYPE(MoleQueue::PacketType)
 Q_DECLARE_METATYPE(MoleQueue::QueueListType)
 Q_DECLARE_METATYPE(MoleQueue::JobState)
 Q_DECLARE_METATYPE(MoleQueue::ErrorCode)

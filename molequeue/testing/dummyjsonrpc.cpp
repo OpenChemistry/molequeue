@@ -26,8 +26,6 @@ int DummyJsonRpc::mapMethodNameToInt(const QString &) const
   return MoleQueue::JsonRpc::UNRECOGNIZED_METHOD;
 }
 
-void DummyJsonRpc::handlePacket(int, PacketForm, MoleQueue::Connection *,
-                                const MoleQueue::EndpointId,
-                                const Json::Value &)
+void DummyJsonRpc::handleMessage(int, const MoleQueue::Message &)
 {
 }

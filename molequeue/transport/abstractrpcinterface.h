@@ -63,68 +63,58 @@ public:
 protected slots:
 
   /**
-   * Interpret a newly received packet.
+   * Interpret a newly received message.
    *
-   * @param packet The packet
+   * @param msg The new Message object.
    */
-  void readPacket(const MoleQueue::Message msg);
+  void readMessage(const MoleQueue::Message msg);
 
   /**
    * Send a response indicating that an invalid packet (unparsable) has been
    * received.
    *
-   * @param packetId The packet identifier
+   * @param request The invalid Message.
    * @param errorDataObject The Json::Value to be used as the error data.
    */
-  void replyToInvalidPacket(MoleQueue::Connection *connection,
-                            const MoleQueue::EndpointId replyTo,
-                            const Json::Value &packetId,
-                            const Json::Value &errorDataObject);
+  void replyToInvalidMessage(const MoleQueue::Message &request,
+                             const Json::Value &errorDataObject);
 
   /**
    * Send a response indicating that an invalid request has been
    * received.
    *
-   * @param packetId The packet identifier
+   * @param request The invalid Message.
    * @param errorDataObject The Json::Value to be used as the error data.
    */
-  void replyToInvalidRequest(MoleQueue::Connection *connection,
-                             const MoleQueue::EndpointId replyTo,
-                             const Json::Value &packetId,
+  void replyToInvalidRequest(const MoleQueue::Message &request,
                              const Json::Value &errorDataObject);
 
   /**
    * Send a response indicating that an unknown method has been requested.
    *
-   * @param packetId The packet identifier
+   * @param request The invalid Message.
    * @param errorDataObject The Json::Value to be used as the error data.
    */
-  void replyToUnrecognizedRequest(MoleQueue::Connection *connection,
-                                  const MoleQueue::EndpointId replyTo,
-                                  const Json::Value &packetId,
+  void replyToUnrecognizedRequest(const MoleQueue::Message &request,
                                   const Json::Value &errorDataObject);
 
   /**
    * Send a response indicating that a request with invalid parameters has been
    * received.
    *
-   * @param packetId The packet identifier
+   * @param request The invalid Message.
    * @param errorDataObject The Json::Value to be used as the error data.
    */
-  void replyToinvalidRequestParams(MoleQueue::Connection *connection,
-                                   const MoleQueue::EndpointId replyTo,
-                                   const Json::Value &packetId,
+  void replyToinvalidRequestParams(const MoleQueue::Message &request,
                                    const Json::Value &errorDataObject);
 
   /**
    * Send a response indicating that an internal error has occurred.
    *
-   * @param packetId The packet identifier
+   * @param request The invalid Message.
    * @param errorDataObject The Json::Value to be used as the error data.
    */
-  void replyWithInternalError(MoleQueue::Connection *connection,
-                              const MoleQueue::EndpointId replyTo,
-                              const Json::Value &packetId,
+  void replyWithInternalError(const MoleQueue::Message &request,
                               const Json::Value &errorDataObject);
 
 protected:
@@ -133,16 +123,17 @@ protected:
   virtual void setJsonRpc(JsonRpc *jsonrpc);
 
   /**
-   * @return The next packet id.
+   * Call this function to get an ID for the next request.
+   * @return The next Message id generator.
    */
-  IdType nextPacketId();
+  MessageIdType nextMessageId();
 
   /// The internal JsonRpc object
   JsonRpc *m_jsonrpc;
 
 private:
-  /// Counter for packet requests @todo client side only? But what about notifications?
-  IdType m_packetCounter;
+  /// Counter for packet requests
+  IdType m_messageIdGenerator;
 };
 
 } // end namespace MoleQueue
