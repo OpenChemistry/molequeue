@@ -130,7 +130,7 @@ private:
         quint64 ui;
         bool b;
         double dbl;
-        QStringData *stringData;
+//        QStringData *stringData;
         QJsonPrivate::Base *base;
     };
     QJsonPrivate::Data *d; // needed for Objects and Arrays

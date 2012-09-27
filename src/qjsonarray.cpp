@@ -1055,7 +1055,7 @@ void QJsonArray::detach(uint reserve)
         d->ref.ref();
         return;
     }
-    if (reserve == 0 && d->ref.load() == 1)
+    if (reserve == 0 && static_cast<int>(d->ref) == 1)
         return;
 
     QJsonPrivate::Data *x = d->clone(a, reserve);

@@ -42,7 +42,7 @@
 #ifndef QJSONOBJECT_H
 #define QJSONOBJECT_H
 
-#include <QtCore/qjsonvalue.h>
+#include "qjsonvalue.h"
 #include <QtCore/qiterator.h>
 
 QT_BEGIN_HEADER

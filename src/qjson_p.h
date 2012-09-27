@@ -391,13 +391,15 @@ public:
     }
 
     inline bool operator ==(const QString &str) const {
-        return QLatin1String(d->latin1, d->length) == str;
+//        return QLatin1String(d->latin1, d->length) == str;
+	return QString::fromLatin1(d->latin1, d->length) == str;
     }
     inline bool operator !=(const QString &str) const {
         return !operator ==(str);
     }
     inline bool operator >=(const QString &str) const {
-        return QLatin1String(d->latin1, d->length) >= str;
+//        return QLatin1String(d->latin1, d->length) >= str;
+        return QString::fromLatin1(d->latin1, d->length) >= str;
     }
 
     inline bool operator ==(const Latin1String &str) const {
@@ -745,14 +747,14 @@ public:
     Data *clone(Base *b, int reserve = 0)
     {
         int size = sizeof(Header) + b->size;
-        if (b == header->root() && ref.load() == 1 && alloc >= size + reserve)
+/*        if (b == header->root() && ref.load() == 1 && alloc >= size + reserve)
             return this;
 
         if (reserve) {
             if (reserve < 128)
                 reserve = 128;
             size = qMax(size + reserve, size *2);
-        }
+        } */
         char *raw = (char *)malloc(size);
         Q_CHECK_PTR(raw);
         memcpy(raw + sizeof(Header), b, b->size);

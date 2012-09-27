@@ -162,8 +162,9 @@ QJsonValue::QJsonValue(int n)
 QJsonValue::QJsonValue(const QString &s)
     : d(0), t(String)
 {
-    stringData = *(QStringData **)(&s);
-    stringData->ref.ref();
+//    stringData = *(QStringData **)(&s);
+//    stringData->ref.ref();
+    stringValue = s;
 }
 
 /*!
