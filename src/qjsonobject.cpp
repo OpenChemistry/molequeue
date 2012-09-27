@@ -456,7 +456,7 @@ bool QJsonObject::operator!=(const QJsonObject &other) const
  */
 QJsonObject::iterator QJsonObject::erase(QJsonObject::iterator it)
 {
-    Q_ASSERT(d && d->ref.load() == 1);
+//    Q_ASSERT(d && d->ref.load() == 1);
     if (it.o != this || it.i < 0 || it.i >= (int)o->length)
         return iterator(this, o->length);
 
