@@ -133,6 +133,7 @@ private:
 //        QStringData *stringData;
         QJsonPrivate::Base *base;
     };
+    QString stringValue;
     QJsonPrivate::Data *d; // needed for Objects and Arrays
     Type t;
 };
