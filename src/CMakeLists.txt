@@ -14,3 +14,7 @@ set(sources
   )
 
 add_library(Qt5Json ${sources})
+target_link_libraries(Qt5Json ${QT_QTCORE_LIBRARY})
+
+add_executable(json main.cpp)
+target_link_libraries(json Qt5Json)
