@@ -748,13 +748,13 @@ public:
     {
         int size = sizeof(Header) + b->size;
 /*        if (b == header->root() && ref.load() == 1 && alloc >= size + reserve)
-            return this;
+            return this; */
 
         if (reserve) {
             if (reserve < 128)
                 reserve = 128;
             size = qMax(size + reserve, size *2);
-        } */
+        }
         char *raw = (char *)malloc(size);
         Q_CHECK_PTR(raw);
         memcpy(raw + sizeof(Header), b, b->size);

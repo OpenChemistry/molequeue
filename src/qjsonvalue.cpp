@@ -224,6 +224,7 @@ QJsonValue::QJsonValue(const QJsonValue &other)
     ui = other.ui;
     if (d)
         d->ref.ref();
+    stringValue = other.stringValue;
 
     /*if (t == String && stringData)
         stringData->ref.ref();*/
