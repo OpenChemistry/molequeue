@@ -1,6 +1,7 @@
 #include "qjsondocument.h"
 #include "qjsonobject.h"
 #include "qjsonvalue.h"
+#include "qjsonarray.h"
 #include <QDebug>
 
 int main(int argc, char *argv[])
@@ -15,6 +16,14 @@ int main(int argc, char *argv[])
 
   json.insert("params", params);
   json.insert("id", QJsonValue(42));
+
+  QJsonArray array;
+  array.append(2);
+  array.append(3);
+  array.append(5);
+  array.append(7);
+  array.append(11);
+  json.insert("primes", array);
 
   QJsonDocument doc(json);
   qDebug() << doc.toJson();
