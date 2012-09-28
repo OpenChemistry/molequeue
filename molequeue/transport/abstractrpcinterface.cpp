@@ -124,7 +124,9 @@ void AbstractRpcInterface::setJsonRpc(JsonRpc *jsonrpc)
 
 MessageIdType AbstractRpcInterface::nextMessageId()
 {
-  return MessageIdType::number(m_messageIdGenerator++);
+  // Parsed integral ids will have int type, not uint type. Casting to int here
+  // keeps the lookup tables working.
+  return MessageIdType(static_cast<int>(m_messageIdGenerator++));
 }
 
 } // end namespace MoleQueue

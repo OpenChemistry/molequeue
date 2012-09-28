@@ -26,6 +26,7 @@
 #include "queues/local.h"
 #include "queues/sge.h"
 #include "transport/connection.h"
+#include "transport/message.h"
 
 #include <json/json.h>
 
@@ -33,8 +34,6 @@
 #include <QtCore/QFile>
 
 using namespace MoleQueue;
-
-Q_DECLARE_METATYPE(Json::Value)
 
 class ClientJsonRpcTest : public QObject
 {

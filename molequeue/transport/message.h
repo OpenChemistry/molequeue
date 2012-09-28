@@ -29,7 +29,7 @@ class Connection;
 /// Type for Endpoint identifiers
 typedef QByteArray EndpointIdType;
 /// Type for Message identifiers (JSON-RPC ids)
-typedef QByteArray MessageIdType;
+typedef Json::Value MessageIdType;
 /// Type for RPC packets
 typedef QByteArray PacketType;
 
@@ -100,9 +100,6 @@ public:
   /// The ID used in the JSON-RPC call.
   void setId(const MessageIdType &id_) { m_id = id_; }
 
-  /// Indicate that the id in the message is a null Json object.
-  void setIdToNull() { m_id = MessageIdType(); }
-
   /// The type of message.
   void setType(Type type_) { m_type = type_; }
 
@@ -120,9 +117,6 @@ public:
 
   /// The ID used in the JSON-RPC call.
   MessageIdType id() const { return m_id; }
-
-  /// @return true if the id is a null Json object.
-  bool idIsNull() const { return m_id.isNull(); }
 
   /// The type of message.
   Type type() const { return m_type; }
@@ -158,5 +152,6 @@ private:
 } /* namespace MoleQueue */
 
 Q_DECLARE_METATYPE(MoleQueue::Message)
+Q_DECLARE_METATYPE(MoleQueue::MessageIdType)
 
 #endif /* MESSAGE_H_ */

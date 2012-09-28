@@ -82,40 +82,6 @@ PacketType JsonRpc::generateErrorResponse(int errorCode,
   return ret;
 }
 
-PacketType JsonRpc::generateErrorResponse(int errorCode,
-                                          const QString &message,
-                                          const Json::Value &packetId)
-{
-  Json::Value packet = generateEmptyError(packetId);
-
-  packet["error"]["code"]    = errorCode;
-  packet["error"]["message"] = message.toStdString();
-
-  Json::StyledWriter writer;
-  std::string ret_stdstr = writer.write(packet);
-  PacketType ret (ret_stdstr.c_str());
-
-  return ret;
-}
-
-PacketType JsonRpc::generateErrorResponse(int errorCode,
-                                          const QString &message,
-                                          const Json::Value &data,
-                                          const Json::Value &packetId)
-{
-  Json::Value packet = generateEmptyError(packetId);
-
-  packet["error"]["code"]    = errorCode;
-  packet["error"]["message"] = message.toStdString();
-  packet["error"]["data"]    = data;
-
-  Json::StyledWriter writer;
-  std::string ret_stdstr = writer.write(packet);
-  PacketType ret (ret_stdstr.c_str());
-
-  return ret;
-}
-
 void JsonRpc::interpretIncomingMessage(const Message &msg_orig)
 {
   Message msg(msg_orig);
@@ -171,24 +137,8 @@ void JsonRpc::interpretIncomingMessage(const Message &msg_orig)
   switch (msg.type()) {
   case Message::REQUEST_MESSAGE:
   case Message::RESULT_MESSAGE:
-  case Message::ERROR_MESSAGE: {
-    const Json::Value &idmember = msg.json()["id"];
-    if (idmember.isNull()) {
-      msg.setIdToNull();
-    }
-    else {
-      if (idmember.isNull()) {
-        msg.setIdToNull();
-      }
-      else if (idmember.isString()) {
-        msg.setId(MessageIdType(idmember.asCString()));
-      }
-      else {
-        // This isn't strictly valid JSON-RPC...just convert it to a string.
-        msg.setId(MessageIdType(idmember.toStyledString().c_str()));
-      }
-    }
-  }
+  case Message::ERROR_MESSAGE:
+    msg.setId(msg.json()["id"]);
     break;
   default:
   case Message::INVALID_MESSAGE:
@@ -442,8 +392,7 @@ Json::Value JsonRpc::generateEmptyRequest(const MessageIdType &id)
   Json::Value ret (Json::objectValue);
   ret["jsonrpc"] = "2.0";
   ret["method"] = Json::nullValue;
-  ret["id"] = id.isNull() ? Json::Value(Json::nullValue)
-                          : Json::Value(id.data());
+  ret["id"] = id;
 
   return ret;
 }
@@ -453,27 +402,12 @@ Json::Value JsonRpc::generateEmptyResponse(const MessageIdType &id)
   Json::Value ret (Json::objectValue);
   ret["jsonrpc"] = "2.0";
   ret["result"] = Json::nullValue;
-  ret["id"] = id.isNull() ? Json::Value(Json::nullValue)
-                          : Json::Value(id.data());
+  ret["id"] = id;
 
   return ret;
 }
 
 Json::Value JsonRpc::generateEmptyError(const MessageIdType &id)
-{
-  Json::Value ret (Json::objectValue);
-  ret["jsonrpc"] = "2.0";
-  Json::Value errorValue (Json::objectValue);
-  errorValue["code"] = Json::nullValue;
-  errorValue["message"] = Json::nullValue;
-  ret["error"] = Json::nullValue;
-  ret["id"] = id.isNull() ? Json::Value(Json::nullValue)
-                          : Json::Value(id.data());
-
-  return ret;
-}
-
-Json::Value JsonRpc::generateEmptyError(const Json::Value &id)
 {
   Json::Value ret (Json::objectValue);
   ret["jsonrpc"] = "2.0";
@@ -530,7 +464,7 @@ int JsonRpc::guessMessageMethod(const Message &msg) const
 
   // No method present -- this is a reply. Determine if it's a reply to this
   // client.
-  if (!msg.idIsNull()) {
+  if (!msg.id().isNull()) {
     return m_pendingRequests.value(msg.id(), IGNORE_METHOD);
   }
 
