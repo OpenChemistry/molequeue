@@ -129,34 +129,6 @@ public:
                                    const MessageIdType &packetId);
 
   /**
-    * Generate a JSON-RPC response packet to notify of an error.
-    *
-    * @param errorCode Error code
-    * @param message Single sentence describing the error that occurred.
-    * @param packetId The JSON-RPC id for the packet.
-    * @return A PacketType, ready to send to a Connection.
-    * @overload
-    */
-  PacketType generateErrorResponse(int errorCode,
-                                   const QString &message,
-                                   const Json::Value &packetId);
-
-  /**
-    * Generate a JSON-RPC response packet to notify of an error.
-    *
-    * @param errorCode Error code
-    * @param message Single sentence describing the error that occurred.
-    * @param data a Json::Value to be used as the error object's data member
-    * @param packetId The JSON-RPC id for the packet.
-    * @return A PacketType, ready to send to a Connection.
-    * @overload
-    */
-  PacketType generateErrorResponse(int errorCode,
-                                   const QString &message,
-                                   const Json::Value &data,
-                                   const Json::Value &packetId);
-
-  /**
     * Read a newly received message.
     * The message(s) are split and interpreted, and signals are emitted
     * depending on the type and method of message.
@@ -257,9 +229,6 @@ protected:
   /// Create and return a new JsonCpp JSON-RPC error response.
   /// @param id JSON-RPC id
   static Json::Value generateEmptyError(const MessageIdType &id);
-  /// Create and return a new JsonCpp JSON-RPC error response.
-  /// @param id JSON-RPC id
-  static Json::Value generateEmptyError(const Json::Value &id);
   /// Create and return a new JsonCpp JSON-RPC notification.
   /// @param id JSON-RPC id
   static Json::Value generateEmptyNotification();
@@ -342,7 +311,7 @@ protected:
   void registerReply(const MessageIdType &packetId);
 
   /// Lookup hash for pending requests. Maps packet id to method identifier.
-  QHash<MessageIdType, int> m_pendingRequests;
+  QMap<MessageIdType, int> m_pendingRequests;
 };
 
 } // end namespace MoleQueue

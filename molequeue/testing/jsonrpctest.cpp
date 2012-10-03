@@ -17,14 +17,14 @@
 #include "transport/jsonrpc.h"
 #include "dummyjsonrpc.h"
 
+#include "transport/message.h"
+
 #include <json/json.h>
 
 #include <QtTest>
 #include <QtCore/QFile>
 
 using namespace MoleQueue;
-
-Q_DECLARE_METATYPE(Json::Value)
 
 class JsonRpcTest : public QObject
 {

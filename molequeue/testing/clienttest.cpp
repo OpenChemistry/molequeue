@@ -122,7 +122,7 @@ void ClientTest::testJobSubmission()
       readReferenceString("client-ref/job-submission.json");
 
   // Strip out the random ids in the packets
-  QRegExp strip ("\\n\\s+\"id\"\\s+:\\s+\"\\d+\"\\s*,\\s*\\n");
+  QRegExp strip ("\\n\\s+\"id\"\\s+:\\s+\"?\\d+\"?\\s*,\\s*\\n");
   QString strippedPacket = QString(m_packet);
   QString strippedRefPacket = QString(refPacket);
 
@@ -143,7 +143,7 @@ void ClientTest::testJobCancellation()
       readReferenceString("client-ref/job-cancellation.json");
 
   // Strip out the random ids in the packets
-  QRegExp strip("\\n\\s+\"id\"\\s+:\\s+\"\\d+\"\\s*,\\s*\\n");
+  QRegExp strip("\\n\\s+\"id\"\\s+:\\s+\"?\\d+\"?\\s*,\\s*\\n");
   QString strippedPacket = QString(m_packet);
   QString strippedRefPacket = QString(refPacket);
 
@@ -163,7 +163,7 @@ void ClientTest::testLookupJob()
       readReferenceString("client-ref/lookupJob-request.json");
 
   // Strip out the random ids in the packets
-  QRegExp strip ("\\n\\s+\"id\"\\s+:\\s+\"\\d+\"\\s*,\\s*\\n");
+  QRegExp strip ("\\n\\s+\"id\"\\s+:\\s+\"?\\d+\"?\\s*,\\s*\\n");
   QString strippedPacket = QString(m_packet);
   QString strippedRefPacket = QString(refPacket);
 
@@ -183,7 +183,7 @@ void ClientTest::testRequestQueueListUpdate()
       readReferenceString("client-ref/queue-list-request.json");
 
   // Strip out the random ids in the packets
-  QRegExp strip ("\\n\\s+\"id\"\\s+:\\s+\"\\d+\"\\s*,\\s*\\n");
+  QRegExp strip ("\\n\\s+\"id\"\\s+:\\s+\"?\\d+\"?\\s*,\\s*\\n");
   QString strippedPacket = QString(m_packet);
   QString strippedRefPacket = QString(refPacket);
 
@@ -200,10 +200,10 @@ void ClientTest::testQueueListReceived()
 
   QVERIFY2(m_server->waitForPacket(), "Timeout waiting for reply.");
 
-  QRegExp capture ("\\n\\s+\"id\"\\s+:\\s+(\"\\d+\")\\s*,\\s*\\n");
+  QRegExp capture ("\\n\\s+\"id\"\\s+:\\s+(\"?\\d+\"?)\\s*,\\s*\\n");
   int pos = capture.indexIn(m_packet);
   QVERIFY2(pos >= 0, "id not found in queue list request!");
-  MoleQueue::MessageIdType id = capture.cap(1).toLocal8Bit();
+  QByteArray id = capture.cap(1).toLocal8Bit();
 
   QSignalSpy spy (m_client, SIGNAL(queueListUpdated(MoleQueue::QueueListType)));
 
@@ -232,10 +232,10 @@ void ClientTest::testSuccessfulSubmissionReceived()
 
   QVERIFY2(m_server->waitForPacket(), "Timeout waiting for reply.");
 
-  QRegExp capture ("\\n\\s+\"id\"\\s+:\\s+(\"\\d+\")\\s*,\\s*\\n");
+  QRegExp capture ("\\n\\s+\"id\"\\s+:\\s+(\"?\\d+\"?)\\s*,\\s*\\n");
   int pos = capture.indexIn(m_packet);
   QVERIFY2(pos >= 0, "id not found in job submission request!");
-  MoleQueue::MessageIdType id = capture.cap(1).toLocal8Bit();
+  QByteArray id = capture.cap(1).toLocal8Bit();
 
   QSignalSpy spy (m_client, SIGNAL(jobSubmitted(MoleQueue::JobRequest,
                                                 bool, QString)));
@@ -265,10 +265,10 @@ void ClientTest::testFailedSubmissionReceived()
 
   QVERIFY2(m_server->waitForPacket(), "Timeout waiting for reply.");
 
-  QRegExp capture ("\\n\\s+\"id\"\\s+:\\s+(\"\\d+\")\\s*,\\s*\\n");
+  QRegExp capture ("\\n\\s+\"id\"\\s+:\\s+(\"?\\d+\"?)\\s*,\\s*\\n");
   int pos = capture.indexIn(m_packet);
   QVERIFY2(pos >= 0, "id not found in job submission request!");
-  MoleQueue::MessageIdType id = capture.cap(1).toLocal8Bit();
+  QByteArray id = capture.cap(1).toLocal8Bit();
 
   QSignalSpy spy (m_client, SIGNAL(jobSubmitted(MoleQueue::JobRequest,
                                                 bool,QString)));
@@ -303,10 +303,10 @@ void ClientTest::testJobCancellationConfirmationReceived()
 
   QVERIFY2(m_server->waitForPacket(), "Timeout waiting for reply.");
 
-  QRegExp capture ("\\n\\s+\"id\"\\s+:\\s+(\"\\d+\")\\s*,\\s*\\n");
+  QRegExp capture ("\\n\\s+\"id\"\\s+:\\s+(\"?\\d+\"?)\\s*,\\s*\\n");
   int pos = capture.indexIn(m_packet);
   QVERIFY2(pos >= 0, "id not found in job cancellation request!");
-  MoleQueue::MessageIdType id = capture.cap(1).toLocal8Bit();
+  QByteArray id = capture.cap(1).toLocal8Bit();
 
   QSignalSpy spy (m_client, SIGNAL(jobCanceled(MoleQueue::JobRequest,
                                                bool, QString)));
@@ -341,10 +341,10 @@ void ClientTest::testJobCancellationErrorReceived()
 
   QVERIFY2(m_server->waitForPacket(), "Timeout waiting for reply.");
 
-  QRegExp capture ("\\n\\s+\"id\"\\s+:\\s+(\"\\d+\")\\s*,\\s*\\n");
+  QRegExp capture ("\\n\\s+\"id\"\\s+:\\s+(\"?\\d+\"?)\\s*,\\s*\\n");
   int pos = capture.indexIn(m_packet);
   QVERIFY2(pos >= 0, "id not found in job cancellation request!");
-  MoleQueue::MessageIdType id = capture.cap(1).toLocal8Bit();
+  QByteArray id = capture.cap(1).toLocal8Bit();
 
   QSignalSpy spy (m_client, SIGNAL(jobCanceled(MoleQueue::JobRequest,
                                                bool, QString)));
@@ -374,10 +374,10 @@ void ClientTest::testLookupJobResponseReceived()
 
   QVERIFY2(m_server->waitForPacket(), "Timeout waiting for reply.");
 
-  QRegExp capture ("\\n\\s+\"id\"\\s+:\\s+(\"\\d+\")\\s*,\\s*\\n");
+  QRegExp capture ("\\n\\s+\"id\"\\s+:\\s+(\"?\\d+\"?)\\s*,\\s*\\n");
   int pos = capture.indexIn(m_packet);
   QVERIFY2(pos >= 0, "id not found in lookupJob request!");
-  const MoleQueue::MessageIdType packetId = capture.cap(1).toLocal8Bit();
+  const QByteArray packetId = capture.cap(1).toLocal8Bit();
 
   QSignalSpy spy(m_client, SIGNAL(lookupJobComplete(MoleQueue::JobRequest,
                                                     MoleQueue::IdType)));
@@ -407,10 +407,10 @@ void ClientTest::testLookupJobErrorReceived()
 
   QVERIFY2(m_server->waitForPacket(), "Timeout waiting for reply.");
 
-  QRegExp capture("\\n\\s+\"id\"\\s+:\\s+(\"\\d+\")\\s*,\\s*\\n");
+  QRegExp capture("\\n\\s+\"id\"\\s+:\\s+(\"?\\d+\"?)\\s*,\\s*\\n");
   int pos = capture.indexIn(m_packet);
   QVERIFY2(pos >= 0, "id not found in lookupJob request!");
-  const MoleQueue::MessageIdType packetId = capture.cap(1).toLocal8Bit();
+  const QByteArray packetId = capture.cap(1).toLocal8Bit();
 
   QSignalSpy spy(m_client, SIGNAL(lookupJobComplete(MoleQueue::JobRequest,
                                                     MoleQueue::IdType)));
