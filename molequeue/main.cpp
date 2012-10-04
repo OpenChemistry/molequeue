@@ -14,11 +14,21 @@
 
 ******************************************************************************/
 
+#include <QtCore/QDir>
+#include <QtCore/QSettings>
+#include <QtCore/QStringList>
+
 #include <QtGui/QApplication>
 #include <QtGui/QSystemTrayIcon>
 #include <QtGui/QMessageBox>
 
 #include "mainwindow.h"
+
+#include <cstdio>
+
+void printVersion();
+void printUsage();
+bool setWorkDir(const QString &workDir);
 
 int main(int argc, char *argv[])
 {
@@ -29,10 +39,42 @@ int main(int argc, char *argv[])
   
   QApplication app(argc, argv);
 
+  bool customWorkDirSet = false;
+  QStringList args = QCoreApplication::arguments();
+  for (QStringList::const_iterator it = args.constBegin() + 1,
+       it_end = args.constEnd(); it != it_end; ++it) {
+    if (*it == "-w" || *it == "--workdir") {
+      if (customWorkDirSet) {
+        printf("More than one -w or -W option set. Cannot run in multiple "
+               "working directories!\n");
+        return EXIT_FAILURE;
+      }
+      if (!setWorkDir(it + 1 == it_end ? QString("") : *(++it))) {
+        return EXIT_FAILURE;
+      }
+      customWorkDirSet = true;
+      continue;
+    }
+    else if (*it == "-v" || *it == "--version") {
+      printVersion();
+      return EXIT_SUCCESS;
+    }
+    else if (*it == "-h" || *it == "-H" || *it == "--help" || *it == "-help") {
+      printUsage();
+      return EXIT_SUCCESS;
+    }
+    else {
+      QByteArray ba = it->toLatin1();
+      printf("Unrecognized command line option: '%s'\n", ba.constData());
+      printUsage();
+      return EXIT_FAILURE;
+    }
+  }
+
   if (!QSystemTrayIcon::isSystemTrayAvailable()) {
     QMessageBox::critical(0, QObject::tr("MoleQueue"),
                           QObject::tr("System tray not available on this system."));
-    return 1;
+    return EXIT_FAILURE;
   }
 
   QApplication::setQuitOnLastWindowClosed(false);
@@ -40,4 +82,43 @@ int main(int argc, char *argv[])
   MoleQueue::MainWindow window;
   window.show();
   return app.exec();
+}
+
+void printVersion()
+{
+  QByteArray appName = QCoreApplication::applicationName().toLatin1();
+  QByteArray ba = QCoreApplication::applicationVersion().toLatin1();
+  printf("%s %s\n", appName.constData(), ba.constData());
+}
+
+void printUsage()
+{
+  printVersion();
+  printf("Usage: molequeue [options]\n\nOptions:\n");
+
+  const char *fmt = "      %3s %-20s   %s\n";
+
+  printf(fmt, "-h,", "--help",
+         "Print version and usage information and exit.");
+  printf(fmt, "-v,", "--version",
+         "Print version information and exit.");
+  printf(fmt, "-w,", "--workdir [path]",
+         "Run MoleQueue in a custom working directory.");
+}
+
+bool setWorkDir(const QString &workDir)
+{
+  QDir dir(workDir);
+  if (!dir.exists()) {
+    QByteArray ba = workDir.toLatin1();
+    printf("Specified working directory does not exist: '%s'\n",
+           ba.constData());
+    return false;
+  }
+
+  QSettings::setPath(QSettings::NativeFormat, QSettings::UserScope, workDir);
+  QSettings settings;
+  settings.setValue("workingDirectoryBase", workDir);
+
+  return true;
 }
