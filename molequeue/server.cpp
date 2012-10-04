@@ -29,6 +29,7 @@
 #include <QtCore/QDir>
 #include <QtCore/QList>
 #include <QtCore/QSettings>
+#include <QtCore/QTimerEvent>
 
 namespace MoleQueue
 {
@@ -39,7 +40,8 @@ Server::Server(QObject *parentObject, QString serverName)
     m_queueManager(new QueueManager (this)),
     m_isTesting(false),
     m_moleQueueIdCounter(0),
-    m_serverName(serverName)
+    m_serverName(serverName),
+    m_jobSyncTimer(startTimer(20000)) // 20 seconds
 {
   qRegisterMetaType<ConnectionListener::Error>("ConnectionListener::Error");
   qRegisterMetaType<ServerConnection*>("MoleQueue::ServerConnection*");
@@ -73,6 +75,9 @@ Server::Server(QObject *parentObject, QString serverName)
 
 Server::~Server()
 {
+  if (m_jobSyncTimer != 0)
+    killTimer(m_jobSyncTimer);
+
   stop();
 
   delete m_jobManager;
@@ -113,7 +118,7 @@ void Server::readSettings(QSettings &settings)
       settings.value("moleQueueIdCounter", 0).value<IdType>();
 
   m_queueManager->readSettings(settings);
-  m_jobManager->readSettings(settings);
+  m_jobManager->loadJobState(m_workingDirectoryBase);
 }
 
 void Server::writeSettings(QSettings &settings) const
@@ -122,7 +127,7 @@ void Server::writeSettings(QSettings &settings) const
   settings.setValue("moleQueueIdCounter", m_moleQueueIdCounter);
 
   m_queueManager->writeSettings(settings);
-  m_jobManager->writeSettings(settings);
+  m_jobManager->syncJobState();
 }
 
 void Server::start()
@@ -264,6 +269,14 @@ void Server::jobAboutToBeAdded(Job job)
   if (job.outputDirectory().isEmpty())
     job.setOutputDirectory(job.localWorkingDirectory());
 
+  // Create the local working directory
+  if (job.localWorkingDirectory().isEmpty() ||
+      !QDir().mkpath(job.localWorkingDirectory())) {
+    Logger::logError(tr("Error creating working directory for job %1 "
+                        "(dir='%2')").arg(job.moleQueueId())
+                     .arg(job.localWorkingDirectory()),
+                     job.moleQueueId());
+  }
 }
 
 void Server::newConnectionAvailable(Connection *connection)
@@ -418,6 +431,9 @@ void Server::jobSubmissionRequestReceived(const Message &request,
     return;
   }
 
+  // Record the new job.
+  m_jobManager->syncJobState();
+
   // Send the submission confirmation first so that the client can update the
   // MoleQueue id and properly handle packets sent during job submission.
   sendSuccessfulSubmissionResponse(request, job);
@@ -433,6 +449,17 @@ void Server::jobRemoved(MoleQueue::IdType moleQueueId)
 {
   m_connectionLUT.remove(moleQueueId);
   m_endpointLUT.remove(moleQueueId);
+}
+
+void Server::timerEvent(QTimerEvent *e)
+{
+  if (e->timerId() == m_jobSyncTimer) {
+    e->accept();
+    m_jobManager->syncJobState();
+    return;
+  }
+
+  QObject::timerEvent(e);
 }
 
 void Server::setJsonRpc(JsonRpc *jsonrpc)

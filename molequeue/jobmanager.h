@@ -53,10 +53,13 @@ public:
   explicit JobManager(QObject *parentObject = 0);
   virtual ~JobManager();
 
-  /// @param settings QSettings object to write state to.
-  void readSettings(QSettings &settings);
-  /// @param settings QSettings object to read state from.
-  void writeSettings(QSettings &settings) const;
+  /// Locate jobs from the subdirectories in @a path. This function will look
+  /// in all immediate subdirectories of @a path and load mqjobinfo.json files
+  /// with JobData::load().
+  void loadJobState(const QString &path);
+
+  /// Sync all job state with disk.
+  void syncJobState() const;
 
   /**
    * @name Job Management
@@ -186,8 +189,8 @@ signals:
 
   /**
    * Emitted when a job is about to be inserted. Client and MainWindow should
-   * directly connect slots to this signal which will set the client or
-   * molequeue ids.
+   * directly connect slots to this signal which will set the molequeue id and
+   * local working directory.
    */
   void jobAboutToBeAdded(MoleQueue::Job job);
 
