@@ -18,7 +18,11 @@
 
 #include "logentry.h"
 
+#include <QtCore/QDir>
+#include <QtCore/QFile>
 #include <QtCore/QSettings>
+
+#include <json/json.h>
 
 namespace MoleQueue
 {
@@ -31,37 +35,74 @@ Logger::Logger() :
   m_printNotifications(false),
   m_printWarnings(false),
   m_printErrors(false),
+  m_maxEntries(1000),
   m_newErrorCount(0),
   m_silenceNewErrors(false)
 {
   // Call destructor when program exits
   atexit(&cleanUp);
 
-  QSettings settings;
-  settings.beginGroup("logger");
-  m_maxEntries = settings.value("maxEntries", 1000).toInt();
-  int numEntries = settings.beginReadArray("entries");
-  for (int i = 0; i < numEntries; ++i) {
-    settings.setArrayIndex(i);
-    m_log.push_back(LogEntry(settings));
+  QFile *lfile = logFile();
+
+  if (!lfile)
+    return;
+
+  if (!lfile->open(QFile::ReadOnly | QFile::Text)) {
+    qWarning() << "MoleQueue::Logger::~Logger() -- Cannot open log "
+                  "file" + lfile->fileName() + "; cannot read log.";
+    lfile->deleteLater();
+    return;
   }
-  settings.endArray();
-  settings.endGroup();
+
+  QByteArray logData = lfile->readAll();
+  lfile->close();
+  lfile->deleteLater();
+
+  Json::Value root;
+  Json::Reader reader;
+  reader.parse(logData.constData(), logData.constData() + logData.size(),
+               root);
+
+  if (root["maxEntries"].isIntegral())
+    m_maxEntries = root["maxEntries"].asInt();
+
+  const Json::Value &entries = root["entries"];
+  if (entries.isArray()) {
+    for (Json::ValueIterator it = entries.begin(), it_end = entries.end();
+         it != it_end; ++it) {
+      m_log.push_back(LogEntry(*it));
+    }
+  }
 }
 
 Logger::~Logger()
 {
-  QSettings settings;
-  settings.beginGroup("logger");
-  settings.setValue("maxEntries", m_maxEntries);
-  settings.beginWriteArray("entries", m_log.size());
-  int i = 0;
-  foreach(const LogEntry &entry, m_log) {
-    settings.setArrayIndex(i++);
-    entry.writeSettings(settings);
+  QFile *lfile = logFile();
+
+  if (!lfile)
+    return;
+
+  if (!lfile->open(QFile::WriteOnly | QFile::Text | QFile::Truncate)) {
+    qWarning() << "MoleQueue::Logger::~Logger() -- Cannot create log "
+                  "file" + lfile->fileName() + "; cannot save log.";
+    lfile->deleteLater();
+    return;
   }
-  settings.endArray();
-  settings.endGroup();
+
+  Json::Value root(Json::objectValue);
+  root["maxEntries"] = m_maxEntries;
+
+  Json::Value entriesArray(Json::arrayValue);
+  foreach(const LogEntry &entry, m_log) {
+    Json::Value entryObject(Json::objectValue);
+    entry.writeSettings(entryObject);
+    entriesArray.append(entryObject);
+  }
+  root["entries"] = entriesArray;
+
+  lfile->write(root.toStyledString().c_str());
+  lfile->close();
+  lfile->deleteLater();
 }
 
 void Logger::resetNewErrorCount()
@@ -78,6 +119,29 @@ void Logger::cleanUp()
 {
   delete m_instance;
   m_instance = NULL;
+}
+
+QFile *Logger::logFile()
+{
+  QSettings settings;
+  QString workDir = settings.value("workingDirectoryBase").toString();
+
+  if (workDir.isEmpty()) {
+    qWarning() << "MoleQueue::Logger::~Logger() -- Cannot determine working "
+                  "directory.";
+    return NULL;
+  }
+
+  QDir logDir(workDir + "/log");
+  if (!logDir.exists()) {
+    if (!logDir.mkpath(logDir.absolutePath())) {
+      qWarning() << "MoleQueue::Logger::~Logger() -- Cannot create log "
+                    "directory" + logDir.absolutePath();
+      return NULL;
+    }
+  }
+
+  return new QFile(logDir.absoluteFilePath("log.json"));
 }
 
 Logger *Logger::getInstance()

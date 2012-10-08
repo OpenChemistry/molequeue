@@ -22,7 +22,7 @@
 #include <QtCore/QDateTime>
 #include <QtCore/QString>
 
-class QSettings;
+namespace Json { class Value; }
 
 namespace MoleQueue
 {
@@ -115,10 +115,10 @@ public:
 protected:
 
   /// Initialize from data in the QSettings object.
-  LogEntry(QSettings &settings);
+  LogEntry(const Json::Value &json);
 
   /// Write this entry's settings to the QSettings object
-  void writeSettings(QSettings &settings) const;
+  void writeSettings(Json::Value &root) const;
 
   /// Set the timestamp on this LogEntry to the current time.
   void setTimeStamp();
