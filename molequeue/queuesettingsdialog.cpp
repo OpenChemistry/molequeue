@@ -183,25 +183,8 @@ void QueueSettingsDialog::exportProgramClicked()
   // Set location for next time
   settings.setValue("export/program/lastExportFile", exportFileName);
 
-  // Setup QSettings file to write an INI format file to the filename
-  QSettings exporter(exportFileName, QSettings::IniFormat);
-
-  if (!exporter.isWritable()) {
-    QMessageBox::critical(this, tr("Cannot export program!"),
-                          tr("Cannot export program to file '%1': File is not "
-                             "writable.").arg(exportFileName),
-                          QMessageBox::Ok);
-    return;
-  }
-
-  // Clear and existing state information in the file:
-  exporter.remove("");
-
   // Populate file
-  program->exportConfiguration(exporter);
-
-  // Flush QSettings
-  exporter.sync();
+  program->exportSettings(exportFileName);
 }
 
 void QueueSettingsDialog::doubleClicked(const QModelIndex &index)

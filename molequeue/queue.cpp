@@ -29,6 +29,7 @@
 
 #include <QtCore/QDebug>
 #include <QtCore/QDir>
+#include <QtCore/QFile>
 #include <QtCore/QSettings>
 
 namespace MoleQueue {
@@ -57,112 +58,290 @@ Queue::~Queue()
   qDeleteAll(programList);
 }
 
-void Queue::readSettings(QSettings &settings)
+bool Queue::readSettings(const QString &stateFilename)
 {
-  m_launchTemplate = settings.value("launchTemplate").toString();
-  m_launchScriptName = settings.value("launchScriptName").toString();
+  return readJsonSettingsFromFile(stateFilename, false, true);
+}
 
-  int jobIdMapSize = settings.beginReadArray("JobIdMap");
-  for (int i = 0; i < jobIdMapSize; ++i) {
-    settings.setArrayIndex(i);
-    m_jobs.insert(static_cast<IdType>(settings.value("queueId").toInt()),
-                  static_cast<IdType>(settings.value("moleQueueId").toInt()));
+bool Queue::writeSettings() const
+{
+  QString fileName = stateFileName();
+  if (fileName.isEmpty()) {
+    Logger::logError(tr("Cannot write settings for Queue %1: Cannot determine "
+                        "config filename.").arg(name()));
+    return false;
   }
-  settings.endArray(); // JobIdMap
 
-  QStringList progNames = settings.value("programs").toStringList();
-
-  settings.beginGroup("Programs");
-  foreach (const QString &progName, progNames) {
-    settings.beginGroup(progName);
-
-    Program *program = new Program (this);
-    program->setName(progName);
-    program->readSettings(settings);
-
-    if (!addProgram(program)) {
-      Logger::logDebugMessage(tr("Cannot add program '%1' to queue '%2': "
-                                 "program name already exists!")
-                              .arg(progName).arg(name()));
-      delete program;
-      program = NULL;
+  // Create directory if needed.
+  QDir queueDir(QFileInfo(fileName).dir());
+  if (!queueDir.exists()) {
+    if (!queueDir.mkpath(queueDir.absolutePath())) {
+      Logger::logError(tr("Cannot write settings for Queue %1: Cannot create "
+                          "config directory %2.").arg(name())
+                       .arg(queueDir.absolutePath()));
+      return false;
     }
-
-    settings.endGroup(); // progName
   }
-  settings.endGroup(); // "Programs"
+
+  return writeJsonSettingsToFile(fileName, false, true);
+
 }
 
-void Queue::writeSettings(QSettings &settings) const
+bool Queue::exportSettings(const QString &fileName, bool includePrograms) const
 {
-  settings.setValue("launchTemplate", m_launchTemplate);
-  settings.setValue("launchScriptName", m_launchScriptName);
-
-  QList<IdType> keys = m_jobs.keys();
-  settings.beginWriteArray("JobIdMap", keys.size());
-  for (int i = 0; i < keys.size(); ++i) {
-    settings.setArrayIndex(i);
-    settings.setValue("queueId", keys[i]);
-    settings.setValue("moleQueueId", m_jobs[keys[i]]);
-  }
-  settings.endArray(); // JobIdMap
-
-  settings.setValue("programs", programNames());
-  settings.beginGroup("Programs");
-  foreach (const Program *prog, programs()) {
-    settings.beginGroup(prog->name());
-    prog->writeSettings(settings);
-    settings.endGroup(); // prog->name()
-  }
-  settings.endGroup(); // "Programs"
+  return writeJsonSettingsToFile(fileName, true, includePrograms);
 }
 
-void Queue::exportConfiguration(QSettings &exporter, bool includePrograms) const
+bool Queue::importSettings(const QString &fileName, bool includePrograms)
 {
-  exporter.setValue("type", typeName());
-  exporter.setValue("launchTemplate", m_launchTemplate);
-  exporter.setValue("launchScriptName", m_launchScriptName);
+  return readJsonSettingsFromFile(fileName, true, includePrograms);
+}
+
+QString Queue::queueTypeFromFile(const QString &mqqFile)
+{
+  QString result;
+  if (!QFile::exists(mqqFile))
+    return result;
+
+  QFile stateFile(mqqFile);
+  if (!stateFile.open(QFile::ReadOnly | QFile::Text))
+    return result;
+  QByteArray inputText = stateFile.readAll();
+  stateFile.close();
+
+  // Try to read existing data in
+  Json::Value root;
+  Json::Reader reader;
+  if (!reader.parse(inputText.begin(), inputText.end(), root, false))
+    return result;
+
+  if (root.isObject() && root.isMember("type") && root["type"].isString())
+    result = QString(root["type"].asCString());
+
+  return result;
+}
+
+QString Queue::stateFileName() const
+{
+  QString workDir;
+  if (m_server) {
+    workDir = m_server->workingDirectoryBase();
+  }
+  else {
+    QSettings settings;
+    workDir = settings.value("workingDirectoryBase").toString();
+  }
+
+  if (workDir.isEmpty()) {
+    return "";
+  }
+
+  return QDir::cleanPath(workDir + "/config/queues/" + name() + ".mqq");
+}
+
+bool Queue::writeJsonSettingsToFile(const QString &stateFilename,
+                                    bool exportOnly,
+                                    bool includePrograms) const
+{
+  QFile stateFile(stateFilename);
+  if (!stateFile.open(QFile::ReadWrite | QFile::Text | QFile::Truncate)) {
+    Logger::logError(tr("Cannot save queue information for queue %1 in %2: "
+                        "Cannot open file.").arg(name()).arg(stateFilename));
+    return false;
+  }
+
+  Json::Value root(Json::objectValue);
+  if (!this->writeJsonSettings(root, exportOnly, includePrograms)) {
+    stateFile.close();
+    return false;
+  }
+
+  if (!root.isObject()) {
+    Logger::logError(tr("Internal error writing state for queue %1 in %2:"
+                        " root is not an object!")
+                     .arg(name()).arg(stateFilename));
+    stateFile.close();
+    return false;
+  }
+
+  // Write the data back out:
+  std::string outputText = root.toStyledString();
+  stateFile.write(QByteArray(outputText.c_str()));
+  stateFile.close();
+
+  return true;
+}
+
+bool Queue::readJsonSettingsFromFile(const QString &stateFilename,
+                                     bool importOnly,
+                                     bool includePrograms)
+{
+  if (!QFile::exists(stateFilename))
+    return false;
+
+  QFile stateFile(stateFilename);
+  if (!stateFile.open(QFile::ReadOnly | QFile::Text)) {
+    Logger::logError(tr("Cannot read queue information from %1.")
+                     .arg(stateFilename));
+    return false;
+  }
+
+  // Try to read existing data in
+  Json::Value root;
+  Json::Reader reader;
+  QByteArray inputText = stateFile.readAll();
+  if (!reader.parse(inputText.begin(), inputText.end(), root, false)) {
+    Logger::logError(tr("Cannot parse queue state from %1:\n%2")
+                     .arg(stateFilename).arg(inputText.data()));
+    stateFile.close();
+    return false;
+  }
+
+  if (!root.isObject()) {
+    Logger::logError(tr("Error reading queue state from %1: "
+                        "root is not an object!\n%2")
+                     .arg(stateFilename)
+                     .arg(inputText.data()));
+    stateFile.close();
+    return false;
+  }
+
+  return readJsonSettings(root, importOnly, includePrograms);
+}
+
+bool Queue::writeJsonSettings(Json::Value &root, bool exportOnly,
+                              bool includePrograms) const
+{
+  root["type"] = typeName().toStdString();
+  root["launchTemplate"] = m_launchTemplate.toStdString();
+  root["launchScriptName"] = m_launchScriptName.toStdString();
+
+  if (!exportOnly) {
+    Json::Value jobIdMap(Json::objectValue);
+    QList<IdType> keys = m_jobs.keys();
+    for (int i = 0; i < keys.size(); ++i) {
+      jobIdMap[QString::number(keys[i]).toStdString()] = m_jobs[keys[i]];
+    }
+    root["jobIdMap"] = jobIdMap;
+  }
 
   if (includePrograms) {
-    exporter.setValue("programs", programNames());
-    exporter.beginGroup("Programs");
+    Json::Value programsObject(Json::objectValue);
     foreach (const Program *prog, programs()) {
-      exporter.beginGroup(prog->name());
-      prog->exportConfiguration(exporter);
-      exporter.endGroup(); // prog->name()
+      Json::Value programObject(Json::objectValue);
+      if (prog->writeJsonSettings(programObject, exportOnly)) {
+        programsObject[prog->name().toStdString()] = programObject;
+      }
+      else {
+        Logger::logError(tr("Could not save program %1 in queue %2's settings.")
+                         .arg(prog->name(), name()));
+      }
     }
-    exporter.endGroup(); // "Programs"
+    root["programs"] = programsObject;
   }
+
+  return true;
 }
 
-void Queue::importConfiguration(QSettings &importer, bool includePrograms)
+bool Queue::readJsonSettings(const Json::Value &root, bool importOnly,
+                             bool includePrograms)
 {
-  m_launchTemplate = importer.value("launchTemplate").toString();
-  m_launchScriptName = importer.value("launchScriptName").toString();
+  // Verify JSON:
+  if (!root.isObject() ||
+      !root["type"].isString() ||
+      !root["launchTemplate"].isString() ||
+      !root["launchScriptName"].isString() ||
+      (root.isMember("programs") && !root["programs"].isObject())) {
+    Logger::logError(tr("Error reading queue settings: Invalid format:\n%1")
+                     .arg(QString(root.toStyledString().c_str())));
+    return false;
+  }
 
-  if (includePrograms) {
-    QStringList progNames = importer.value("programs").toStringList();
+  if (typeName() != QString(root["type"].asCString())) {
+    Logger::logError(tr("Error reading queue settings: Types do not match.\n"
+                        "Expected %1, got %2.").arg(typeName())
+                     .arg(QString(root["type"].asCString())));
+    return false;
+  }
 
-    importer.beginGroup("Programs");
-    foreach (const QString &progName, progNames) {
-      importer.beginGroup(progName);
+  QMap<IdType, IdType> jobIdMap;
+  if (!importOnly && root.isMember("jobIdMap")) {
+    const Json::Value &jobIdObject = root["jobIdMap"];
 
-      Program *program = new Program (this);
-      program->setName(progName);
-      program->importConfiguration(importer);
+    if (!jobIdObject.isObject()) {
+      Logger::logError(tr("Error reading queue settings: Invalid format:\n%1")
+                       .arg(QString(root.toStyledString().c_str())));
+      return false;
+    }
 
-      if (!addProgram(program)) {
-        Logger::logDebugMessage(tr("Cannot add program '%1' to queue '%2': "
-                                   "program name already exists!")
-                                .arg(progName).arg(name()));
-        delete program;
-        program = NULL;
+    for (Json::ValueIterator it = jobIdObject.begin(),
+         it_end = jobIdObject.end(); it != it_end; ++it) {
+      QString jobIdStr(it.memberName());
+      bool ok = false;
+      IdType jobId = static_cast<IdType>(jobIdStr.toULongLong(&ok));
+      if (!ok || !(*it).isIntegral()) {
+        Logger::logError(tr("Error reading queue settings: Invalid format:\n%1")
+                         .arg(QString(root.toStyledString().c_str())));
+        return false;
+      }
+      IdType moleQueueId = static_cast<IdType>((*it).asLargestUInt());
+      jobIdMap.insert(jobId, moleQueueId);
+    }
+  }
+
+  QMap<QString, Program*> programMap;
+  if (includePrograms && root.isMember("programs")) {
+    const Json::Value &programObject = root["programs"];
+
+    if (!programObject.isObject()) {
+      Logger::logError(tr("Error reading queue settings: Invalid format:\n%1")
+                       .arg(QString(root.toStyledString().c_str())));
+      return false;
+    }
+
+    for (Json::ValueIterator it = programObject.begin(),
+         it_end = programObject.end(); it != it_end; ++it) {
+
+      QString progName(it.memberName());
+      if (progName.isEmpty()) {
+        Logger::logError(tr("Error: empty program name in queue %1 config.")
+                         .arg(name()));
+        return false;
       }
 
-      importer.endGroup(); // progName
+      Program *prog = new Program(this);
+      programMap.insert(progName, prog);
+      prog->setName(progName);
+      if (!prog->readJsonSettings(*it, importOnly)) {
+        Logger::logError(tr("Error loading configuration for program %1 in "
+                            "queue %2.").arg(progName).arg(name()));
+        qDeleteAll(programMap.values());
+        return false;
+      }
     }
-    importer.endGroup(); // "Programs"
   }
+
+  // Everything is verified -- go ahead and update queue.
+  m_launchTemplate = QString(root["launchTemplate"].asCString());
+  m_launchScriptName = QString(root["launchScriptName"].asCString());
+
+  if (!importOnly)
+    m_jobs = jobIdMap;
+
+  if (includePrograms) {
+    for (QMap<QString, Program*>::const_iterator it = programMap.constBegin(),
+         it_end = programMap.constEnd(); it != it_end; ++it) {
+      if (!addProgram(it.value())) {
+        Logger::logDebugMessage(tr("Cannot add program '%1' to queue '%2': "
+                                   "program name already exists!")
+                                .arg(it.key()).arg(name()));
+        it.value()->deleteLater();
+        continue;
+      }
+    }
+  }
+
+  return true;
 }
 
 AbstractQueueSettingsWidget* Queue::settingsWidget()

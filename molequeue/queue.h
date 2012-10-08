@@ -30,6 +30,8 @@
 
 class QSettings;
 
+namespace Json { class Value; }
+
 namespace MoleQueue
 {
 class AbstractQueueSettingsWidget;
@@ -88,22 +90,34 @@ public:
 
   /**
    * Read settings for the queue, done early on at startup.
+   * @param filePath Path to the .mqq file with the queue settings.
+   *
+   * This method calls readJsonSettings to perform the actual setting of
+   * state information. Subclasses should reimplement that method.
    */
-  virtual void readSettings(QSettings &settings);
+  bool readSettings(const QString &filePath);
 
   /**
    * Write settings for the queue, done just before closing the server.
+   * The settings are written to
+   * [server's local working directory]/config/queues/[queuename].mqq
+   *
+   * This method calls writeJsonSettings to perform the actual collection of
+   * state information. Subclasses should reimplement that method.
    */
-  virtual void writeSettings(QSettings &settings) const;
+  bool writeSettings() const;
 
   /**
    * Populate the passed QSettings object with this queue's configuration.
    * Sensitive data (such as usernames, etc) and mutatable state data (like
    * current jobs) are not written, see writeSettings() if these are needed.
    * @param includePrograms Export this queue's programs as well. Default: true
+   *
+   * This method calls writeJsonSettings to perform the actual collection of
+   * state information. Subclasses should reimplement that method.
    */
-  virtual void exportConfiguration(QSettings &exporter,
-                                   bool includePrograms = true) const;
+  bool exportSettings(const QString &fileName,
+                      bool includePrograms = true) const;
 
   /**
    * Set this Queue's configuration from the passed QSettings object.
@@ -111,9 +125,54 @@ public:
    * current jobs) are not read, see readSettings() if these are needed.
    * @param includePrograms Import any programs contained in the importer.
    * Default: true
+   *
+   * This method calls readJsonSettings to perform the actual setting of
+   * state information. Subclasses should reimplement that method.
    */
-  virtual void importConfiguration(QSettings &importer,
-                                   bool includePrograms = true);
+  bool importSettings(const QString &fileName, bool includePrograms = true);
+
+  /**
+   * @param mqqFile Filename of the mqq (MoleQueue Queue) file.
+   * @return Return the type of queue that is stored in the .mqq file.
+   */
+  static QString queueTypeFromFile(const QString &mqqFile);
+
+  /**
+   * @return The name of the persistant state file used to store this Queue's
+   * configuration.
+   */
+  QString stateFileName() const;
+
+  /**
+   * @brief writeJsonSettings Write the queue's internal state into a JSON
+   * object.
+   * @param value Target JSON object.
+   * @param exportOnly If true, instance specific information (e.g. currently
+   * running jobs, login details, etc) is omitted.
+   * @param includePrograms Whether or not to include the Queue's program
+   * configurations.
+   * @return True on success, false on failure.
+   */
+  virtual bool writeJsonSettings(Json::Value &value, bool exportOnly,
+                                 bool includePrograms) const;
+
+  /**
+   * @brief readJsonSettings Initialize the queue's internal state from a JSON
+   * object.
+   * @param value Source JSON object.
+   * @param importOnly If true, instance specific information (e.g. currently
+   * running jobs, login details, etc) is ignored.
+   * @param includePrograms Whether or not to include the Queue's program
+   * configurations.
+   * @return True on success, false on failure.
+   *
+   * @note When reimplementing this method, verify and parse the Json object
+   * into temporary variables, then call the base class implementation and only
+   * modify the queue if the call returns true.
+   */
+  virtual bool readJsonSettings(const Json::Value &value, bool importOnly,
+                                bool includePrograms);
+
 
   /**
    * Returns a widget that can be used to configure the settings for the
@@ -339,6 +398,14 @@ protected:
   /// Keeps track of the number of times a job has failed (MoleQueueId to
   /// #failures). Once a job fails three times, it will no longer retry.
   QMap<IdType, int> m_failureTracker;
+
+private:
+  /// Private helper function
+  bool writeJsonSettingsToFile(const QString &filename, bool exportOnly,
+                               bool includePrograms) const;
+  /// Private helper function
+  bool readJsonSettingsFromFile(const QString &filename, bool importOnly,
+                                bool includePrograms);
 };
 
 } // End namespace

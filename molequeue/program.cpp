@@ -16,10 +16,13 @@
 
 #include "program.h"
 
+#include "logger.h"
 #include "queue.h"
 #include "queues/remote.h"
 #include "queuemanager.h"
 #include "server.h"
+
+#include <json/json.h>
 
 #include <QtCore/QDebug>
 #include <QtCore/QFileInfo>
@@ -86,56 +89,119 @@ QString Program::queueName() const
     return "None";
 }
 
-void Program::readSettings(QSettings &settings)
+bool Program::importSettings(const QString &fileName)
 {
-  m_name                 = settings.value("name").toString();
-  m_executable           = settings.value("executable").toString();
-  m_useExecutablePath    = settings.value("useExecutablePath").toBool();
-  m_arguments            = settings.value("arguments").toString();
-  m_executablePath       = settings.value("executablePath").toString();
-  m_inputFilename        = settings.value("inputFilename").toString();
-  m_outputFilename       = settings.value("outputFilename").toString();
-  m_customLaunchTemplate = settings.value("customLaunchTemplate").toString();
-  m_launchSyntax         = static_cast<LaunchSyntax>(
-        settings.value("launchSyntax").toInt());
+  if (!QFile::exists(fileName))
+    return false;
+
+  QFile stateFile(fileName);
+  if (!stateFile.open(QFile::ReadOnly | QFile::Text)) {
+    Logger::logError(tr("Cannot read program information from %1.")
+                     .arg(fileName));
+    return false;
+  }
+
+  // Try to read existing data in
+  Json::Value root;
+  Json::Reader reader;
+  QByteArray inputText = stateFile.readAll();
+  if (!reader.parse(inputText.begin(), inputText.end(), root, false)) {
+    Logger::logError(tr("Cannot parse program state from %1:\n%2")
+                     .arg(fileName).arg(inputText.data()));
+    stateFile.close();
+    return false;
+  }
+
+  if (!root.isObject()) {
+    Logger::logError(tr("Error reading program state from %1: "
+                        "root is not an object!\n%2")
+                     .arg(fileName)
+                     .arg(inputText.data()));
+    stateFile.close();
+    return false;
+  }
+
+  return readJsonSettings(root, true);
 }
 
-void Program::writeSettings(QSettings &settings) const
+bool Program::exportSettings(const QString &fileName) const
 {
-  settings.setValue("name", m_name);
-  settings.setValue("executable", m_executable);
-  settings.setValue("useExecutablePath", m_useExecutablePath);
-  settings.setValue("executablePath", m_executablePath);
-  settings.setValue("arguments", m_arguments);
-  settings.setValue("inputFilename", m_inputFilename);
-  settings.setValue("outputFilename", m_outputFilename);
-  settings.setValue("customLaunchTemplate", m_customLaunchTemplate);
-  settings.setValue("launchSyntax", static_cast<int>(m_launchSyntax));
+  QFile stateFile(fileName);
+  if (!stateFile.open(QFile::ReadWrite | QFile::Text | QFile::Truncate)) {
+    Logger::logError(tr("Cannot save program information for %1 in queue %2: "
+                        "Cannot open file %3.").arg(name())
+                     .arg(m_queue->name()).arg(fileName));
+    return false;
+  }
+
+  Json::Value root(Json::objectValue);
+  if (!this->writeJsonSettings(root, true)) {
+    stateFile.close();
+    return false;
+  }
+
+  if (!root.isObject()) {
+    Logger::logError(tr("Cannot save program information for %1 in queue %2, "
+                        "file %3\nRoot is not an object!").arg(name())
+                     .arg(m_queue->name()).arg(fileName));
+    stateFile.close();
+    return false;
+  }
+
+  // Write the data back out:
+  std::string outputText = root.toStyledString();
+  stateFile.write(QByteArray(outputText.c_str()));
+  stateFile.close();
+
+  return true;
 }
 
-void Program::importConfiguration(QSettings &importer)
+bool Program::writeJsonSettings(Json::Value &root, bool exportOnly) const
 {
-  m_executable           = importer.value("executable").toString();
-  m_useExecutablePath    = importer.value("useExecutablePath").toBool();
-  m_arguments            = importer.value("arguments").toString();
-  m_executablePath       = importer.value("executablePath").toString();
-  m_inputFilename        = importer.value("inputFilename").toString();
-  m_outputFilename       = importer.value("outputFilename").toString();
-  m_customLaunchTemplate = importer.value("customLaunchTemplate").toString();
-  m_launchSyntax         = static_cast<LaunchSyntax>(
-        importer.value("launchSyntax").toInt());
+  root["executable"] = m_executable.toStdString();
+  root["arguments"] = m_arguments.toStdString();
+  root["inputFilename"] = m_inputFilename.toStdString();
+  root["outputFilename"] = m_outputFilename.toStdString();
+  root["customLaunchTemplate"] = m_customLaunchTemplate.toStdString();
+  root["launchSyntax"] = static_cast<int>(m_launchSyntax);
+
+  if (!exportOnly) {
+    root["useExecutablePath"] = m_useExecutablePath;
+    root["executablePath"] = m_executablePath.toStdString();
+  }
+
+  return true;
 }
 
-void Program::exportConfiguration(QSettings &exporter) const
+bool Program::readJsonSettings(const Json::Value &root, bool importOnly)
 {
-  exporter.setValue("executable", m_executable);
-  exporter.setValue("useExecutablePath", m_useExecutablePath);
-  exporter.setValue("executablePath", m_executablePath);
-  exporter.setValue("arguments", m_arguments);
-  exporter.setValue("inputFilename", m_inputFilename);
-  exporter.setValue("outputFilename", m_outputFilename);
-  exporter.setValue("customLaunchTemplate", m_customLaunchTemplate);
-  exporter.setValue("launchSyntax", static_cast<int>(m_launchSyntax));
+  // Validate JSON
+  if (!root.isObject() ||
+      !root["executable"].isString() ||
+      !root["arguments"].isString() ||
+      !root["inputFilename"].isString() ||
+      !root["outputFilename"].isString() ||
+      !root["customLaunchTemplate"].isString() ||
+      !root["launchSyntax"].isIntegral() ||
+      (!importOnly && (!root["useExecutablePath"].isBool() ||
+                      !root["executablePath"].isString()))) {
+    Logger::logError(tr("Error reading program config: Invalid format:\n%1")
+                     .arg(QString(root.toStyledString().c_str())));
+    return false;
+  }
+
+  m_executable = QString(root["executable"].asCString());
+  m_arguments = QString(root["arguments"].asCString());
+  m_inputFilename = QString(root["inputFilename"].asCString());
+  m_outputFilename = QString(root["outputFilename"].asCString());
+  m_customLaunchTemplate = QString(root["customLaunchTemplate"].asCString());
+  m_launchSyntax = static_cast<LaunchSyntax>(root["launchSyntax"].asInt());
+
+  if (!importOnly) {
+    m_useExecutablePath = root["useExecutablePath"].asBool();
+    m_executablePath = QString(root["executablePath"].asCString());
+  }
+  return true;
 }
 
 QString Program::launchTemplate() const

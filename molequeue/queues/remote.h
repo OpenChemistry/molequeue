@@ -34,34 +34,10 @@ public:
                        QueueManager *parentManager = 0);
   ~QueueRemote();
 
-  /**
-   * Read settings for the queue, done early on at startup.
-   */
-  virtual void readSettings(QSettings &settings);
-
-  /**
-   * Write settings for the queue, done just before closing the server.
-   */
-  virtual void writeSettings(QSettings &settings) const;
-
-  /**
-   * Populate the passed QSettings object with this queue's configuration.
-   * Sensitive data (such as usernames, etc) and mutatable state data (like
-   * current jobs) are not written, see writeSettings() if these are needed.
-   * @param includePrograms Export this queue's programs as well. Default: true
-   */
-  void exportConfiguration(QSettings &exporter,
-                           bool includePrograms = true) const;
-
-  /**
-   * Set this Queue's configuration from the passed QSettings object.
-   * Sensitive data (such as usernames, etc) and mutatable state data (like
-   * current jobs) are not read, see writeSettings() if these are needed.
-   * @param includePrograms Import any programs contained in the importer.
-   * Default: true
-   */
-  void importConfiguration(QSettings &importer,
-                           bool includePrograms = true);
+  bool writeJsonSettings(Json::Value &value, bool exportOnly,
+                         bool includePrograms) const;
+  bool readJsonSettings(const Json::Value &value, bool importOnly,
+                        bool includePrograms);
 
   virtual AbstractQueueSettingsWidget* settingsWidget() = 0;
 

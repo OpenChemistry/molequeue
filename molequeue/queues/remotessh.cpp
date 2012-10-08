@@ -50,58 +50,65 @@ QueueRemoteSsh::~QueueRemoteSsh()
 {
 }
 
-void QueueRemoteSsh::readSettings(QSettings &settings)
+bool QueueRemoteSsh::writeJsonSettings(Json::Value &root, bool exportOnly,
+                                       bool includePrograms) const
 {
-  QueueRemote::readSettings(settings);
+  if (!QueueRemote::writeJsonSettings(root, exportOnly, includePrograms))
+    return false;
 
-  m_submissionCommand = settings.value("submissionCommand").toString();
-  m_requestQueueCommand = settings.value("requestQueueCommand").toString();
-  m_killCommand = settings.value("killCommand").toString();
-  m_sshExecutable = settings.value("sshExecutable", "ssh").toString();
-  m_scpExecutable = settings.value("scpExecutable", "scp").toString();
-  m_hostName = settings.value("hostName").toString();
-  m_userName = settings.value("userName").toString();
-  m_identityFile = settings.value("identityFile").toString();
-  m_sshPort  = settings.value("sshPort").toInt();
+  root["submissionCommand"] = m_submissionCommand.toStdString();
+  root["requestQueueCommand"] = m_requestQueueCommand.toStdString();
+  root["killCommand"] = m_killCommand.toStdString();
+  root["hostName"] = m_hostName.toStdString();
+  root["sshPort"] = m_sshPort;
+
+  if (!exportOnly) {
+    root["sshExecutable"] = m_sshExecutable.toStdString();
+    root["scpExecutable"] = m_scpExecutable.toStdString();
+    root["userName"] = m_userName.toStdString();
+    root["identityFile"] = m_identityFile.toStdString();
+  }
+
+  return true;
 }
 
-void QueueRemoteSsh::writeSettings(QSettings &settings) const
-{
-  QueueRemote::writeSettings(settings);
-
-  settings.setValue("submissionCommand", m_submissionCommand);
-  settings.setValue("requestQueueCommand", m_requestQueueCommand);
-  settings.setValue("killCommand", m_killCommand);
-  settings.setValue("sshExecutable", m_sshExecutable);
-  settings.setValue("scpExecutable", m_scpExecutable);
-  settings.setValue("hostName", m_hostName);
-  settings.setValue("userName", m_userName);
-  settings.setValue("identityFile", m_identityFile);
-  settings.setValue("sshPort",  m_sshPort);
-}
-
-void QueueRemoteSsh::exportConfiguration(QSettings &exporter,
-                                         bool includePrograms) const
-{
-  QueueRemote::exportConfiguration(exporter, includePrograms);
-
-  exporter.setValue("submissionCommand", m_submissionCommand);
-  exporter.setValue("requestQueueCommand", m_requestQueueCommand);
-  exporter.setValue("killCommand", m_killCommand);
-  exporter.setValue("hostName", m_hostName);
-  exporter.setValue("sshPort",  m_sshPort);
-}
-
-void QueueRemoteSsh::importConfiguration(QSettings &importer,
+bool QueueRemoteSsh::readJsonSettings(const Json::Value &root, bool importOnly,
                                       bool includePrograms)
 {
-  QueueRemote::importConfiguration(importer, includePrograms);
+  // Validate JSON
+  if (!root.isObject() ||
+      !root["submissionCommand"].isString() ||
+      !root["requestQueueCommand"].isString() ||
+      !root["killCommand"].isString() ||
+      !root["hostName"].isString() ||
+      !root["sshPort"].isIntegral() ||
+      (!importOnly && (
+         !root["sshExecutable"].isString() ||
+         !root["scpExecutable"].isString() ||
+         !root["userName"].isString() ||
+         !root["identityFile"].isString()))) {
+    Logger::logError(tr("Error reading queue settings: Invalid format:\n%1")
+                     .arg(QString(root.toStyledString().c_str())));
+    return false;
+  }
 
-  m_submissionCommand = importer.value("submissionCommand").toString();
-  m_requestQueueCommand = importer.value("requestQueueCommand").toString();
-  m_killCommand = importer.value("killCommand").toString();
-  m_hostName = importer.value("hostName").toString();
-  m_sshPort  = importer.value("sshPort").toInt();
+  if (!QueueRemote::readJsonSettings(root, importOnly, includePrograms))
+    return false;
+
+  m_submissionCommand = QString(root["submissionCommand"].asCString());
+  m_requestQueueCommand = QString(root["requestQueueCommand"].asCString());
+  m_killCommand = QString(root["killCommand"].asCString());
+  m_hostName = QString(root["hostName"].asCString());
+  m_sshPort = root["sshPort"].asInt();
+
+  if (!importOnly) {
+    m_sshExecutable = QString(root["sshExecutable"].asCString());
+    m_scpExecutable = QString(root["scpExecutable"].asCString());
+    m_userName = QString(root["userName"].asCString());
+    m_identityFile = QString(root["identityFile"].asCString());
+  }
+
+  return true;
 }
 
 AbstractQueueSettingsWidget* QueueRemoteSsh::settingsWidget()
