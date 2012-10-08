@@ -23,6 +23,7 @@
 #include <QtGui/QFileDialog>
 #include <QtGui/QMessageBox>
 #include <QtGui/QPalette>
+#include <QtGui/QRegExpValidator>
 
 #include <QtCore/QSettings>
 
@@ -40,6 +41,9 @@ ImportQueueDialog::ImportQueueDialog(QueueManager *queueManager, QWidget *parent
   connect(ui->fileEdit, SIGNAL(textChanged(QString)),
           this, SLOT(importFileTextChanged(QString)));
 
+  // Restrict queue names to alphanumeric strings with no leading whitespace.
+  QRegExp queueRegExp("[0-9A-za-z][0-9A-Za-z ]*");
+  ui->nameEdit->setValidator(new QRegExpValidator(queueRegExp));
 }
 
 ImportQueueDialog::~ImportQueueDialog()
