@@ -43,10 +43,8 @@ public:
   explicit QueueManager(Server *parentServer = 0);
   ~QueueManager();
 
-  /// @param settings QSettings object to write state to.
-  void readSettings(QSettings &settings);
-  /// @param settings QSettings object to read state from.
-  void writeSettings(QSettings &settings) const;
+  void readSettings();
+  void writeSettings() const;
 
   /// @return The parent Server
   Server *server() {return m_server;}

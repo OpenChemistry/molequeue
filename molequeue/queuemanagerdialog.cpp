@@ -136,17 +136,6 @@ void QueueManagerDialog::exportQueue()
   // Set location for next time
   settings.setValue("export/queue/lastExportFile", exportFileName);
 
-  // Setup QSettings file to write an INI format file to the filename
-  QSettings exporter(exportFileName, QSettings::IniFormat);
-
-  if (!exporter.isWritable()) {
-    QMessageBox::critical(this, tr("Cannot export queue!"),
-                          tr("Cannot export queue to file '%1': File is not "
-                             "writable.").arg(exportFileName),
-                          QMessageBox::Ok);
-    return;
-  }
-
   // Prompt whether to export all programs or just the queue details
   QMessageBox::StandardButton exportProgramsButton =
       QMessageBox::question(this, tr("Export programs?"),
@@ -159,14 +148,12 @@ void QueueManagerDialog::exportQueue()
 
   bool exportPrograms = (exportProgramsButton == QMessageBox::Yes);
 
-  // Clear any existing state information from the file
-  exporter.remove("");
-
   // Populate file
-  queue->exportConfiguration(exporter, exportPrograms);
-
-  // Flush QSettings
-  exporter.sync();
+  if (!queue->exportSettings(exportFileName, exportPrograms)) {
+    QMessageBox::critical(this, tr("Queue Export"),
+                          tr("Could not export queue. Check the log for "
+                             "details."), QMessageBox::Ok);
+  }
 }
 
 void QueueManagerDialog::doubleClicked(const QModelIndex &index)

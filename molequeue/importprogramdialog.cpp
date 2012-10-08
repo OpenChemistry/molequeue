@@ -58,19 +58,14 @@ void ImportProgramDialog::accept()
     return;
   }
 
-  QSettings importer(ui->fileEdit->text(), QSettings::IniFormat);
-  if (!importer.contains("executable")) {
-    QMessageBox::critical(this, tr("Cannot import program!"),
-                          tr("Cannot import program from file '%1': File open "
-                             "failed or invalid format.")
-                          .arg(ui->fileEdit->text()),
+  Program *program = new Program(m_queue);
+  program->setName(name);
+  if (!program->importSettings(ui->fileEdit->text())) {
+    QMessageBox::critical(this, tr("Import failed."),
+                          tr("Failed to import file '%1'. Bad format."),
                           QMessageBox::Ok);
     return;
   }
-
-  Program *program = new Program(m_queue);
-  program->setName(name);
-  program->importConfiguration(importer);
   if (m_queue->addProgram(program, false)) {
     QDialog::accept();
     return;

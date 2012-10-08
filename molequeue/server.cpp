@@ -117,7 +117,7 @@ void Server::readSettings(QSettings &settings)
   m_moleQueueIdCounter =
       settings.value("moleQueueIdCounter", 0).value<IdType>();
 
-  m_queueManager->readSettings(settings);
+  m_queueManager->readSettings();
   m_jobManager->loadJobState(m_workingDirectoryBase);
 }
 
@@ -126,7 +126,7 @@ void Server::writeSettings(QSettings &settings) const
   settings.setValue("workingDirectoryBase", m_workingDirectoryBase);
   settings.setValue("moleQueueIdCounter", m_moleQueueIdCounter);
 
-  m_queueManager->writeSettings(settings);
+  m_queueManager->writeSettings();
   m_jobManager->syncJobState();
 }
 

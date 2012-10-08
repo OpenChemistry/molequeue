@@ -26,6 +26,7 @@
 #include "queues/sge.h"
 
 #include <QtCore/QDebug>
+#include <QtCore/QDir>
 #include <QtCore/QSettings>
 
 namespace MoleQueue {
@@ -45,43 +46,52 @@ QueueManager::~QueueManager()
   qDeleteAll(queueList);
 }
 
-void QueueManager::readSettings(QSettings &settings)
+void QueueManager::readSettings()
 {
-  QStringList queueNameList = settings.value("queues").toStringList();
+  QString workingDirectory;
+  if (m_server) {
+    workingDirectory = m_server->workingDirectoryBase();
+  }
+  else {
+    QSettings settings;
+    workingDirectory = settings.value("workingDirectoryBase").toString();
+  }
 
-  settings.beginGroup("Queues");
-  foreach (const QString &queueName, queueNameList) {
-    settings.beginGroup(queueName);
+  if (workingDirectory.isEmpty()) {
+    Logger::logWarning(tr("Cannot write queue settings: Cannot determine "
+                          "config directory."));
+    return;
+  }
 
-    QString queueType = settings.value("type").toString();
+  QDir queueDir(workingDirectory + "/config/queues");
+  if (!queueDir.exists()) {
+    Logger::logWarning(tr("Cannot write queue settings: Queue config "
+                          "directory does not exist (%1)")
+                     .arg(queueDir.absolutePath()));
+    return;
+  }
 
+  foreach (const QString &queueFileName,
+           queueDir.entryList(QStringList()<<"*.mqq", QDir::Files)) {
+    QString absoluteFileName = queueDir.absoluteFilePath(queueFileName);
+    QString queueName = QFileInfo(queueFileName).baseName();
+    QString queueType = Queue::queueTypeFromFile(absoluteFileName);
     Queue *queue = addQueue(queueName, queueType, this);
 
     if (queue != NULL) {
-      queue->readSettings(settings);
+      queue->readSettings(absoluteFileName);
     }
     else {
-      Logger::logWarning(tr("Cannot add queue '%1' with unknown type '%2'.")
-                         .arg(queueName, queueType));
+      Logger::logError(tr("Cannot load queue '%1' with type '%2' from '%3'.")
+                       .arg(queueName, queueType, absoluteFileName));
     }
-
-    settings.endGroup(); // queueName
   }
-  settings.endGroup(); // "Queues"
 }
 
-void QueueManager::writeSettings(QSettings &settings) const
+void QueueManager::writeSettings() const
 {
-  settings.setValue("queues", queueNames());
-
-  settings.beginGroup("Queues");
-  foreach (const Queue* queue, queues()) {
-    settings.beginGroup(queue->name());
-    settings.setValue("type", queue->typeName());
-    queue->writeSettings(settings);
-    settings.endGroup(); // queue->name()
-  }
-  settings.endGroup(); // "Queues"
+  foreach (const Queue* queue, queues())
+    queue->writeSettings();
 }
 
 QStringList QueueManager::availableQueues()
@@ -137,7 +147,14 @@ bool QueueManager::removeQueue(const QString &name)
   Queue *queue = m_queues.take(name);
 
   emit queueRemoved(name, queue);
+  QString fileName = queue->stateFileName();
   queue->deleteLater();
+
+  // Remove state file:
+  if (!fileName.isEmpty()) {
+    QFile::remove(fileName);
+  }
+
   return true;
 }
 
