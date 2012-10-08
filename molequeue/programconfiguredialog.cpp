@@ -135,7 +135,7 @@ void ProgramConfigureDialog::populateSyntaxCombo()
       syntaxList << tr("Redirect input and output");
       break;
     case Program::INPUT_ARG_OUTPUT_REDIRECT:
-      syntaxList << tr("Input as output, redirect output");
+      syntaxList << tr("Input as argument, redirect output");
       break;
     case Program::SYNTAX_COUNT:
     default:
