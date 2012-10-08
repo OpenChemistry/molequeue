@@ -114,6 +114,9 @@
    <property name="text">
     <string>Show &amp;Log</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+L</string>
+   </property>
   </action>
   <action name="actionUpdateRemoteQueues">
    <property name="text">
