@@ -122,7 +122,7 @@ void printUsage()
   qWarning(format, "-h,", "--help",
            qPrintable(QObject::tr("Print version and usage information and "
                                   "exit.")));
-  qWarning(format, "-s,", "--socketname",
+  qWarning(format, "-s,", "--socketname [name]",
            qPrintable(QObject::tr("Name of the socket on which to listen.")));
   qWarning(format, "-v,", "--version",
            qPrintable(QObject::tr("Print version information and exit.")));
