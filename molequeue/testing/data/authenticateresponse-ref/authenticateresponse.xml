@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<AuthenticateResponse>
+ <success>false</success>
+ <has__prompts>true</has__prompts>
+ <auth__session__id>FE09938C-84BC-E75A-D767-84B85F48C4DB
+ </auth__session__id>
+ <name>SAM Authentication</name>
+ <banner>Challenge for Security Dynamics mechanism</banner>
+ <prompts>
+  <Prompt>
+   <id>0</id>
+   <prompt>SecurID Passcode</prompt>
+  </Prompt>
+  <Prompt>
+   <id>2</id>
+   <prompt>Password</prompt>
+  </Prompt>
+ </prompts>
+ <error__message>error</error__message>
+</AuthenticateResponse>
