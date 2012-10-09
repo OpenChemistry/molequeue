@@ -40,6 +40,7 @@ int main(int argc, char *argv[])
   QApplication app(argc, argv);
 
   bool customWorkDirSet = false;
+  bool enableRpcKill = false;
   QString socketName("MoleQueue");
 
   QStringList args = QCoreApplication::arguments();
@@ -73,6 +74,10 @@ int main(int argc, char *argv[])
       printVersion();
       return EXIT_SUCCESS;
     }
+    else if (*it == "--rpc-kill") {
+      enableRpcKill = true;
+      continue;
+    }
     else if (*it == "-h" || *it == "-H" || *it == "--help" || *it == "-help") {
       printUsage();
       return EXIT_SUCCESS;
@@ -89,6 +94,7 @@ int main(int argc, char *argv[])
   // or the one set by --workdir. Update any configuration info here:
   QSettings settings;
   settings.setValue("socketName", socketName);
+  settings.setValue("enableRpcKill", enableRpcKill);
 
   if (!QSystemTrayIcon::isSystemTrayAvailable()) {
     QMessageBox::critical(0, QObject::tr("MoleQueue"),
@@ -122,6 +128,9 @@ void printUsage()
   qWarning(format, "-h,", "--help",
            qPrintable(QObject::tr("Print version and usage information and "
                                   "exit.")));
+  qWarning(format, "", "--rpc-kill",
+           qPrintable(QObject::tr("Allow the app to be killed by a special "
+                                  "RPC call (testing only).")));
   qWarning(format, "-s,", "--socketname [name]",
            qPrintable(QObject::tr("Name of the socket on which to listen.")));
   qWarning(format, "-v,", "--version",

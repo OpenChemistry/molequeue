@@ -25,6 +25,7 @@
 #include "pluginmanager.h"
 #include "transport/connectionlistenerfactory.h"
 
+#include <QtCore/QCoreApplication>
 #include <QtCore/QDateTime>
 #include <QtCore/QDir>
 #include <QtCore/QList>
@@ -254,6 +255,17 @@ void Server::lookupJobRequestReceived(const MoleQueue::Message &request,
     sendFailedLookupJobResponse(request, moleQueueId);
 }
 
+void Server::rpcKillRequestReceived(const Message &request)
+{
+  QSettings settings;
+  bool enabled = settings.value("enableRpcKill", false).toBool();
+
+  sendRpcKillResponse(request, enabled);
+
+  if (enabled)
+    qApp->quit();
+}
+
 void Server::jobAboutToBeAdded(Job job)
 {
   IdType nextMoleQueueId = ++m_moleQueueIdCounter;
@@ -396,6 +408,14 @@ void Server::sendJobStateChangeNotification(const Message &connectionInfo,
   msg.send();
 }
 
+void Server::sendRpcKillResponse(const Message &request, bool success)
+{
+  PacketType packet = serverJsonRpc()->generateRpcKillResponse(success,
+                                                               request.id());
+  Message msg(request, packet);
+  msg.send();
+}
+
 void Server::jobSubmissionRequestReceived(const Message &request,
                                           const QVariantHash &options)
 {
@@ -484,6 +504,8 @@ void Server::setJsonRpc(JsonRpc *jsonrpc)
                                                            MoleQueue::IdType)),
           this, SLOT(lookupJobRequestReceived(MoleQueue::Message,
                                               MoleQueue::IdType)));
+  connect(serverJsonRpc(), SIGNAL(rpcKillRequestReceived(MoleQueue::Message)),
+          this, SLOT(rpcKillRequestReceived(MoleQueue::Message)));
 }
 
 } // end namespace MoleQueue

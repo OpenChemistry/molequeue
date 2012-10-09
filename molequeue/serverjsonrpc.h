@@ -105,6 +105,22 @@ public:
                                                 JobState oldState,
                                                 JobState newState);
 
+  /**
+    * Generate a JSON-RPC packet to respond to a rpcKill request.
+    *
+    * rpcKill is a server-side option, enabled via a command-line option to the
+    * molequeue executable. It allows a request with an "rpcKill" method to
+    * shutdown the MoleQueue application. This is only intended for testing.
+    *
+    * @param success If true, RpcKill is enabled in the server and the app will
+    * shut down after the reply is sent.
+    * @param packetId The JSON-RPC id for the request.
+    * @return A PacketType, ready to send to a Connection.
+    */
+  PacketType generateRpcKillResponse(bool success,
+                                     const MessageIdType &packetId);
+
+
 signals:
 
   /**
@@ -144,6 +160,13 @@ signals:
   void lookupJobRequestReceived(const MoleQueue::Message &request,
                                 MoleQueue::IdType moleQueueId) const;
 
+  /**
+    * Emitted when an rpcKill request is received.
+    *
+    * @param request The request Message object.
+    */
+  void rpcKillRequestReceived(const MoleQueue::Message &request) const;
+
 protected:
   /// Known methods used by the client.
   enum MethodType {
@@ -151,7 +174,8 @@ protected:
     SUBMIT_JOB,
     CANCEL_JOB,
     LOOKUP_JOB,
-    JOB_STATE_CHANGED
+    JOB_STATE_CHANGED,
+    RPC_KILL
   };
 
   /// Reimplemented from base class.
@@ -171,6 +195,9 @@ protected:
 
   /// Extract data and emit signal for a lookupJob request.
   void handleLookupJobRequest(const Message &msg) const;
+
+  /// Extract data and emit signal for an rpcKill request.
+  void handleRpcKillRequest(const Message &msg) const;
 };
 
 } // namespace MoleQueue
