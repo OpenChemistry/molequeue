@@ -18,6 +18,7 @@
 #include "ui_remotequeuewidget.h"
 
 #include "transport/localsocket/localsocketclient.h"
+#include "molequeueconfig.h"
 #include "program.h"
 #include "queues/remotessh.h"
 #include "sshcommandfactory.h"
@@ -43,6 +44,10 @@ RemoteQueueWidget::RemoteQueueWidget(QueueRemoteSsh *queue,
   m_helpDialog(NULL)
 {
   ui->setupUi(this);
+
+#ifndef MoleQueue_BUILD_CLIENT
+  ui->push_sleepTest->hide();
+#endif
 
   reset();
 
@@ -224,6 +229,7 @@ void RemoteQueueWidget::testConnection()
 
 void RemoteQueueWidget::sleepTest()
 {
+#ifdef MoleQueue_BUILD_CLIENT
   QString promptString;
   if (isDirty()) {
     promptString = tr("Would you like to apply the current settings and submit "
@@ -294,6 +300,7 @@ void RemoteQueueWidget::sleepTest()
   sleepJob.setDescription("sleep 30 (test)");
 
   m_client->submitJobRequest(sleepJob);
+#endif // MoleQueue_BUILD_CLIENT
 }
 
 void RemoteQueueWidget::showHelpDialog()
