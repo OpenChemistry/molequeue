@@ -119,7 +119,7 @@ bool setWorkDir(const QString &workDir)
     return false;
   }
 
-  QFileInfo dirInfo(workDir);
+  QFileInfo dirInfo(QDir::cleanPath(workDir));
   if (!dirInfo.exists()) {
     qWarning(qPrintable(QObject::tr("Specified working directory does not "
                                     "exist: '%s'")), qPrintable(workDir));
@@ -167,6 +167,9 @@ bool setWorkDir(const QString &workDir)
       return false;
     }
   }
+
+  qDebug(qPrintable(QObject::tr("Running in working directory '%s'...")),
+         qPrintable(dirInfo.absolutePath()));
 
   QSettings::setPath(QSettings::NativeFormat, QSettings::UserScope,
                      workDir + "/config/");
