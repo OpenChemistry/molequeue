@@ -1,0 +1,20 @@
+{
+   "cores" : -1,
+   "jobIdMap" : {},
+   "jobsToResume" : [],
+   "launchScriptName" : "MoleQueueLauncher.sh",
+   "launchTemplate" : "#!/bin/bash\n\n$$programExecution$$\n",
+   "programs" : {
+      "TestProgram" : {
+         "arguments" : "empty.txt",
+         "customLaunchTemplate" : "",
+         "executable" : "touch",
+         "executablePath" : "",
+         "inputFilename" : "job.inp",
+         "launchSyntax" : 1,
+         "outputFilename" : "job.out",
+         "useExecutablePath" : false
+      }
+   },
+   "type" : "Local"
+}
