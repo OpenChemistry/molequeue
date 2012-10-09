@@ -40,6 +40,8 @@ int main(int argc, char *argv[])
   QApplication app(argc, argv);
 
   bool customWorkDirSet = false;
+  QString socketName("MoleQueue");
+
   QStringList args = QCoreApplication::arguments();
   for (QStringList::const_iterator it = args.constBegin() + 1,
        itEnd = args.constEnd(); it != itEnd; ++it) {
@@ -57,6 +59,16 @@ int main(int argc, char *argv[])
       customWorkDirSet = true;
       continue;
     }
+    else if (*it == "-s" || *it == "--socketname") {
+      // Wait until all options are parsed in case we end up changing the
+      // settings location.
+      if (it + 1 == itEnd || (it+1)->isEmpty()) {
+        qWarning("%s", qPrintable(QObject::tr("Missing socket name!")));
+        return EXIT_FAILURE;
+      }
+      socketName = (*++it);
+      continue;
+    }
     else if (*it == "-v" || *it == "--version") {
       printVersion();
       return EXIT_SUCCESS;
@@ -72,6 +84,11 @@ int main(int argc, char *argv[])
       return EXIT_FAILURE;
     }
   }
+
+  // The QSettings object here will point to either the standard config file
+  // or the one set by --workdir. Update any configuration info here:
+  QSettings settings;
+  settings.setValue("socketName", socketName);
 
   if (!QSystemTrayIcon::isSystemTrayAvailable()) {
     QMessageBox::critical(0, QObject::tr("MoleQueue"),
@@ -105,6 +122,8 @@ void printUsage()
   qWarning(format, "-h,", "--help",
            qPrintable(QObject::tr("Print version and usage information and "
                                   "exit.")));
+  qWarning(format, "-s,", "--socketname",
+           qPrintable(QObject::tr("Name of the socket on which to listen.")));
   qWarning(format, "-v,", "--version",
            qPrintable(QObject::tr("Print version information and exit.")));
   qWarning(format, "-w,", "--workdir [path]",

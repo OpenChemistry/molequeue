@@ -57,8 +57,12 @@ MainWindow::MainWindow()
     m_trayIconMenu(NULL),
     m_statusTotalJobs(new QLabel(this)),
     m_statusHiddenJobs(new QLabel(this)),
-    m_server(new Server (this))
+    m_server(NULL)
 {
+  QSettings settings;
+  m_server = new Server(this,
+                        settings.value("socketName", "MoleQueue").toString());
+
   m_ui->setupUi(this);
 
   QIcon icon(":/icons/molequeue.png");
