@@ -210,9 +210,9 @@ class Client:
     # if we an error occurred then throw an exception
     if 'error' in response:
       exception = JobRequestInformationException(response['id'],
-                                                 reponse['error']['data'],
-                                                 reponse['error']['code'],
-                                                 reponse['error']['message'])
+                                                 response['error']['data'],
+                                                 response['error']['code'],
+                                                 response['error']['message'])
       raise exception
 
     jobrequest = JsonRpc.json_to_jobrequest(response)
