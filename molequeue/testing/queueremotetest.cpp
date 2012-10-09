@@ -215,7 +215,7 @@ void QueueRemoteTest::testSubmissionPipeline()
            << "-S" << "ssh"
            << "-P" << "6887"
            << "-r"
-           << "/tmp/MoleQueue-dummyServer//4"
+           << "/tmp/MoleQueue-dummyServer//jobs/4"
            << "aUser@some.host.somewhere:/some/path/4"
            );
   QCOMPARE(ssh->data().value<Job>(), job);
@@ -265,7 +265,7 @@ void QueueRemoteTest::testSubmissionPipeline()
            << "-S" << "ssh"
            << "-P" << "6887"
            << "-r"
-           << "/tmp/MoleQueue-dummyServer//4"
+           << "/tmp/MoleQueue-dummyServer//jobs/4"
            << "aUser@some.host.somewhere:/some/path/4"
            );
   QCOMPARE(ssh->data().value<Job>(), job);
@@ -334,7 +334,7 @@ void QueueRemoteTest::testFinalizePipeline()
            << "-P" << "6887"
            << "-r"
            << "aUser@some.host.somewhere:/some/path/4"
-           << "/tmp/MoleQueue-dummyServer//4/.."
+           << "/tmp/MoleQueue-dummyServer//jobs/4/.."
            );
   QCOMPARE(ssh->data().value<Job>(), job);
 
