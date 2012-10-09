@@ -36,7 +36,8 @@ AddQueueDialog::AddQueueDialog(QueueManager *queueManager,
   foreach (const QString &queueName, QueueManager::availableQueues())
     ui->typeComboBox->addItem(queueName);
 
-  // Restrict queue names to alphanumeric strings with no leading whitespace.
+  // Restrict queue names to alphanumeric strings with internal whitespace
+  // (the input is trimmed() in accept()).
   QRegExp queueRegExp("[0-9A-za-z][0-9A-Za-z ]*");
   ui->nameLineEdit->setValidator(new QRegExpValidator(queueRegExp));
 }
@@ -48,7 +49,7 @@ AddQueueDialog::~AddQueueDialog()
 
 void AddQueueDialog::accept()
 {
-  const QString name = ui->nameLineEdit->text();
+  const QString name = ui->nameLineEdit->text().trimmed();
 
   if (name.isEmpty()) {
     QMessageBox::critical(this, tr("Missing name"),
