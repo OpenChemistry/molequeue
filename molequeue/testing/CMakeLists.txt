@@ -28,7 +28,6 @@ set(testutils_SRCS
   referencestring.cpp
   testserver.cpp
   xmlutils.cpp
-
 )
 
 add_library(testutils STATIC ${testutils_SRCS})
