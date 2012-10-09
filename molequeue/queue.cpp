@@ -17,6 +17,7 @@
 #include "queue.h"
 
 #include "filespecification.h"
+#include "filesystemtools.h"
 #include "job.h"
 #include "jobmanager.h"
 #include "logentry.h"
@@ -526,91 +527,6 @@ bool Queue::writeInputFiles(const Job &job)
   return true;
 }
 
-bool Queue::recursiveRemoveDirectory(const QString &p)
-{
-  QString path = QDir::cleanPath(p);
-  if (path.isEmpty() || path.simplified() == "/") {
-    Logger::logError(tr("Refusing to remove directory '%1'.").arg(path));
-    return false;
-  }
-
-  bool result = true;
-  QDir dir;
-  dir.setPath(path);
-
-  if (dir.exists()) {
-    foreach (QFileInfo info, dir.entryInfoList(
-               QDir::NoDotAndDotDot | QDir::System | QDir::Hidden |
-               QDir::AllDirs | QDir::Files, QDir::DirsFirst)) {
-      if (info.isDir())
-        result = recursiveRemoveDirectory(info.absoluteFilePath());
-      else
-        result = QFile::remove(info.absoluteFilePath());
-
-      if (!result) {
-        Logger::logError(tr("Cannot remove '%1' from local filesystem.")
-                         .arg(info.absoluteFilePath()));
-        return false;
-      }
-    }
-    result = dir.rmdir(path);
-  }
-
-  if (!result) {
-    Logger::logError(tr("Cannot remove '%1' from local filesystem.").arg(path));
-    return false;
-  }
-
-  return true;
-}
-
-bool Queue::recursiveCopyDirectory(const QString &from, const QString &to)
-{
-  bool result = true;
-
-  QDir fromDir;
-  fromDir.setPath(from);
-  if (!fromDir.exists()) {
-    Logger::logError(tr("Cannot copy '%1' --> '%2': source directory does not "
-                        "exist.").arg(from, to));
-    return false;
-  }
-
-  QDir toDir;
-  toDir.setPath(to);
-  if (!toDir.exists()) {
-    if (!toDir.mkdir(toDir.absolutePath())) {
-      Logger::logError(tr("Cannot copy '%1' --> '%2': cannot mkdir target "
-                          "directory.").arg(from, to));
-      return false;
-    }
-  }
-
-  foreach (QFileInfo info, fromDir.entryInfoList(
-             QDir::NoDotAndDotDot | QDir::System | QDir::Hidden |
-             QDir::AllDirs | QDir::Files, QDir::DirsFirst)) {
-    QString newTargetPath = QString ("%1/%2")
-    .arg(toDir.absolutePath(),
-         fromDir.relativeFilePath(info.absoluteFilePath()));
-    if (info.isDir()) {
-      result = recursiveCopyDirectory(info.absoluteFilePath(),
-                                            newTargetPath);
-    }
-    else {
-      result = QFile::copy(info.absoluteFilePath(),
-                           newTargetPath);
-    }
-
-    if (!result) {
-      Logger::logError(tr("Cannot copy '%1' --> '%2'.")
-                       .arg(info.absoluteFilePath(), newTargetPath));
-      return false;
-    }
-  }
-
-  return true;
-}
-
 bool Queue::addJobFailure(IdType moleQueueId)
 {
   if (!m_failureTracker.contains(moleQueueId)) {
@@ -638,7 +554,10 @@ void Queue::jobAboutToBeRemoved(const Job &job)
 
 void Queue::cleanLocalDirectory(const Job &job)
 {
-  recursiveRemoveDirectory(job.localWorkingDirectory());
+  if (!FileSystemTools::recursiveRemoveDirectory(job.localWorkingDirectory())) {
+    Logger::logError(tr("Cannot remove '%1' from local filesystem.")
+                     .arg(job.localWorkingDirectory()));
+  }
 }
 
 } // End namespace

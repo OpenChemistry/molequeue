@@ -16,6 +16,7 @@
 
 #include "local.h"
 
+#include "../filesystemtools.h"
 #include "../job.h"
 #include "../jobmanager.h"
 #include "../localqueuewidget.h"
@@ -250,8 +251,11 @@ void QueueLocal::processFinished(int exitCode, QProcess::ExitStatus exitStatus)
   if (!job.outputDirectory().isEmpty() &&
       job.outputDirectory() != job.localWorkingDirectory()) {
     // copy function logs errors if needed
-    if (!recursiveCopyDirectory(job.localWorkingDirectory(),
-                                job.outputDirectory())) {
+    if (!FileSystemTools::recursiveCopyDirectory(job.localWorkingDirectory(),
+                                                 job.outputDirectory())) {
+      Logger::logError(tr("Cannot copy '%1' -> '%2'.")
+                       .arg(job.localWorkingDirectory(),
+                            job.outputDirectory()), job.moleQueueId());
       job.setJobState(MoleQueue::Error);
       return;
     }

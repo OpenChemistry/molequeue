@@ -43,6 +43,7 @@ if(MoleQueue_BUILD_APPLICATION)
     actionfactorymanager.cpp
     addqueuedialog.cpp
     filespecification.cpp
+    filesystemtools.cpp
     importprogramdialog.cpp
     importqueuedialog.cpp
     job.cpp
