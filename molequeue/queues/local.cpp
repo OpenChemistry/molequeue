@@ -61,8 +61,8 @@ QueueLocal::QueueLocal(QueueManager *parentManager) :
   m_launchScriptName = "MoleQueueLauncher.sh";
 #endif // WIN32
 
-  // Check if new jobs need starting every 10 seconds
-  m_checkJobLimitTimerId = startTimer(10000);
+  // Check if new jobs need starting every 100 ms
+  m_checkJobLimitTimerId = startTimer(100);
 }
 
 QueueLocal::~QueueLocal()
@@ -297,6 +297,9 @@ void QueueLocal::connectProcess(QProcess *proc)
 
 void QueueLocal::checkJobQueue()
 {
+  if (m_pendingJobQueue.isEmpty())
+    return;
+
   int coresInUse = 0;
   foreach(IdType moleQueueId, m_runningJobs.keys()) {
     const Job job = m_server->jobManager()->lookupJobByMoleQueueId(moleQueueId);
