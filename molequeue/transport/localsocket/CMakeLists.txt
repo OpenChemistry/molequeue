@@ -55,7 +55,7 @@ if(MoleQueue_BUILD_CLIENT)
 
 endif() # MoleQueue_BUILD_CLIENT
 
-install(FILES localsocket_headers
+install(FILES ${localsocket_headers}
   DESTINATION "${INSTALL_INCLUDE_DIR}/molequeue/transport"
 )
 install(

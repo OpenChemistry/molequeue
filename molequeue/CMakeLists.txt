@@ -196,7 +196,8 @@ add_subdirectory(transport)
 
 # Config file for build options.
 configure_file(molequeueconfig.h.in molequeueconfig.h)
-install(FILES molequeueconfig.h DESTINATION "${INSTALL_INCLUDE_DIR}/molequeue")
+install(FILES "${MoleQueue_BINARY_DIR}/molequeue/molequeueconfig.h"
+  DESTINATION "${INSTALL_INCLUDE_DIR}/molequeue")
 
 # Only run tests if building both client and app:
 if(BUILD_TESTING AND MoleQueue_BUILD_CLIENT AND MoleQueue_BUILD_APPLICATION)
