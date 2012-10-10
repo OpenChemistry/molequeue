@@ -6,8 +6,7 @@ include(${QT_USE_FILE})
 
 include_directories(${CMAKE_BINARY_DIR}/molequeue/transport/localsocket)
 
-# Where to find test files
-add_definitions(-DTESTDATADIR="${CMAKE_SOURCE_DIR}/molequeue/testing/data/")
+add_definitions(-DMoleQueue_TESTDATA_DIR="${CMAKE_SOURCE_DIR}/molequeue/testing/data/")
 
 if(USE_ZERO_MQ)
   add_definitions(-DUSE_ZERO_MQ)
