@@ -16,7 +16,9 @@
 
 #include "logentry.h"
 
-#include <QtCore/QSettings>
+#include "molequeueglobal.h"
+
+#include <json/json.h>
 
 namespace MoleQueue
 {
@@ -29,12 +31,18 @@ LogEntry::LogEntry(LogEntryType type, const QString &message_,
 {
 }
 
-LogEntry::LogEntry(QSettings &settings)
-  : m_message(settings.value("message").toString()),
-    m_moleQueueId(
-      static_cast<IdType>(settings.value("moleQueueId").toULongLong())),
-    m_entryType(static_cast<LogEntryType>(settings.value("entryType").toInt())),
-    m_timeStamp(QDateTime::fromString(settings.value("timeStamp").toString()))
+LogEntry::LogEntry(const Json::Value &json)
+  : m_message(json["message"].isString() ? json["message"].asCString()
+                                         : "Invalid JSON!"),
+    m_moleQueueId(json["moleQueueId"].isIntegral()
+                  ? static_cast<IdType>(json["moleQueueId"].asLargestInt())
+                  : MoleQueue::InvalidId),
+    m_entryType(json["entryType"].isIntegral()
+                ? static_cast<LogEntryType>(json["entryType"].asInt())
+                : Error),
+    m_timeStamp(json["time"].isString()
+                ? QDateTime::fromString(json["time"].asCString())
+                : QDateTime())
 {
 }
 
@@ -50,12 +58,12 @@ LogEntry::~LogEntry()
 {
 }
 
-void LogEntry::writeSettings(QSettings &settings) const
+void LogEntry::writeSettings(Json::Value &root) const
 {
-  settings.setValue("message", m_message);
-  settings.setValue("moleQueueId", static_cast<quint64>(m_moleQueueId));
-  settings.setValue("entryType", static_cast<int>(m_entryType));
-  settings.setValue("timeStamp", m_timeStamp.toString());
+  root["message"] = m_message.toStdString();
+  root["moleQueueId"] = m_moleQueueId;
+  root["entryType"] = static_cast<int>(m_entryType);
+  root["time"] = m_timeStamp.toString().toStdString();
 }
 
 void LogEntry::setTimeStamp()

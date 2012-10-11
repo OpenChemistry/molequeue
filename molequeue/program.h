@@ -25,6 +25,8 @@
 
 class QSettings;
 
+namespace Json { class Value; }
+
 namespace MoleQueue
 {
 class Queue;
@@ -91,16 +93,31 @@ public:
   /// @return The name of the Queue that this Program belongs to.
   QString queueName() const;
 
-  /// @param settings QSettings object to write state to.
-  void readSettings(QSettings &settings);
-  /// @param settings QSettings object to read state from.
-  void writeSettings(QSettings &settings) const;
+  /// Import the program's configuration from the indicated file (.mqp format)
+  bool importSettings(const QString &fileName);
 
-  /// Import the program's configuration from the @a settings object.
-  void importConfiguration(QSettings &importer);
+  /// Export the program's configuration into the indicated file (.mqp format)
+  bool exportSettings(const QString &fileName) const;
 
-  /// Export the program's configuration into the @a settings object.
-  void exportConfiguration(QSettings &exporter) const;
+  /**
+   * @brief writeJsonSettings Write the program's internal state into a JSON
+   * object.
+   * @param value Target JSON object.
+   * @param exportOnly If true, instance specific information (e.g. system
+   * specific paths, etc) is omitted.
+   * @return True on success, false on failure.
+   */
+  bool writeJsonSettings(Json::Value &value, bool exportOnly) const;
+
+  /**
+   * @brief readJsonSettings Initialize the program's internal state from a JSON
+   * object.
+   * @param value Source JSON object.
+   * @param importOnly If true, instance specific information (e.g. system
+   * specific paths, etc) is ignored.
+   * @return True on success, false on failure.
+   */
+  bool readJsonSettings(const Json::Value &value, bool importOnly);
 
   /**
    * Set the name of the program. This is the name that will show up in

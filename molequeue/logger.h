@@ -23,6 +23,8 @@
 
 #include <QtCore/QLinkedList>
 
+class QFile;
+
 namespace MoleQueue
 {
 
@@ -217,6 +219,10 @@ private:
   Logger();
   ~Logger();
   static void cleanUp();
+  /// Create and return the log file. When finished, close but do not delete the
+  /// object. If an error occurs, a message is printed to qWarning and NULL is
+  /// returned.
+  QFile *logFile();
   static Logger *m_instance;
 
   void handleNewLogEntry(LogEntry &entry);
@@ -236,6 +242,7 @@ private:
   int m_newErrorCount;
   bool m_silenceNewErrors;
 
+  QFile *m_logFile;
   QLinkedList<LogEntry> m_log;
 };
 

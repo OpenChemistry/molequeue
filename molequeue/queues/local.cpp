@@ -68,56 +68,68 @@ QueueLocal::~QueueLocal()
 {
 }
 
-void QueueLocal::readSettings(QSettings &settings)
+bool QueueLocal::writeJsonSettings(Json::Value &root, bool exportOnly,
+                                   bool includePrograms) const
 {
-  Queue::readSettings(settings);
-  m_cores = settings.value("cores", -1).toInt();
+  if (!Queue::writeJsonSettings(root, exportOnly, includePrograms))
+    return false;
 
-  // use all cores if no value set
-  if(m_cores == -1){
-    m_cores = QThread::idealThreadCount();
+  root["cores"] = m_cores;
+
+  if (!exportOnly) {
+    QList<IdType> jobsToResume;
+    jobsToResume.append(m_runningJobs.keys());
+    jobsToResume.append(m_pendingJobQueue);
+    Json::Value jobsToResumeObject(Json::arrayValue);
+    foreach (IdType jobId, m_runningJobs.keys())
+      jobsToResumeObject.append(jobId);
+    foreach (IdType jobId, m_pendingJobQueue)
+      jobsToResumeObject.append(jobId);
+    root["jobsToResume"] = jobsToResumeObject;
   }
 
-  int numPendingJobs = settings.beginReadArray("PendingJobs");
-  m_pendingJobQueue.reserve(numPendingJobs);
-  for (int i = 0; i < numPendingJobs; ++i) {
-    settings.setArrayIndex(i);
-    IdType mqId = settings.value("moleQueueId", 0).value<IdType>();
-    if (mqId == 0)
-      continue;
-    m_pendingJobQueue.append(mqId);
-  }
-  settings.endArray(); // "PendingJobs"
+  return true;
 }
 
-void QueueLocal::writeSettings(QSettings &settings) const
+bool QueueLocal::readJsonSettings(const Json::Value &root, bool importOnly,
+                                  bool includePrograms)
 {
-  Queue::writeSettings(settings);
-  settings.setValue("cores", m_cores);
+  // Validate JSON
+  if (!root.isObject() ||
+      !root["cores"].isIntegral()) {
+    Logger::logError(tr("Error reading queue settings: Invalid format:\n%1")
+                     .arg(QString(root.toStyledString().c_str())));
+    return false;
+  }
 
   QList<IdType> jobsToResume;
-  jobsToResume.append(m_runningJobs.keys());
-  jobsToResume.append(m_pendingJobQueue);
-  settings.beginWriteArray("PendingJobs", jobsToResume.size());
-  for (int i = 0; i < jobsToResume.size(); ++i) {
-    settings.setArrayIndex(i);
-    settings.setValue("moleQueueId", jobsToResume.at(i));
+  if (!importOnly && root.isMember("jobsToResume")) {
+    const Json::Value &jobsToResumeObject = root["jobsToResume"];
+    if (!jobsToResumeObject.isArray()) {
+      Logger::logError(tr("Error reading queue settings: Invalid format:\n%1")
+                       .arg(QString(root.toStyledString().c_str())));
+      return false;
+    }
+
+    for (Json::ValueIterator it = jobsToResumeObject.begin(),
+         it_end = jobsToResumeObject.end(); it != it_end; ++it) {
+      if (!(*it).isIntegral()) {
+        Logger::logError(tr("Error reading queue settings: Invalid format:\n%1")
+                         .arg(QString(root.toStyledString().c_str())));
+        return false;
+      }
+      jobsToResume.append(static_cast<IdType>((*it).asLargestUInt()));
+    }
   }
-  settings.endArray(); // "PendingJobs"
-}
 
-void QueueLocal::exportConfiguration(QSettings &exporter,
-                                     bool includePrograms) const
-{
-  Queue::exportConfiguration(exporter, includePrograms);
-  exporter.setValue("cores", m_cores);
-}
+  if (!Queue::readJsonSettings(root, importOnly, includePrograms))
+    return false;
 
-void QueueLocal::importConfiguration(QSettings &importer, bool includePrograms)
-{
-  Queue::importConfiguration(importer, includePrograms);
-  if (importer.contains("cores"))
-    m_cores = importer.value("cores").toInt();
+  // Everything is validated -- go ahead and update object.
+  m_cores = root["cores"].asInt();
+  m_pendingJobQueue = jobsToResume;
+
+  return true;
 }
 
 AbstractQueueSettingsWidget *QueueLocal::settingsWidget()

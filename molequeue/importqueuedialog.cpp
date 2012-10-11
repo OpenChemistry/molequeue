@@ -63,17 +63,16 @@ void ImportQueueDialog::accept()
     return;
   }
 
-  QSettings importer(ui->fileEdit->text(), QSettings::IniFormat);
-  if (!importer.contains("type")) {
+  QString type = Queue::queueTypeFromFile(ui->fileEdit->text());
+  if (type.isEmpty()) {
     QMessageBox::critical(this, tr("Cannot import queue!"),
-                          tr("Cannot import queue from file '%1': File open "
-                             "failed or invalid format.")
+                          tr("Cannot import queue from file '%1': Cannot detect"
+                             " queue type!")
                           .arg(ui->fileEdit->text()),
                           QMessageBox::Ok);
     return;
   }
 
-  QString type = importer.value("type").toString();
   if (!QueueManager::availableQueues().contains(type)) {
     QMessageBox::critical(this, tr("Cannot import queue!"),
                           tr("Cannot import queue from file '%1': Queue type "
@@ -86,9 +85,18 @@ void ImportQueueDialog::accept()
   Queue *queue = m_queueManager->addQueue(name, type);
 
   if (queue) {
-    queue->importConfiguration(importer, ui->importPrograms->isChecked());
-    QDialog::accept();
-    return;
+    if (queue->importSettings(ui->fileEdit->text(),
+                              ui->importPrograms->isChecked())) {
+      QDialog::accept();
+      return;
+    }
+    else {
+      QMessageBox::critical(this, tr("Cannot add queue"),
+                            tr("Error importing queue from file '%1'. Check the"
+                               " log for details.").arg(ui->fileEdit->text()),
+                            QMessageBox::Ok);
+      return;
+    }
   }
 
   // Queue could not be added. Inform user:

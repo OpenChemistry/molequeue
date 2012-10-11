@@ -48,46 +48,42 @@ QueueRemote::~QueueRemote()
 {
 }
 
-void QueueRemote::readSettings(QSettings &settings)
+bool QueueRemote::writeJsonSettings(Json::Value &root, bool exportOnly,
+                                    bool includePrograms) const
 {
-  Queue::readSettings(settings);
+  if (!Queue::writeJsonSettings(root, exportOnly, includePrograms))
+    return false;
 
-  m_workingDirectoryBase = settings.value("workingDirectoryBase").toString();
-  m_queueUpdateInterval =
-      settings.value("queueUpdateInterval",
-                     DEFAULT_REMOTE_QUEUE_UPDATE_INTERVAL).toInt();
-  m_defaultMaxWallTime = settings.value("defaultMaxWallTime",
-                                        DEFAULT_MAX_WALLTIME).toInt();
+  root["workingDirectoryBase"] = m_workingDirectoryBase.toStdString();
+  root["queueUpdateInterval"] = m_queueUpdateInterval;
+  root["defaultMaxWallTime"] = m_defaultMaxWallTime;
+
+  return true;
 }
 
-void QueueRemote::writeSettings(QSettings &settings) const
+bool QueueRemote::readJsonSettings(const Json::Value &root, bool importOnly,
+                                   bool includePrograms)
 {
-  Queue::writeSettings(settings);
+  // Validate JSON:
+  if (!root.isObject() ||
+      (!importOnly && !root["workingDirectoryBase"].isString()) ||
+      !root["queueUpdateInterval"].isIntegral() ||
+      !root["defaultMaxWallTime"].isIntegral()) {
+    Logger::logError(tr("Error reading queue settings: Invalid format:\n%1")
+                     .arg(QString(root.toStyledString().c_str())));
+    return false;
+  }
 
-  settings.setValue("workingDirectoryBase", m_workingDirectoryBase);
-  settings.setValue("queueUpdateInterval", m_queueUpdateInterval);
-  settings.setValue("defaultMaxWallTime", m_defaultMaxWallTime);
-}
+  if (!Queue::readJsonSettings(root, importOnly, includePrograms))
+    return false;
 
-void QueueRemote::exportConfiguration(QSettings &exporter,
-                                      bool includePrograms) const
-{
-  Queue::exportConfiguration(exporter, includePrograms);
+  if (!importOnly)
+    m_workingDirectoryBase = QString(root["workingDirectoryBase"].asCString());
 
-  exporter.setValue("queueUpdateInterval", m_queueUpdateInterval);
-  exporter.setValue("defaultMaxWallTime", m_defaultMaxWallTime);
-}
+  m_queueUpdateInterval = root["queueUpdateInterval"].asInt();
+  m_defaultMaxWallTime= root["defaultMaxWallTime"].asInt();
 
-void QueueRemote::importConfiguration(QSettings &importer,
-                                      bool includePrograms)
-{
-  Queue::importConfiguration(importer, includePrograms);
-
-  m_queueUpdateInterval =
-      importer.value("queueUpdateInterval",
-                     DEFAULT_REMOTE_QUEUE_UPDATE_INTERVAL).toInt();
-  m_defaultMaxWallTime = importer.value("defaultMaxWallTime",
-                                        DEFAULT_MAX_WALLTIME).toInt();
+  return true;
 }
 
 void QueueRemote::setQueueUpdateInterval(int interval)
