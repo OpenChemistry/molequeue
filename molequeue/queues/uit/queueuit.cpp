@@ -55,36 +55,38 @@ QueueUit::~QueueUit()
 {
 }
 
-void QueueUit::readSettings(QSettings &settings)
-{
-  QueueRemote::readSettings(settings);
 
-  m_kerberosPrinciple = settings.value("kerberosPrinciple").toString();
-  m_hostName = settings.value("kerberosHostName").toString();
+bool QueueUit::writeJsonSettings(Json::Value &root, bool exportOnly,
+                                    bool includePrograms) const
+{
+  if (!QueueRemote::writeJsonSettings(root, exportOnly, includePrograms))
+    return false;
+
+  root["kerberosPrinciple"] = m_kerberosPrinciple.toStdString();
+  root["kerberosHostName"] = m_hostName.toStdString();
+
+  return true;
 }
 
-void QueueUit::writeSettings(QSettings &settings) const
-{
-  QueueRemote::writeSettings(settings);
-
-  settings.setValue("kerberosPrinciple", m_kerberosPrinciple);
-  settings.setValue("kerberosHostName", m_hostName);
-}
-
-void QueueUit::exportConfiguration(QSettings &exporter,
-                                   bool includePrograms) const
-{
-  QueueRemote::exportConfiguration(exporter, includePrograms);
-
-  // TODO
-}
-
-void QueueUit::importConfiguration(QSettings &importer,
+bool QueueUit::readJsonSettings(const Json::Value &root, bool importOnly,
                                    bool includePrograms)
 {
-  QueueRemote::importConfiguration(importer, includePrograms);
+  // Validate JSON:
+  if (!root.isObject() ||
+      (!root["kerberosPrinciple"].isString() ||
+       !root["kerberosHostName"].isString())) {
+    Logger::logError(tr("Error reading queue settings: Invalid format:\n%1")
+                     .arg(QString(root.toStyledString().c_str())));
+    return false;
+  }
 
-  // TODO
+  if (!QueueRemote::readJsonSettings(root, importOnly, includePrograms))
+    return false;
+
+  m_kerberosPrinciple = root["kerberosPrinciple"].asCString();
+  m_hostName = root["kerberosHostName"].asCString();
+
+  return true;
 }
 
 bool QueueUit::testConnection(QWidget *parentObject)
