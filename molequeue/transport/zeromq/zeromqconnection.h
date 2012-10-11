@@ -79,15 +79,15 @@ private slots:
   void listen();
 
 private:
-  void dealerReceive();
-  void routerReceive();
+  bool dealerReceive();
+  bool routerReceive();
 
   QString m_connectionString;
   zmq::context_t *m_context;
   zmq::socket_t *m_socket;
   int m_socketType;
   bool m_connected;
-  QTimer *m_listener;
+  bool m_listening;
 };
 
 } /* namespace MoleQueue */
