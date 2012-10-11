@@ -30,7 +30,10 @@
 
 class QSettings;
 
-namespace Json { class Value; }
+namespace Json
+{
+class Value;
+}
 
 namespace MoleQueue
 {

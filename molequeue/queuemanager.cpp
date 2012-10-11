@@ -151,9 +151,8 @@ bool QueueManager::removeQueue(const QString &name)
   queue->deleteLater();
 
   // Remove state file:
-  if (!fileName.isEmpty()) {
+  if (!fileName.isEmpty())
     QFile::remove(fileName);
-  }
 
   return true;
 }

@@ -22,7 +22,10 @@
 #include <QtCore/QDateTime>
 #include <QtCore/QString>
 
-namespace Json { class Value; }
+namespace Json
+{
+class Value;
+}
 
 namespace MoleQueue
 {

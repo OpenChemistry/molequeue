@@ -132,9 +132,8 @@ QString Queue::stateFileName() const
     workDir = settings.value("workingDirectoryBase").toString();
   }
 
-  if (workDir.isEmpty()) {
+  if (workDir.isEmpty())
     return "";
-  }
 
   return QDir::cleanPath(workDir + "/config/queues/" + name() + ".mqq");
 }
@@ -219,9 +218,8 @@ bool Queue::writeJsonSettings(Json::Value &root, bool exportOnly,
   if (!exportOnly) {
     Json::Value jobIdMap(Json::objectValue);
     QList<IdType> keys = m_jobs.keys();
-    for (int i = 0; i < keys.size(); ++i) {
+    for (int i = 0; i < keys.size(); ++i)
       jobIdMap[QString::number(keys[i]).toStdString()] = m_jobs[keys[i]];
-    }
     root["jobIdMap"] = jobIdMap;
   }
 
