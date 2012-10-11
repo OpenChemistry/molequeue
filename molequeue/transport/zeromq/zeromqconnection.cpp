@@ -103,12 +103,20 @@ void ZeroMqConnection::send(const Message &msg)
 {
   zmq::message_t message(msg.data().size());
   memcpy(message.data(), msg.data().constData(), msg.data().size());
+  bool rc;
 
   // If on the server side send the endpoint id first
   if (m_socketType == ZMQ_ROUTER) {
     zmq::message_t identity(msg.endpoint().size());
     memcpy(identity.data(), msg.endpoint().data(), msg.endpoint().size());
-    bool rc  = m_socket->send(identity, ZMQ_SNDMORE | ZMQ_NOBLOCK);
+    try {
+     rc  = m_socket->send(identity, ZMQ_SNDMORE | ZMQ_NOBLOCK);
+    }
+    catch (zmq::error_t e) {
+      qWarning("zmq exception during endpoint send: Error %d: %s",
+               e.num(), e.what());
+      return;
+    }
 
     if (!rc) {
       qWarning() << "zmq_send failed with EAGAIN";
@@ -117,7 +125,14 @@ void ZeroMqConnection::send(const Message &msg)
   }
 
   // Send message body
-  bool rc = m_socket->send(message, ZMQ_NOBLOCK);
+  try {
+    rc = m_socket->send(message, ZMQ_NOBLOCK);
+  }
+  catch (zmq::error_t e) {
+    qWarning("zmq exception during message send: Error %d: %s",
+             e.num(), e.what());
+    return;
+  }
 
   if (!rc) {
     qWarning() << "zmq_send failed with EAGAIN";
