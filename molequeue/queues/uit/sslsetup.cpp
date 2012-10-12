@@ -21,6 +21,7 @@
 #include <QtNetwork/QSslSocket>
 #include <QtCore/QMutex>
 #include <QtCore/QCoreApplication>
+#include <QtCore/QDir>
 
 namespace MoleQueue
 {
@@ -37,19 +38,27 @@ void SslSetup::init()
   static QMutex mutex;
 
   if (!sslCertsLoaded) {
-    QString certDir = QCoreApplication::applicationDirPath() + "/../"
-                        + MoleQueue_SSL_CERT_DIR;
+    QStringList certDirs;
+    certDirs << QCoreApplication::applicationDirPath() + "/../"
+                 + MoleQueue_SSL_CERT_DIR;
+    // for super build
+    certDirs << QCoreApplication::applicationDirPath() + "/../molequeue/"
+                 + MoleQueue_SSL_CERT_DIR;
 
     QMutexLocker locker(&mutex);
 
     if (!sslCertsLoaded) {
-      bool added = QSslSocket::addDefaultCaCertificates(certDir + "/*",
-                                                        QSsl::Pem,
-                                                        QRegExp::Wildcard);
+      foreach(const QString &dir, certDirs) {
+        if (QDir(dir).exists()) {
+          bool added = QSslSocket::addDefaultCaCertificates(dir + "/*",
+                                                            QSsl::Pem,
+                                                            QRegExp::Wildcard);
 
-      if (!added) {
-        Logger::logError(QObject::tr("Error adding SSL certificates from %1")
-                           .arg(certDir));
+          if (!added) {
+            Logger::logError(QObject::tr("Error adding SSL certificates from %1")
+                               .arg(dir));
+          }
+        }
       }
       sslCertsLoaded = true;
     }
