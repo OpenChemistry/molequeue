@@ -19,12 +19,15 @@
 #include "logger.h"
 #include "queue.h"
 #include "server.h"
+#include "molequeueconfig.h"
 
 // Concrete queue classes
 #include "queues/local.h"
 #include "queues/pbs.h"
 #include "queues/sge.h"
-
+#ifdef MoleQueue_USE_EZHPC_UIT
+#include "queues/uit/queueuit.h"
+#endif
 #include <QtCore/QDebug>
 #include <QtCore/QDir>
 #include <QtCore/QSettings>
@@ -98,6 +101,9 @@ QStringList QueueManager::availableQueues()
 {
   QStringList result;
   result << "Local" << "Sun Grid Engine" << "PBS/Torque";
+#ifdef MoleQueue_USE_EZHPC_UIT
+  result << "ezHPC UIT";
+#endif
   return result;
 }
 
@@ -123,7 +129,10 @@ Queue * QueueManager::addQueue(const QString &queueName,
     newQueue = new QueueSge(this);
   else if (queueType== "PBS/Torque")
     newQueue = new QueuePbs(this);
-
+#ifdef MoleQueue_USE_EZHPC_UIT
+  else if (queueType== "ezHPC UIT")
+    newQueue = new QueueUit(this);
+#endif
   if (!newQueue)
     return NULL;
 
