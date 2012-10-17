@@ -425,7 +425,7 @@ void Server::jobSubmissionRequestReceived(const Message &request,
     sendFailedSubmissionResponse(request, MoleQueue::InvalidProgram,
                                  tr("Unknown program: %1").arg(job.program()));
     Logger::logError(tr("Rejecting job: Program '%1' Does not exist on queue "
-                        "'%2'").arg(job.queue(), job.program()),
+                        "'%2'").arg(job.program(), job.queue()),
                      job.moleQueueId());
     Job(job).setJobState(Error);
     return;
