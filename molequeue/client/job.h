@@ -18,7 +18,8 @@
 #define MOLEQUEUE_JOB_H
 
 #include "molequeueclientexport.h"
-#include <json/json.h>
+
+#include <qjsonobject.h>
 
 #include <QtCore/QString>
 #include <QtCore/QVariant>
@@ -49,10 +50,10 @@ public:
   void setValue(const QString &key, const QVariant &value);
   QVariant value(const QString &key) const;
 
-  Json::Value json() const { return m_value; }
+  QJsonObject json() const { return m_value; }
 
 protected:
-  Json::Value m_value;
+  QJsonObject m_value;
 };
 
 } // End namespace MoleQueue

@@ -74,6 +74,7 @@ foreach(test ${MyTests})
   add_test(NAME molequeue-${test} COMMAND ${test}test)
 endforeach()
 
+include_directories("${MoleQueue_SOURCE_DIR}/thirdparty/qt5json")
 set(test "localclient")
 add_executable(${test}test ${test}test.cpp)
 set_target_properties(${test}test PROPERTIES AUTOMOC TRUE)

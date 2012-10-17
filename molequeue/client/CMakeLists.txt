@@ -1,9 +1,23 @@
 find_package(Qt4 4.8 COMPONENTS QtCore QtNetwork REQUIRED)
 
+include_directories("${MoleQueue_SOURCE_DIR}/thirdparty/qt5json")
+set(qt5jljlkson_srcs
+  qjsondocument.cpp
+  qjsonvalue.cpp
+  qjson.cpp
+  qjsonobject.cpp
+  qjsonwriter.cpp
+  qjsonarray.cpp
+  qjsonparser.cpp
+  )
+
+set(QT5JSON_SOURCE_DIR "${MoleQueue_SOURCE_DIR}/thirdparty/qt5json/")
+aux_source_directory(${QT5JSON_SOURCE_DIR} qt5json_srcs)
+
 set(sources
   client.cpp
   job.cpp
-  ${jsoncpp_srcs}
+  ${qt5json_srcs}
   )
 
 set(headers

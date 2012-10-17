@@ -18,11 +18,7 @@
 
 #include "job.h"
 
-#include <json/json.h>
-
-#include <molequeue/transport/message.h>
-#include <molequeue/transport/localsocket/localsocketconnection.h>
-
+#include <qjsondocument.h>
 #include <QtCore/QDebug>
 #include <QtCore/QDataStream>
 #include <QtNetwork/QLocalSocket>
@@ -32,9 +28,7 @@ namespace MoleQueue
 
 Client::Client(QObject *parent_) : QObject(parent_), m_socket(NULL)
 {
-  // Randomize the packet counter's starting value.
-  qsrand(static_cast<uint>(QDateTime::currentMSecsSinceEpoch()));
-  m_packetCounter = static_cast<unsigned int>(qrand());
+  m_packetCounter = 0;
 }
 
 Client::~Client()
@@ -49,11 +43,11 @@ bool Client::isConnected() const
     return m_socket->isOpen();
 }
 
-void Client::connectToServer(const QString &serverName)
+bool Client::connectToServer(const QString &serverName)
 {
   if (m_socket && m_socket->isOpen()) {
     if (m_socket->serverName() == serverName) {
-      return;
+      return false;
     }
     else {
       m_socket->close();
@@ -65,103 +59,102 @@ void Client::connectToServer(const QString &serverName)
   // New connection.
   if (m_socket == NULL) {
     if (serverName.isEmpty()) {
-      qDebug() << "Server name is empty...";
-      return;
+      return false;
     }
     else {
-      qDebug() << "Opening connection to" << serverName;
       m_socket = new QLocalSocket(this);
       m_socket->connectToServer(serverName);
       connect(m_socket, SIGNAL(readyRead()), this, SLOT(readSocket()));
+      return true;
     }
   }
+  return false;
 }
 
 void Client::requestQueueList()
 {
-  Json::Value packet;
+  QJsonObject packet;
   emptyRequest(packet);
 
-  packet["method"] = "listQueues";
+  packet["method"] = QLatin1String("listQueues");
 
   sendRequest(packet);
-  m_requests[packet["id"].asInt()] = QueueList;
+  m_requests[static_cast<int>(packet["id"].toDouble())] = QueueList;
 }
 
 void Client::submitJob(const JobObject &job)
 {
-  Json::Value packet;
+  QJsonObject packet;
   emptyRequest(packet);
 
-  packet["method"] = "submitJob";
+  packet["method"] = QLatin1String("submitJob");
   packet["params"] = job.json();
 
   sendRequest(packet);
-  m_requests[packet["id"].asInt()] = Submission;
+  m_requests[static_cast<int>(packet["id"].toDouble())] = Submission;
 }
 
 void Client::lookupJob(unsigned int moleQueueId)
 {
-  Json::Value packet;
+  QJsonObject packet;
   emptyRequest(packet);
 
-  packet["method"] = "lookupJob";
-  Json::Value params;
-  params["moleQueueId"] = moleQueueId;
+  packet["method"] = QLatin1String("lookupJob");
+  QJsonObject params;
+  params["moleQueueId"] = static_cast<int>(moleQueueId);
   packet["params"] = params;
   sendRequest(packet);
-  m_requests[packet["id"].asInt()] = JobInfo;
+  m_requests[static_cast<int>(packet["id"].toDouble())] = JobInfo;
 }
 
 void Client::readPacket(const QByteArray message)
 {
-  //qDebug() << "Packet received:" << message.data();
-
   // Read packet into a Json value
-  Json::Reader reader;
-  Json::Value root;
+  QJsonParseError error;
+  QJsonDocument reader = QJsonDocument::fromJson(message, &error);
 
-  if (!reader.parse(message.constData(),
-                    message.constData() + message.size(),
-                    root, false)) {
-    qDebug() << "Unparseable message received\n:" << message;
+  if (error.error != QJsonParseError::NoError) {
+    qDebug() << "Unparseable message received\n:" << error.errorString()
+             << "\nContent: " << message;
+    return;
+  }
+  else if (!reader.isObject()) {
+    // We need a valid object, something bad happened.
     return;
   }
   else {
-    qDebug() << "JSON interpreted successfully:" << endl;
-    if (!root.isObject())
-      qDebug() << "Invalid packet received:\n" << message;
-
-    if (root["method"] != Json::nullValue) {
-      if (root["id"] != Json::nullValue)
+    QJsonObject root = reader.object();
+    if (root["method"] != QJsonValue::Null) {
+      if (root["id"] != QJsonValue::Null)
         qDebug() << "Received a request packet - that shouldn't happen here.";
       else
         qDebug() << "Received a notification packet:\n" << message;
     }
-    if (root["result"] != Json::nullValue) {
-      qDebug() << "Result packet - that's more like it!\n" << message;
-      if (root["id"] != Json::nullValue && m_requests.contains(root["id"].asInt())) {
-
-        switch (m_requests[root["id"].asInt()]) {
+    if (root["result"] != QJsonValue::Null) {
+      // This is a result packet, and should emit a signal.
+      if (root["id"] != QJsonValue::Null
+          && m_requests.contains(static_cast<int>(root["id"].toDouble()))) {
+        switch (m_requests[static_cast<int>(root["id"].toDouble())]) {
         case Submission:
-          emit submitJobResponse(root["result"]["moleQueueId"].asInt());
+          emit submitJobResponse(root["result"].toObject()["moleQueueId"].toDouble());
           break;
         case JobInfo:
           break;
         case QueueList:
           //emit queueListReceived();
           break;
+        default:
+          break;
         }
-
-        qDebug() << "We have a valid result packet!!!"
-                 << "id:" << root["id"].asInt() << "type" << m_requests[root["id"].asInt()];
       }
       else {
         qDebug() << "We couldn't find a valid ID for the response :-(";
       }
     }
-    else if (root["error"] != Json::nullValue)
+    else if (root["error"] != QJsonValue::Null) {
+      // FIXME: Add error signal here.
       qDebug() << "Error packet:\n" << message;
+    }
   }
 
 }
@@ -169,35 +162,31 @@ void Client::readPacket(const QByteArray message)
 void Client::readSocket()
 {
   QDataStream stream(m_socket);
-  qDebug() << "readSocket on client triggered - checking what we have...";
 
   while (m_socket->bytesAvailable()) {
     QByteArray json;
     stream >> json;
-    //qDebug() << "JSON received:" << json;
     readPacket(json);
   }
 }
 
-void Client::emptyRequest(Json::Value &request)
+void Client::emptyRequest(QJsonObject &request)
 {
-  request["jsonrpc"] = "2.0";
-  request["id"] = m_packetCounter++;
+  request["jsonrpc"] = QLatin1String("2.0");
+  request["id"] = static_cast<int>(m_packetCounter++);
 }
 
-void Client::sendRequest(const Json::Value &request)
+void Client::sendRequest(const QJsonObject &request)
 {
   if (!m_socket)
     return;
 
-  Json::StyledWriter writer;
-  std::string jsonString = writer.write(request);
-
+  QJsonDocument document(request);
   QDataStream stream(m_socket);
-  stream << QByteArray(jsonString.c_str());
+  stream << document.toJson();
 
   //m_connection->send(PacketType(jsonString.c_str()));
-  qDebug() << "sending request:" << jsonString.c_str();
+  qDebug() << "sending request:" << document.toJson();
 }
 
 } // End namespace MoleQueue

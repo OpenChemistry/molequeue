@@ -19,6 +19,7 @@
 
 #include "molequeueclientexport.h"
 
+#include <qjsonobject.h>
 #include <QtCore/QObject>
 
 #include <QtCore/QHash>
@@ -72,7 +73,7 @@ public slots:
    * \param serverName Name of the socket to connect to, the default of
    * "MoleQueue" is usually correct when connecting to the running MoleQueue.
    */
-  void connectToServer(const QString &serverName = "MoleQueue");
+  bool connectToServer(const QString &serverName = "MoleQueue");
 
   /*!
    * Request the list of queues and programs from the server. The signal
@@ -128,10 +129,10 @@ protected:
   QHash<unsigned int, MessageType> m_requests;
 
   /*! Create a standard empty JSON-RPC 2.0 packet, the method etc is empty. */
-  void emptyRequest(Json::Value &request);
+  void emptyRequest(QJsonObject &request);
 
   /*! Send the Json request over the transport. */
-  void sendRequest(const Json::Value &request);
+  void sendRequest(const QJsonObject &request);
 };
 
 } // End namespace MoleQueue

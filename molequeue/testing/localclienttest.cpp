@@ -19,6 +19,8 @@
 #include <molequeue/client/client.h>
 #include <molequeue/client/job.h>
 
+#include <unistd.h>
+
 #include "testserver.h"
 
 #include <QtGui/QApplication>
