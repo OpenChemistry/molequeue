@@ -58,10 +58,10 @@ public:
   ~Client();
 
   enum MessageType {
-    Submission,
     QueueList,
-    JobInfo,
-    Result,
+    SubmitJob,
+    CancelJob,
+    LookupJob,
     Invalid
   };
 
@@ -77,20 +77,33 @@ public slots:
 
   /*!
    * Request the list of queues and programs from the server. The signal
-   * queueListUpdated() will be emitted once this has been received.
+   * queueListReceived() will be emitted once this has been received.
+   * @return The local ID of the job submission request.
    */
-  void requestQueueList();
+  int requestQueueList();
 
   /*!
-   * Submit a job to MoleQueue.
+   * Submit a job to MoleQueue. If the returned local ID is retained the signal
+   * for a job submission will provide the MoleQueue ID along with the local ID.
+   * @param job The job specification to be submitted to MoleQueue.
+   * @return The local ID of the job submission request.
    */
-  void submitJob(const JobObject &job);
+  int submitJob(const JobObject &job);
 
   /*!
    * Request information about a job. You should supply the MoleQueue ID that
    * was received in response to a job submission.
+   * @param moleQueueId The MoleQueue ID for the job.
+   * @return The local ID of the job submission request.
    */
-  void lookupJob(unsigned int moleQueueId);
+  int lookupJob(unsigned int moleQueueId);
+
+  /**
+   * Cancel a job that was submitted.
+   * @param moleQueueId The MoleQueue ID for the job.
+   * @return The local ID of the job submission request.
+   */
+  int cancelJob(unsigned int moleQueueId);
 
 protected slots:
   /*!
@@ -113,13 +126,41 @@ signals:
    * Emitted when the remote queue list is received. This gives a list of lists,
    * the primary key is the queue name, and that contains a list of available
    * programs for each queue.
+   * @param queues A JSON object containing the names of the queues and the
+   * programs each queue have available.
    */
-  void queueListReceived(QHash<QString, QStringList> queues);
+  void queueListReceived(QJsonObject queues);
 
   /*!
    * Emitted when the job request response is received.
+   * @param localId The local ID the job submission response is in reply to.
+   * @param moleQueueId The remote MoleQueue ID for the job submission (can be
+   * used to perform further actions on the job).
    */
-  void submitJobResponse(int id);
+  void submitJobResponse(int localId, unsigned int moleQueueId);
+
+  /*!
+   * Emitted when a job lookup response is received.
+   * @param localId The local ID the job submission response is in reply to.
+   * @param jobInfo A Json object containing all available job information.
+   */
+  void lookupJobResponse(int localId, QJsonObject jobInfo);
+
+  /*!
+   * Emitted when a job is successfully cancelled.
+   */
+  void cancelJobResponse(unsigned int moleQueueId);
+
+  /*!
+   * Emitted when the job state changes.
+   */
+  void jobStateChanged(unsigned int moleQueueId, QString oldState,
+                       QString newState);
+
+  /*!
+   * Emitted when an error response is received.
+   */
+  void errorReceived(int localId, unsigned int moleQueueId, QString error);
 
 protected:
   unsigned int m_packetCounter;
@@ -133,6 +174,12 @@ protected:
 
   /*! Send the Json request over the transport. */
   void sendRequest(const QJsonObject &request);
+
+  /*! Parse the response object and emit the appropriate signal(s). */
+  void processResult(const QJsonObject &response);
+
+  /*! Parse a notification object and emit the appropriate signal(s). */
+  void processNotification(const QJsonObject &notification);
 };
 
 } // End namespace MoleQueue

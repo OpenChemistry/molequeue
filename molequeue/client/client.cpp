@@ -71,7 +71,7 @@ bool Client::connectToServer(const QString &serverName)
   return false;
 }
 
-void Client::requestQueueList()
+int Client::requestQueueList()
 {
   QJsonObject packet;
   emptyRequest(packet);
@@ -79,10 +79,12 @@ void Client::requestQueueList()
   packet["method"] = QLatin1String("listQueues");
 
   sendRequest(packet);
-  m_requests[static_cast<int>(packet["id"].toDouble())] = QueueList;
+  int localId = static_cast<int>(packet["id"].toDouble());
+  m_requests[localId] = QueueList;
+  return localId;
 }
 
-void Client::submitJob(const JobObject &job)
+int Client::submitJob(const JobObject &job)
 {
   QJsonObject packet;
   emptyRequest(packet);
@@ -91,10 +93,12 @@ void Client::submitJob(const JobObject &job)
   packet["params"] = job.json();
 
   sendRequest(packet);
-  m_requests[static_cast<int>(packet["id"].toDouble())] = Submission;
+  int localId = static_cast<int>(packet["id"].toDouble());
+  m_requests[localId] = SubmitJob;
+  return localId;
 }
 
-void Client::lookupJob(unsigned int moleQueueId)
+int Client::lookupJob(unsigned int moleQueueId)
 {
   QJsonObject packet;
   emptyRequest(packet);
@@ -104,7 +108,24 @@ void Client::lookupJob(unsigned int moleQueueId)
   params["moleQueueId"] = static_cast<int>(moleQueueId);
   packet["params"] = params;
   sendRequest(packet);
-  m_requests[static_cast<int>(packet["id"].toDouble())] = JobInfo;
+  int localId = static_cast<int>(packet["id"].toDouble());
+  m_requests[localId] = LookupJob;
+  return localId;
+}
+
+int Client::cancelJob(unsigned int moleQueueId)
+{
+  QJsonObject packet;
+  emptyRequest(packet);
+
+  packet["method"] = QLatin1String("cancelJob");
+  QJsonObject params;
+  params["moleQueueId"] = static_cast<int>(moleQueueId);
+  packet["params"] = params;
+  sendRequest(packet);
+  int localId = static_cast<int>(packet["id"].toDouble());
+  m_requests[localId] = CancelJob;
+  return localId;
 }
 
 void Client::readPacket(const QByteArray message)
@@ -128,28 +149,11 @@ void Client::readPacket(const QByteArray message)
       if (root["id"] != QJsonValue::Null)
         qDebug() << "Received a request packet - that shouldn't happen here.";
       else
-        qDebug() << "Received a notification packet:\n" << message;
+        processNotification(root);
     }
     if (root["result"] != QJsonValue::Null) {
       // This is a result packet, and should emit a signal.
-      if (root["id"] != QJsonValue::Null
-          && m_requests.contains(static_cast<int>(root["id"].toDouble()))) {
-        switch (m_requests[static_cast<int>(root["id"].toDouble())]) {
-        case Submission:
-          emit submitJobResponse(root["result"].toObject()["moleQueueId"].toDouble());
-          break;
-        case JobInfo:
-          break;
-        case QueueList:
-          //emit queueListReceived();
-          break;
-        default:
-          break;
-        }
-      }
-      else {
-        qDebug() << "We couldn't find a valid ID for the response :-(";
-      }
+      processResult(root);
     }
     else if (root["error"] != QJsonValue::Null) {
       // FIXME: Add error signal here.
@@ -187,6 +191,45 @@ void Client::sendRequest(const QJsonObject &request)
 
   //m_connection->send(PacketType(jsonString.c_str()));
   qDebug() << "sending request:" << document.toJson();
+}
+
+void Client::processResult(const QJsonObject &response)
+{
+  if (response["id"] != QJsonValue::Null
+      && m_requests.contains(static_cast<int>(response["id"].toDouble()))) {
+    int localId = static_cast<int>(response["id"].toDouble());
+    switch (m_requests[localId]) {
+    case QueueList:
+      emit queueListReceived(response["result"].toObject());
+      break;
+    case SubmitJob:
+      emit submitJobResponse(localId,
+                             static_cast<unsigned int>(response["result"]
+                             .toObject()["moleQueueId"].toDouble()));
+      break;
+    case LookupJob:
+      emit lookupJobResponse(localId, response["result"].toObject());
+      break;
+    case CancelJob:
+      emit cancelJobResponse(static_cast<unsigned int>(response["result"]
+                             .toObject()["moleQueueId"].toDouble()));
+    default:
+      break;
+    }
+  }
+  else {
+    qDebug() << "We couldn't find a valid ID for the response :-(";
+  }
+}
+
+void Client::processNotification(const QJsonObject &notification)
+{
+  if (notification["method"].toString() == "jobStateChanged") {
+    QJsonObject params = notification["params"].toObject();
+    emit jobStateChanged(
+          static_cast<unsigned int>(params["moleQueueId"].toDouble()),
+          params["oldState"].toString(), params["newState"].toString());
+  }
 }
 
 } // End namespace MoleQueue
