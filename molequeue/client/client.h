@@ -27,11 +27,6 @@
 
 class QLocalSocket;
 
-namespace Json
-{
-class Value;
-}
-
 namespace MoleQueue
 {
 
@@ -58,11 +53,11 @@ public:
   ~Client();
 
   enum MessageType {
-    QueueList,
+    Invalid = -1,
+    ListQueues,
     SubmitJob,
     CancelJob,
-    LookupJob,
-    Invalid
+    LookupJob
   };
 
   bool isConnected() const;

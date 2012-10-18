@@ -80,7 +80,7 @@ int Client::requestQueueList()
 
   sendRequest(packet);
   int localId = static_cast<int>(packet["id"].toDouble());
-  m_requests[localId] = QueueList;
+  m_requests[localId] = ListQueues;
   return localId;
 }
 
@@ -199,7 +199,7 @@ void Client::processResult(const QJsonObject &response)
       && m_requests.contains(static_cast<int>(response["id"].toDouble()))) {
     int localId = static_cast<int>(response["id"].toDouble());
     switch (m_requests[localId]) {
-    case QueueList:
+    case ListQueues:
       emit queueListReceived(response["result"].toObject());
       break;
     case SubmitJob:
