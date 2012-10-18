@@ -6,6 +6,9 @@ endif()
 
 find_package(Qt4 4.8.0 COMPONENTS ${qt_components})
 
+find_program(PYTHON_EXECUTABLE
+  NAMES python2.7 python2.6 python2.5 python2.4 python2.3 python2 python)
+
 include(${QT_USE_FILE})
 include(GenerateExportHeader)
 
@@ -49,6 +52,7 @@ if(MoleQueue_BUILD_APPLICATION)
     actionfactorymanager.cpp
     addqueuedialog.cpp
     filespecification.cpp
+    filesystemtools.cpp
     importprogramdialog.cpp
     importqueuedialog.cpp
     job.cpp

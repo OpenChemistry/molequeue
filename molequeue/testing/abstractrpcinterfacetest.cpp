@@ -57,7 +57,7 @@ private slots:
 MoleQueue::PacketType
 AbstractRpcInterfaceTest::readReferenceString(const QString &filename)
 {
-  QString realFilename = TESTDATADIR + filename;
+  QString realFilename = MoleQueue_TESTDATA_DIR + filename;
   QFile refFile (realFilename);
   if (!refFile.open(QFile::ReadOnly | QFile::Text)) {
     qDebug() << "Cannot access reference file" << realFilename;

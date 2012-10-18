@@ -20,6 +20,7 @@
 
 #include "dummyqueuemanager.h"
 #include "dummyserver.h"
+#include "filesystemtools.h"
 #include "job.h"
 #include "jobmanager.h"
 #include "program.h"
@@ -76,7 +77,7 @@ void QueueRemoteTest::initTestCase()
 
 void QueueRemoteTest::cleanupTestCase()
 {
-  m_queue->recursiveRemoveDirectory(m_server.workingDirectoryBase());
+  FileSystemTools::recursiveRemoveDirectory(m_server.workingDirectoryBase());
 }
 
 void QueueRemoteTest::init()

@@ -31,11 +31,8 @@ ZeroMqConnection::ZeroMqConnection(QObject *parentObject,
   m_context(context),
   m_socket(socket),
   m_connected(true),
-  m_listener(new QTimer())
+  m_listening(false)
 {
-  connect(m_listener, SIGNAL(timeout()),
-          this, SLOT(listen()));
-
   std::size_t socketTypeSize = sizeof(m_socketType);
   m_socket->getsockopt(ZMQ_TYPE, &m_socketType, &socketTypeSize);
 }
@@ -46,19 +43,14 @@ ZeroMqConnection::ZeroMqConnection(QObject *parentObject, const QString &address
   m_connectionString(address),
   m_context(new zmq::context_t(1)),
   m_socket(new zmq::socket_t(*m_context, ZMQ_DEALER)),
-  m_connected(false),
-  m_listener(new QTimer())
+  m_connected(false)
 {
-  connect(m_listener, SIGNAL(timeout()),
-          this, SLOT(listen()));
   m_socketType = ZMQ_DEALER;
 }
 
 ZeroMqConnection::~ZeroMqConnection()
 {
   close();
-  delete m_listener;
-  m_listener = NULL;
   delete m_context;
   m_context = NULL;
   delete m_socket;
@@ -76,15 +68,16 @@ void ZeroMqConnection::open()
 
 void ZeroMqConnection::start()
 {
-  if (!m_listener->isActive()) {
-    m_listener->start(50);
+  if (!m_listening) {
+    m_listening = true;
+    QTimer::singleShot(0, this, SLOT(listen()));
   }
 }
 
 void ZeroMqConnection::close()
 {
-  if (m_listener) {
-    m_listener->stop();
+  if (m_listening) {
+    m_listening = false;
     m_socket->close();
   }
 }
@@ -103,12 +96,20 @@ void ZeroMqConnection::send(const Message &msg)
 {
   zmq::message_t message(msg.data().size());
   memcpy(message.data(), msg.data().constData(), msg.data().size());
+  bool rc;
 
   // If on the server side send the endpoint id first
   if (m_socketType == ZMQ_ROUTER) {
     zmq::message_t identity(msg.endpoint().size());
     memcpy(identity.data(), msg.endpoint().data(), msg.endpoint().size());
-    bool rc  = m_socket->send(identity, ZMQ_SNDMORE | ZMQ_NOBLOCK);
+    try {
+     rc  = m_socket->send(identity, ZMQ_SNDMORE | ZMQ_NOBLOCK);
+    }
+    catch (zmq::error_t e) {
+      qWarning("zmq exception during endpoint send: Error %d: %s",
+               e.num(), e.what());
+      return;
+    }
 
     if (!rc) {
       qWarning() << "zmq_send failed with EAGAIN";
@@ -117,7 +118,14 @@ void ZeroMqConnection::send(const Message &msg)
   }
 
   // Send message body
-  bool rc = m_socket->send(message, ZMQ_NOBLOCK);
+  try {
+    rc = m_socket->send(message, ZMQ_NOBLOCK);
+  }
+  catch (zmq::error_t e) {
+    qWarning("zmq exception during message send: Error %d: %s",
+             e.num(), e.what());
+    return;
+  }
 
   if (!rc) {
     qWarning() << "zmq_send failed with EAGAIN";
@@ -126,37 +134,63 @@ void ZeroMqConnection::send(const Message &msg)
 
 void ZeroMqConnection::listen()
 {
-  if (m_socketType == ZMQ_DEALER) {
-    dealerReceive();
-  }
-  else if (m_socketType == ZMQ_ROUTER) {
-    routerReceive();
-  }
-  else {
-    qWarning() << "Invalid socket type";
+  if (m_listening) {
+    // singleShotTimeout is the time (in ms) until the next call to this
+    // function is posted to Qt's event loop. It is 500 ms is there is no
+    // activity on the socket, 50 ms if a message was just received, and 0
+    // (e.g. immediate) if a message was just received and there are more
+    // waiting.
+    int singleShotTimeout = 500;
+    int rc = 0;
+
+    bool recvd = false;
+    if (m_socketType == ZMQ_DEALER)
+      recvd = dealerReceive();
+    else if (m_socketType == ZMQ_ROUTER)
+      recvd = routerReceive();
+    else
+      qWarning() << "Invalid socket type";
+
+    if (recvd) {
+      // Message received -- lower the timeout and poll the socket for more data
+      singleShotTimeout = 50;
+      zmq::pollitem_t item[1];
+      item[0].socket = static_cast<void*>(*m_socket);
+      item[0].events = ZMQ_POLLIN;
+      try {
+        rc = zmq::poll(item, 1, 0);
+      }
+      catch (zmq::error_t e) {
+        qWarning("zmq exception during poll: Error %d: %s", e.num(), e.what());
+      }
+    }
+
+    // If there was more data, immediately post the next listen event.
+    if (rc > 0)
+      singleShotTimeout = 0;
+
+    QTimer::singleShot(singleShotTimeout, this, SLOT(listen()));
   }
 }
 
-void ZeroMqConnection::dealerReceive()
+bool ZeroMqConnection::dealerReceive()
 {
   zmq::message_t message;
-
   if(m_socket->recv(&message, ZMQ_NOBLOCK)) {
-
     int size = message.size();
     PacketType messageBuffer(static_cast<char*>(message.data()), size);
-
     Message msg(this, EndpointIdType(), messageBuffer);
+
     emit newMessage(msg);
+    return true;
   }
+  return false;
 }
 
-void ZeroMqConnection::routerReceive()
+bool ZeroMqConnection::routerReceive()
 {
   zmq::message_t address;
-
   if (m_socket->recv(&address, ZMQ_NOBLOCK)) {
-
     int size = address.size();
     EndpointIdType replyTo(static_cast<char*>(address.data()), size);
 
@@ -164,7 +198,7 @@ void ZeroMqConnection::routerReceive()
     zmq::message_t message;
     if(!m_socket->recv(&message, ZMQ_NOBLOCK)) {
       qWarning() << "Error no message body received";
-      return;
+      return true;
     }
 
     size = message.size();
@@ -173,7 +207,9 @@ void ZeroMqConnection::routerReceive()
     Message msg(this, replyTo, packet);
 
     emit newMessage(msg);
+    return true;
   }
+  return false;
 }
 
 } /* namespace MoleQueue */

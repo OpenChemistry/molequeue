@@ -157,6 +157,18 @@ PacketType ServerJsonRpc::generateJobStateChangeNotification(IdType moleQueueId,
   return ret;
 }
 
+PacketType ServerJsonRpc::generateRpcKillResponse(bool success,
+                                                  const MessageIdType &packetId)
+{
+  Json::Value packet = generateEmptyResponse(packetId);
+  packet["result"] = Json::Value(Json::objectValue);
+  packet["result"]["success"] = success;
+
+  PacketType result(packet.toStyledString().c_str());
+
+  return result;
+}
+
 int ServerJsonRpc::mapMethodNameToInt(const QString &methodName) const
 {
   if (methodName == "listQueues")
@@ -169,6 +181,8 @@ int ServerJsonRpc::mapMethodNameToInt(const QString &methodName) const
     return LOOKUP_JOB;
   else if (methodName == "jobStateChanged")
     return JOB_STATE_CHANGED;
+  else if (methodName == "rpcKill")
+    return RPC_KILL;
 
   return UNRECOGNIZED_METHOD;
 }
@@ -245,6 +259,22 @@ void ServerJsonRpc::handleMessage(int method, const Message &msg)
     handleInvalidRequest(msg);
     break;
   }
+  case RPC_KILL:
+  {
+    switch (msg.type()) {
+    default:
+    case Message::INVALID_MESSAGE:
+    case Message::NOTIFICATION_MESSAGE:
+    case Message::RESULT_MESSAGE:
+    case Message::ERROR_MESSAGE:
+      handleInvalidRequest(msg);
+      break;
+    case Message::REQUEST_MESSAGE:
+      handleRpcKillRequest(msg);
+      break;
+    }
+    break;
+  }
   default:
     handleInvalidRequest(msg);
     break;
@@ -304,6 +334,11 @@ void ServerJsonRpc::handleLookupJobRequest(const Message &msg) const
         paramsObject["moleQueueId"].asLargestUInt());
 
   emit lookupJobRequestReceived(msg, moleQueueId);
+}
+
+void ServerJsonRpc::handleRpcKillRequest(const Message &msg) const
+{
+  emit rpcKillRequestReceived(msg);
 }
 
 } // namespace MoleQueue

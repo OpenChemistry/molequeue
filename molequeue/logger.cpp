@@ -48,8 +48,11 @@ Logger::Logger() :
   if (lfile) {
 
     if (!lfile->open(QFile::ReadOnly | QFile::Text)) {
-      qWarning() << "MoleQueue::Logger::~Logger() -- Cannot open log "
-                    "file" + lfile->fileName() + "; cannot read log.";
+      QSettings settings;
+      if (settings.value("logWritten", false).toBool()) {
+        qWarning() << "MoleQueue::Logger::~Logger() -- Cannot open log "
+                      "file " + lfile->fileName() + "; cannot read log.";
+      }
       return;
     }
 
@@ -99,6 +102,9 @@ Logger::~Logger()
 
     lfile->write(root.toStyledString().c_str());
     lfile->close();
+
+    QSettings settings;
+    settings.setValue("logWritten", true);
   } // end if (lfile)
 }
 

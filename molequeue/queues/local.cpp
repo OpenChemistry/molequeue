@@ -16,6 +16,7 @@
 
 #include "local.h"
 
+#include "../filesystemtools.h"
 #include "../job.h"
 #include "../jobmanager.h"
 #include "../localqueuewidget.h"
@@ -60,8 +61,8 @@ QueueLocal::QueueLocal(QueueManager *parentManager) :
   m_launchScriptName = "MoleQueueLauncher.sh";
 #endif // WIN32
 
-  // Check if new jobs need starting every 10 seconds
-  m_checkJobLimitTimerId = startTimer(10000);
+  // Check if new jobs need starting every 100 ms
+  m_checkJobLimitTimerId = startTimer(100);
 }
 
 QueueLocal::~QueueLocal()
@@ -250,8 +251,11 @@ void QueueLocal::processFinished(int exitCode, QProcess::ExitStatus exitStatus)
   if (!job.outputDirectory().isEmpty() &&
       job.outputDirectory() != job.localWorkingDirectory()) {
     // copy function logs errors if needed
-    if (!recursiveCopyDirectory(job.localWorkingDirectory(),
-                                job.outputDirectory())) {
+    if (!FileSystemTools::recursiveCopyDirectory(job.localWorkingDirectory(),
+                                                 job.outputDirectory())) {
+      Logger::logError(tr("Cannot copy '%1' -> '%2'.")
+                       .arg(job.localWorkingDirectory(),
+                            job.outputDirectory()), job.moleQueueId());
       job.setJobState(MoleQueue::Error);
       return;
     }
@@ -293,6 +297,9 @@ void QueueLocal::connectProcess(QProcess *proc)
 
 void QueueLocal::checkJobQueue()
 {
+  if (m_pendingJobQueue.isEmpty())
+    return;
+
   int coresInUse = 0;
   foreach(IdType moleQueueId, m_runningJobs.keys()) {
     const Job job = m_server->jobManager()->lookupJobByMoleQueueId(moleQueueId);
