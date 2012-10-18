@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<AuthenticateCont>
+ <auth__session__id>sessionId</auth__session__id>
+ <prompts>
+  <Prompt>
+   <id>0</id>
+   <prompt>prompt1</prompt>
+   <reply>reply1</reply>
+  </Prompt>
+  <Prompt>
+   <id>1</id>
+   <prompt>prompt2</prompt>
+   <reply>reply2</reply>
+  </Prompt>
+ </prompts>
+</AuthenticateCont>

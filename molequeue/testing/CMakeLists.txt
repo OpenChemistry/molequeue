@@ -1,7 +1,13 @@
 include_directories(${CMAKE_SOURCE_DIR}/molequeue)
 include_directories(${CMAKE_BINARY_DIR}/molequeue/testing)
 
-find_package(Qt4 COMPONENTS QtCore QtGui QtNetwork QtTest)
+set(qt_components QtCore QtGui QtNetwork QtTest)
+
+if(MoleQueue_USE_EZHPC_UIT)
+  list(APPEND qt_components QtXmlPatterns)
+endif()
+
+find_package(Qt4 4.8.0 COMPONENTS ${qt_components})
 include(${QT_USE_FILE})
 
 include_directories(${CMAKE_BINARY_DIR}/molequeue/transport/localsocket)
@@ -22,7 +28,9 @@ set(testutils_SRCS
   dummyqueueremote.cpp
   dummyserver.cpp
   dummysshcommand.cpp
+  referencestring.cpp
   testserver.cpp
+  xmlutils.cpp
 )
 
 add_library(testutils STATIC ${testutils_SRCS})
@@ -50,6 +58,14 @@ set(MyTests
 # This test is currently only configured to run on unix
 if(USE_ZERO_MQ AND PYTHON_EXECUTABLE AND NOT WIN32)
   list(APPEND MyTests clientserver)
+endif()
+
+if(MoleQueue_USE_EZHPC_UIT)
+  list(APPEND MyTests
+    uit
+    kerberoscredentials
+    authenticatecont
+    authenticateresponse)
 endif()
 
 foreach(test ${MyTests})
