@@ -1,4 +1,10 @@
-find_package(Qt4 4.8.0 COMPONENTS QtCore QtGui QtNetwork)
+set(qt_components QtCore QtGui QtNetwork)
+
+if(MoleQueue_USE_EZHPC_UIT)
+  list(APPEND qt_components QtXmlPatterns)
+endif()
+
+find_package(Qt4 4.8.0 COMPONENTS ${qt_components})
 
 find_program(PYTHON_EXECUTABLE
   NAMES python2.7 python2.6 python2.5 python2.4 python2.3 python2 python)
@@ -99,13 +105,56 @@ if(MoleQueue_BUILD_APPLICATION)
     terminalprocess.cpp
   )
 
+  if(MoleQueue_USE_EZHPC_UIT)
+
+    find_package(KDSoap REQUIRED)
+    include_directories(${KDSoap_INCLUDE_DIRS})
+    kdsoap_generate_wsdl(ezHPC_UIT_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/wsdl/uitapi.wsdl)
+
+    list(APPEND mq_srcs
+      ${ezHPC_UIT_SRCS}
+      credentialsdialog.cpp
+      queues/uit/authenticatecont.cpp
+      queues/uit/authenticateresponse.cpp
+      queues/uit/authresponseprocessor.cpp
+      queues/uit/kerberoscredentials.cpp
+      queues/uit/queueuit.cpp
+      queues/uit/sslsetup.cpp
+      queues/uit/uitauthenticator.cpp
+      uitqueuewidget.cpp
+      wsdl_uitapi.cpp
+      )
+
+    # Disable warnings for KDSoap generate file for most platforms
+    if(BORLAND)
+      set_property(SOURCE wsdl_uitapi.cpp
+        PROPERTY
+        COMPILE_FLAGS "-w-")
+    else()
+      set_property(SOURCE wsdl_uitapi.cpp
+        PROPERTY
+        COMPILE_FLAGS "-w")
+    endif()
+
+    # install the SSL certificates
+    install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/certs
+            DESTINATION ${INSTALL_DATA_DIR}/molequeue
+            )
+
+    # copy to build tree so things will work when running from build tree
+    file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/certs
+         DESTINATION  ${CMAKE_BINARY_DIR}/${INSTALL_DATA_DIR}/molequeue)
+
+    set(MoleQueue_SSL_CERT_DIR "${INSTALL_DATA_DIR}/molequeue/certs")
+  endif()
+
   if(WIN32)
     list(APPEND mq_srcs puttycommand.cpp)
   endif()
 
   set(mq_srcs ${mq_srcs} ${jsoncpp_srcs})
 
-  qt4_wrap_ui(ui_srcs
+  set(ui_files
     ui/addqueuedialog.ui
     ui/advancedfilterdialog.ui
     ui/importprogramdialog.ui
@@ -122,6 +171,15 @@ if(MoleQueue_BUILD_APPLICATION)
     ui/templatekeyworddialog.ui
   )
 
+  if(MoleQueue_USE_EZHPC_UIT)
+    list(APPEND ui_files
+      ui/uitqueuewidget.ui
+      ui/credentialsdialog.ui
+      )
+  endif()
+
+  qt4_wrap_ui(ui_srcs ${ui_files})
+
   qt4_add_resources(rcc_srcs queuetray.qrc)
 
   add_library(molequeue_static STATIC
@@ -134,6 +192,10 @@ if(MoleQueue_BUILD_APPLICATION)
     mqconnection
     mqconnectionlistener
   )
+
+  if(MoleQueue_USE_EZHPC_UIT)
+    target_link_libraries(molequeue_static kdsoap)
+  endif()
 
   # Used for testing connections.
   if(MoleQueue_BUILD_CLIENT)

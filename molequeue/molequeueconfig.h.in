@@ -5,3 +5,9 @@
 
 /* Whether or not the server application is built. */
 #cmakedefine MoleQueue_BUILD_APPLICATION
+
+/* Are with building with UIT support */
+#cmakedefine MoleQueue_USE_EZHPC_UIT
+
+/* The location of the SSL certificates */
+#cmakedefine MoleQueue_SSL_CERT_DIR "@MoleQueue_SSL_CERT_DIR@"
