@@ -254,6 +254,13 @@ public slots:
                                       MoleQueue::JobState oldState,
                                       MoleQueue::JobState newState);
 
+  /**
+   * Sends rpcKill reply to the server.
+   * @param request The request Message
+   * @param success Whether or not the request can be handled.
+   */
+  void sendRpcKillResponse(const MoleQueue::Message &request, bool success);
+
 protected slots:
 
   /**
@@ -298,6 +305,12 @@ protected slots:
    */
   void lookupJobRequestReceived(const MoleQueue::Message &request,
                                 MoleQueue::IdType moleQueueId);
+
+  /**
+   * Called when the JsonRpc instance handles an rpcKill request.
+   */
+  void rpcKillRequestReceived(const MoleQueue::Message &request);
+
 
 private slots:
 

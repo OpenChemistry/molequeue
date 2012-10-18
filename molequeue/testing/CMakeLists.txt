@@ -12,8 +12,11 @@ include(${QT_USE_FILE})
 
 include_directories(${CMAKE_BINARY_DIR}/molequeue/transport/localsocket)
 
-# Where to find test files
-add_definitions(-DTESTDATADIR="${CMAKE_SOURCE_DIR}/molequeue/testing/data/")
+add_definitions(-DMoleQueue_TESTDATA_DIR="${CMAKE_SOURCE_DIR}/molequeue/testing/data/")
+add_definitions(-DMoleQueue_TESTSCRIPT_DIR="${CMAKE_SOURCE_DIR}/molequeue/testing/scripts/")
+add_definitions(-DMoleQueue_PYTHON_EXECUTABLE="${PYTHON_EXECUTABLE}")
+add_definitions(-DMoleQueue_SOURCE_DIR="${MoleQueue_SOURCE_DIR}")
+add_definitions(-DMoleQueue_BINARY_DIR="${MoleQueue_BINARY_DIR}")
 
 if(USE_ZERO_MQ)
   add_definitions(-DUSE_ZERO_MQ)
@@ -51,6 +54,11 @@ set(MyTests
   sge
   sshcommand
   )
+
+# This test is currently only configured to run on unix
+if(USE_ZERO_MQ AND PYTHON_EXECUTABLE AND NOT WIN32)
+  list(APPEND MyTests clientserver)
+endif()
 
 if(MoleQueue_USE_EZHPC_UIT)
   list(APPEND MyTests

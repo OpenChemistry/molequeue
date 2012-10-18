@@ -210,9 +210,9 @@ class Client:
     # if we an error occurred then throw an exception
     if 'error' in response:
       exception = JobRequestInformationException(response['id'],
-                                                 reponse['error']['data'],
-                                                 reponse['error']['code'],
-                                                 reponse['error']['message'])
+                                                 response['error']['data'],
+                                                 response['error']['code'],
+                                                 response['error']['message'])
       raise exception
 
     jobrequest = JsonRpc.json_to_jobrequest(response)
@@ -232,6 +232,22 @@ class Client:
   def _on_notification(self, msg):
     for callback in self._notification_callbacks:
       callback(msg)
+
+  # Testing only method. Kill the server application if allowed.
+  def _send_rpc_kill_request(self, timeout=None):
+    params = {}
+    packet_id = self._next_packet_id()
+    jsonrpc = JsonRpc.generate_request(packet_id, 'rpcKill', params)
+    self._send_request(packet_id, jsonrpc)
+    response = self._wait_for_response(packet_id, timeout)
+
+    # Timeout
+    if response == None:
+      return None
+
+    if 'result' in response and 'success' in response['result'] and response['result']['success'] == True:
+      return True
+    return False
 
   def _next_packet_id(self):
     with self._packet_id_lock:

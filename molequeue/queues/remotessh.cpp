@@ -16,6 +16,7 @@
 
 #include "remotessh.h"
 
+#include "../filesystemtools.h"
 #include "../job.h"
 #include "../jobmanager.h"
 #include "../logentry.h"
@@ -477,8 +478,11 @@ void QueueRemoteSsh::finalizeJobCopyToCustomDestination(Job job)
   }
 
   // The copy function will throw errors if needed.
-  if (!recursiveCopyDirectory(job.localWorkingDirectory(),
-                              job.outputDirectory())) {
+  if (!FileSystemTools::recursiveCopyDirectory(job.localWorkingDirectory(),
+                                               job.outputDirectory())) {
+    Logger::logError(tr("Cannot copy '%1' -> '%2'.")
+                     .arg(job.localWorkingDirectory(),
+                          job.outputDirectory()), job.moleQueueId());
     job.setJobState(MoleQueue::Error);
     return;
   }

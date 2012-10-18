@@ -65,7 +65,7 @@ private slots:
 
 QString FileSpecificationTest::readReferenceString(const QString &filename_)
 {
-  QString realFilename = TESTDATADIR + filename_;
+  QString realFilename = MoleQueue_TESTDATA_DIR + filename_;
   QFile refFile (realFilename);
   if (!refFile.open(QFile::ReadOnly | QIODevice::Text)) {
     qDebug() << "Cannot access reference file" << realFilename;
