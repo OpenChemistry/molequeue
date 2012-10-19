@@ -256,6 +256,8 @@ if(MoleQueue_BUILD_CLIENT)
   install(FILES ${mqclient_headers}
     DESTINATION "${INSTALL_INCLUDE_DIR}/molequeue")
 
+add_subdirectory(client)
+
 endif() # MoleQueue_BUILD_CLIENT
 
 add_subdirectory(transport)

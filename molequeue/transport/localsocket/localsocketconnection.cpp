@@ -120,6 +120,9 @@ void LocalSocketConnection::open()
 
     m_socket->connectToServer(m_connectionString);
   }
+  else {
+    qWarning() << "No socket set, connection not opened.";
+  }
 }
 
 void LocalSocketConnection::start()

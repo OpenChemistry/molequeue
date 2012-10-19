@@ -30,7 +30,8 @@ if(ENABLE_TESTING)
 endif()
 
 # This is necessary for tests, includes etc.
-include_directories("${MoleQueue_SOURCE_DIR}")
+include_directories(FIRST "${MoleQueue_SOURCE_DIR}"
+  "${MoleQueue_SOURCE_DIR}/thirdparty")
 add_subdirectory(molequeue)
 
 option(BUILD_DOCUMENTATION "Build project documentation" OFF)

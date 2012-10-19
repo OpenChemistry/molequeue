@@ -1,5 +1,6 @@
-include_directories(${CMAKE_SOURCE_DIR}/molequeue)
-include_directories(${CMAKE_BINARY_DIR}/molequeue/testing)
+include_directories(${CMAKE_SOURCE_DIR}/molequeue
+  ${CMAKE_BINARY_DIR}/molequeue/client
+  ${CMAKE_BINARY_DIR}/molequeue/testing)
 
 set(qt_components QtCore QtGui QtNetwork QtTest)
 
@@ -80,6 +81,16 @@ foreach(test ${MyTests})
     )
   add_test(NAME molequeue-${test} COMMAND ${test}test)
 endforeach()
+
+include_directories("${MoleQueue_SOURCE_DIR}/thirdparty/qt5json")
+set(test "localclient")
+add_executable(${test}test ${test}test.cpp)
+set_target_properties(${test}test PROPERTIES AUTOMOC TRUE)
+target_link_libraries(${test}test
+  ${QT_LIBRARIES}
+  MoleQueueClient
+  testutils)
+add_test(NAME ${test} COMMAND ${test}test)
 
 set(mq_connection_tests
   localsocketconnection)
