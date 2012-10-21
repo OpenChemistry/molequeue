@@ -37,4 +37,29 @@ QVariant JobObject::value(const QString &key) const
   return m_value[key].toVariant();
 }
 
+void JobObject::setInputFile(const QString &fileName, const QString &contents)
+{
+  m_value["inputFile"] = fileSpec(fileName, contents);
+}
+
+void JobObject::setInputFile(const QString &path)
+{
+  m_value["inputFile"] = fileSpec(path);
+}
+
+QJsonObject JobObject::fileSpec(const QString &fileName, const QString &contents)
+{
+  QJsonObject result;
+  result["filename"] = fileName;
+  result["contents"] = contents;
+  return result;
+}
+
+QJsonObject JobObject::fileSpec(const QString &path)
+{
+  QJsonObject result;
+  result["path"] = path;
+  return result;
+}
+
 } // End namespace MoleQueue

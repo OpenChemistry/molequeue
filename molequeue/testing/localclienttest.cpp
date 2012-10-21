@@ -112,6 +112,7 @@ void LocalClientTest::jobSubmission()
   request.setValue("queue", "Local");
   request.setValue("program", "sleep");
   request.setValue("description", "Test job");
+  request.setInputFile("test.input", "Sleep some little one...");
   m_client.submitJob(request);
   qApp->processEvents(QEventLoop::AllEvents, 2000);
 

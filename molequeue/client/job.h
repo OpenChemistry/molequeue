@@ -47,13 +47,35 @@ public:
   JobObject();
   ~JobObject();
 
+  /*! Set the \p value of the specified \p key. */
   void setValue(const QString &key, const QVariant &value);
+
+  /*! Get the value of the specified \p key. */
   QVariant value(const QString &key) const;
 
+  /*! Set the job up using the supplied JSON object. This replaces all previous
+   * settings that may have been applied. */
+  void fromJson(const QJsonObject &jsonObject) { m_value = jsonObject; }
+
+  /*! Get the JSON object with the current job settings in it. */
   QJsonObject json() const { return m_value; }
+
+  /*! Set the input file for the job. */
+  void setInputFile(const QString &fileName, const QString &contents);
+  void setInputFile(const QString &path);
 
 protected:
   QJsonObject m_value;
+
+  /*!
+   * Generate a filespec JSON object form the supplied file name and contents.
+   */
+  QJsonObject fileSpec(const QString &fileName, const QString &contents);
+
+  /*!
+   * Generate a filespec JSON object form the supplied file path (must exist).
+   */
+  QJsonObject fileSpec(const QString &path);
 };
 
 } // End namespace MoleQueue
