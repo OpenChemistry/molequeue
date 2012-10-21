@@ -47,13 +47,90 @@ public:
   JobObject();
   ~JobObject();
 
+  /*! Set the \p value of the specified \p key. */
   void setValue(const QString &key, const QVariant &value);
+
+  /*! Get the value of the specified \p key. */
   QVariant value(const QString &key) const;
 
+  /*!
+   * Set the job up using the supplied JSON object. This replaces all previous
+   * settings that may have been applied.
+   */
+  void fromJson(const QJsonObject &jsonObject) { m_value = jsonObject; }
+
+  /*! Get the JSON object with the current job settings in it. */
   QJsonObject json() const { return m_value; }
+
+  /*!
+   * Set the input file for the job.
+   * \param fileName The file name as it will appear in the working directory.
+   * \param contents The contents of the file specified.
+   */
+  void setInputFile(const QString &fileName, const QString &contents);
+
+  /*!
+   * Set the input file for the job, the file will be copied and the file name
+   * used in the working directory of the job submission.
+   * \param path The full path to the input file.
+   */
+  void setInputFile(const QString &path);
+
+  /*!
+   * Set the input file using a JSON object. This must conform to the file
+   * specification.
+   * \param file A JSON object employing file specification to specify input.
+   */
+  void setInputFile(const QJsonObject &file);
+
+  /*!
+   * Get the input file for the job. This is a JSON object using the file spec.
+   */
+  QJsonObject inputFile() const;
+
+  /*!
+   * Append an additional input file for the job.
+   * \param fileName The file name as it will appear in the working directory.
+   * \param contents The contents of the file specified.
+   */
+  void appendAdditionalInputFile(const QString &fileName,
+                                 const QString &contents);
+
+  /*!
+   * Append an additional input file for the job, the file will be copied and
+   * the file name used in the working directory of the job submission.
+   * \param path The full path to the input file.
+   */
+  void appendAdditionalInputFile(const QString &path);
+
+  /*!
+   * Set the additional input file using a JSON object. This must conform to the
+   * file specification.
+   * \param files A JSON array employing file specification to specify input.
+   */
+  void setAdditionalInputFiles(const QJsonArray &files);
+
+  /*! Clear additional input files. */
+  void clearAdditionalInputFiles();
+
+  /*!
+   * Get the additional input files for the job. This is a JSON object using the
+   * file spec.
+   */
+  QJsonArray additionalInputFiles() const;
 
 protected:
   QJsonObject m_value;
+
+  /*!
+   * Generate a filespec JSON object form the supplied file name and contents.
+   */
+  QJsonObject fileSpec(const QString &fileName, const QString &contents);
+
+  /*!
+   * Generate a filespec JSON object form the supplied file path (must exist).
+   */
+  QJsonObject fileSpec(const QString &path);
 };
 
 } // End namespace MoleQueue
