@@ -63,6 +63,40 @@ public:
   QJsonObject json() const { return m_value; }
 
   /*!
+   * Set the queue that the job should be submitted to. This must be a valid
+   * queue name discovered using the client API.
+   */
+  void setQueue(const QString &queueName);
+
+  /*!
+   * Get the name of the queue that the job will be submitted to. An empty
+   * string means that no queue has been set.
+   */
+  QString queue() const;
+
+  /*!
+   * Set the program that the job should be submitted to. This must be a valid
+   * program in a valid queue as discovered using the client API.
+   */
+  void setProgram(const QString &programName);
+
+  /*!
+   * Get the name of the program that the job will be submitted to. An empty
+   * string means that no program has been set.
+   */
+  QString program() const;
+
+  /*!
+   * Set the description of the job, this is free text.
+   */
+  void setDescription(const QString &descriptionText);
+
+  /*!
+   * Get the description of the job.
+   */
+  QString description() const;
+
+  /*!
    * Set the input file for the job.
    * \param fileName The file name as it will appear in the working directory.
    * \param contents The contents of the file specified.

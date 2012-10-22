@@ -39,6 +39,36 @@ QVariant JobObject::value(const QString &key) const
   return m_value[key].toVariant();
 }
 
+void JobObject::setQueue(const QString &queueName)
+{
+  m_value["queue"] = queueName;
+}
+
+QString JobObject::queue() const
+{
+  return m_value["queue"].toString();
+}
+
+void JobObject::setProgram(const QString &programName)
+{
+  m_value["program"] = programName;
+}
+
+QString JobObject::program() const
+{
+  return m_value["program"].toString();
+}
+
+void JobObject::setDescription(const QString &descriptionText)
+{
+  m_value["description"] = descriptionText;
+}
+
+QString JobObject::description() const
+{
+  return m_value["description"].toString();
+}
+
 void JobObject::setInputFile(const QString &fileName, const QString &contents)
 {
   m_value["inputFile"] = fileSpec(fileName, contents);
