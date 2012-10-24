@@ -23,10 +23,11 @@
 #include <QtCore/QObject>
 #include <QtCore/QList>
 
-namespace MoleQueue
-{
+namespace MoleQueue {
 
 class CredentialsDialog;
+
+namespace Uit {
 
 /**
  * @brief Class used to process a AuthenticateResponse message. Basically walks
@@ -79,6 +80,7 @@ private:
   QList<Prompt> m_prompts;
 };
 
+} /* namespace Uit */
 } /* namespace MoleQueue */
 
 #endif /* AUTHRESPONSEPROCESSOR_H_ */

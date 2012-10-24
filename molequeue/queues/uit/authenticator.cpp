@@ -15,21 +15,21 @@
  ******************************************************************************/
 
 #include "kerberoscredentials.h"
-#include "uitauthenticator.h"
+#include "authenticator.h"
 #include "credentialsdialog.h"
-#include "queueuit.h"
+#include "../queueuit.h"
 
 
 #include "mainwindow.h"
 #include "logger.h"
 
-namespace MoleQueue
-{
+namespace MoleQueue {
+namespace Uit {
 
-UitAuthenticator::UitAuthenticator(UitapiService *uit,
-                                   const QString &kerberosPrinciple,
-                                   QObject *parentObject,
-                                   QWidget *dialogParent)
+Authenticator::Authenticator(UitapiService *uit,
+                             const QString &kerberosPrinciple,
+                             QObject *parentObject,
+                             QWidget *dialogParent)
   : QObject(parentObject), m_uit(uit), m_dialogParent(dialogParent),
     m_kerberosPrinciple(kerberosPrinciple), m_credentialsDialog(NULL)
 {
@@ -38,12 +38,12 @@ UitAuthenticator::UitAuthenticator(UitapiService *uit,
 
 }
 
-UitAuthenticator::~UitAuthenticator()
+Authenticator::~Authenticator()
 {
 
 }
 
-void UitAuthenticator::authenticate()
+void Authenticator::authenticate()
 {
   showCredentialsDialog(tr("Enter Kerberos credentials for '%1'")
                           .arg(m_kerberosPrinciple),
@@ -51,9 +51,9 @@ void UitAuthenticator::authenticate()
                         SLOT(authenticateKerberosCredentials(const QString&)));
 }
 
-void UitAuthenticator::authenticateKerberosCredentials(const QString &password)
+void Authenticator::authenticateKerberosCredentials(const QString &password)
 {
-  KerberosCredentials credentials(m_kerberosPrinciple, password);
+  Uit::KerberosCredentials credentials(m_kerberosPrinciple, password);
 
   m_credentialsDialog->disconnect(SIGNAL(entered(const QString&)));
 
@@ -63,10 +63,11 @@ void UitAuthenticator::authenticateKerberosCredentials(const QString &password)
           this, SLOT(authenticateKerberosResponse(const QString&)));
 
 
-  m_uit->asyncAuthenticateUser(credentials.toXml(), QueueUit::clientId);
+  m_uit->asyncAuthenticateUser(credentials.toXml(),
+                               ::MoleQueue::QueueUit::clientId);
 }
 
-void UitAuthenticator::authenticateKerberosResponse(const QString &responseXml)
+void Authenticator::authenticateKerberosResponse(const QString &responseXml)
 {
   disconnect(m_uit, SIGNAL(authenticateUserDone(const QString&)),
              this, SLOT(authenticateKerberosResponse(const QString&)));
@@ -98,8 +99,7 @@ void UitAuthenticator::authenticateKerberosResponse(const QString &responseXml)
   }
 }
 
-void UitAuthenticator::authenticateResponse(
-  const AuthenticateResponse &response)
+void Authenticator::authenticateResponse(const AuthenticateResponse &response)
 {
 
   m_authSessionId = response.authSessionId();
@@ -117,7 +117,7 @@ void UitAuthenticator::authenticateResponse(
   else {
     // If the call was successfully and there are no more prompts
     // then we are authenticated
-    if(response.success()) {
+    if (response.success()) {
 
       emit authenticationComplete(response.token());
 
@@ -141,7 +141,7 @@ void UitAuthenticator::authenticateResponse(
   }
 }
 
-void UitAuthenticator::authenticateResponse(const QString &responseXml)
+void Authenticator::authenticateResponse(const QString &responseXml)
 {
   AuthenticateResponse response = AuthenticateResponse::fromXml(responseXml);
   if (!response.isValid()) {
@@ -154,7 +154,7 @@ void UitAuthenticator::authenticateResponse(const QString &responseXml)
   authenticateResponse(response);
 }
 
-void UitAuthenticator::authenticateCont(const AuthenticateCont &authCont)
+void Authenticator::authenticateCont(const AuthenticateCont &authCont)
 {
   AuthResponseProcessor *processor
     = qobject_cast<AuthResponseProcessor*>(sender());
@@ -162,7 +162,7 @@ void UitAuthenticator::authenticateCont(const AuthenticateCont &authCont)
   if (processor) {
     QString response = authCont.toXml();
 
-    m_uit->asyncAuthenticateUser(response, QueueUit::clientId);
+    m_uit->asyncAuthenticateUser(response, ::MoleQueue::QueueUit::clientId);
 
     processor->deleteLater();
   }
@@ -171,13 +171,13 @@ void UitAuthenticator::authenticateCont(const AuthenticateCont &authCont)
   }
 }
 
-void UitAuthenticator::authenticateUserError(const KDSoapMessage& fault)
+void Authenticator::authenticateUserError(const KDSoapMessage& fault)
 {
   emit authenticationError(fault.faultAsString());
 }
 
 
-void UitAuthenticator::showKerberosCredentialsDialog()
+void Authenticator::showKerberosCredentialsDialog()
 {
   showCredentialsDialog(tr("Enter Kerberos credentials for '%1'")
                          .arg(m_kerberosPrinciple),
@@ -185,9 +185,9 @@ void UitAuthenticator::showKerberosCredentialsDialog()
                          SLOT(authenticateKerberosCredentials(const QString&)));
 }
 
-void UitAuthenticator::showCredentialsDialog(const QString banner,
-                                             const QString prompt,
-                                             const char *enteredSlot)
+void Authenticator::showCredentialsDialog(const QString banner,
+                                          const QString prompt,
+                                          const char *enteredSlot)
 {
 
   if (m_credentialsDialog == NULL)
@@ -200,7 +200,11 @@ void UitAuthenticator::showCredentialsDialog(const QString banner,
   connect(m_credentialsDialog, SIGNAL(entered(const QString&)),
           this, enteredSlot);
 
+  connect(m_credentialsDialog, SIGNAL(cancelled()),
+          this, SIGNAL(authenticationCancelled()));
+
   m_credentialsDialog->show();
 }
 
+} /* namespace Uit */
 } /* namespace MoleQueue */

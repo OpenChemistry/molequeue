@@ -43,8 +43,8 @@ void AuthenticateResponseTest::initTestCase()
 
 void AuthenticateResponseTest::testFromXml()
 {
-  MoleQueue::AuthenticateResponse response =
-    MoleQueue::AuthenticateResponse::fromXml(m_authenticateResponseXml);
+  MoleQueue::Uit::AuthenticateResponse response =
+    MoleQueue::Uit::AuthenticateResponse::fromXml(m_authenticateResponseXml);
 
   QVERIFY(response.hasPrompts());
   QCOMPARE(response.authSessionId(),

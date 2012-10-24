@@ -49,6 +49,7 @@ public slots:
 
 signals:
   void entered(const QString &credentials);
+  void cancelled();
 
 private:
   Ui::CredentialsDialog *ui;

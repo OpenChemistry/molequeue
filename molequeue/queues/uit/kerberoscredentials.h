@@ -19,8 +19,9 @@
 
 #include <QtCore/QString>
 
-namespace MoleQueue
-{
+namespace MoleQueue {
+namespace Uit {
+
 /**
  * @brief class used to model UIT KerberosCredentials
  */
@@ -44,6 +45,7 @@ private:
   QString m_password;
 };
 
+} /* namespace Uit */
 } /* namespace MoleQueue */
 
 #endif /* KERBEROSCREDENTIALS_H_ */
