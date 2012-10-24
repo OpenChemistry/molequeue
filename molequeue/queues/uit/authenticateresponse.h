@@ -20,8 +20,8 @@
 #include <QtCore/QString>
 #include <QtCore/QList>
 
-namespace MoleQueue
-{
+namespace MoleQueue {
+namespace Uit {
 
 /**
  * @brief class used to model a UIT prompt.
@@ -154,6 +154,7 @@ private:
   void setContent(const QString &xml);
 };
 
+} /* namespace Uit */
 } /* namespace MoleQueue */
 
 #endif /* AUTHENTICATERESPONSE_H_ */

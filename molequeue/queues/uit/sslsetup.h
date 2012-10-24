@@ -17,8 +17,9 @@
 #ifndef SSLSETUP_H_
 #define SSLSETUP_H_
 
-namespace MoleQueue
-{
+namespace MoleQueue {
+namespace Uit {
+
 /**
  * @brief class used to initalize SSL certificates for QSslSocket.
  */
@@ -33,5 +34,7 @@ public:
   static void init();
 };
 
+} /* namespace Uit */
 } /* namespace MoleQueue */
+
 #endif /* SSLSETUP_H_ */

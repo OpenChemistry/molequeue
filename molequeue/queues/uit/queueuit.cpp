@@ -35,7 +35,6 @@
 #include <qjsondocument.h>
 
 #include <QtCore/QTimer>
-#include <QtCore/QDebug>
 #include <QtCore/QXmlStreamWriter>
 #include <QtCore/QSettings>
 #include <QtXmlPatterns/QAbstractMessageHandler>
@@ -114,7 +113,7 @@ void QueueUit::testConnectionComplete(const QString &token)
 {
   UitAuthenticator *auth = qobject_cast<UitAuthenticator *>(sender());
 
-  if(auth)
+  if (auth)
     auth->deleteLater();
 
   QMessageBox::information(m_dialogParent, tr("Success"),
@@ -127,7 +126,7 @@ void QueueUit::testConnectionError(const QString &errorMessage)
 {
   UitAuthenticator *auth = qobject_cast<UitAuthenticator*>(sender());
 
-  if(auth)
+  if (auth)
     auth->deleteLater();
 
   QMessageBox::critical(m_dialogParent, tr("UIT Error"), errorMessage);

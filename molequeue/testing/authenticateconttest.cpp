@@ -32,13 +32,13 @@ private slots:
 
 void AuthenticateContTest::testToXmlNoReply()
 {
-  QList<MoleQueue::Prompt> prompts;
-  prompts << MoleQueue::Prompt(0, "prompt1");
-  prompts << MoleQueue::Prompt(1, "prompt2");
+  QList<MoleQueue::Uit::Prompt> prompts;
+  prompts << MoleQueue::Uit::Prompt(0, "prompt1");
+  prompts << MoleQueue::Uit::Prompt(1, "prompt2");
 
   QString id = "sessionId";
 
-  MoleQueue::AuthenticateCont authCont(id, prompts);
+  MoleQueue::Uit::AuthenticateCont authCont(id, prompts);
 
   ReferenceString expected(
     "authenticatecont-ref/authenticatecont-no-reply.xml");
@@ -48,17 +48,17 @@ void AuthenticateContTest::testToXmlNoReply()
 
 void AuthenticateContTest::testToXmlWithReply()
 {
-  QList<MoleQueue::Prompt> prompts;
-  MoleQueue::Prompt prompt1(0, "prompt1");
+  QList<MoleQueue::Uit::Prompt> prompts;
+  MoleQueue::Uit::Prompt prompt1(0, "prompt1");
   prompt1.setUserResponse("reply1");
-  MoleQueue::Prompt prompt2(1, "prompt2");
+  MoleQueue::Uit::Prompt prompt2(1, "prompt2");
   prompt2.setUserResponse("reply2");
 
   prompts << prompt1 << prompt2;
 
   QString id = "sessionId";
 
-  MoleQueue::AuthenticateCont authCont(id, prompts);
+  MoleQueue::Uit::AuthenticateCont authCont(id, prompts);
 
   ReferenceString expected(
     "authenticatecont-ref/authenticatecont-reply.xml");

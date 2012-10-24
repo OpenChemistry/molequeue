@@ -1,0 +1,39 @@
+ <DirListingInfo>
+   <currentDirectory>/home/u/username</currentDirectory>
+   <directories>
+     <FileInfo>
+       <size>4096</size>
+       <name>.</name>
+       <perms>drwx------</perms>
+       <date>Sep 19 10:51</date>
+       <user>username</user>
+       <group>chl</group>
+     </FileInfo>
+     <FileInfo>
+       <size>4096</size>
+       <name>test</name>
+       <perms>drwx------</perms>
+       <date>Sep 19 10:51</date>
+       <user>username</user>
+       <group>chl</group>
+     </FileInfo>
+   </directories>
+   <files>
+     <FileInfo>
+       <size>1705</size>
+       <name>.bash_history</name>
+       <perms>-rw-------</perms>
+       <date>Sep 6 16:44</date>
+       <user>username</user>
+       <group>chl</group>
+     </FileInfo>
+     <FileInfo>
+       <size>1705</size>
+       <name>file</name>
+       <perms>-rw-------</perms>
+       <date>Sep 6 16:44</date>
+       <user>username</user>
+       <group>chl</group>
+     </FileInfo>
+   </files>
+ </DirListingInfo>
