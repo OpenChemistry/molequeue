@@ -58,7 +58,7 @@ set(MyTests
   )
 
 # This test is currently only configured to run on unix
-if(USE_ZERO_MQ AND PYTHON_EXECUTABLE AND NOT WIN32)
+if(USE_ZERO_MQ AND NOT WIN32)
   list(APPEND MyTests clientserver)
 endif()
 

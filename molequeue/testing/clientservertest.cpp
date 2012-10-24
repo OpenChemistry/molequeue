@@ -58,9 +58,11 @@ private:
   /// m_moleQueueDefaultArgs to set the workdir, socketname, and enable rpcKill.
   bool setupServerProcess();
 
+#ifdef MoleQueue_PYTHON_EXECUTABLE
   /// Create a client process initialized for python. The process is returned
   /// and added to m_clientProcesses.
   QProcess *addPythonClientProcess();
+#endif // MoleQueue_PYTHON_EXECUTABLE
 
 private slots:
   /// Called before the first test function is executed.
@@ -72,7 +74,12 @@ private slots:
   /// Called after every test function.
   void cleanup();
 
-  void runPythonTests();
+  // Python client tests:
+#ifdef MoleQueue_PYTHON_EXECUTABLE
+  void submitOnePy();
+  void submit200Py();
+  void submit200FromManyClientsPy();
+#endif // MoleQueue_PYTHON_EXECUTABLE
 };
 
 
@@ -116,6 +123,7 @@ bool ClientServerTest::setupServerProcess()
   return true;
 }
 
+#ifdef MoleQueue_PYTHON_EXECUTABLE
 QProcess *ClientServerTest::addPythonClientProcess()
 {
   QProcess *clientProcess = new QProcess(this);
@@ -129,13 +137,56 @@ QProcess *ClientServerTest::addPythonClientProcess()
   m_clientProcesses.append(clientProcess);
   return clientProcess;
 }
+#endif // MoleQueue_PYTHON_EXECUTABLE
 
 void ClientServerTest::initTestCase()
 {
+  QVERIFY2(resetWorkDir(MoleQueue_TESTDATA_DIR "/testworkdir_unix"),
+           "Failed to reset working directory for test.");
+
+  // Setup server process
+  QVERIFY(setupServerProcess());
+
+  // Start server
+  qDebug() << "Starting server:" << m_moleQueueExecutable
+           << m_moleQueueDefaultArgs.join(" ");
+  m_serverProcess->start(m_moleQueueExecutable, m_moleQueueDefaultArgs);
+  QVERIFY(m_serverProcess->waitForStarted(10*1000));
 }
 
 void ClientServerTest::cleanupTestCase()
 {
+  /// @todo This should be done with a cxx client in case python is unavailable
+#ifdef MoleQueue_PYTHON_EXECUTABLE
+  // send killRpc message
+  QProcess *clientProcess = addPythonClientProcess();
+  QString clientCommand = MoleQueue_PYTHON_EXECUTABLE;
+  QStringList clientArguments;
+  clientArguments
+      << MoleQueue_TESTSCRIPT_DIR "/sendRpcKill.py"
+      << "-s" << m_socketName;
+
+  qDebug() << "Starting client:" << clientCommand
+           << clientArguments.join(" ");
+  clientProcess->start(clientCommand, clientArguments);
+
+  // Wait for client to finish
+  QVERIFY2(clientProcess->waitForFinished(300*1000), "Client timed out.");
+  QCOMPARE(clientProcess->exitCode(), 0);
+
+  // Wait for server to finish
+  QVERIFY2(m_serverProcess->waitForFinished(5*1000), "Server timed out.");
+  QCOMPARE(m_serverProcess->exitCode(), 0);
+#endif // MoleQueue_PYTHON_EXECUTABLE
+
+  // In case the rpcKill call fails, kill the process
+  if (m_serverProcess->state() != QProcess::NotRunning)
+    m_serverProcess->kill();
+  m_serverProcess->deleteLater();
+  m_serverProcess = NULL;
+
+  // Clean up the sendRpcKill client.
+  cleanup();
 }
 
 void ClientServerTest::init()
@@ -150,104 +201,99 @@ void ClientServerTest::cleanup()
   }
   qDeleteAll(m_clientProcesses);
   m_clientProcesses.clear();
-  if (m_serverProcess->state() != QProcess::NotRunning)
-    m_serverProcess->kill();
-  m_serverProcess->deleteLater();
-  m_serverProcess = NULL;
 }
 
-void ClientServerTest::runPythonTests()
+#ifdef MoleQueue_PYTHON_EXECUTABLE
+void ClientServerTest::submitOnePy()
 {
-  QVERIFY2(resetWorkDir(MoleQueue_TESTDATA_DIR "/testworkdir_unix"),
-           "Failed to reset working directory for test.");
-
-  // Setup server process
-  QVERIFY(setupServerProcess());
-
-  // Start server
-  qDebug() << "Starting server:" << m_moleQueueExecutable
-           << m_moleQueueDefaultArgs.join(" ");
-  m_serverProcess->start(m_moleQueueExecutable, m_moleQueueDefaultArgs);
-  QVERIFY(m_serverProcess->waitForStarted(10*1000));
-
   // Setup client process
+  QProcess *clientProcess = addPythonClientProcess();
   QString clientCommand = MoleQueue_PYTHON_EXECUTABLE;
   QStringList clientArguments;
   clientArguments
-      << ""
-      << "-s" << m_socketName;
-  QString &scriptName = clientArguments[0];
+      << MoleQueue_TESTSCRIPT_DIR "/submitJob.py"
+      << "-s" << m_socketName
+      << "-n" << QString::number(1);
+
+  qDebug() << "Starting client:" << clientCommand
+           << clientArguments.join(" ");
+
+  clientProcess->start(clientCommand, QStringList(clientArguments));
+
+  // Wait 5 seconds for client to start
+  QVERIFY2(clientProcess->waitForStarted(5*1000), "Client did not start.");
+
+  // Wait 10 seconds for client to finish
+  QVERIFY2(clientProcess->waitForFinished(10*1000), "Client timed out.");
+  QCOMPARE(clientProcess->exitCode(), 0);
+}
+
+void ClientServerTest::submit200Py()
+{
+  // Setup client process
   QProcess *clientProcess = addPythonClientProcess();
+  QString clientCommand = MoleQueue_PYTHON_EXECUTABLE;
+  QStringList clientArguments;
+  clientArguments
+      << MoleQueue_TESTSCRIPT_DIR "/submitJob.py"
+      << "-s" << m_socketName
+      << "-n" << QString::number(200);
 
-  /**************** submitJob.py -n 1 **********************/
-
-  // Start client
-  scriptName = MoleQueue_TESTSCRIPT_DIR "/submitJob.py";
   qDebug() << "Starting client:" << clientCommand
-           << clientArguments.join(" ") << "-n 1";
-  clientProcess->start(clientCommand, QStringList(clientArguments)
-                       << "-n" << QString::number(1));
+           << clientArguments.join(" ");
 
-  // Wait for client to finish
-  QVERIFY2(clientProcess->waitForFinished(300*1000), "Client timed out.");
+  clientProcess->start(clientCommand, QStringList(clientArguments));
+
+  // Wait 5 seconds for client to start
+  QVERIFY2(clientProcess->waitForStarted(5*1000), "Client did not start.");
+
+  // Wait one minute for client to finish
+  QVERIFY2(clientProcess->waitForFinished(60*1000), "Client timed out.");
   QCOMPARE(clientProcess->exitCode(), 0);
+}
 
-  /**************** submitJob.py -n 200 **********************/
-
-  // Start client
-  scriptName = MoleQueue_TESTSCRIPT_DIR "/submitJob.py";
-  qDebug() << "Starting client:" << clientCommand
-           << clientArguments.join(" ") << "-n 200";
-  clientProcess->start(clientCommand, QStringList(clientArguments)
-                       << "-n" << QString::number(200));
-
-  // Wait for client to finish
-  QVERIFY2(clientProcess->waitForFinished(300*1000), "Client timed out.");
-  QCOMPARE(clientProcess->exitCode(), 0);
-
-  /**************** multiple submitJob.py -n 200 **********************/
-
-  // Create clients
+void ClientServerTest::submit200FromManyClientsPy()
+{
+  // Setup client processes
   while (m_clientProcesses.size() < m_numClients)
     addPythonClientProcess();
+  QString clientCommand = MoleQueue_PYTHON_EXECUTABLE;
+  QStringList clientArguments;
+  clientArguments
+      << MoleQueue_TESTSCRIPT_DIR "/submitJob.py"
+      << "-s" << m_socketName
+      << "-n" << QString::number(200);
 
-  // Start client
-  scriptName = MoleQueue_TESTSCRIPT_DIR "/submitJob.py";
   qDebug() << "Starting" << m_numClients << "clients:" << clientCommand
-           << clientArguments.join(" ") << "-n 200";
+           << clientArguments.join(" ");
+
   int clientId = 0;
   foreach (QProcess *cliProc, m_clientProcesses) {
     cliProc->start(clientCommand,
                    QStringList(clientArguments)
-                   << "-c" << QString::number(++clientId)
-                   << "-n" << QString::number(200));
+                   << "-c" << QString::number(++clientId));
   }
 
-  // Wait for clients to finish
+  // Wait 5 seconds for each client to start
   clientId = 0;
   foreach (QProcess *cliProc, m_clientProcesses) {
-    qDebug() << "Waiting for client" << ++clientId << "state:" << cliProc->state();
-    QVERIFY2(cliProc->waitForFinished(300*1000), "Client timed out.");
-    QCOMPARE(cliProc->exitCode(), 0);
+    ++clientId;
+    QVERIFY2(cliProc->waitForStarted(5*1000),
+             (QByteArray("Client ") + QByteArray::number(clientId) +
+              QByteArray(" failed to start.")).constData());
   }
 
-  /***************** Server cleanup *******************/
-
-  // send killRpc message
-  scriptName = MoleQueue_TESTSCRIPT_DIR "/sendRpcKill.py";
-  qDebug() << "Starting client:" << clientCommand
-           << clientArguments.join(" ");
-  clientProcess->start(clientCommand, clientArguments);
-
-  // Wait for client to finish
-  QVERIFY2(clientProcess->waitForFinished(300*1000), "Client timed out.");
-  QCOMPARE(clientProcess->exitCode(), 0);
-
-  // Wait for server to finish
-  QVERIFY2(m_serverProcess->waitForFinished(5*1000), "Server timed out.");
-  QCOMPARE(m_serverProcess->exitCode(), 0);
+  // Wait two minutes for all clients to finish
+  clientId = 0;
+  foreach (QProcess *cliProc, m_clientProcesses) {
+    ++clientId;
+    QVERIFY2(cliProc->waitForFinished(2*60*1000),
+             (QByteArray("Client ") + QByteArray::number(clientId) +
+              QByteArray(" timed out.")).constData());
+    QCOMPARE(cliProc->exitCode(), 0);
+  }
 }
-
+#endif // MoleQueue_PYTHON_EXECUTABLE
 QTEST_MAIN(ClientServerTest)
 
 #include "clientservertest.moc"
