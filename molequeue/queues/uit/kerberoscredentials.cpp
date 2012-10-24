@@ -18,8 +18,8 @@
 
 #include <QtCore/QXmlStreamWriter>
 
-namespace MoleQueue
-{
+namespace MoleQueue {
+namespace Uit {
 
 KerberosCredentials::KerberosCredentials(const QString &principle,
                                          const QString &password)
@@ -42,4 +42,5 @@ QString KerberosCredentials::toXml() const
   return xml;
 }
 
+} /* namespace Uit */
 } /* namespace MoleQueue */

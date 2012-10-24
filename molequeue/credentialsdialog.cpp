@@ -16,6 +16,7 @@
 
 #include "credentialsdialog.h"
 #include "ui_credentialsdialog.h"
+#include "qdebug.h"
 
 namespace MoleQueue
 {
@@ -25,6 +26,10 @@ CredentialsDialog::CredentialsDialog(QWidget *parentObject) :
   ui(new Ui::CredentialsDialog)
 {
   ui->setupUi(this);
+
+  connect(ui->buttonBox, SIGNAL(rejected()),
+          this, SIGNAL(cancelled()));
+
 }
 
 CredentialsDialog::~CredentialsDialog()
@@ -60,5 +65,5 @@ void CredentialsDialog::setPrompt(const QString &prompt)
 void CredentialsDialog::setErrorMessage(const QString &message) {
   ui->messageLabel->setText(message);
 }
-
 } // end namespace MoleQueue
+

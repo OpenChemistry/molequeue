@@ -18,6 +18,7 @@
 #define UITQUEUEWIDGET_H
 
 #include "abstractqueuesettingswidget.h"
+#include "queues/uit/userhostassoclist.h"
 
 namespace Ui {
 class UitQueueWidget;
@@ -50,6 +51,7 @@ protected slots:
   void testConnection();
   void sleepTest();
   void showHelpDialog();
+  void updateHostList(const Uit::UserHostAssocList &list);
 
 private slots:
   //void showFileDialog();

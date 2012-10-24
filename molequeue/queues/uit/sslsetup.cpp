@@ -23,8 +23,8 @@
 #include <QtCore/QCoreApplication>
 #include <QtCore/QDir>
 
-namespace MoleQueue
-{
+namespace MoleQueue {
+namespace Uit {
 
 bool SslSetup::sslCertsLoaded = false;
 
@@ -55,8 +55,9 @@ void SslSetup::init()
                                                             QRegExp::Wildcard);
 
           if (!added) {
-            Logger::logError(QObject::tr("Error adding SSL certificates from %1")
-                               .arg(dir));
+            Logger::logError(QObject::tr(
+                               "Error adding SSL certificates from %1")
+                                 .arg(dir));
           }
         }
       }
@@ -65,4 +66,5 @@ void SslSetup::init()
   }
 }
 
+} /* namespace Uit */
 } /* namespace MoleQueue */
