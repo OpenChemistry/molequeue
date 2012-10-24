@@ -15,44 +15,13 @@
  ******************************************************************************/
 
 #include "authenticateresponse.h"
+#include "messagehandler.h"
 #include "logger.h"
 
 #include <QtXmlPatterns/QXmlQuery>
-#include <QtXmlPatterns/QAbstractMessageHandler>
 
-namespace MoleQueue
-{
-
-/**
- * Concrete QAbstractMessageHandler implementation used to report errors
- * associated with parsing XML content past QXmlQuery objects.
- */
-class MessageHandler : public QAbstractMessageHandler
-{
-public:
-  MessageHandler(QObject *parentObject = 0);
-
-protected:
-  virtual void handleMessage(QtMsgType type, const QString &description,
-                             const QUrl &identifier,
-                             const QSourceLocation &sourceLocation);
-};
-
-MessageHandler::MessageHandler(QObject *parentObject)
-  : QAbstractMessageHandler(parentObject)
-{
-
-}
-
-void MessageHandler::handleMessage(QtMsgType type, const QString &description,
-                                   const QUrl &identifier,
-                                   const QSourceLocation &sourceLocation)
-{
-  Q_UNUSED(type);
-  Q_UNUSED(identifier);
-  Q_UNUSED(sourceLocation);
-  Logger::logError("UIT XML parse error: " + description);
-}
+namespace MoleQueue {
+namespace Uit {
 
 Prompt::Prompt(int i, const QString p)
   : m_id(i), m_prompt(p)
@@ -108,7 +77,7 @@ void AuthenticateResponse::setContent(const QString &xml)
   query.setMessageHandler(&handler);
   m_valid = query.setFocus(xml);
 
-  if(!m_valid)
+  if (!m_valid)
     return;
 
   // Get the session id
@@ -116,7 +85,7 @@ void AuthenticateResponse::setContent(const QString &xml)
   query.setQuery("/AuthenticateResponse/auth__session__id/string()");
   m_valid = query.evaluateTo(&authId);
 
-  if(!m_valid)
+  if (!m_valid)
       return;
 
   m_authSessionId = authId.trimmed();
@@ -125,7 +94,7 @@ void AuthenticateResponse::setContent(const QString &xml)
   QString successful;
   query.setQuery("/AuthenticateResponse/success/string()");
   m_valid = query.evaluateTo(&successful);
-  if(!m_valid)
+  if (!m_valid)
     return;
 
   m_success = successful.trimmed().toLower() == "true";
@@ -134,7 +103,7 @@ void AuthenticateResponse::setContent(const QString &xml)
   QString hasProm;
   query.setQuery("/AuthenticateResponse/has__prompts/string()");
   m_valid = query.evaluateTo(&hasProm);
-  if(!m_valid)
+  if (!m_valid)
     return;
 
   m_hasPrompts = hasProm.trimmed().toLower() == "true";
@@ -143,7 +112,7 @@ void AuthenticateResponse::setContent(const QString &xml)
   QString ban;
   query.setQuery("/AuthenticateResponse/banner/string()");
   m_valid = query.evaluateTo(&ban);
-  if(!m_valid)
+  if (!m_valid)
     return;
 
   m_banner = ban.trimmed();
@@ -152,17 +121,17 @@ void AuthenticateResponse::setContent(const QString &xml)
   QString tok;
   query.setQuery("/AuthenticateResponse/token/string()");
   m_valid = query.evaluateTo(&tok);
-  if(!m_valid)
+  if (!m_valid)
     return;
 
   m_token = tok.trimmed();
 
   // if we have prompts then get them
-  if(m_hasPrompts) {
+  if (m_hasPrompts) {
     query.setQuery("/AuthenticateResponse/prompts/Prompt/id/string()");
     QStringList ids;
     m_valid = query.evaluateTo(&ids);
-    if(!m_valid)
+    if (!m_valid)
       return;
 
 
@@ -172,7 +141,7 @@ void AuthenticateResponse::setContent(const QString &xml)
                              "prompt/string()"));
       QString prompt;
       m_valid = query.evaluateTo(&prompt);
-      if(!m_valid)
+      if (!m_valid)
         return;
 
       m_prompts.append(Prompt(id.toInt(), prompt.trimmed()));
@@ -233,4 +202,5 @@ AuthenticateResponse AuthenticateResponse::fromXml(const QString &xml)
   return response;
 }
 
+} /* namespace Uit */
 } /* namespace MoleQueue */

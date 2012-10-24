@@ -25,6 +25,10 @@ CredentialsDialog::CredentialsDialog(QWidget *parentObject) :
   ui(new Ui::CredentialsDialog)
 {
   ui->setupUi(this);
+
+  connect(ui->buttonBox, SIGNAL(rejected()),
+          this, SIGNAL(cancelled()));
+
 }
 
 CredentialsDialog::~CredentialsDialog()

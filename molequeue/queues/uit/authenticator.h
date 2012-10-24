@@ -23,21 +23,22 @@
 
 #include <QtCore/QObject>
 
-namespace MoleQueue
-{
+namespace MoleQueue {
 
 class CredentialsDialog;
+
+namespace Uit {
 
 /**
  * @brief class used to perform UIT authentication steps.
  */
-class UitAuthenticator : public QObject
+class Authenticator : public QObject
 {
   Q_OBJECT
 public:
-  UitAuthenticator(UitapiService *uit, const QString &kerberosPrinciple,
-                   QObject *parentObject = 0, QWidget *dialogParent = 0);
-  ~UitAuthenticator();
+  Authenticator(UitapiService *uit, const QString &kerberosPrinciple,
+                QObject *parentObject = 0, QWidget *dialogParent = 0);
+  ~Authenticator();
 
 signals:
   /**
@@ -51,6 +52,13 @@ signals:
    * Emitted if an error occurs during authentication.
    */
   void authenticationError(const QString &errorMessage);
+
+
+  /**
+   * Emitted if an user cancels authentication.
+   */
+  void authenticationCancelled();
+
 
 public slots:
   /**
@@ -135,6 +143,7 @@ private slots:
 
 };
 
+} /* namespace Uit */
 } /* namespace MoleQueue */
 
 #endif /* UITAUTHENTICATOR_H_ */

@@ -62,10 +62,16 @@ endif()
 
 if(MoleQueue_USE_EZHPC_UIT)
   list(APPEND MyTests
-    uit
-    kerberoscredentials
     authenticatecont
-    authenticateresponse)
+    authenticateresponse
+    compositeiodevice
+    dirlistinginfo
+    filestreamingdata
+    jobeventlist
+    jobsubmissioninfo
+    kerberoscredentials
+    uit
+    userhostassoclist)
 endif()
 
 foreach(test ${MyTests})

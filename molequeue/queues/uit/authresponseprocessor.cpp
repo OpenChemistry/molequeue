@@ -17,8 +17,8 @@
 #include "authresponseprocessor.h"
 #include "credentialsdialog.h"
 
-namespace MoleQueue
-{
+namespace MoleQueue {
+namespace Uit {
 
 AuthResponseProcessor::AuthResponseProcessor(
   const AuthenticateResponse &response, CredentialsDialog *credentialsDialog,
@@ -65,4 +65,5 @@ void AuthResponseProcessor::processCredentials(const QString &credentials)
   nextPrompt();
 }
 
+} /* namespace Uit */
 } /* namespace MoleQueue */
