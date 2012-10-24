@@ -1,0 +1,19 @@
+<list>
+ <PublicHostPlusUser>
+  <account>user</account>
+  <hostID>2</hostID>
+  <userName>username</userName>
+  <hostName>ruby.erdc.hpc.mil</hostName>
+  <systemName>ERDC::DIAMOND</systemName>
+  <description>Origin 3900</description>
+  <transportMethod>MSRC_KERBEROS</transportMethod>
+ </PublicHostPlusUser>
+ <PublicHostPlusUser>
+  <account>user</account>
+  <hostID>3</hostID>
+  <hostName>lead.erdc.hpc.mil</hostName>
+  <systemName>ERDC::DIAMOND</systemName>
+  <description>Origin 3901</description>
+  <transportMethod>MSRC_KERBEROS</transportMethod>
+ </PublicHostPlusUser>
+</list>

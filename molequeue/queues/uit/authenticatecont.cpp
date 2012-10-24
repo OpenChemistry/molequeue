@@ -18,8 +18,8 @@
 
 #include <QtCore/QXmlStreamWriter>
 
-namespace MoleQueue
-{
+namespace MoleQueue {
+namespace Uit {
 
 AuthenticateCont::AuthenticateCont(const QString authSessionId,
                                    const QList<Prompt> prompts)
@@ -54,4 +54,5 @@ QString AuthenticateCont::toXml() const
 
 }
 
+} /* namespace Uit */
 } /* namespace MoleQueue */

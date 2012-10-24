@@ -19,8 +19,8 @@
 
 #include "authenticateresponse.h"
 
-namespace MoleQueue
-{
+namespace MoleQueue {
+namespace Uit {
 
 /// @brief class using to model UIT AuthenticateCont message.
 class AuthenticateCont
@@ -45,6 +45,7 @@ private:
   QList<Prompt> m_prompts;
 };
 
+} /* namespace Uit */
 } /* namespace MoleQueue */
 
 #endif /* AUTHENTICATECONT_H_ */

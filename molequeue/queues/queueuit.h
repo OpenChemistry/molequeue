@@ -18,9 +18,13 @@
 #define QUEUEUIT_H
 #include "wsdl_uitapi.h"
 #include "credentialsdialog.h"
-#include "authresponseprocessor.h"
-#include "authenticateresponse.h"
-#include "../remote.h"
+#include "uit/authresponseprocessor.h"
+#include "uit/authenticateresponse.h"
+#include "uit/session.h"
+#include "uit/userhostassoclist.h"
+#include "uit/jobevent.h"
+#include "remote.h"
+
 
 #include <QtXmlPatterns/QXmlQuery>
 #include <QtXmlPatterns/QAbstractXmlReceiver>
@@ -52,8 +56,35 @@ public:
 
   AbstractQueueSettingsWidget* settingsWidget();
 
-  QString hostName()
-  {
+  /**
+   * @return The Kerberos username.
+   */
+  QString kerberosUserName() {
+    return m_kerberosUserName;
+  }
+
+  /**
+   * Set the Kereros username.
+   */
+  void setKerberosUserName(const QString &userName) {
+    m_kerberosUserName = userName;
+  }
+
+  /**
+   * @return The Kerberos realm.
+   */
+  QString kerberosRealm() {
+    return m_kerberosRealm;
+  }
+
+  /**
+   * Set the Kerberos realm.
+   */
+  void setKerberosRealm(const QString &realm) {
+    m_kerberosRealm = realm;
+  }
+
+  QString hostName() const {
     return m_hostName;
   }
 
@@ -61,18 +92,12 @@ public:
     m_hostName = host;
   }
 
-  /**
-   * @return The Kerberos username.
-   */
-  QString kerberosPrinciple() {
-    return m_kerberosPrinciple;
+  qint64  hostId() {
+    return m_hostID;
   }
 
-  /**
-   * Set the Kereros username.
-   */
-  void setKerberosPrinciple(const QString &principle) {
-    m_kerberosPrinciple = principle;
+  void setHostID(qint64 id) {
+    m_hostID = id;
   }
 
   /**
@@ -80,10 +105,19 @@ public:
    */
   bool testConnection(QWidget *parentObject);
 
+//  /**
+//   * Submit sleep job to queue.
+//   */
+//  void sleepTest(QWidget *parentObject);
+
   // Needed for testing
   friend class ::QueueUitTest;
 
   static const QString clientId;
+
+signals:
+  void uitMethodError(const QString &errorString);
+  void userHostAssocList(const Uit::UserHostAssocList &list);
 
 public slots:
   void requestQueueUpdate();
@@ -91,23 +125,36 @@ public slots:
 protected slots:
 
   void createRemoteDirectory(MoleQueue::Job job);
+  void createRemoteDirectoryError(const QString &errorString);
   void remoteDirectoryCreated();
+
   void copyInputFilesToHost(MoleQueue::Job job);
+  void copyInputFilesToHostError(const QString &erroString);
   void inputFilesCopied();
+  void uploadInputFilesToHost(Job job);
+  void processStatFileRequest();
+
   void submitJobToRemoteQueue(MoleQueue::Job job);
   void jobSubmittedToRemoteQueue();
+  void jobSubmissionError(const QString &errorString);
   void handleQueueUpdate();
+  void handleQueueUpdate(const QList<Uit::JobEvent> &jobEvents);
+  void requestQueueUpdateError(const QString&);
 
+  //void beginJobSubmission(Job job);
   void beginFinalizeJob(MoleQueue::IdType queueId);
   void finalizeJobCopyFromServer(MoleQueue::Job job);
   void finalizeJobOutputCopiedFromServer();
+  void finalizeJobCopyFromServerError(const QString &errorString);
   void finalizeJobCopyToCustomDestination(MoleQueue::Job job);
   void finalizeJobCleanup(MoleQueue::Job job);
 
   void cleanRemoteDirectory(MoleQueue::Job job);
+  void cleanRemoteDirectoryError(const QString &errorString);
   void remoteDirectoryCleaned();
 
   void beginKillJob(MoleQueue::Job job);
+  void killJobError(const QString &errorString);
   void endKillJob();
 
   /**
@@ -125,10 +172,23 @@ protected slots:
   void testConnectionError(const QString &errorMessage);
 
 private:
+  Uit::Session *m_uitSession;
+  QString m_kerberosUserName;
+  QString m_kerberosRealm;
   QString m_hostName;
-  QString m_kerberosPrinciple;
+  qint64 m_hostID;
   UitapiService m_uit;
   QWidget *m_dialogParent;
+  bool m_isCheckingQueue;
+
+  Uit::Session * uitSession();
+
+private slots:
+  void getUserHostAssoc();
+  void getUserHostAssocComplete();
+
+  void requestError(const QString &errorMessage);
+  JobState jobEventToJobState(Uit::JobEvent event);
 };
 
 } // End namespace

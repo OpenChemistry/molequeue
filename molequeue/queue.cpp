@@ -488,6 +488,7 @@ bool Queue::writeInputFiles(const Job &job)
   if ((localQueue && program->launchSyntax() == Program::CUSTOM) ||
       remoteQueue) {
     QFile launcherFile (dir.absoluteFilePath(launchScriptName()));
+    qDebug() << dir.absoluteFilePath(launchScriptName());
     if (!launcherFile.open(QFile::WriteOnly | QFile::Text)) {
       Logger::logError(tr("Cannot open file for writing: %1.")
                        .arg(launcherFile.fileName()),

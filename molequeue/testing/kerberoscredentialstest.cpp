@@ -32,7 +32,7 @@ void KerberosCredentialsTest::testToXml()
 {
   ReferenceString expected("kerberoscredentials-ref/kerberoscredentials.xml");
 
-  MoleQueue::KerberosCredentials credentials("test", "test");
+  MoleQueue::Uit::KerberosCredentials credentials("test", "test");
   QCOMPARE(credentials.toXml(),
            XmlUtils::stripWhitespace(expected));
 }
