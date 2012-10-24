@@ -13,11 +13,12 @@ include(${QT_USE_FILE})
 
 include_directories(${CMAKE_BINARY_DIR}/molequeue/transport/localsocket)
 
-add_definitions(-DMoleQueue_TESTDATA_DIR="${CMAKE_SOURCE_DIR}/molequeue/testing/data/")
-add_definitions(-DMoleQueue_TESTSCRIPT_DIR="${CMAKE_SOURCE_DIR}/molequeue/testing/scripts/")
-add_definitions(-DMoleQueue_PYTHON_EXECUTABLE="${PYTHON_EXECUTABLE}")
-add_definitions(-DMoleQueue_SOURCE_DIR="${MoleQueue_SOURCE_DIR}")
-add_definitions(-DMoleQueue_BINARY_DIR="${MoleQueue_BINARY_DIR}")
+set(MoleQueue_TESTDATA_DIR "${MoleQueue_SOURCE_DIR}/molequeue/testing/data/")
+set(MoleQueue_TESTSCRIPT_DIR "${MoleQueue_SOURCE_DIR}/molequeue/testing/scripts/")
+if(PYTHON_EXECUTABLE)
+  set(MoleQueue_PYTHON_EXECUTABLE "${PYTHON_EXECUTABLE}")
+endif()
+configure_file(molequeuetestconfig.h.in molequeuetestconfig.h)
 
 if(USE_ZERO_MQ)
   add_definitions(-DUSE_ZERO_MQ)

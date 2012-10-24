@@ -18,6 +18,7 @@
 
 #include "filesystemtools.h"
 
+#include "molequeuetestconfig.h"
 #include "testserver.h" // for getRandomSocketName
 
 #include <QtCore/QProcess>

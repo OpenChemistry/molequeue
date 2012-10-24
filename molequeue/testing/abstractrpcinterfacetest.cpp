@@ -19,6 +19,7 @@
 #include "dummyjsonrpc.h"
 
 #include "molequeueglobal.h"
+#include "molequeuetestconfig.h"
 #include "testserver.h"
 #include "transport/abstractrpcinterface.h"
 #include "transport/localsocket/localsocketconnection.h"
