@@ -27,13 +27,74 @@
 #include <QtCore/QDebug>
 
 #include <limits>
+#include <sstream>
+
+#include <json/json.h>
 
 namespace MoleQueue
 {
 
 /// Type for various ids
 typedef quint32 IdType;
+
+/// Constant value used for invalid ids
 const IdType InvalidId = std::numeric_limits<IdType>::max();
+
+/// Convert an IdType to a string. This will prevent the literal value of
+/// InvalidId from being used for serialization, RPC, etc.
+inline QString idTypeToString(IdType id)
+{
+  return (id != InvalidId) ? QString::number(id) : QString("Invalid");
+}
+
+/// Convert a string to an IdType. This will prevent the literal value of
+/// InvalidId from being used for serialization, RPC, etc.
+inline IdType toIdType(const char *str)
+{
+  IdType result = InvalidId;
+  return (!(std::istringstream(str) >> result).fail()) ? result : InvalidId;
+}
+
+/// @overload
+inline IdType toIdType(const QString &str)
+{
+  return toIdType(qPrintable(str));
+}
+
+/// @overload
+inline IdType toIdType(const QByteArray &str)
+{
+  return toIdType(str.constData());
+}
+
+/// Convert a Json::Value to an IdType. This will prevent the literal value of
+/// InvalidId from being used for serialization, RPC, etc.
+inline IdType toIdType(const Json::Value &json)
+{
+  return json.isIntegral() ? static_cast<IdType>(json.asLargestUInt())
+                           : InvalidId;
+}
+
+/// Convert an IdType to a Json::Value. This will prevent the literal value of
+/// InvalidId from being used for serialization, RPC, etc.
+inline Json::Value idTypeToJson(IdType id)
+{
+  return id != InvalidId ? Json::Value(id) : Json::Value("Invalid");
+}
+
+/// Convert a QVariant to an IdType. This will prevent the literal value of
+/// InvalidId from being used for serialization, RPC, etc.
+inline IdType toIdType(const QVariant &variant)
+{
+  return variant.canConvert<IdType>() ? variant.value<IdType>() : InvalidId;
+}
+
+/// Convert an IdType to a QVariant. This will prevent the literal value of
+/// InvalidId from being used for serialization, RPC, etc.
+inline QVariant idTypeToVariant(IdType id)
+{
+  return id != InvalidId ? QVariant(id) : QVariant("Invalid");
+}
 
 /// Type for list queue/program names. Key is queue, value is list of supported
 /// programs

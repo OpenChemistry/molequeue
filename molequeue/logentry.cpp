@@ -34,9 +34,7 @@ LogEntry::LogEntry(LogEntryType type, const QString &message_,
 LogEntry::LogEntry(const Json::Value &json)
   : m_message(json["message"].isString() ? json["message"].asCString()
                                          : "Invalid JSON!"),
-    m_moleQueueId(json["moleQueueId"].isIntegral()
-                  ? static_cast<IdType>(json["moleQueueId"].asLargestInt())
-                  : MoleQueue::InvalidId),
+    m_moleQueueId(toIdType(json["moleQueueId"])),
     m_entryType(json["entryType"].isIntegral()
                 ? static_cast<LogEntryType>(json["entryType"].asInt())
                 : Error),
@@ -61,7 +59,7 @@ LogEntry::~LogEntry()
 void LogEntry::writeSettings(Json::Value &root) const
 {
   root["message"] = m_message.toStdString();
-  root["moleQueueId"] = m_moleQueueId;
+  root["moleQueueId"] = idTypeToJson(m_moleQueueId);
   root["entryType"] = static_cast<int>(m_entryType);
   root["time"] = m_timeStamp.toString().toStdString();
 }

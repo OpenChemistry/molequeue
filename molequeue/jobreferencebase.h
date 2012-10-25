@@ -86,8 +86,7 @@ protected:
       return true;
 
     qWarning() << "Invalid reference to job with MoleQueue id "
-               << ((m_moleQueueId != InvalidId) ? QString::number(m_moleQueueId)
-                                                : QString("(invalid)"))
+               << idTypeToString(m_moleQueueId)
                << " accessed!";
     return false;
   }

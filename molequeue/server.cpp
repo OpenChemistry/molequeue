@@ -196,9 +196,11 @@ void Server::jobCancellationRequestReceived(const Message &request,
 {
   Job job = m_jobManager->lookupJobByMoleQueueId(moleQueueId);
   if (!job.isValid()) {
-    Logger::logWarning(tr("Received cancellation request for job with invalid "
-                          "MoleQueue id '%1'.").arg(moleQueueId));
-    QString err(tr("Unrecognized molequeue id: %1").arg(moleQueueId));
+    Logger::logWarning(tr("Received cancellation request for job with unknown "
+                          "MoleQueue id '%1'.")
+                       .arg(idTypeToString(moleQueueId)), moleQueueId);
+    QString err(tr("Unrecognized molequeue id: %1")
+                .arg(idTypeToString(moleQueueId)));
     this->sendFailedCancellationResponse(request, moleQueueId,
                                          InvalidMoleQueueId, err);
     return;
@@ -219,10 +221,11 @@ void Server::jobCancellationRequestReceived(const Message &request,
 
   if (!stateValid) {
     Logger::logWarning(tr("Cannot cancel job with MoleQueue id '%1': Invalid "
-                          "job state ('%2').").arg(job.moleQueueId())
+                          "job state ('%2').")
+                       .arg(idTypeToString(job.moleQueueId()))
                        .arg(jobStateToString(state)));
     QString err(tr("Cannot kill non-running job %1 (job state: %2)")
-                .arg(moleQueueId).arg(jobStateToString(state)));
+                .arg(idTypeToString(moleQueueId)).arg(jobStateToString(state)));
     this->sendFailedCancellationResponse(request, moleQueueId,
                                          InvalidJobState, err);
     return;
@@ -231,10 +234,11 @@ void Server::jobCancellationRequestReceived(const Message &request,
   Queue *queue = m_queueManager->lookupQueue(job.queue());
   if (!queue) {
     Logger::logWarning(tr("Cannot cancel job with MoleQueue id '%1': Unknown "
-                          "Queue ('%2').").arg(job.moleQueueId())
+                          "Queue ('%2').")
+                       .arg(idTypeToString(job.moleQueueId()))
                        .arg(job.queue()));
-    QString err(tr("Cannot kill job %1. Unknown queue (%2)").arg(moleQueueId)
-                .arg(job.queue()));
+    QString err(tr("Cannot kill job %1. Unknown queue (%2)")
+                .arg(idTypeToString(moleQueueId)).arg(job.queue()));
     this->sendFailedCancellationResponse(request, moleQueueId, InvalidQueue,
                                          err);
     return;
@@ -275,7 +279,7 @@ void Server::jobAboutToBeAdded(Job job)
 
   job.setMoleQueueId(nextMoleQueueId);
   job.setLocalWorkingDirectory(m_workingDirectoryBase + "/jobs/" +
-                                QString::number(nextMoleQueueId));
+                                idTypeToString(nextMoleQueueId));
 
   // If the outputDirectory is blank, set it now
   if (job.outputDirectory().isEmpty())
@@ -285,7 +289,7 @@ void Server::jobAboutToBeAdded(Job job)
   if (job.localWorkingDirectory().isEmpty() ||
       !QDir().mkpath(job.localWorkingDirectory())) {
     Logger::logError(tr("Error creating working directory for job %1 "
-                        "(dir='%2')").arg(job.moleQueueId())
+                        "(dir='%2')").arg(idTypeToString(job.moleQueueId()))
                      .arg(job.localWorkingDirectory()),
                      job.moleQueueId());
   }

@@ -170,7 +170,7 @@ void LogWindow::addLogEntry(const LogEntry &entry)
     cur.insertText(tr("Job %1").arg("N/A", -6), *m_moleQueueIdFormat);
   }
   else {
-    cur.insertText(tr("Job %1").arg(entry.moleQueueId(), -6),
+    cur.insertText(tr("Job %1").arg(idTypeToString(entry.moleQueueId()), -6),
                    *m_moleQueueIdFormat);
   }
   cur.insertText(" ");
@@ -204,7 +204,7 @@ void LogWindow::createUi()
 
   // Skip the settings widgets if the molequeueid is set. Update window title
   if (m_moleQueueId != InvalidId) {
-    setWindowTitle(tr("History for Job %1").arg(m_moleQueueId));
+    setWindowTitle(tr("History for Job %1").arg(idTypeToString(m_moleQueueId)));
     return;
   }
 

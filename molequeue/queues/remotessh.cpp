@@ -178,7 +178,7 @@ void QueueRemoteSsh::copyInputFilesToHost(Job job)
   QString localDir = job.localWorkingDirectory();
   QString remoteDir = QDir::cleanPath(QString("%1/%2")
                                       .arg(m_workingDirectoryBase)
-                                      .arg(job.moleQueueId()));
+                                      .arg(idTypeToString(job.moleQueueId())));
 
   SshConnection *conn = newSshConnection();
   conn->setData(QVariant::fromValue(job));
@@ -242,7 +242,7 @@ void QueueRemoteSsh::submitJobToRemoteQueue(Job job)
 {
   const QString command = QString("cd %1/%2 && %3 %4")
       .arg(m_workingDirectoryBase)
-      .arg(job.moleQueueId())
+      .arg(idTypeToString(job.moleQueueId()))
       .arg(m_submissionCommand)
       .arg(m_launchScriptName);
 
@@ -287,7 +287,8 @@ void QueueRemoteSsh::jobSubmittedToRemoteQueue()
                           "%4 %5/%6/%7\nExit code (%8) %9")
                        .arg(conn->userName()).arg(conn->hostName())
                        .arg(conn->portNumber()).arg(m_submissionCommand)
-                       .arg(m_workingDirectoryBase).arg(job.moleQueueId())
+                       .arg(m_workingDirectoryBase)
+                       .arg(idTypeToString(job.moleQueueId()))
                        .arg(m_launchScriptName).arg(conn->exitCode())
                        .arg(conn->output()), job.moleQueueId());
     // Retry submission:
@@ -419,7 +420,8 @@ void QueueRemoteSsh::finalizeJobCopyFromServer(Job job)
 
   QString localDir = job.localWorkingDirectory() + "/..";
   QString remoteDir =
-      QString("%1/%2").arg(m_workingDirectoryBase).arg(job.moleQueueId());
+      QString("%1/%2").arg(m_workingDirectoryBase)
+      .arg(idTypeToString(job.moleQueueId()));
   SshConnection *conn = newSshConnection();
   conn->setData(QVariant::fromValue(job));
   connect(conn, SIGNAL(requestComplete()),
@@ -504,7 +506,8 @@ void QueueRemoteSsh::finalizeJobCleanup(Job job)
 void QueueRemoteSsh::cleanRemoteDirectory(Job job)
 {
   QString remoteDir = QDir::cleanPath(
-        QString("%1/%2").arg(m_workingDirectoryBase).arg(job.moleQueueId()));
+        QString("%1/%2").arg(m_workingDirectoryBase)
+        .arg(idTypeToString(job.moleQueueId())));
 
   // Check that the remoteDir is not just "/" due to another bug.
   if (remoteDir.simplified() == "/") {
@@ -553,7 +556,8 @@ void QueueRemoteSsh::remoteDirectoryCleaned()
     Logger::logError(tr("Error clearing remote directory '%1@%2:%3/%4'.\n"
                         "Exit code (%5) %6")
                      .arg(conn->userName()).arg(conn->hostName())
-                     .arg(m_workingDirectoryBase).arg(job.moleQueueId())
+                     .arg(m_workingDirectoryBase)
+                     .arg(idTypeToString(job.moleQueueId()))
                      .arg(conn->exitCode()).arg(conn->output()),
                      job.moleQueueId());
     job.setJobState(MoleQueue::Error);
@@ -565,7 +569,7 @@ void QueueRemoteSsh::beginKillJob(Job job)
 {
   const QString command = QString("%1 %2")
       .arg(m_killCommand)
-      .arg(job.queueId());
+      .arg(idTypeToString(job.queueId()));
 
   SshConnection *conn = newSshConnection();
   conn->setData(QVariant::fromValue(job));
@@ -603,7 +607,8 @@ void QueueRemoteSsh::endKillJob()
   if (conn->exitCode() != 0) {
     Logger::logWarning(tr("Error cancelling job (mqid=%1, queueid=%2) on "
                           "%3@%4:%5 (queue=%6)\n(%7) %8")
-                       .arg(job.moleQueueId()).arg(job.queueId())
+                       .arg(idTypeToString(job.moleQueueId()))
+                       .arg(idTypeToString(job.queueId()))
                        .arg(conn->userName()).arg(conn->hostName())
                        .arg(conn->portNumber()).arg(m_name)
                        .arg(conn->exitCode()).arg(conn->output()));
@@ -631,7 +636,8 @@ QString QueueRemoteSsh::generateQueueRequestCommand()
   QList<IdType> queueIds = m_jobs.keys();
   QString queueIdString;
   foreach (IdType id, queueIds) {
-    queueIdString += QString::number(id) + " ";
+    if (id != InvalidId)
+      queueIdString += QString::number(id) + " ";
   }
 
   return QString ("%1 %2").arg(m_requestQueueCommand).arg(queueIdString);

@@ -49,7 +49,7 @@ bool DummyQueueRemote::parseQueueLine(const QString &queueListOutput,
   if (split.size() < 2)
     return false;
 
-  *queueId = static_cast<IdType>(split.at(0).toULongLong());
+  *queueId = toIdType(split.at(0));
   *state = stringToJobState(split.at(1));
   return true;
 }

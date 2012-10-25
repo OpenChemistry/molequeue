@@ -119,7 +119,7 @@ bool QueueLocal::readJsonSettings(const Json::Value &root, bool importOnly,
                          .arg(QString(root.toStyledString().c_str())));
         return false;
       }
-      jobsToResume.append(static_cast<IdType>((*it).asLargestUInt()));
+      jobsToResume.append(toIdType(*it));
     }
   }
 
@@ -341,7 +341,8 @@ bool QueueLocal::startJob(IdType moleQueueId)
   const Job job = m_server->jobManager()->lookupJobByMoleQueueId(moleQueueId);
   if (!job.isValid()) {
     Logger::logError(tr("Queue '%1' cannot locate Job with MoleQueue id %2.")
-                     .arg(m_name).arg(moleQueueId), moleQueueId);
+                     .arg(m_name).arg(idTypeToString(moleQueueId)),
+                     moleQueueId);
     return false;
   }
   const Program *program = lookupProgram(job.program());

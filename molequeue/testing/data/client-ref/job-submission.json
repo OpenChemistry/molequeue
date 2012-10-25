@@ -13,13 +13,13 @@
       "jobState" : 0,
       "localWorkingDirectory" : "",
       "maxWallTime" : -1,
-      "moleQueueId" : 4294967295,
+      "moleQueueId" : "Invalid",
       "numberOfCores" : 1,
       "outputDirectory" : "",
       "popupOnStateChange" : false,
       "program" : "Some program",
       "queue" : "Some queue",
-      "queueId" : 4294967295,
+      "queueId" : "Invalid",
       "retrieveOutput" : true
    }
 }

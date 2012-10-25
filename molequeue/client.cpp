@@ -186,8 +186,7 @@ void Client::jobCancellationErrorReceived(const MessageIdType &packetId,
 void Client::lookupJobResponseReceived(const MessageIdType &,
                                        const QVariantHash &hash)
 {
-  IdType moleQueueId =
-      static_cast<IdType>(hash.value("moleQueueId", InvalidId).toULongLong());
+  IdType moleQueueId = toIdType(hash.value("moleQueueId", InvalidId));
   if (moleQueueId == InvalidId) {
     qWarning() << "Client received a lookup confirmation without a valid"
                   "MoleQueue Id.";
