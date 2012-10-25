@@ -135,6 +135,18 @@ inline JobState stringToJobState(const char *str)
     return Unknown;
 }
 
+/// @overload
+inline JobState stringToJobState(const QByteArray &str)
+{
+  return stringToJobState(str.constData());
+}
+
+/// @overload
+inline JobState stringToJobState(const QString &str)
+{
+  return stringToJobState(qPrintable(str));
+}
+
 /**
   * Enumeration defining possible error codes.
   */
