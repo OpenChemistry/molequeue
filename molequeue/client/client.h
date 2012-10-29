@@ -100,6 +100,12 @@ public slots:
    */
   int cancelJob(unsigned int moleQueueId);
 
+  /**
+   * @brief flush Flush all pending messages to the server.
+   * @warning This should not need to be called if used on an event loop.
+   */
+  void flush();
+
 protected slots:
   /*!
    * Read incoming packets of data from the server.
