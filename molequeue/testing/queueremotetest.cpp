@@ -69,7 +69,6 @@ void QueueRemoteTest::initTestCase()
   program->setExecutable("");
   program->setUseExecutablePath(false);
   program->setArguments("");
-  program->setInputFilename("input.in");
   program->setOutputFilename("output.out");
   program->setLaunchSyntax(Program::REDIRECT);
   m_queue->addProgram(program);
@@ -117,6 +116,7 @@ void QueueRemoteTest::testSubmitJob()
 {
   // valid job
   Job job = m_server.jobManager()->newJob();
+  job.setInputFile(FileSpecification("input.in", "\n"));
   QVERIFY(m_queue->submitJob(job));
 
   // invalid job
@@ -168,7 +168,7 @@ void QueueRemoteTest::testSubmissionPipeline()
   job.setQueue("Dummy");
   job.setProgram("DummyProgram");
   job.setDescription("DummyJob");
-  job.setInputFile(FileSpecification("file.ext", "do stuff, return answers."));
+  job.setInputFile(FileSpecification("input.in", "do stuff, return answers."));
   job.setOutputDirectory(job.localWorkingDirectory() + "/../output");
   job.setCleanRemoteFiles(true);
   job.setCleanLocalWorkingDirectory(true);
@@ -190,7 +190,7 @@ void QueueRemoteTest::testSubmissionPipeline()
   Program *program = m_queue->lookupProgram(job.program());
   QVERIFY(program != NULL);
   QString inputFileName = job.localWorkingDirectory() + "/"
-      + program->inputFilename();
+      + job.inputFile().filename();
   QVERIFY(QFile::exists(inputFileName));
   QFile inputFile(inputFileName);
   QVERIFY(inputFile.open(QFile::ReadOnly | QFile::Text));
