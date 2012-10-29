@@ -3,6 +3,11 @@ find_package(Qt4 4.8 COMPONENTS QtCore QtNetwork REQUIRED)
 set(QT5JSON_SOURCE_DIR "${MoleQueue_SOURCE_DIR}/thirdparty/qt5json/")
 include_directories("${QT5JSON_SOURCE_DIR}")
 aux_source_directory(${QT5JSON_SOURCE_DIR} qt5json_srcs)
+foreach(source ${qt5json_srcs})
+  if (${source} MATCHES ".*/main.cpp")
+    list(REMOVE_ITEM qt5json_srcs ${source})
+  endif()
+endforeach()
 
 set(sources
   client.cpp
