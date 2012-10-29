@@ -129,6 +129,9 @@ public:
    */
   QueueListType toQueueList() const;
 
+  /// @return The directory path where queue configuration files are stored.
+  QString queueConfigDirectory() const;
+
 public slots:
   /**
    * @brief updateRemoteQueues Request that all remote queues update the status

@@ -51,22 +51,7 @@ QueueManager::~QueueManager()
 
 void QueueManager::readSettings()
 {
-  QString workingDirectory;
-  if (m_server) {
-    workingDirectory = m_server->workingDirectoryBase();
-  }
-  else {
-    QSettings settings;
-    workingDirectory = settings.value("workingDirectoryBase").toString();
-  }
-
-  if (workingDirectory.isEmpty()) {
-    Logger::logWarning(tr("Cannot write queue settings: Cannot determine "
-                          "config directory."));
-    return;
-  }
-
-  QDir queueDir(workingDirectory + "/config/queues");
+  QDir queueDir(queueConfigDirectory());
   if (!queueDir.exists()) {
     Logger::logWarning(tr("Cannot write queue settings: Queue config "
                           "directory does not exist (%1)")
@@ -182,6 +167,25 @@ void QueueManager::updateRemoteQueues() const
       remote->requestQueueUpdate();
     }
   }
+}
+
+QString QueueManager::queueConfigDirectory() const
+{
+  QString result;
+  if (m_server) {
+    result = m_server->workingDirectoryBase();
+  }
+  else {
+    QSettings settings;
+    result = settings.value("workingDirectoryBase").toString();
+  }
+
+  if (result.isEmpty()) {
+    Logger::logError(tr("Cannot determine queue config directory."));
+    return result;
+  }
+
+  return result + "/config/queues";
 }
 
 } // end MoleQueue namespace

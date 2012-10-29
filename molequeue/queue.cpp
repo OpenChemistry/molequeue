@@ -125,18 +125,15 @@ QString Queue::queueTypeFromFile(const QString &mqqFile)
 QString Queue::stateFileName() const
 {
   QString workDir;
-  if (m_server) {
-    workDir = m_server->workingDirectoryBase();
+  if (m_queueManager) {
+    workDir = m_queueManager->queueConfigDirectory();
   }
-  else {
-    QSettings settings;
-    workDir = settings.value("workingDirectoryBase").toString();
-  }
-
-  if (workDir.isEmpty())
+  if (workDir.isEmpty()) {
+    Logger::logError(tr("Cannot determine stateFileName for queue '%1'"));
     return "";
+  }
 
-  return QDir::cleanPath(workDir + "/config/queues/" + name() + ".mqq");
+  return QDir::cleanPath(workDir + "/" + name() + ".mqq");
 }
 
 bool Queue::writeJsonSettingsToFile(const QString &stateFilename,
