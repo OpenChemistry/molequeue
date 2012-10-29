@@ -21,6 +21,7 @@
 #include <QtCore/QHash>
 #include <QtCore/QList>
 #include <QtCore/QMetaType>
+#include <QtCore/QRegExp>
 #include <QtCore/QString>
 #include <QtCore/QStringList>
 #include <QtCore/QDateTime>
@@ -160,6 +161,9 @@ const int DEFAULT_NUM_CORES = 1;
 /// Default walltime limit for a job
 const int DEFAULT_MAX_WALLTIME = 1440;
 
+// Valid names for queues/programs
+const QRegExp VALID_NAME_REG_EXP("[0-9A-za-z()[\\]{}]"
+                                 "[0-9A-Za-z()[\\]{}\\-_+=.@ ]*");
 
 } // end namespace MoleQueue
 
