@@ -383,15 +383,15 @@ bool Queue::removeProgram(const QString &programName)
   return true;
 }
 
-void Queue::replaceLaunchScriptKeywords(QString &launchScript, const Job &job,
-                                        bool addNewline)
+void Queue::replaceKeywords(QString &launchScript, const Job &job,
+                            bool addNewline)
 {
   launchScript.replace("$$moleQueueId$$", QString::number(job.moleQueueId()));
 
   launchScript.replace("$$numberOfCores$$",
                        QString::number(job.numberOfCores()));
 
-  job.replaceLaunchScriptKeywords(launchScript);
+  job.replaceKeywords(launchScript);
 
   // Remove any unreplaced keywords
   QRegExp expr("[^\\$]?(\\${2,3}[^\\$\\s]+\\${2,3})[^\\$]?");
@@ -511,7 +511,7 @@ bool Queue::writeInputFiles(const Job &job)
     }
     QString launchString = program->launchTemplate();
 
-    replaceLaunchScriptKeywords(launchString, job);
+    replaceKeywords(launchString, job);
 
     launcherFile.write(launchString.toLatin1());
     if (!launcherFile.setPermissions(

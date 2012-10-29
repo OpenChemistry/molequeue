@@ -99,8 +99,8 @@ void QueueRemote::setQueueUpdateInterval(int interval)
   requestQueueUpdate();
 }
 
-void QueueRemote::replaceLaunchScriptKeywords(QString &launchScript,
-                                              const Job &job, bool addNewline)
+void QueueRemote::replaceKeywords(QString &launchScript,
+                                  const Job &job, bool addNewline)
 {
   // If a valid walltime is set, replace all occurances with the appropriate
   // string:
@@ -130,7 +130,7 @@ void QueueRemote::replaceLaunchScriptKeywords(QString &launchScript,
                        .arg(hours, 2, 10, QChar('0'))
                        .arg(minutes, 2, 10, QChar('0')));
 
-  Queue::replaceLaunchScriptKeywords(launchScript, job, addNewline);
+  Queue::replaceKeywords(launchScript, job, addNewline);
 }
 
 bool QueueRemote::submitJob(Job job)

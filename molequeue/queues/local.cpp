@@ -404,7 +404,7 @@ bool QueueLocal::startJob(IdType moleQueueId)
 
   // Handle any keywords in the arguments
   QString args = arguments.join(" ");
-  replaceLaunchScriptKeywords(args, job, false);
+  replaceKeywords(args, job, false);
 
   proc->start(command + " " + args);
   Logger::logNotification(tr("Executing '%1 %2' in %3", "command, args, dir")

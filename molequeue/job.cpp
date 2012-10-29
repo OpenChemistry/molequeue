@@ -320,7 +320,7 @@ QString Job::lookupKeywordReplacement(const QString &keyword) const
   return QString();
 }
 
-void Job::replaceLaunchScriptKeywords(QString &launchScript) const
+void Job::replaceKeywords(QString &launchScript) const
 {
   if (!warnIfInvalid())
     return;

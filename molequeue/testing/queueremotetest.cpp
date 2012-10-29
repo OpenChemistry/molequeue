@@ -55,7 +55,7 @@ private slots:
   void testFinalizePipeline();
   void testKillPipeline();
   void testQueueUpdate();
-  void testReplaceLaunchScriptKeywords();
+  void testReplaceKeywords();
 };
 
 void QueueRemoteTest::initTestCase()
@@ -487,7 +487,7 @@ void QueueRemoteTest::testQueueUpdate()
 
 }
 
-void QueueRemoteTest::testReplaceLaunchScriptKeywords()
+void QueueRemoteTest::testReplaceKeywords()
 {
   // $$maxWallTime$$
   QStringList list;
@@ -499,7 +499,7 @@ void QueueRemoteTest::testReplaceLaunchScriptKeywords()
 
   Job job = m_server.jobManager()->newJob();
   job.setMaxWallTime(-1);
-  m_queue->replaceLaunchScriptKeywords(script, job);
+  m_queue->replaceKeywords(script, job);
   QCOMPARE(script,
            QString("24:00:00 at start\nAt end 24:00:00\n"
                    "In middle 24:00:00 of line\n"));
@@ -516,7 +516,7 @@ void QueueRemoteTest::testReplaceLaunchScriptKeywords()
        << "Safe maxWallTime=$$maxWallTime$$";
   script = list.join("\n");
 
-  m_queue->replaceLaunchScriptKeywords(script, job);
+  m_queue->replaceKeywords(script, job);
   QCOMPARE(script,
            QString("Test first line\nTest third line\nTest fifth line\n"
                    "Test sixth line\nSafe maxWallTime=24:00:00\n"));
