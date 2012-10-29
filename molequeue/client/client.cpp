@@ -187,7 +187,9 @@ void Client::sendRequest(const QJsonObject &request)
 
   QJsonDocument document(request);
   QDataStream stream(m_socket);
+  stream.setVersion(QDataStream::Qt_4_8);
   stream << document.toJson();
+  m_socket->flush();
 
   //m_connection->send(PacketType(jsonString.c_str()));
   qDebug() << "sending request:" << document.toJson();
