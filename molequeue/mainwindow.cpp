@@ -93,11 +93,6 @@ MainWindow::MainWindow()
           this, SLOT(notifyJobStateChange(MoleQueue::Job,
                                           MoleQueue::JobState,
                                           MoleQueue::JobState)));
-
-  m_server->start();
-
-  m_ui->errorNotificationLabel->hide();
-  m_trayIcon->show();
 }
 
 MainWindow::~MainWindow()
@@ -185,6 +180,17 @@ void MainWindow::notifyJobStateChange(const Job &job,
   }
 }
 
+void MainWindow::onEventLoopStart()
+{
+  // Start the server first -- this may call qApp->exit() if the socket name
+  // is in use and the user opts to quit.
+  m_server->start();
+
+  m_trayIcon->show();
+  m_ui->errorNotificationLabel->hide();
+  show();
+}
+
 void MainWindow::showQueueManagerDialog()
 {
   if (!m_queueManagerDialog) {
@@ -233,7 +239,8 @@ void MainWindow::handleServerConnectionError(ConnectionListener::Error err,
     // Terminate
     if (!ok || index == 1) {
       hide();
-      qApp->quit();
+      qApp->exit(1);
+      return;
     }
     // Take over connection
     else {

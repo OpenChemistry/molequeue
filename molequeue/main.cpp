@@ -17,6 +17,7 @@
 #include <QtCore/QDir>
 #include <QtCore/QSettings>
 #include <QtCore/QStringList>
+#include <QtCore/QTimer>
 
 #include <QtGui/QApplication>
 #include <QtGui/QSystemTrayIcon>
@@ -105,8 +106,13 @@ int main(int argc, char *argv[])
 
   QApplication::setQuitOnLastWindowClosed(false);
 
+  // Send a signal to the mainwindow. This will get handled when the event loop
+  // starts and will launch the server. This must be done this way, otherwise
+  // the user may decide to quit the application if the socket is already
+  // in use, and the call to qApp->exit() will be ignored if no event loop is
+  // running.
   MoleQueue::MainWindow window;
-  window.show();
+  QTimer::singleShot(0, &window, SLOT(onEventLoopStart()));
   return app.exec();
 }
 

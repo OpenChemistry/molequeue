@@ -67,6 +67,9 @@ public slots:
                             MoleQueue::JobState oldState,
                             MoleQueue::JobState newState);
 
+  /// Used for initialization after the event loop is available.
+  void onEventLoopStart();
+
 protected slots:
   void showQueueManagerDialog();
   void showOpenWithManagerDialog();
