@@ -21,6 +21,7 @@
 #include "logger.h"
 #include "importprogramdialog.h"
 #include "queue.h"
+#include "queuemanager.h"
 #include "queueprogramitemmodel.h"
 #include "program.h"
 #include "programconfiguredialog.h"
@@ -29,6 +30,7 @@
 #include <QtGui/QFileDialog>
 #include <QtGui/QKeyEvent>
 #include <QtGui/QMessageBox>
+#include <QtGui/QRegExpValidator>
 #include <QtGui/QHeaderView>
 
 #include <QtCore/QDir>
@@ -79,8 +81,7 @@ QueueSettingsDialog::QueueSettingsDialog(Queue *queue, QWidget *parentObject)
   connect(ui->buttonBox, SIGNAL(clicked(QAbstractButton*)),
           this, SLOT(buttonBoxButtonClicked(QAbstractButton*)));
 
-  // Names can't be changed
-  ui->nameLineEdit->setDisabled(true);
+  ui->nameLineEdit->setValidator(new QRegExpValidator(VALID_NAME_REG_EXP));
 }
 
 QueueSettingsDialog::~QueueSettingsDialog()
@@ -90,8 +91,8 @@ QueueSettingsDialog::~QueueSettingsDialog()
 
 void QueueSettingsDialog::accept()
 {
-  if (m_settingsWidget && m_settingsWidget->isDirty())
-    m_settingsWidget->save();
+  if (!apply())
+    return;
 
   QDialog::accept();
 }
@@ -245,7 +246,34 @@ void QueueSettingsDialog::buttonBoxButtonClicked(QAbstractButton *button)
   // "Ok" and "Cancel" are directly connected to accept() and reject(), so only
   // check for "apply" here:
   if (button == ui->buttonBox->button(QDialogButtonBox::Apply))
+    apply();
+}
+
+bool QueueSettingsDialog::apply()
+{
+  // If the name changed, check that it won't collide with an existing queue.
+  QString name = ui->nameLineEdit->text().trimmed();
+  if (name != m_queue->name()) {
+    if (QueueManager *queueManager = m_queue->queueManager()) {
+      if (queueManager->queueNames().contains(name)) {
+        int reply =
+            QMessageBox::warning(this, tr("Name conflict"),
+                                 tr("The queue name has been changed to '%1', "
+                                    "but there is already a queue with that "
+                                    "name.\n\nOverwrite existing queue?")
+                                 .arg(name), QMessageBox::Yes | QMessageBox::No,
+                                 QMessageBox::No);
+        if (reply != QMessageBox::Yes)
+          return false;
+      }
+      m_queue->setName(name);
+    }
+  }
+
+  if (m_settingsWidget && m_settingsWidget->isDirty())
     m_settingsWidget->save();
+
+  return true;
 }
 
 void QueueSettingsDialog::closeEvent(QCloseEvent *e)

@@ -24,6 +24,7 @@
 
 #include <QtGui/QFileDialog>
 #include <QtGui/QMessageBox>
+#include <QtGui/QRegExpValidator>
 #include <QtGui/QTextDocument>
 
 #include <QtCore/QDir>
@@ -94,6 +95,8 @@ ProgramConfigureDialog::ProgramConfigureDialog(Program *program,
   updateGuiFromProgram();
 
   launchSyntaxChanged(ui->combo_syntax->currentIndex());
+
+  ui->edit_name->setValidator(new QRegExpValidator(VALID_NAME_REG_EXP));
 }
 
 ProgramConfigureDialog::~ProgramConfigureDialog()
@@ -104,14 +107,10 @@ ProgramConfigureDialog::~ProgramConfigureDialog()
 void ProgramConfigureDialog::accept()
 {
   if (m_dirty)
-    updateProgramFromGui();
+    if (!updateProgramFromGui())
+      return;
 
   QDialog::accept();
-}
-
-void ProgramConfigureDialog::lockName(bool locked)
-{
-  ui->edit_name->setDisabled(locked);
 }
 
 void ProgramConfigureDialog::populateSyntaxCombo()
@@ -170,9 +169,27 @@ void ProgramConfigureDialog::updateGuiFromProgram()
   m_dirty = false;
 }
 
-void ProgramConfigureDialog::updateProgramFromGui()
+bool ProgramConfigureDialog::updateProgramFromGui()
 {
-  m_program->setName(ui->edit_name->text());
+  // If the name changed, check that it won't collide with an existing program.
+  QString name = ui->edit_name->text().trimmed();
+  if (name != m_program->name()) {
+    if (Queue *queue = m_program->queue()) {
+      if (queue->programNames().contains(name)) {
+        int reply =
+            QMessageBox::warning(this, tr("Name conflict"),
+                                 tr("The program name has been changed to '%1',"
+                                    " but there is already a program with that "
+                                    "name.\n\nOverwrite existing program?")
+                                 .arg(name), QMessageBox::Yes | QMessageBox::No,
+                                 QMessageBox::No);
+        if (reply != QMessageBox::Yes)
+          return false;
+      }
+      m_program->setName(name);
+    }
+  }
+
   m_program->setExecutable(ui->edit_executableName->text());
   m_program->setUseExecutablePath(ui->gb_executablePath->isChecked());
   m_program->setExecutablePath(ui->edit_executablePath->text());
@@ -185,6 +202,8 @@ void ProgramConfigureDialog::updateProgramFromGui()
   m_program->setLaunchSyntax(syntax);
   m_program->setCustomLaunchTemplate(m_customLaunchText);
   m_dirty = false;
+
+  return true;
 }
 
 void ProgramConfigureDialog::updateLaunchEditor()
@@ -286,7 +305,8 @@ void ProgramConfigureDialog::closeEvent(QCloseEvent *e)
       e->ignore();
       return;
     case QMessageBox::Save:
-      updateProgramFromGui();
+      if (!updateProgramFromGui())
+        return;
     case QMessageBox::NoButton:
     case QMessageBox::Discard:
     default:

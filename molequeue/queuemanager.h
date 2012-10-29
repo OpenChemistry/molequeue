@@ -154,9 +154,19 @@ signals:
    */
   void queueRemoved(const QString &name, MoleQueue::Queue *queue);
 
+  /**
+   * @brief queueRenamed Emitted when a queue is renamed.
+   */
+  void queueRenamed(const QString &newName, MoleQueue::Queue *queue,
+                    const QString &oldName);
+
 protected:
   QMap<QString, Queue*> m_queues;
   Server *m_server;
+
+private slots:
+  /// Update the internal data structures when a queue changes names
+  void queueNameChanged(const QString &newName, const QString &oldName);
 };
 
 } // end MoleQueue namespace

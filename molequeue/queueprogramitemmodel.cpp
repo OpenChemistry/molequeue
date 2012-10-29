@@ -29,6 +29,10 @@ QueueProgramItemModel::QueueProgramItemModel(Queue *queue,
 {
   connect(m_queue, SIGNAL(programAdded(QString,MoleQueue::Program*)),
           this, SLOT(callReset()));
+  connect(m_queue, SIGNAL(programRemoved(QString,MoleQueue::Program*)),
+          this, SLOT(callReset()));
+  connect(m_queue, SIGNAL(programRenamed(QString,Program*,QString)),
+          this, SLOT(callReset()));
 }
 
 QModelIndex QueueProgramItemModel::parent(const QModelIndex &) const

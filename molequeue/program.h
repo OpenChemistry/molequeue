@@ -126,7 +126,14 @@ public:
    * dialogs to match up input files to programs.
    * @param newName Name to use in GUIs
    */
-  void setName(const QString &newName) { m_name = newName; }
+  void setName(const QString &newName)
+  {
+    if (newName != m_name) {
+      QString oldName = m_name;
+      m_name = newName;
+      emit nameChanged(newName, oldName);
+    }
+  }
 
   /// @return The name of the program. Often used by GUIs etc.
   QString name() const { return m_name; }
@@ -181,6 +188,12 @@ public:
       const QString &inputFilename_, const QString &outputFilename_,
       const QString &executablePath_,
       bool useExecutablePath_, LaunchSyntax syntax_);
+
+signals:
+  /**
+   * Emitted when the name of the program is changed.
+   */
+  void nameChanged(const QString &newName, const QString &oldName);
 
 protected:
 

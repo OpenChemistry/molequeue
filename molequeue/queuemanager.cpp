@@ -123,6 +123,9 @@ Queue * QueueManager::addQueue(const QString &queueName,
 
   newQueue->setName(queueName);
 
+  connect(newQueue, SIGNAL(nameChanged(QString,QString)),
+          this, SLOT(queueNameChanged(QString,QString)));
+
   m_queues.insert(newQueue->name(), newQueue);
   emit queueAdded(newQueue->name(), newQueue);
   return newQueue;
@@ -165,6 +168,25 @@ void QueueManager::updateRemoteQueues() const
   foreach (Queue *queue, m_queues) {
     if (QueueRemote *remote = qobject_cast<QueueRemote*>(queue)) {
       remote->requestQueueUpdate();
+    }
+  }
+}
+
+void QueueManager::queueNameChanged(const QString &newName,
+                                    const QString &oldName)
+{
+  if (Queue *queue = m_queues.value(oldName, NULL)) {
+    if (queue->name() == newName) {
+      // Rewrite the configuration file:
+      QString fileName = queue->stateFileName();
+      if (!fileName.isEmpty())
+        QFile::remove(fileName);
+
+      m_queues.remove(oldName);
+      m_queues.insert(newName, queue);
+
+      queue->writeSettings();
+      emit queueRenamed(newName, queue, oldName);
     }
   }
 }

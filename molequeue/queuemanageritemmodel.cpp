@@ -31,6 +31,8 @@ QueueManagerItemModel::QueueManagerItemModel(QueueManager *queueManager,
           this, SLOT(callReset()));
   connect(m_queueManager, SIGNAL(queueRemoved(QString,MoleQueue::Queue*)),
           this, SLOT(callReset()));
+  connect(m_queueManager, SIGNAL(queueRenamed(QString,MoleQueue::Queue*,QString)),
+          this, SLOT(callReset()));
 }
 
 int QueueManagerItemModel::rowCount(const QModelIndex &modelIndex) const

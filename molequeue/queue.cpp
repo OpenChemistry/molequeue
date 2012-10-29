@@ -355,6 +355,9 @@ bool Queue::addProgram(Program *newProgram, bool replace)
       return false;
   }
 
+  connect(newProgram, SIGNAL(nameChanged(QString,QString)),
+          this, SLOT(programNameChanged(QString,QString)));
+
   m_programs.insert(newProgram->name(), newProgram);
 
   if (newProgram->parent() != this)
@@ -547,6 +550,21 @@ void Queue::jobAboutToBeRemoved(const Job &job)
 {
   m_failureTracker.remove(job.moleQueueId());
   m_jobs.remove(job.queueId());
+}
+
+void Queue::programNameChanged(const QString &newName, const QString &oldName)
+{
+  if (Program *prog = m_programs.value(oldName, NULL)) {
+    if (prog->name() == newName) {
+      // Reset the program map.
+      m_programs.remove(oldName);
+      m_programs.insert(newName, prog);
+
+      // Update the configuration file.
+      this->writeSettings();
+      emit programRenamed(newName, prog, oldName);
+    }
+  }
 }
 
 void Queue::cleanLocalDirectory(const Job &job)

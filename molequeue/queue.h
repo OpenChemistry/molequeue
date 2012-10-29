@@ -81,7 +81,14 @@ public:
    * Set the name of the queue. This should be unique, and will be used in the
    * GUI to refer to this queue.
    */
-  virtual void setName(const QString &newName) { m_name = newName; }
+  virtual void setName(const QString &newName)
+  {
+    if (newName != m_name) {
+      QString oldName = m_name;
+      m_name = newName;
+      emit nameChanged(newName, oldName);
+    }
+  }
 
   /** Get the name of the queue. */
   QString name() const { return m_name; }
@@ -303,6 +310,17 @@ signals:
    */
   void programRemoved(const QString &name, MoleQueue::Program *program);
 
+  /**
+   * @brief programRenamed Emitted when a program is renamed.
+   */
+  void programRenamed(const QString &newName, Program *prog,
+                      const QString &oldName);
+
+  /**
+   * Emitted when the name of the queue is changed.
+   */
+  void nameChanged(const QString &newName, const QString &oldName);
+
 public slots:
   /**
    * Writes input files and submits a new job to the queue.
@@ -347,6 +365,11 @@ protected slots:
    * if they hold any state about owned jobs.
    */
   virtual void jobAboutToBeRemoved(const MoleQueue::Job &job);
+
+  /**
+   * Update internal data structures when the name of a program changes.
+   */
+  void programNameChanged(const QString &newName, const QString &oldName);
 
   /**
    * Delete the local working directory of @a Job.
