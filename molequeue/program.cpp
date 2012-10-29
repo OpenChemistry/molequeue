@@ -40,8 +40,7 @@ Program::Program(Queue *parentQueue) :
   m_useExecutablePath(false),
   m_executablePath(""),
   m_arguments(),
-  m_inputFilename("job.inp"),
-  m_outputFilename("job.out"),
+  m_outputFilename("$$inputFileBaseName$$.out"),
   m_launchSyntax(REDIRECT),
   m_customLaunchTemplate("")
 {
@@ -55,7 +54,6 @@ Program::Program(const Program &other)
     m_useExecutablePath(other.m_useExecutablePath),
     m_executablePath(other.m_executablePath),
     m_arguments(other.m_arguments),
-    m_inputFilename(other.m_inputFilename),
     m_outputFilename(other.m_outputFilename),
     m_launchSyntax(other.m_launchSyntax),
     m_customLaunchTemplate(other.m_customLaunchTemplate)
@@ -74,7 +72,6 @@ Program &Program::operator=(const Program &other)
   m_useExecutablePath = other.m_useExecutablePath;
   m_executablePath = other.m_executablePath;
   m_arguments = other.m_arguments;
-  m_inputFilename = other.m_inputFilename;
   m_outputFilename = other.m_outputFilename;
   m_launchSyntax = other.m_launchSyntax;
   m_customLaunchTemplate = other.m_customLaunchTemplate;
@@ -160,7 +157,6 @@ bool Program::writeJsonSettings(Json::Value &root, bool exportOnly) const
 {
   root["executable"] = m_executable.toStdString();
   root["arguments"] = m_arguments.toStdString();
-  root["inputFilename"] = m_inputFilename.toStdString();
   root["outputFilename"] = m_outputFilename.toStdString();
   root["customLaunchTemplate"] = m_customLaunchTemplate.toStdString();
   root["launchSyntax"] = static_cast<int>(m_launchSyntax);
@@ -179,7 +175,6 @@ bool Program::readJsonSettings(const Json::Value &root, bool importOnly)
   if (!root.isObject() ||
       !root["executable"].isString() ||
       !root["arguments"].isString() ||
-      !root["inputFilename"].isString() ||
       !root["outputFilename"].isString() ||
       !root["customLaunchTemplate"].isString() ||
       !root["launchSyntax"].isIntegral() ||
@@ -192,7 +187,6 @@ bool Program::readJsonSettings(const Json::Value &root, bool importOnly)
 
   m_executable = QString(root["executable"].asCString());
   m_arguments = QString(root["arguments"].asCString());
-  m_inputFilename = QString(root["inputFilename"].asCString());
   m_outputFilename = QString(root["outputFilename"].asCString());
   m_customLaunchTemplate = QString(root["customLaunchTemplate"].asCString());
   m_launchSyntax = static_cast<LaunchSyntax>(root["launchSyntax"].asInt());
@@ -213,8 +207,8 @@ QString Program::launchTemplate() const
                            : QString("$$programExecution$$");
   if (result.contains("$$programExecution$$")) {
     const QString progExec = Program::generateFormattedExecutionString(
-          m_executable, m_arguments, m_inputFilename, m_outputFilename,
-          m_executablePath, m_useExecutablePath, m_launchSyntax);
+          m_executable, m_arguments, m_outputFilename, m_executablePath,
+          m_useExecutablePath, m_launchSyntax);
     result.replace("$$programExecution$$", progExec);
   }
   if (QueueRemote *remoteQueue = qobject_cast<QueueRemote*>(m_queue)) {
@@ -231,8 +225,7 @@ QString Program::launchTemplate() const
 
 QString Program::generateFormattedExecutionString(
     const QString &executableName_, const QString &arguments_,
-    const QString &inputFilename_, const QString &outputFilename_,
-    const QString &executablePath_,
+    const QString &outputFilename_, const QString &executablePath_,
     bool useExecutablePath_, Program::LaunchSyntax syntax_)
 {
   if (syntax_ == Program::CUSTOM) {
@@ -240,7 +233,6 @@ QString Program::generateFormattedExecutionString(
   }
 
   QString execStr;
-
   QString executable =
       ((useExecutablePath_) ? executablePath_ + "/" : QString())
       + executableName_
@@ -251,23 +243,20 @@ QString Program::generateFormattedExecutionString(
     execStr += executable;
     break;
   case Program::INPUT_ARG:
-    execStr += QString("%1 %2\n").arg(executable).arg(inputFilename_);
+    execStr += QString("%1 $$inputFileName$$\n").arg(executable);
     break;
   case Program::INPUT_ARG_NO_EXT:
   {
-    execStr += QString("%1 %2\n").arg(executable)
-        .arg(Program::chopExtension(inputFilename_));
+    execStr += QString("%1 $$inputFileBaseName$$\n").arg(executable);
   }
     break;
   case Program::REDIRECT:
-    execStr += QString("%1 < %2 > %3\n")
-        .arg(executable).arg(inputFilename_)
-        .arg(outputFilename_);
+    execStr += QString("%1 < $$inputFileName$$ > %3\n")
+        .arg(executable).arg(outputFilename_);
     break;
   case Program::INPUT_ARG_OUTPUT_REDIRECT:
-    execStr += QString("%1 %2 > %3\n")
-        .arg(executable).arg(inputFilename_)
-        .arg(outputFilename_);
+    execStr += QString("%1 $$inputFileName$$ > %3\n")
+        .arg(executable).arg(outputFilename_);
     break;
   case Program::CUSTOM:
     // Should be handled as a special case earlier.

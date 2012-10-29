@@ -63,6 +63,11 @@ TemplateKeywordDialog::~TemplateKeywordDialog()
 void TemplateKeywordDialog::buildKeywordLists()
 {
   // Jobs
+  m_jobKeywords.insert("$$inputFileName$$",
+                       tr("Name of the current job's input file."));
+  m_jobKeywords.insert("$$inputFileBaseName$$",
+                       tr("Name of the current job's input file without the "
+                          "file extension."));
   m_jobKeywords.insert("$$moleQueueId$$",
                        tr("MoleQueue ID number of current job."));
   m_jobKeywords.insert("$$numberOfCores$$",

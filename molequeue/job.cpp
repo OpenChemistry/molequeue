@@ -14,6 +14,7 @@
 
 ******************************************************************************/
 
+#include "idtypeutils.h"
 #include "job.h"
 #include "jobdata.h"
 #include "jobmanager.h"
@@ -330,6 +331,17 @@ void Job::replaceKeywords(QString &launchScript) const
     QString keyword = QString("$$%1$$").arg(key);
     launchScript.replace(keyword, keywordHash.value(key));
   }
+
+  FileSpecification inputFileSpec(inputFile());
+  if (inputFileSpec.isValid()) {
+    launchScript.replace("$$inputFileName$$", inputFileSpec.filename());
+    launchScript.replace("$$inputFileBaseName$$", inputFileSpec.fileBaseName());
+  }
+
+  launchScript.replace("$$moleQueueId$$", idTypeToString(moleQueueId()));
+
+  launchScript.replace("$$numberOfCores$$",
+                       QString::number(numberOfCores()));
 }
 
 } // end namespace MoleQueue
