@@ -386,6 +386,20 @@ bool Queue::removeProgram(const QString &programName)
 void Queue::replaceKeywords(QString &launchScript, const Job &job,
                             bool addNewline)
 {
+  if (!job.isValid())
+    return;
+
+  Program *program = lookupProgram(job.program());
+  if (!program)
+    return;
+  // This will probably contain other keywords (like inputFileBaseName), so
+  // keep it towards the top of the replacement list.
+  launchScript.replace("$$outputFileName$$", program->outputFilename());
+
+  FileSpecification inputFileSpec(job.inputFile());
+  launchScript.replace("$$inputFileName$$", inputFileSpec.filename());
+  launchScript.replace("$$inputFileBaseName$$", inputFileSpec.fileBaseName());
+
   launchScript.replace("$$moleQueueId$$", QString::number(job.moleQueueId()));
 
   launchScript.replace("$$numberOfCores$$",
@@ -447,17 +461,14 @@ bool Queue::writeInputFiles(const Job &job)
 
   // Create input files
   FileSpecification inputFile = job.inputFile();
-  if (!program->inputFilename().isEmpty() && inputFile.isValid()) {
-    /// @todo Allow custom file names, only specify extension in program.
-    /// Use $$basename$$ keyword replacement.
-    inputFile.writeFile(dir, program->inputFilename());
-  }
+  if (inputFile.isValid())
+    inputFile.writeFile(dir);
 
   // Write additional input files
   QList<FileSpecification> additionalInputFiles = job.additionalInputFiles();
   foreach (const FileSpecification &filespec, additionalInputFiles) {
     if (!filespec.isValid()) {
-      Logger::logError(tr("Writing additional input files...invalid FileSpec:\n"
+      Logger::logError(tr("Writing additional input file...invalid FileSpec:\n"
                           "%1").arg(filespec.asJsonString()),
                        job.moleQueueId());
       return false;

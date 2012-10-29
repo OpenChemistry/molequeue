@@ -283,7 +283,6 @@ void RemoteQueueWidget::sleepTest()
     sleepProgram->setArguments("30");
     sleepProgram->setExecutable("sleep");
     sleepProgram->setUseExecutablePath(false);
-    sleepProgram->setInputFilename("");
     sleepProgram->setOutputFilename("");
     sleepProgram->setLaunchSyntax(Program::PLAIN);
     m_queue->addProgram(sleepProgram);

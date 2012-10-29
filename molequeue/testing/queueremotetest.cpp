@@ -69,7 +69,6 @@ void QueueRemoteTest::initTestCase()
   program->setExecutable("");
   program->setUseExecutablePath(false);
   program->setArguments("");
-  program->setInputFilename("input.in");
   program->setOutputFilename("output.out");
   program->setLaunchSyntax(Program::REDIRECT);
   m_queue->addProgram(program);
@@ -117,6 +116,7 @@ void QueueRemoteTest::testSubmitJob()
 {
   // valid job
   Job job = m_server.jobManager()->newJob();
+  job.setInputFile(FileSpecification("input.in", "\n"));
   QVERIFY(m_queue->submitJob(job));
 
   // invalid job
@@ -189,8 +189,7 @@ void QueueRemoteTest::testSubmissionPipeline()
   // Check that input files were written:
   Program *program = m_queue->lookupProgram(job.program());
   QVERIFY(program != NULL);
-  QString inputFileName = job.localWorkingDirectory() + "/"
-      + program->inputFilename();
+  QString inputFileName = job.inputFile().filepath();
   QVERIFY(QFile::exists(inputFileName));
   QFile inputFile(inputFileName);
   QVERIFY(inputFile.open(QFile::ReadOnly));

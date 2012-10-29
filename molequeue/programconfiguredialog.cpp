@@ -56,8 +56,6 @@ ProgramConfigureDialog::ProgramConfigureDialog(Program *program,
           this, SLOT(updateLaunchEditor()));
   connect(ui->edit_arguments, SIGNAL(textChanged(QString)),
           this, SLOT(updateLaunchEditor()));
-  connect(ui->edit_inputFilename, SIGNAL(textChanged(QString)),
-          this, SLOT(updateLaunchEditor()));
   connect(ui->edit_outputFilename, SIGNAL(textChanged(QString)),
           this, SLOT(updateLaunchEditor()));
   connect(ui->gb_executablePath, SIGNAL(toggled(bool)),
@@ -74,8 +72,6 @@ ProgramConfigureDialog::ProgramConfigureDialog(Program *program,
   connect(ui->edit_executablePath, SIGNAL(textChanged(QString)),
           this, SLOT(setDirty()));
   connect(ui->edit_arguments, SIGNAL(textChanged(QString)),
-          this, SLOT(setDirty()));
-  connect(ui->edit_inputFilename, SIGNAL(textChanged(QString)),
           this, SLOT(setDirty()));
   connect(ui->edit_outputFilename, SIGNAL(textChanged(QString)),
           this, SLOT(setDirty()));
@@ -156,7 +152,6 @@ void ProgramConfigureDialog::updateGuiFromProgram()
   ui->gb_executablePath->setChecked(m_program->useExecutablePath());
   ui->edit_executablePath->setText(m_program->executablePath());
   ui->edit_arguments->setText(m_program->arguments());
-  ui->edit_inputFilename->setText(m_program->inputFilename());
   ui->edit_outputFilename->setText(m_program->outputFilename());
 
 
@@ -177,7 +172,6 @@ void ProgramConfigureDialog::updateProgramFromGui()
   m_program->setUseExecutablePath(ui->gb_executablePath->isChecked());
   m_program->setExecutablePath(ui->edit_executablePath->text());
   m_program->setArguments(ui->edit_arguments->text());
-  m_program->setInputFilename(ui->edit_inputFilename->text());
   m_program->setOutputFilename(ui->edit_outputFilename->text());
 
   Program::LaunchSyntax syntax = static_cast<Program::LaunchSyntax>(
@@ -210,13 +204,12 @@ void ProgramConfigureDialog::updateLaunchEditor()
   const QString executableName = ui->edit_executableName->text();
   const QString executablePath = ui->edit_executablePath->text();
   const QString arguments      = ui->edit_arguments->text();
-  const QString inputFilename  = ui->edit_inputFilename->text();
   const QString outputFilename = ui->edit_outputFilename->text();
   const bool useExecutablePath = ui->gb_executablePath->isChecked();
 
   QString programExecution = Program::generateFormattedExecutionString(
-        executableName, arguments, inputFilename, outputFilename,
-        executablePath, useExecutablePath, syntax);
+        executableName, arguments, outputFilename, executablePath,
+        useExecutablePath, syntax);
 
   launchText.replace("$$programExecution$$", programExecution);
 

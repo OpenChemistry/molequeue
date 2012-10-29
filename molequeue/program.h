@@ -140,23 +140,11 @@ public:
   void setExecutablePath(const QString &str) {m_executablePath = str;}
   QString executablePath() const {return m_executablePath;}
 
-  /// Arguments for executable -- do not include input file!
   void setArguments(const QString &str) {m_arguments = str;}
   QString arguments() const {return m_arguments;}
 
-  void setInputFilename(const QString &str) {m_inputFilename = str;}
-  QString inputFilename() const {return m_inputFilename;}
-  QString inputFilenameNoExtension() const
-  {
-    return chopExtension(m_inputFilename);
-  }
-
   void setOutputFilename(const QString &str) {m_outputFilename = str;}
   QString outputFilename() const {return m_outputFilename;}
-  QString outputFilenameNoExtension() const
-  {
-    return chopExtension(m_outputFilename);
-  }
 
   void setLaunchSyntax(LaunchSyntax s)
   {
@@ -178,21 +166,10 @@ public:
 
   static QString generateFormattedExecutionString(
       const QString &executableName_, const QString &arguments_,
-      const QString &inputFilename_, const QString &outputFilename_,
-      const QString &executablePath_,
+      const QString &outputFilename_, const QString &executablePath_,
       bool useExecutablePath_, LaunchSyntax syntax_);
 
 protected:
-
-  /// Internal convenience function
-  static QString chopExtension(const QString & str)
-  {
-    QString ret (str);
-    int extensionIndex = ret.lastIndexOf(".");
-    if (extensionIndex != -1)
-      ret.truncate(extensionIndex);
-    return ret;
-  }
 
   /// The Queue that the Program belongs to/is being run by.
   Queue *m_queue;
@@ -210,8 +187,6 @@ protected:
   QString m_executablePath;
   /// Executable arguments
   QString m_arguments;
-  /// Input filename
-  QString m_inputFilename;
   /// Output filename
   QString m_outputFilename;
   /// Launch syntax style
