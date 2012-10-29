@@ -13,6 +13,7 @@ include(${QT_USE_FILE})
 
 set(MoleQueue_TESTDATA_DIR "${MoleQueue_SOURCE_DIR}/molequeue/testing/data/")
 set(MoleQueue_TESTSCRIPT_DIR "${MoleQueue_SOURCE_DIR}/molequeue/testing/scripts/")
+set(MoleQueue_TESTEXEC_DIR "${MoleQueue_BINARY_DIR}/bin/")
 if(PYTHON_EXECUTABLE)
   set(MoleQueue_PYTHON_EXECUTABLE "${PYTHON_EXECUTABLE}")
 endif()
@@ -79,3 +80,5 @@ foreach(test ${MyTests})
     )
   add_test(NAME molequeue-${test} COMMAND ${test}test)
 endforeach()
+
+add_subdirectory(clienttestsrc)
