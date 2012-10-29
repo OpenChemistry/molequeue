@@ -1,9 +1,0 @@
-{
-   "id" : %id%,
-   "jsonrpc" : "2.0",
-   "result" : {
-      "moleQueueId" : 12,
-      "queueId" : 789123,
-      "workingDirectory" : "/tmp/myjob/test.potato"
-   }
-}

@@ -17,7 +17,8 @@
 #include "remotequeuewidget.h"
 #include "ui_remotequeuewidget.h"
 
-#include "transport/localsocket/localsocketclient.h"
+#include "client/client.h"
+#include "client/job.h"
 #include "molequeueconfig.h"
 #include "program.h"
 #include "queues/remotessh.h"
@@ -290,16 +291,16 @@ void RemoteQueueWidget::sleepTest()
   }
 
   if (!m_client) {
-    m_client = new LocalSocketClient (this);
+    m_client = new Client (this);
     m_client->connectToServer();
   }
 
-  JobRequest sleepJob = m_client->newJobRequest();
+  JobObject sleepJob;
   sleepJob.setQueue(m_queue->name());
   sleepJob.setProgram(sleepProgram->name());
   sleepJob.setDescription("sleep 30 (test)");
 
-  m_client->submitJobRequest(sleepJob);
+  m_client->submitJob(sleepJob);
 #endif // MoleQueue_BUILD_CLIENT
 }
 
