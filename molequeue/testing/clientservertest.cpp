@@ -58,6 +58,9 @@ private:
   /// m_moleQueueDefaultArgs to set the workdir, socketname, and enable rpcKill.
   bool setupServerProcess();
 
+  /// Create a Cxx client process
+  QProcess *addClientProcess();
+
 #ifdef MoleQueue_PYTHON_EXECUTABLE
   /// Create a client process initialized for python. The process is returned
   /// and added to m_clientProcesses.
@@ -123,18 +126,24 @@ bool ClientServerTest::setupServerProcess()
   return true;
 }
 
+QProcess *ClientServerTest::addClientProcess()
+{
+  QProcess *clientProcess = new QProcess(this);
+  clientProcess->setProcessChannelMode(::QProcess::ForwardedChannels);
+  m_clientProcesses.append(clientProcess);
+  return clientProcess;
+}
+
 #ifdef MoleQueue_PYTHON_EXECUTABLE
 QProcess *ClientServerTest::addPythonClientProcess()
 {
-  QProcess *clientProcess = new QProcess(this);
+  QProcess *clientProcess = addClientProcess();
   QProcessEnvironment env = clientProcess->processEnvironment();
   env.insert("PYTHONPATH", (env.value("PYTHONPATH").isEmpty()
                             ? QString()
                             : env.value("PYTHONPATH") + ':') +
              MoleQueue_SOURCE_DIR "/python");
   clientProcess->setProcessEnvironment(env);
-  clientProcess->setProcessChannelMode(QProcess::ForwardedChannels);
-  m_clientProcesses.append(clientProcess);
   return clientProcess;
 }
 #endif // MoleQueue_PYTHON_EXECUTABLE
@@ -156,15 +165,11 @@ void ClientServerTest::initTestCase()
 
 void ClientServerTest::cleanupTestCase()
 {
-  /// @todo This should be done with a cxx client in case python is unavailable
-#ifdef MoleQueue_PYTHON_EXECUTABLE
   // send killRpc message
-  QProcess *clientProcess = addPythonClientProcess();
-  QString clientCommand = MoleQueue_PYTHON_EXECUTABLE;
+  QProcess *clientProcess = addClientProcess();
+  QString clientCommand = MoleQueue_TESTEXEC_DIR "sendRpcKill";
   QStringList clientArguments;
-  clientArguments
-      << MoleQueue_TESTSCRIPT_DIR "/sendRpcKill.py"
-      << "-s" << m_socketName;
+  clientArguments << "-s" << m_socketName;
 
   qDebug() << "Starting client:" << clientCommand
            << clientArguments.join(" ");
@@ -177,7 +182,6 @@ void ClientServerTest::cleanupTestCase()
   // Wait for server to finish
   QVERIFY2(m_serverProcess->waitForFinished(5*1000), "Server timed out.");
   QCOMPARE(m_serverProcess->exitCode(), 0);
-#endif // MoleQueue_PYTHON_EXECUTABLE
 
   // In case the rpcKill call fails, kill the process
   if (m_serverProcess->state() != QProcess::NotRunning)
