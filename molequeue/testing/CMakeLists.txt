@@ -11,8 +11,6 @@ endif()
 find_package(Qt4 4.8.0 COMPONENTS ${qt_components})
 include(${QT_USE_FILE})
 
-include_directories(${CMAKE_BINARY_DIR}/molequeue/transport/localsocket)
-
 set(MoleQueue_TESTDATA_DIR "${MoleQueue_SOURCE_DIR}/molequeue/testing/data/")
 set(MoleQueue_TESTSCRIPT_DIR "${MoleQueue_SOURCE_DIR}/molequeue/testing/scripts/")
 if(PYTHON_EXECUTABLE)
@@ -41,8 +39,6 @@ target_link_libraries(testutils molequeue_static)
 
 set(MyTests
   abstractrpcinterface
-  client
-  clientjsonrpc
   filespecification
   jobmanager
   jsonrpc
@@ -76,41 +72,10 @@ foreach(test ${MyTests})
   target_link_libraries(${test}test
     molequeue_static
     ${QT_LIBRARIES}
+    mqlocalsocketconnection
+    MoleQueueClient
     mqconnection
-    mqlocalsocketclient
     testutils
     )
-  add_test(NAME molequeue-${test} COMMAND ${test}test)
-endforeach()
-
-set(mq_connection_tests
-  localsocketconnection)
-
-if(USE_ZERO_MQ)
-  list(APPEND mq_connection_tests zeromqconnection)
-  include_directories(${CMAKE_BINARY_DIR}/molequeue/transport/zeromq)
-endif()
-
-add_library(mqconnectiontest STATIC connectiontest.cpp)
-set_target_properties(mqconnectiontest PROPERTIES AUTOMOC TRUE)
-target_link_libraries(mqconnectiontest
-  molequeue_static
-  ${QT_LIBRARIES}
-  )
-
-foreach(test ${mq_connection_tests})
-  set(test_SRC ${test}test.cpp)
-  add_executable(${test}test MACOSX_BUNDLE ${test}test.cpp)
-  set_target_properties(${test}test PROPERTIES AUTOMOC TRUE)
-  set(mq_client_libs mqlocalsocketclient)
-  if(USE_ZERO_MQ)
-    list(APPEND mq_client_libs mqzeromqclient)
-  endif()
-
-  target_link_libraries(${test}test
-    mqconnectiontest
-    ${mq_client_libs}
-    )
-
   add_test(NAME molequeue-${test} COMMAND ${test}test)
 endforeach()
