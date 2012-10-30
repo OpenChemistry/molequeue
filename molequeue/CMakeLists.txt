@@ -6,8 +6,8 @@ endif()
 
 find_package(Qt4 4.8.0 COMPONENTS ${qt_components})
 
-find_program(PYTHON_EXECUTABLE
-  NAMES python2.7 python2.6 python2.5 python2.4 python2.3 python2 python)
+# Find a python 2.x interpreter.
+find_package(PythonInterp 2 QUIET)
 
 include(${QT_USE_FILE})
 include(GenerateExportHeader)

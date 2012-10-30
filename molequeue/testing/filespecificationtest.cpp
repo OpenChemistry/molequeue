@@ -17,6 +17,7 @@
 #include <QtTest>
 
 #include "filespecification.h"
+#include "molequeuetestconfig.h"
 
 #include <json/json.h>
 

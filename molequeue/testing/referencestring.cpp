@@ -15,6 +15,7 @@
  ******************************************************************************/
 
 #include "referencestring.h"
+#include "molequeuetestconfig.h"
 
 #include <QtCore/QDebug>
 #include <QtCore/QFile>

@@ -21,6 +21,7 @@
 #include "jobrequest.h"
 #include "jobmanager.h"
 #include "molequeueglobal.h"
+#include "molequeuetestconfig.h"
 #include "transport/localsocket/localsocketclient.h"
 
 #include "testserver.h"

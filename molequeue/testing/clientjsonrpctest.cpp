@@ -20,6 +20,7 @@
 #include "job.h"
 #include "jobdata.h"
 #include "jobmanager.h"
+#include "molequeuetestconfig.h"
 #include "program.h"
 #include "queue.h"
 #include "queuemanager.h"

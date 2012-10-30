@@ -21,6 +21,7 @@
 
 #include <unistd.h>
 
+#include "molequeuetestconfig.h"
 #include "testserver.h"
 
 #include <QtGui/QApplication>
