@@ -96,7 +96,8 @@ ProgramConfigureDialog::ProgramConfigureDialog(Program *program,
 
   launchSyntaxChanged(ui->combo_syntax->currentIndex());
 
-  ui->edit_name->setValidator(new QRegExpValidator(VALID_NAME_REG_EXP));
+  ui->edit_name->setValidator(new QRegExpValidator(
+                                QRegExp(VALID_NAME_REG_EXP)));
 }
 
 ProgramConfigureDialog::~ProgramConfigureDialog()

@@ -81,7 +81,8 @@ QueueSettingsDialog::QueueSettingsDialog(Queue *queue, QWidget *parentObject)
   connect(ui->buttonBox, SIGNAL(clicked(QAbstractButton*)),
           this, SLOT(buttonBoxButtonClicked(QAbstractButton*)));
 
-  ui->nameLineEdit->setValidator(new QRegExpValidator(VALID_NAME_REG_EXP));
+  ui->nameLineEdit->setValidator(new QRegExpValidator(
+                                   QRegExp(VALID_NAME_REG_EXP)));
 }
 
 QueueSettingsDialog::~QueueSettingsDialog()

@@ -38,7 +38,8 @@ AddQueueDialog::AddQueueDialog(QueueManager *queueManager,
 
   // Restrict queue names to alphanumeric strings with internal whitespace
   // (the input is trimmed() in accept()).
-  ui->nameLineEdit->setValidator(new QRegExpValidator(VALID_NAME_REG_EXP));
+  ui->nameLineEdit->setValidator(new QRegExpValidator(
+                                   QRegExp(VALID_NAME_REG_EXP)));
 }
 
 AddQueueDialog::~AddQueueDialog()
