@@ -34,6 +34,7 @@
 #include "server.h"
 
 #include <QtCore/QSettings>
+#include <QtCore/QTimer>
 
 #include <QtGui/QCloseEvent>
 #include <QtGui/QInputDialog>
@@ -94,10 +95,12 @@ MainWindow::MainWindow()
                                           MoleQueue::JobState,
                                           MoleQueue::JobState)));
 
-  m_server->start();
-
-  m_ui->errorNotificationLabel->hide();
-  m_trayIcon->show();
+  // This will get handled when the event loop
+  // starts and will launch the server. This must be done this way, otherwise
+  // the user may decide to quit the application if the socket is already
+  // in use, and the call to qApp->exit() will be ignored if no event loop is
+  // running (since this class is constructed in main().)
+  QTimer::singleShot(0, this, SLOT(onEventLoopStart()));
 }
 
 MainWindow::~MainWindow()
@@ -185,6 +188,17 @@ void MainWindow::notifyJobStateChange(const Job &job,
   }
 }
 
+void MainWindow::onEventLoopStart()
+{
+  // Start the server first -- this may call qApp->exit() if the socket name
+  // is in use and the user opts to quit.
+  m_server->start();
+
+  m_trayIcon->show();
+  m_ui->errorNotificationLabel->hide();
+  show();
+}
+
 void MainWindow::showQueueManagerDialog()
 {
   if (!m_queueManagerDialog) {
@@ -233,7 +247,8 @@ void MainWindow::handleServerConnectionError(ConnectionListener::Error err,
     // Terminate
     if (!ok || index == 1) {
       hide();
-      qApp->quit();
+      qApp->exit(1);
+      return;
     }
     // Take over connection
     else {

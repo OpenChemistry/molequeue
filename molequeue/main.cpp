@@ -17,6 +17,7 @@
 #include <QtCore/QDir>
 #include <QtCore/QSettings>
 #include <QtCore/QStringList>
+#include <QtCore/QTimer>
 
 #include <QtGui/QApplication>
 #include <QtGui/QSystemTrayIcon>
@@ -105,8 +106,8 @@ int main(int argc, char *argv[])
 
   QApplication::setQuitOnLastWindowClosed(false);
 
+  // window will show() when the event loop starts.
   MoleQueue::MainWindow window;
-  window.show();
   return app.exec();
 }
 
