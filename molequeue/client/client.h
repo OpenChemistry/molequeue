@@ -100,6 +100,14 @@ public slots:
    */
   int cancelJob(unsigned int moleQueueId);
 
+  /**
+   * @brief flush Flush all pending messages to the server.
+   * @warning This should not need to be called if used in an event loop, as Qt
+   * will start writing to the socket as soon as control returns to the event
+   * loop.
+   */
+  void flush();
+
 protected slots:
   /*!
    * Read incoming packets of data from the server.
