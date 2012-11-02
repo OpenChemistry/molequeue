@@ -22,8 +22,10 @@
 namespace MoleQueue {
 namespace FileSystemTools {
 
-/// Remove the directory at @a path.
-bool recursiveRemoveDirectory(const QString &path);
+/// Remove the directory at @a path. If @a deleteContentsOnly is true,
+/// the directory itself will not be removed.
+bool recursiveRemoveDirectory(const QString &path,
+                              bool deleteContentsOnly = false);
 
 /// Copy the contents of directory @a from into @a to.
 bool recursiveCopyDirectory(const QString &from, const QString &to);
