@@ -1,5 +1,5 @@
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY
-  ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/molequeue/plugins)
+  ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/../lib/molequeue/plugins)
 
 add_library(mqlocalsocketclf MODULE localsocketconnectionlistenerfactory.cpp)
 set_target_properties(mqlocalsocketclf PROPERTIES AUTOMOC TRUE)
