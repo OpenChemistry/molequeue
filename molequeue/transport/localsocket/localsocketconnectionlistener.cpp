@@ -45,10 +45,13 @@ LocalSocketConnectionListener::~LocalSocketConnectionListener()
 void LocalSocketConnectionListener::start()
 {
   if (!m_server->listen(m_connectionString)) {
+    qWarning() << "Error starting connection listener! "
+               << m_server->serverError() << m_server->errorString();
     emit connectionError(toConnectionListenerError(m_server->serverError()),
                m_server->errorString());
     return;
   }
+  qDebug() << "connected?" << m_server->isListening();
 }
 
 void LocalSocketConnectionListener::stop(bool force)

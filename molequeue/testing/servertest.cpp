@@ -158,12 +158,14 @@ void ServerTest::testForceStart()
 void ServerTest::testNewConnection()
 {
   // Restart server to reset state
-  m_server->stop();
-  m_server->start();
+  m_server->forceStart();
 
   m_testSocket.connectToServer(m_connectionString);
   qApp->processEvents(QEventLoop::AllEvents, 1000);
-  QVERIFY(m_testSocket.state() == QLocalSocket::ConnectedState);
+  qDebug() << "'client'" << m_testSocket.state();
+  qDebug() << "connstrings" << m_connectionString << m_server->serverName();
+  qDebug() << "Error" << m_testSocket.error() << m_testSocket.errorString();
+  QCOMPARE(m_testSocket.state(), QLocalSocket::ConnectedState);
 
   // Check that we've received the connections
   // One zeromq and one local socket ...
