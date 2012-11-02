@@ -78,6 +78,9 @@ protected slots:
   void showAdvancedJobFilters();
   void updateJobCounts(int totalJobs, int shownJobs);
 
+  /// Used for initialization after the event loop is available.
+  void onEventLoopStart();
+
 protected:
   void keyPressEvent(QKeyEvent *);
   void closeEvent(QCloseEvent *theEvent);
