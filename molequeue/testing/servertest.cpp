@@ -163,7 +163,7 @@ void ServerTest::testNewConnection()
 
   m_testSocket.connectToServer(m_connectionString);
   qApp->processEvents(QEventLoop::AllEvents, 1000);
-  QVERIFY(m_testSocket.state() == QLocalSocket::ConnectedState);
+  QCOMPARE(m_testSocket.state(), QLocalSocket::ConnectedState);
 
   // Check that we've received the connections
   // One zeromq and one local socket ...
