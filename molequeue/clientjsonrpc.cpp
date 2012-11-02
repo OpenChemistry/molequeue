@@ -62,7 +62,7 @@ PacketType ClientJsonRpc::generateJobCancellation(const Job &req,
   packet["method"] = "cancelJob";
 
   Json::Value paramsObject(Json::objectValue);
-  paramsObject["moleQueueId"] = req.moleQueueId();
+  paramsObject["moleQueueId"] = idTypeToJson(req.moleQueueId());
 
   packet["params"] = paramsObject;
 
@@ -83,7 +83,7 @@ PacketType ClientJsonRpc::generateLookupJobRequest(
   packet["method"] = "lookupJob";
 
   Json::Value paramsObject(Json::objectValue);
-  paramsObject["moleQueueId"] = moleQueueId;
+  paramsObject["moleQueueId"] = idTypeToJson(moleQueueId);
 
   packet["params"] = paramsObject;
 
@@ -283,15 +283,13 @@ void ClientJsonRpc::handleSubmitJobResult(const Message &msg) const
   IdType moleQueueId;
   QDir workingDirectory;
 
-  if (!resultObject["moleQueueId"].isIntegral() ||
-      !resultObject["workingDirectory"].isString()) {
+  if (!resultObject["workingDirectory"].isString()) {
     qWarning() << "Job submission result is ill-formed:\n"
                << msg.data();
     return;
   }
 
-  moleQueueId = static_cast<IdType>(
-        resultObject["moleQueueId"].asLargestUInt());
+  moleQueueId = toIdType(resultObject["moleQueueId"]);
   workingDirectory = QDir(QString(
                             resultObject["workingDirectory"].asCString()));
 
@@ -327,7 +325,7 @@ void ClientJsonRpc::handleCancelJobResult(const Message &msg) const
     return;
   }
 
-  moleQueueId = static_cast<IdType>(resultObject.asLargestUInt());
+  moleQueueId = toIdType(resultObject);
 
   emit jobCancellationConfirmationReceived(msg.id(), moleQueueId);
 }
@@ -346,8 +344,7 @@ void ClientJsonRpc::handleCancelJobError(const Message &msg) const
       static_cast<ErrorCode>(
         msg.json()["error"]["code"].asLargestUInt());
   const QString message(msg.json()["error"]["message"].asCString());
-  const IdType moleQueueId =
-      static_cast<IdType>(msg.json()["error"]["data"].asLargestUInt());
+  const IdType moleQueueId = toIdType(msg.json()["error"]["data"]);
 
   emit jobCancellationErrorReceived(msg.id(), moleQueueId, errorCode, message);
 }
@@ -377,8 +374,7 @@ void ClientJsonRpc::handleLookupJobError(const Message &msg) const
     return;
   }
 
-  const IdType moleQueueId =
-      static_cast<IdType>(msg.json()["error"]["data"].asLargestUInt());
+  const IdType moleQueueId = toIdType(msg.json()["error"]["data"]);
 
   emit lookupJobErrorReceived(msg.id(), moleQueueId);
 }
@@ -392,7 +388,6 @@ void ClientJsonRpc::handleJobStateChangedNotification(const Message &msg) const
   JobState newState;
 
   if (!paramsObject.isObject() ||
-      !paramsObject["moleQueueId"].isIntegral() ||
       !paramsObject["oldState"].isString() ||
       !paramsObject["newState"].isString() ){
     qWarning() << "Job cancellation result is ill-formed:\n"
@@ -400,8 +395,7 @@ void ClientJsonRpc::handleJobStateChangedNotification(const Message &msg) const
     return;
   }
 
-  moleQueueId = static_cast<IdType>(
-        paramsObject["moleQueueId"].asLargestUInt());
+  moleQueueId = toIdType(paramsObject["moleQueueId"]);
   oldState = stringToJobState(paramsObject["oldState"].asCString());
   newState = stringToJobState(paramsObject["newState"].asCString());
 

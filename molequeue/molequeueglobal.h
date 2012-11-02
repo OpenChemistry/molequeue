@@ -33,6 +33,8 @@ namespace MoleQueue
 
 /// Type for various ids
 typedef quint32 IdType;
+
+/// Constant value used for invalid ids
 const IdType InvalidId = std::numeric_limits<IdType>::max();
 
 /// Type for list queue/program names. Key is queue, value is list of supported

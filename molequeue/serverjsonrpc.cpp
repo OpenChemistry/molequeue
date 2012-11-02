@@ -40,7 +40,7 @@ ServerJsonRpc::generateJobSubmissionConfirmation(IdType moleQueueId,
   Json::Value packet = generateEmptyResponse(packetId);
 
   Json::Value resultObject(Json::objectValue);
-  resultObject["moleQueueId"] = moleQueueId;
+  resultObject["moleQueueId"] = idTypeToJson(moleQueueId);
   resultObject["workingDirectory"] = workingDir.toStdString();
 
   packet["result"] = resultObject;
@@ -144,7 +144,7 @@ PacketType ServerJsonRpc::generateJobStateChangeNotification(IdType moleQueueId,
   packet["method"] = "jobStateChanged";
 
   Json::Value paramsObject(Json::objectValue);
-  paramsObject["moleQueueId"]         = moleQueueId;
+  paramsObject["moleQueueId"]         = idTypeToJson(moleQueueId);
   paramsObject["oldState"]            = jobStateToString(oldState);
   paramsObject["newState"]            = jobStateToString(newState);
 
@@ -306,15 +306,13 @@ void ServerJsonRpc::handleCancelJobRequest(const Message &msg) const
 {
   const Json::Value &paramsObject = msg.json()["params"];
 
-  if (!paramsObject.isObject() ||
-      !paramsObject["moleQueueId"].isIntegral()) {
+  if (!paramsObject.isObject()) {
     qWarning() << "Job cancellation request is ill-formed:\n"
                << msg.data();
     return;
   }
 
-  const IdType moleQueueId = static_cast<IdType>(
-        paramsObject["moleQueueId"].asLargestUInt());
+  const IdType moleQueueId = toIdType(paramsObject["moleQueueId"]);
 
   emit jobCancellationRequestReceived(msg, moleQueueId);
 }
@@ -323,15 +321,13 @@ void ServerJsonRpc::handleLookupJobRequest(const Message &msg) const
 {
   const Json::Value &paramsObject = msg.json()["params"];
 
-  if (!paramsObject.isObject() ||
-      !paramsObject["moleQueueId"].isIntegral()) {
+  if (!paramsObject.isObject()) {
     qWarning() << "Job lookup request is ill-formed:\n"
                << msg.data();
     return;
   }
 
-  const IdType moleQueueId = static_cast<IdType>(
-        paramsObject["moleQueueId"].asLargestUInt());
+  const IdType moleQueueId = toIdType(paramsObject["moleQueueId"]);
 
   emit lookupJobRequestReceived(msg, moleQueueId);
 }

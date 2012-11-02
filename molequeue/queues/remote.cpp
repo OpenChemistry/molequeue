@@ -164,10 +164,8 @@ void QueueRemote::killJob(Job job)
 
   Logger::logWarning(tr("Queue '%1' requested to kill unknown job that belongs "
                         "to queue '%2', queue id '%3'.").arg(m_name)
-                     .arg(job.queue())
-                     .arg(job.queueId() != InvalidId
-                          ? QString::number(job.queueId())
-                          : QString("(Invalid)")), job.moleQueueId());
+                     .arg(job.queue()).arg(idTypeToString(job.queueId())),
+                     job.moleQueueId());
   job.setJobState(MoleQueue::Killed);
 }
 
