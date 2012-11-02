@@ -120,7 +120,10 @@ void FileSpecificationTest::ctorFromFileNameAndContents()
 void FileSpecificationTest::ctorFromFile()
 {
   QTemporaryFile file;
-  QVERIFY(file.open());
+  // QTemporaryFile::open(OpenMode) is protected for some unknown reason. The
+  // trolls advise opening it after casting to a QFile....?!?!?
+  // https://bugreports.qt-project.org/browse/QTBUG-11277
+  QVERIFY(reinterpret_cast<QFile*>(&file)->open(QFile::WriteOnly | QFile::Text));
 
   QByteArray content("I'm input file text!!\n");
   file.write(content);
@@ -228,7 +231,10 @@ void FileSpecificationTest::writeFile()
 {
   QTemporaryFile file;
   // filename isn't available until open is called.
-  file.open();
+  // QTemporaryFile::open(OpenMode) is protected for some unknown reason. The
+  // trolls advise opening it after casting to a QFile....?!?!?
+  // https://bugreports.qt-project.org/browse/QTBUG-11277
+  QVERIFY(reinterpret_cast<QFile*>(&file)->open(QFile::ReadOnly | QFile::Text));
 
   QString content("I'm sample input file contents!\n");
   FileSpecification spec(file.fileName(), content);
