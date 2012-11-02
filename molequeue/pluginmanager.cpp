@@ -90,8 +90,10 @@ PluginManager * PluginManager::instance()
 
 void PluginManager::load()
 {
-  foreach(const QString &dir, m_pluginDirs)
+  foreach(const QString &dir, m_pluginDirs) {
+    qDebug() << "Checking for plugins in" << dir;
     load(dir);
+  }
 }
 
 void PluginManager::load(const QString &path)
