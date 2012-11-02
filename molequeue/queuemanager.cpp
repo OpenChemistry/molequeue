@@ -51,22 +51,7 @@ QueueManager::~QueueManager()
 
 void QueueManager::readSettings()
 {
-  QString workingDirectory;
-  if (m_server) {
-    workingDirectory = m_server->workingDirectoryBase();
-  }
-  else {
-    QSettings settings;
-    workingDirectory = settings.value("workingDirectoryBase").toString();
-  }
-
-  if (workingDirectory.isEmpty()) {
-    Logger::logWarning(tr("Cannot write queue settings: Cannot determine "
-                          "config directory."));
-    return;
-  }
-
-  QDir queueDir(workingDirectory + "/config/queues");
+  QDir queueDir(queueConfigDirectory());
   if (!queueDir.exists()) {
     Logger::logWarning(tr("Cannot write queue settings: Queue config "
                           "directory does not exist (%1)")
@@ -138,6 +123,9 @@ Queue * QueueManager::addQueue(const QString &queueName,
 
   newQueue->setName(queueName);
 
+  connect(newQueue, SIGNAL(nameChanged(QString,QString)),
+          this, SLOT(queueNameChanged(QString,QString)));
+
   m_queues.insert(newQueue->name(), newQueue);
   emit queueAdded(newQueue->name(), newQueue);
   return newQueue;
@@ -182,6 +170,44 @@ void QueueManager::updateRemoteQueues() const
       remote->requestQueueUpdate();
     }
   }
+}
+
+void QueueManager::queueNameChanged(const QString &newName,
+                                    const QString &oldName)
+{
+  if (Queue *queue = m_queues.value(oldName, NULL)) {
+    if (queue->name() == newName) {
+      // Rewrite the configuration file:
+      QString fileName = queue->stateFileName();
+      if (!fileName.isEmpty())
+        QFile::remove(fileName);
+
+      m_queues.remove(oldName);
+      m_queues.insert(newName, queue);
+
+      queue->writeSettings();
+      emit queueRenamed(newName, queue, oldName);
+    }
+  }
+}
+
+QString QueueManager::queueConfigDirectory() const
+{
+  QString result;
+  if (m_server) {
+    result = m_server->workingDirectoryBase();
+  }
+  else {
+    QSettings settings;
+    result = settings.value("workingDirectoryBase").toString();
+  }
+
+  if (result.isEmpty()) {
+    Logger::logError(tr("Cannot determine queue config directory."));
+    return result;
+  }
+
+  return result + "/config/queues";
 }
 
 } // end MoleQueue namespace

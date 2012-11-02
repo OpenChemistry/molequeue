@@ -17,6 +17,7 @@
 #include "transport/jsonrpc.h"
 #include "dummyjsonrpc.h"
 
+#include "molequeuetestconfig.h"
 #include "transport/message.h"
 
 #include <json/json.h>

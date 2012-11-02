@@ -26,22 +26,6 @@ target_link_libraries(mqzeromqconnectionlistener
   mqconnectionlistener
   mqzeromqconnection)
 
-# Client
-if(MoleQueue_BUILD_CLIENT)
-  add_library(mqzeromqclient zeromqclient.cpp)
-  list(APPEND zeromq_targets mqzeromqclient)
-  list(APPEND zeromq_headers
-    zeromqclient.h
-    ${CMAKE_CURRENT_BINARY_DIR}/mqzeromqclientexport.h
-  )
-  target_link_libraries(mqzeromqclient
-    molequeueclient
-    mqzeromqconnection
-  )
-  generate_export_header(mqzeromqclient EXPORT_FILE_NAME mqzeromqclientexport.h)
-
-endif() # MoleQueue_BUILD_CLIENT
-
 install(FILES ${zeromq_headers}
   DESTINATION "${INSTALL_INCLUDE_DIR}/molequeue/zeromqclient"
 )

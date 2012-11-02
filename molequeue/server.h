@@ -99,6 +99,9 @@ public:
   /// The working directory where running job file are kept.
   QString workingDirectoryBase() const {return m_workingDirectoryBase;}
 
+  /// The string the server uses to listen for connections.
+  QString serverName() const { return m_serverName; }
+
   /// Used for internal lookup structures
   typedef QMap<IdType, MessageIdType> PacketLookupTable;
 

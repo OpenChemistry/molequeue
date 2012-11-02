@@ -19,6 +19,7 @@
 #include "logentry.h"
 
 #include <QtCore/QDir>
+#include <QtCore/QDebug>
 #include <QtCore/QFile>
 #include <QtCore/QSettings>
 

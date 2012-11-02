@@ -6,8 +6,8 @@ endif()
 
 find_package(Qt4 4.8.0 COMPONENTS ${qt_components})
 
-find_program(PYTHON_EXECUTABLE
-  NAMES python2.7 python2.6 python2.5 python2.4 python2.3 python2 python)
+# Find a python 2.x interpreter.
+find_package(PythonInterp 2 QUIET)
 
 include(${QT_USE_FILE})
 include(GenerateExportHeader)
@@ -197,11 +197,6 @@ if(MoleQueue_BUILD_APPLICATION)
     target_link_libraries(molequeue_static kdsoap)
   endif()
 
-  # Used for testing connections.
-  if(MoleQueue_BUILD_CLIENT)
-    target_link_libraries(molequeue_static mqlocalsocketclient)
-  endif()
-
   add_executable(molequeue MACOSX_BUNDLE main.cpp ${rcc_srcs})
   target_link_libraries(molequeue
     molequeue_static
@@ -217,54 +212,28 @@ endif() # MoleQueue_BUILD_APPLICATION
 
 # Client library
 if(MoleQueue_BUILD_CLIENT)
-  set(mqclient_srcs
-    client.cpp
-    clientjsonrpc.cpp
-    filespecification.cpp
-    job.cpp
-    jobdata.cpp
-    jobitemmodel.cpp
-    jobmanager.cpp
-    jobreferencebase.cpp
-    jobrequest.cpp
-    logentry.cpp
-    logger.cpp
-    molequeueglobal.h
-    ${jsoncpp_srcs}
-  )
+  add_subdirectory(client)
 
-  set(mqclient_headers
-    client.h
-    filespecification.h
-    jobreferencebase.h
-    jobrequest.h
-    molequeueglobal.h
-  )
+  # If we're building both client and server, ensure that the client is built
+  # first so we can use it for testing queues.
+  if(MoleQueue_BUILD_APPLICATION)
+    include_directories(
+      "${CMAKE_CURRENT_BINARY_DIR}/client" # For export macro
+      "${MoleQueue_SOURCE_DIR}/thirdparty/qt5json/" # For Qt5JSON
+    )
+    target_link_libraries(molequeue MoleQueueClient)
+  endif()
 
-  add_library(molequeueclient STATIC ${mqclient_srcs})
-  set_target_properties(molequeueclient PROPERTIES AUTOMOC TRUE)
-  target_link_libraries(molequeueclient
-    ${QT_LIBRARIES}
-    mqconnection
-  )
-
-  install(TARGETS molequeueclient
-    EXPORT "MoleQueueTargets"
-    RUNTIME DESTINATION "${INSTALL_RUNTIME_DIR}"
-    LIBRARY DESTINATION "${INSTALL_LIBRARY_DIR}"
-    ARCHIVE DESTINATION "${INSTALL_ARCHIVE_DIR}")
-  install(FILES ${mqclient_headers}
-    DESTINATION "${INSTALL_INCLUDE_DIR}/molequeue")
-
-add_subdirectory(client)
-
-endif() # MoleQueue_BUILD_CLIENT
+endif()
 
 add_subdirectory(transport)
 
 # Config file for build options.
 configure_file(molequeueconfig.h.in molequeueconfig.h)
-install(FILES "${MoleQueue_BINARY_DIR}/molequeue/molequeueconfig.h"
+install(
+  FILES
+    "${MoleQueue_BINARY_DIR}/molequeue/molequeueconfig.h"
+    "molequeueglobal.h"
   DESTINATION "${INSTALL_INCLUDE_DIR}/molequeue")
 
 # Only run tests if building both client and app:

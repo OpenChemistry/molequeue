@@ -17,6 +17,7 @@
 #include <QtTest>
 
 #include "filespecification.h"
+#include "molequeuetestconfig.h"
 
 #include <json/json.h>
 
@@ -120,6 +121,7 @@ void FileSpecificationTest::ctorFromFile()
 {
   QTemporaryFile file;
   QVERIFY(file.open());
+  file.setTextModeEnabled(true);
 
   QByteArray content("I'm input file text!!\n");
   file.write(content);
@@ -227,7 +229,8 @@ void FileSpecificationTest::writeFile()
 {
   QTemporaryFile file;
   // filename isn't available until open is called.
-  file.open();
+  QVERIFY(file.open());
+  file.setTextModeEnabled(true);
 
   QString content("I'm sample input file contents!\n");
   FileSpecification spec(file.fileName(), content);
@@ -263,7 +266,11 @@ void FileSpecificationTest::contents()
 void FileSpecificationTest::filepath()
 {
   FileSpecification pathSpec(QString("/path/to/some/file.ext"));
+#ifdef WIN32
+  QCOMPARE(pathSpec.filepath(), QString("C:/path/to/some/file.ext"));
+#else
   QCOMPARE(pathSpec.filepath(), QString("/path/to/some/file.ext"));
+#endif
 
   FileSpecification contSpec("file.ext", "contents\n");
   QVERIFY(contSpec.filepath().isNull());

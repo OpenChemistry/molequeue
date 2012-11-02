@@ -24,7 +24,7 @@
 namespace MoleQueue {
 namespace FileSystemTools {
 
-bool recursiveRemoveDirectory(const QString &p)
+bool recursiveRemoveDirectory(const QString &p, bool deleteContentsOnly)
 {
   QString path = QDir::cleanPath(p);
   // Just a safety to prevent accidentally wiping /
@@ -46,7 +46,9 @@ bool recursiveRemoveDirectory(const QString &p)
       if (!result)
         return false;
     }
-    result = dir.rmdir(path);
+    // Remove the directory if needed
+    if (!deleteContentsOnly)
+      result = dir.rmdir(path);
   }
 
   if (!result)

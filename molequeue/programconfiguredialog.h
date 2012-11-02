@@ -43,14 +43,12 @@ public:
 
 public slots:
   void accept();
-  // Disable the program name from being changed
-  void lockName(bool locked);
 
 protected slots:
   void populateSyntaxCombo();
 
   void updateGuiFromProgram();
-  void updateProgramFromGui();
+  bool updateProgramFromGui();
 
   void updateLaunchEditor();
   void launchEditorTextChanged();
