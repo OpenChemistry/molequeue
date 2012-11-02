@@ -211,12 +211,17 @@ void QueueRemoteTest::testSubmissionPipeline()
   // validate the ssh command
   DummySshCommand *ssh = m_queue->getDummySshCommand();
   QCOMPARE(ssh->getDummyCommand(), QString("scp"));
-  QCOMPARE(ssh->getDummyArgs(), QStringList()
+  // Verify the local path manually with a regex, since the absolute path is
+  // platform dependent
+  QStringList dummyArgs = ssh->getDummyArgs();
+  QVERIFY(QRegExp("^.+MoleQueue-dummyServer/+jobs/+4$").exactMatch(
+            dummyArgs.at(6)));
+  dummyArgs.removeAt(6);
+  QCOMPARE(dummyArgs, QStringList()
            << "-q"
            << "-S" << "ssh"
            << "-P" << "6887"
            << "-r"
-           << "/tmp/MoleQueue-dummyServer//jobs/4"
            << "aUser@some.host.somewhere:/some/path/4"
            );
   QCOMPARE(ssh->data().value<Job>(), job);
@@ -261,12 +266,17 @@ void QueueRemoteTest::testSubmissionPipeline()
   // validate the ssh command
   ssh = m_queue->getDummySshCommand();
   QCOMPARE(ssh->getDummyCommand(), QString("scp"));
-  QCOMPARE(ssh->getDummyArgs(), QStringList()
+  // Verify the local path manually with a regex, since the absolute path is
+  // platform dependent
+  dummyArgs = ssh->getDummyArgs();
+  QVERIFY(QRegExp("^.+MoleQueue-dummyServer/+jobs/+4$").exactMatch(
+            dummyArgs.at(6)));
+  dummyArgs.removeAt(6);
+  QCOMPARE(dummyArgs, QStringList()
            << "-q"
            << "-S" << "ssh"
            << "-P" << "6887"
            << "-r"
-           << "/tmp/MoleQueue-dummyServer//jobs/4"
            << "aUser@some.host.somewhere:/some/path/4"
            );
   QCOMPARE(ssh->data().value<Job>(), job);
@@ -329,13 +339,18 @@ void QueueRemoteTest::testFinalizePipeline()
   // validate the ssh command
   DummySshCommand *ssh = m_queue->getDummySshCommand();
   QCOMPARE(ssh->getDummyCommand(), QString("scp"));
-  QCOMPARE(ssh->getDummyArgs(), QStringList()
+  // Verify the local path manually with a regex, since the absolute path is
+  // platform dependent
+  QStringList dummyArgs = ssh->getDummyArgs();
+  QVERIFY(QRegExp("^.+MoleQueue-dummyServer/+jobs/+4/+\\.\\.$").exactMatch(
+            dummyArgs.at(7)));
+  dummyArgs.removeAt(7);
+  QCOMPARE(dummyArgs, QStringList()
            << "-q"
            << "-S" << "ssh"
            << "-P" << "6887"
            << "-r"
            << "aUser@some.host.somewhere:/some/path/4"
-           << "/tmp/MoleQueue-dummyServer//jobs/4/.."
            );
   QCOMPARE(ssh->data().value<Job>(), job);
 
