@@ -193,14 +193,14 @@ void QueueRemoteTest::testSubmissionPipeline()
       + program->inputFilename();
   QVERIFY(QFile::exists(inputFileName));
   QFile inputFile(inputFileName);
-  QVERIFY(inputFile.open(QFile::ReadOnly));
+  QVERIFY(inputFile.open(QFile::ReadOnly | QFile::Text));
   QCOMPARE(QString(inputFile.readAll()), job.inputFile().contents());
 
   QString launchScriptFileName = job.localWorkingDirectory() + "/"
       + m_queue->launchScriptName();
   QVERIFY(QFile::exists(launchScriptFileName));
   QFile launchScriptFile(launchScriptFileName);
-  QVERIFY(launchScriptFile.open(QFile::ReadOnly));
+  QVERIFY(launchScriptFile.open(QFile::ReadOnly | QFile::Text));
   QCOMPARE(QString(launchScriptFile.readAll()),
            QString("Run job 4!!\n"));
 

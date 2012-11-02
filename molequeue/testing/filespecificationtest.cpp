@@ -121,6 +121,7 @@ void FileSpecificationTest::ctorFromFile()
 {
   QTemporaryFile file;
   QVERIFY(file.open());
+  file.setTextModeEnabled(true);
 
   QByteArray content("I'm input file text!!\n");
   file.write(content);
@@ -228,7 +229,8 @@ void FileSpecificationTest::writeFile()
 {
   QTemporaryFile file;
   // filename isn't available until open is called.
-  file.open();
+  QVERIFY(file.open());
+  file.setTextModeEnabled(true);
 
   QString content("I'm sample input file contents!\n");
   FileSpecification spec(file.fileName(), content);
