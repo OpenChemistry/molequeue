@@ -554,7 +554,8 @@ void Queue::jobAboutToBeRemoved(const Job &job)
 
 void Queue::cleanLocalDirectory(const Job &job)
 {
-  if (!FileSystemTools::recursiveRemoveDirectory(job.localWorkingDirectory())) {
+  if (!FileSystemTools::recursiveRemoveDirectory(job.localWorkingDirectory(),
+                                                 true)) {
     Logger::logError(tr("Cannot remove '%1' from local filesystem.")
                      .arg(job.localWorkingDirectory()));
   }
