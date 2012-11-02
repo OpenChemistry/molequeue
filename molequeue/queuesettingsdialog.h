@@ -63,6 +63,7 @@ protected slots:
   void setEnabledProgramButtons(bool enabled);
   void removeProgramDialog();
   void buttonBoxButtonClicked(QAbstractButton*);
+  bool apply();
 
 protected:
   void closeEvent(QCloseEvent *);

@@ -17,14 +17,10 @@
 #ifndef MOLEQUEUEGLOBAL_H
 #define MOLEQUEUEGLOBAL_H
 
-#include <QtCore/QByteArray>
 #include <QtCore/QHash>
-#include <QtCore/QList>
 #include <QtCore/QMetaType>
 #include <QtCore/QString>
 #include <QtCore/QStringList>
-#include <QtCore/QDateTime>
-#include <QtCore/QDebug>
 
 #include <limits>
 
@@ -160,6 +156,9 @@ const int DEFAULT_NUM_CORES = 1;
 /// Default walltime limit for a job
 const int DEFAULT_MAX_WALLTIME = 1440;
 
+// Valid names for queues/programs
+const char VALID_NAME_REG_EXP[] = "[0-9A-za-z()[\\]{}]"
+                                  "[0-9A-Za-z()[\\]{}\\-_+=.@ ]*";
 
 } // end namespace MoleQueue
 

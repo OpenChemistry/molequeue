@@ -125,18 +125,15 @@ QString Queue::queueTypeFromFile(const QString &mqqFile)
 QString Queue::stateFileName() const
 {
   QString workDir;
-  if (m_server) {
-    workDir = m_server->workingDirectoryBase();
+  if (m_queueManager) {
+    workDir = m_queueManager->queueConfigDirectory();
   }
-  else {
-    QSettings settings;
-    workDir = settings.value("workingDirectoryBase").toString();
-  }
-
-  if (workDir.isEmpty())
+  if (workDir.isEmpty()) {
+    Logger::logError(tr("Cannot determine stateFileName for queue '%1'"));
     return "";
+  }
 
-  return QDir::cleanPath(workDir + "/config/queues/" + name() + ".mqq");
+  return QDir::cleanPath(workDir + "/" + name() + ".mqq");
 }
 
 bool Queue::writeJsonSettingsToFile(const QString &stateFilename,
@@ -358,6 +355,9 @@ bool Queue::addProgram(Program *newProgram, bool replace)
       return false;
   }
 
+  connect(newProgram, SIGNAL(nameChanged(QString,QString)),
+          this, SLOT(programNameChanged(QString,QString)));
+
   m_programs.insert(newProgram->name(), newProgram);
 
   if (newProgram->parent() != this)
@@ -550,6 +550,21 @@ void Queue::jobAboutToBeRemoved(const Job &job)
 {
   m_failureTracker.remove(job.moleQueueId());
   m_jobs.remove(job.queueId());
+}
+
+void Queue::programNameChanged(const QString &newName, const QString &oldName)
+{
+  if (Program *prog = m_programs.value(oldName, NULL)) {
+    if (prog->name() == newName) {
+      // Reset the program map.
+      m_programs.remove(oldName);
+      m_programs.insert(newName, prog);
+
+      // Update the configuration file.
+      this->writeSettings();
+      emit programRenamed(newName, prog, oldName);
+    }
+  }
 }
 
 void Queue::cleanLocalDirectory(const Job &job)

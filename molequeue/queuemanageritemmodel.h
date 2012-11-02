@@ -59,6 +59,9 @@ public:
 
 protected:
   QueueManager *m_queueManager;
+
+private slots:
+  void callReset() { reset(); }
 };
 
 } // end namespace MoleQueue

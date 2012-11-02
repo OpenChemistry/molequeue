@@ -28,9 +28,11 @@ QueueManagerItemModel::QueueManagerItemModel(QueueManager *queueManager,
   m_queueManager(queueManager)
 {
   connect(m_queueManager, SIGNAL(queueAdded(QString,MoleQueue::Queue*)),
-          this, SIGNAL(layoutChanged()));
+          this, SLOT(callReset()));
   connect(m_queueManager, SIGNAL(queueRemoved(QString,MoleQueue::Queue*)),
-          this, SIGNAL(layoutChanged()));
+          this, SLOT(callReset()));
+  connect(m_queueManager, SIGNAL(queueRenamed(QString,MoleQueue::Queue*,QString)),
+          this, SLOT(callReset()));
 }
 
 int QueueManagerItemModel::rowCount(const QModelIndex &modelIndex) const

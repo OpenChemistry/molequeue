@@ -17,6 +17,7 @@
 #include "zeromqconnection.h"
 
 #include <QtCore/QTimer>
+#include <QtCore/QDebug>
 
 namespace MoleQueue
 {
