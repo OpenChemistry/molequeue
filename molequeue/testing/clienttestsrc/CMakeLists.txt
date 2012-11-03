@@ -9,7 +9,7 @@ set(srcs
 )
 
 foreach(source ${srcs})
-  add_executable(${source} ${source}.cpp ${qt5json_srcs})
+  add_executable(${source} ${source}.cpp)
   set_target_properties(${source} PROPERTIES AUTOMOC TRUE)
-  target_link_libraries(${source} MoleQueueClient ${QT_QTCORE_LIBRARY} )
+  target_link_libraries(${source} MoleQueueClient ${QT_QTCORE_LIBRARY} Qt5Json)
 endforeach()
