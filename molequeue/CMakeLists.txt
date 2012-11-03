@@ -20,15 +20,7 @@ set(JSONCPP_SOURCE_DIR "${MoleQueue_SOURCE_DIR}/thirdparty/jsoncpp/")
 aux_source_directory(${JSONCPP_SOURCE_DIR} jsoncpp_srcs)
 
 # Disable JsonCpp warnings for most platforms
-if(BORLAND)
-  set_property(SOURCE ${jsoncpp_srcs}
-    PROPERTY
-    COMPILE_FLAGS "-w-")
-else()
-  set_property(SOURCE ${jsoncpp_srcs}
-    PROPERTY
-    COMPILE_FLAGS "-w")
-endif()
+silence_warnings(${jsoncpp_srcs})
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR}
   ${CMAKE_CURRENT_SOURCE_DIR}
@@ -126,15 +118,7 @@ if(MoleQueue_BUILD_APPLICATION)
       )
 
     # Disable warnings for KDSoap generate file for most platforms
-    if(BORLAND)
-      set_property(SOURCE wsdl_uitapi.cpp
-        PROPERTY
-        COMPILE_FLAGS "-w-")
-    else()
-      set_property(SOURCE wsdl_uitapi.cpp
-        PROPERTY
-        COMPILE_FLAGS "-w")
-    endif()
+    silence_warnings(wsdl_uitapi.cpp)
 
     # install the SSL certificates
     install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/certs

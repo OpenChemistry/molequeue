@@ -31,6 +31,10 @@ set(headers
   ${CMAKE_CURRENT_BINARY_DIR}/qt5jsonexport.h
   )
 
+# Silence warnings from qt5json sources
+include(SilenceWarnings)
+silence_warnings(${sources})
+
 # Macro to only set if not set...
 macro(set_if_not_set _var_name)
   if(NOT DEFINED ${_var_name})
