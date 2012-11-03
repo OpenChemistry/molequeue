@@ -64,7 +64,7 @@ public:
    *
    * @param parentObject The parent.
    */
-  explicit Server(QObject *parentObject = 0, QString serverName = "MoleQueue");
+  explicit Server(QObject *parentObject = 0, QString serverName_ = "MoleQueue");
 
   /**
    * Destructor.
