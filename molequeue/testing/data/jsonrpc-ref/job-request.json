@@ -19,7 +19,7 @@
       "popupOnStateChange" : false,
       "program" : "Quantum Tater",
       "queue" : "Some big ol' cluster",
-      "queueId" : 4294967295,
+      "queueId" : "Invalid",
       "retrieveOutput" : true
    }
 }

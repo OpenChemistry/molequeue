@@ -466,7 +466,7 @@ void QueueRemoteTest::testQueueUpdate()
     m_queue->m_jobs.insert(job.queueId(), job.moleQueueId());
 
     // Create line of fake queue output
-    output += QString("%1 %2\n").arg(job.queueId())
+    output += QString("%1 %2\n").arg(idTypeToString(job.queueId()))
         .arg(jobStateToString(static_cast<JobState>(state)));
   }
 

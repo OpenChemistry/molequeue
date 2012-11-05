@@ -110,7 +110,7 @@ QVariant JobItemModel::data(const QModelIndex &modelIndex, int role) const
       case QUEUE_NAME: {
         if (job.queueId() != InvalidId)
           return QVariant(QString("%1 (%2)").arg(job.queue())
-                          .arg(QString::number(job.queueId())));
+                          .arg(idTypeToString(job.queueId())));
         else
           return QVariant(job.queue());
       }

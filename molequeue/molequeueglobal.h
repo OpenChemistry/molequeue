@@ -29,6 +29,8 @@ namespace MoleQueue
 
 /// Type for various ids
 typedef quint32 IdType;
+
+/// Constant value used for invalid ids
 const IdType InvalidId = std::numeric_limits<IdType>::max();
 
 /// Type for list queue/program names. Key is queue, value is list of supported
@@ -129,6 +131,18 @@ inline JobState stringToJobState(const char *str)
     return Error;
   else
     return Unknown;
+}
+
+/// @overload
+inline JobState stringToJobState(const QByteArray &str)
+{
+  return stringToJobState(str.constData());
+}
+
+/// @overload
+inline JobState stringToJobState(const QString &str)
+{
+  return stringToJobState(qPrintable(str));
 }
 
 /**

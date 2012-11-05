@@ -155,7 +155,8 @@ void QueueTest::testReplaceLaunchScriptKeywords()
   MoleQueue::Job job = jobManager.newJob();
   DummyQueue queue;
   queue.replaceLaunchScriptKeywords(script, job);
-  QCOMPARE(script, QString("%1\n").arg(job.moleQueueId()));
+  QCOMPARE(script, QString("%1\n")
+           .arg(MoleQueue::idTypeToString(job.moleQueueId())));
 
   script = "$$numberOfCores$$\n";
   job.setNumberOfCores(32);

@@ -91,8 +91,8 @@ QVariantHash JobData::hash() const
   state.insert("popupOnStateChange", m_popupOnStateChange);
   state.insert("numberOfCores", m_numberOfCores);
   state.insert("maxWallTime", m_maxWallTime);
-  state.insert("moleQueueId", m_moleQueueId);
-  state.insert("queueId", m_queueId);
+  state.insert("moleQueueId", idTypeToVariant(m_moleQueueId));
+  state.insert("queueId", idTypeToVariant(m_queueId));
   if (!m_keywords.isEmpty()) {
     // QVariant can only hold hashs of QVariantHash type.
     QVariantHash keywordVariantHash;
@@ -144,9 +144,9 @@ void JobData::setFromHash(const QVariantHash &state)
   if (state.contains("maxWallTime"))
     m_maxWallTime = state.value("maxWallTime").toInt();
   if (state.contains("moleQueueId"))
-    m_moleQueueId = static_cast<IdType>(state.value("moleQueueId").toUInt());
+    m_moleQueueId = toIdType(state.value("moleQueueId"));
   if (state.contains("queueId"))
-    m_queueId = static_cast<IdType>(state.value("queueId").toUInt());
+    m_queueId = toIdType(state.value("queueId"));
   if (state.contains("keywords")) {
     m_keywords.clear();
     QVariantHash keywordVariantHash = state.value("keywords").toHash();
@@ -213,7 +213,8 @@ bool JobData::save()
   QFile stateFile(stateFilename);
   if (!stateFile.open(QFile::ReadWrite | QFile::Text)) {
     Logger::logError(Logger::tr("Cannot save job information for job %1 in %2.")
-                     .arg(moleQueueId()).arg(stateFilename), moleQueueId());
+                     .arg(idTypeToString(moleQueueId())).arg(stateFilename),
+                     moleQueueId());
     return false;
   }
 
@@ -225,7 +226,7 @@ bool JobData::save()
     Json::Reader reader;
     if (!reader.parse(inputText.begin(), inputText.end(), root, true)) {
       Logger::logError(Logger::tr("Cannot parse existing state for job %1 in "
-                                  "%2:\n%3").arg(moleQueueId())
+                                  "%2:\n%3").arg(idTypeToString(moleQueueId()))
                        .arg(stateFilename).arg(inputText.data()), moleQueueId());
       stateFile.close();
       return false;
@@ -235,7 +236,8 @@ bool JobData::save()
   if (!root.isObject()) {
     Logger::logError(Logger::tr("Internal error writing state for job %1 in %2:"
                                 " root is not an object!")
-                     .arg(moleQueueId()).arg(stateFilename), moleQueueId());
+                     .arg(idTypeToString(moleQueueId())).arg(stateFilename),
+                     moleQueueId());
     stateFile.close();
     return false;
   }
@@ -246,7 +248,8 @@ bool JobData::save()
   if (!jobRoot.isObject()) {
     Logger::logError(Logger::tr("Internal error writing state for job %1 in %2:"
                                 " jobRoot is not an object!")
-                     .arg(moleQueueId()).arg(stateFilename), moleQueueId());
+                     .arg(idTypeToString(moleQueueId())).arg(stateFilename),
+                     moleQueueId());
     stateFile.close();
     return false;
   }

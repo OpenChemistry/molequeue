@@ -216,8 +216,10 @@ bool Queue::writeJsonSettings(Json::Value &root, bool exportOnly,
   if (!exportOnly) {
     Json::Value jobIdMap(Json::objectValue);
     QList<IdType> keys = m_jobs.keys();
-    for (int i = 0; i < keys.size(); ++i)
-      jobIdMap[QString::number(keys[i]).toStdString()] = m_jobs[keys[i]];
+    for (int i = 0; i < keys.size(); ++i) {
+      jobIdMap[idTypeToString(keys[i]).toStdString()] =
+          idTypeToString(m_jobs[keys[i]]).toStdString();
+    }
     root["jobIdMap"] = jobIdMap;
   }
 
@@ -272,15 +274,8 @@ bool Queue::readJsonSettings(const Json::Value &root, bool importOnly,
 
     for (Json::ValueIterator it = jobIdObject.begin(),
          it_end = jobIdObject.end(); it != it_end; ++it) {
-      QString jobIdStr(it.memberName());
-      bool ok = false;
-      IdType jobId = static_cast<IdType>(jobIdStr.toULongLong(&ok));
-      if (!ok || !(*it).isIntegral()) {
-        Logger::logError(tr("Error reading queue settings: Invalid format:\n%1")
-                         .arg(QString(root.toStyledString().c_str())));
-        return false;
-      }
-      IdType moleQueueId = static_cast<IdType>((*it).asLargestUInt());
+      IdType jobId = toIdType(QString(it.memberName()));
+      IdType moleQueueId = toIdType(*it);
       jobIdMap.insert(jobId, moleQueueId);
     }
   }
@@ -386,7 +381,7 @@ bool Queue::removeProgram(const QString &programName)
 void Queue::replaceLaunchScriptKeywords(QString &launchScript, const Job &job,
                                         bool addNewline)
 {
-  launchScript.replace("$$moleQueueId$$", QString::number(job.moleQueueId()));
+  launchScript.replace("$$moleQueueId$$", idTypeToString(job.moleQueueId()));
 
   launchScript.replace("$$numberOfCores$$",
                        QString::number(job.numberOfCores()));
@@ -538,7 +533,7 @@ bool Queue::addJobFailure(IdType moleQueueId)
 
   if (failures > 3) {
     Logger::logError(tr("Maximum number of retries for job %1 exceeded.")
-                     .arg(moleQueueId), moleQueueId);
+                     .arg(idTypeToString(moleQueueId)), moleQueueId);
     clearJobFailures(moleQueueId);
     return false;
   }

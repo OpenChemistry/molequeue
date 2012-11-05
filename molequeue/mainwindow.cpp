@@ -180,7 +180,7 @@ void MainWindow::notifyJobStateChange(const Job &job,
                             .arg(job.description())
                             .arg(jobStateToString(job.jobState())),
                             tr("MoleQueue Job #%1 has changed from %2 to %3.")
-                            .arg(QString::number(job.moleQueueId()))
+                            .arg(idTypeToString(job.moleQueueId()))
                             .arg(jobStateToString(oldState))
                             .arg(jobStateToString(newState)),
                             QSystemTrayIcon::Information,
