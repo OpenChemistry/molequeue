@@ -205,7 +205,13 @@ bool OpenWithActionFactory::searchPathForExecutable(const QString &exec)
   if (!env.contains("PATH"))
     return false;
 
-  static QRegExp pathSplitter = QRegExp(":");
+  static QRegExp pathSplitter = QRegExp(
+#ifdef WIN32
+        ";"
+#else // WIN32
+        ":"
+#endif// WIN32
+        );
   QStringList paths =
       env.value("PATH").split(pathSplitter, QString::SkipEmptyParts);
 
