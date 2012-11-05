@@ -22,6 +22,8 @@
 #include "../queuemanager.h"
 #include "../server.h"
 
+#include <QtCore/QDir>
+
 namespace MoleQueue
 {
 
@@ -86,22 +88,41 @@ bool ProgrammableOpenWithActionFactory::isValidForJob(const Job &job) const
   if (!job.isValid())
     return false;
 
-  // Attempt to lookup program for output filenames
-  QueueManager *queueManager = m_server ? m_server->queueManager() : NULL;
-  Queue *queue = queueManager ? queueManager->lookupQueue(job.queue())
-                              : NULL;
-  Program *program = queue ? queue->lookupProgram(job.program()) : NULL;
-  if (!program)
-    return false;
+  QDir directory = job.jobState() == Finished ? QDir(job.outputDirectory())
+                                              : QDir(job.localWorkingDirectory());
 
-  QString filename = program->outputFilename();
+  return scanDirectoryForRecognizedFiles(directory, directory);
+}
 
-  foreach (const QRegExp &regexp, m_recognizedFilePatterns) {
-    if (regexp.indexIn(filename) >= 0)
-      return true;
+bool ProgrammableOpenWithActionFactory::scanDirectoryForRecognizedFiles(
+    const QDir &baseDir, const QDir &dir) const
+{
+  bool result = false;
+
+  // Recursively check subdirectories
+  QStringList subDirs(dir.entryList(QDir::Dirs | QDir::Readable |
+                                    QDir::NoDotAndDotDot, QDir::Name));
+  foreach (const QString &subDir, subDirs) {
+    if (scanDirectoryForRecognizedFiles(baseDir,
+                                        QDir(dir.absoluteFilePath(subDir))))
+      result = true;
   }
 
-  return false;
+  QStringList entries(dir.entryList(QDir::Files | QDir::Readable,
+                                    QDir::Name));
+
+  foreach (const QString &filename, entries) {
+    foreach (const QRegExp &regexp, m_recognizedFilePatterns) {
+      if (regexp.indexIn(filename) >= 0) {
+        result = true;
+        m_filenames.insert(
+              baseDir.relativeFilePath(dir.absoluteFilePath(filename)),
+              dir.absoluteFilePath(filename));
+      }
+    }
+  }
+
+  return result;
 }
 
 void ProgrammableOpenWithActionFactory::setRecognizedFilePatterns(
