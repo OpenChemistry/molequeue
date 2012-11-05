@@ -84,6 +84,18 @@ public:
   virtual bool isValidForJob(const Job &job) const = 0;
 
   /**
+   * @return true if this factory's actions should be placed in a submenu. Use
+   * menuText() to get the menu name.
+   */
+  virtual bool useMenu() const;
+
+  /**
+   * @return The text to be used for a submenu containing this factory's items.
+   * Call useMenu() to see if this is required.
+   */
+  virtual QString menuText() const;
+
+  /**
    * @return true if addJobIfValid has been called with any appropriate jobs
    * since the last call to clearJobs().
    */

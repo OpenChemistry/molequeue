@@ -82,6 +82,16 @@ bool JobActionFactory::addJobIfValid(const Job &job)
   return result;
 }
 
+bool JobActionFactory::useMenu() const
+{
+  return false;
+}
+
+QString JobActionFactory::menuText() const
+{
+  return QString();
+}
+
 bool JobActionFactory::hasValidActions() const
 {
   return static_cast<bool>(m_jobs.size());
