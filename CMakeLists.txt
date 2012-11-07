@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 2.8.6 FATAL_ERROR)
 
 project(MoleQueue)
 
+message(FATAL_ERROR "WIP: do not push this change... testing CDash@home build requests...")
+
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
 include(BuildType)
