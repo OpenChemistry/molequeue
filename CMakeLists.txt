@@ -8,6 +8,7 @@ include(BuildType)
 include(BuildLocation)
 include(CompilerFlags)
 include(InstallLocation)
+include(SilenceWarnings)
 
 # Set up our version.
 set(MoleQueue_VERSION_MAJOR   "0")

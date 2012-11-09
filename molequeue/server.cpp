@@ -35,13 +35,13 @@
 namespace MoleQueue
 {
 
-Server::Server(QObject *parentObject, QString serverName)
+Server::Server(QObject *parentObject, QString serverName_)
   : AbstractRpcInterface(parentObject),
     m_jobManager(new JobManager (this)),
     m_queueManager(new QueueManager (this)),
     m_isTesting(false),
     m_moleQueueIdCounter(0),
-    m_serverName(serverName),
+    m_serverName(serverName_),
     m_jobSyncTimer(startTimer(20000)) // 20 seconds
 {
   qRegisterMetaType<ConnectionListener::Error>("ConnectionListener::Error");

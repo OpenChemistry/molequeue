@@ -9,7 +9,7 @@ set(CTEST_CUSTOM_COVERAGE_EXCLUDE
 set(CTEST_CUSTOM_WARNING_EXCEPTION
   ${CTEST_CUSTOM_WARNING_EXCEPTION}
   # We don't care about warnings from third party libraries:
-  "/thirdparty/"
+  ".*thirdparty.*"
   # Nested Qt foreach loops produce this warning:
   "_container_.* shadows a previous local"
   "shadowed declaration is here"

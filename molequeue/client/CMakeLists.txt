@@ -3,7 +3,6 @@ find_package(Qt4 4.8 COMPONENTS QtCore QtNetwork REQUIRED)
 set(sources
   client.cpp
   job.cpp
-  ${qt5json_srcs}
   )
 
 set(headers
