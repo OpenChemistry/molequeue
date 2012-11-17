@@ -58,16 +58,18 @@ bool Client::connectToServer(const QString &serverName)
 
   // New connection.
   if (m_socket == NULL) {
-    if (serverName.isEmpty()) {
-      return false;
-    }
-    else {
-      m_socket = new QLocalSocket(this);
-      m_socket->connectToServer(serverName);
-      connect(m_socket, SIGNAL(readyRead()), this, SLOT(readSocket()));
-      return true;
-    }
+    m_socket = new QLocalSocket(this);
+    connect(m_socket, SIGNAL(readyRead()), this, SLOT(readSocket()));
   }
+
+  if (serverName.isEmpty()) {
+    return false;
+  }
+  else {
+    m_socket->connectToServer(serverName);
+    return isConnected();
+  }
+
   return false;
 }
 
