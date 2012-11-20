@@ -71,11 +71,8 @@ foreach(test ${MyTests})
   add_executable(${test}test MACOSX_BUNDLE ${test}test.cpp)
   set_target_properties(${test}test PROPERTIES AUTOMOC TRUE)
   target_link_libraries(${test}test
-    molequeue_static
     ${QT_LIBRARIES}
     mqlocalsocketconnection
-    MoleQueueClient
-    mqconnection
     testutils
     )
   add_test(NAME molequeue-${test} COMMAND ${test}test)

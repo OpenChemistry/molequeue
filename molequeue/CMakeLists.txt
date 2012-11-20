@@ -181,6 +181,10 @@ if(MoleQueue_BUILD_APPLICATION)
     target_link_libraries(molequeue_static kdsoap)
   endif()
 
+  if(MoleQueue_BUILD_CLIENT)
+    target_link_libraries(molequeue_static MoleQueueClient)
+  endif()
+
   add_executable(molequeue MACOSX_BUNDLE main.cpp ${rcc_srcs})
   target_link_libraries(molequeue
     molequeue_static
