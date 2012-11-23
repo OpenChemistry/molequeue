@@ -6,20 +6,20 @@ import molequeue
 
 class TestClient(unittest.TestCase):
 
-  def test_submit_job_request(self):
+  def test_submit_job(self):
     client = molequeue.Client()
     client.connect_to_server('MoleQueue')
 
-    job_request = molequeue.JobRequest()
-    job_request.queue = 'salix'
-    job_request.program = 'sleep (testing)'
+    job = molequeue.Job()
+    job.queue = 'salix'
+    job.program = 'sleep (testing)'
 
     file_path = molequeue.FilePath()
     file_path.path = "/tmp/test"
 
-    job_request.input_file = file_path
+    job.input_file = file_path
 
-    molequeue_id = client.submit_job_request(job_request)
+    molequeue_id = client.submit_job(job)
 
     print "MoleQueue ID: ", molequeue_id
 
@@ -41,11 +41,11 @@ class TestClient(unittest.TestCase):
     client.register_notification_callback(callback)
     client.register_notification_callback(callback)
 
-    job_request = molequeue.JobRequest()
-    job_request.queue = 'salix'
-    job_request.program = 'sleep (testing)'
+    job = molequeue.Job()
+    job.queue = 'salix'
+    job.program = 'sleep (testing)'
 
-    molequeue_id = client.submit_job_request(job_request)
+    molequeue_id = client.submit_job(job)
 
     # wait for notification
     time.sleep(1)
@@ -69,32 +69,32 @@ class TestClient(unittest.TestCase):
     client = molequeue.Client()
     client.connect_to_server('MoleQueue')
 
-    expected_job_request = molequeue.JobRequest()
-    expected_job_request.queue = 'salix'
-    expected_job_request.program = 'sleep (testing)'
-    expected_job_request.description = 'This is a test job'
-    expected_job_request.hide_from_gui = True
-    expected_job_request.popup_on_state_change = False
+    expected_job = molequeue.Job()
+    expected_job.queue = 'salix'
+    expected_job.program = 'sleep (testing)'
+    expected_job.description = 'This is a test job'
+    expected_job.hide_from_gui = True
+    expected_job.popup_on_state_change = False
 
     file_contents = molequeue.FileContents()
     file_contents.filename = 'test.in'
     file_contents.contents = 'Hello'
-    expected_job_request.input_file = file_contents
+    expected_job.input_file = file_contents
 
-    molequeue_id = client.submit_job_request(expected_job_request)
+    molequeue_id = client.submit_job(expected_job)
 
-    jobrequest = client.lookup_job(molequeue_id)
+    job = client.lookup_job(molequeue_id)
 
-    self.assertEqual(molequeue_id, jobrequest.molequeue_id())
-    self.assertEqual(jobrequest.job_state(), molequeue.JobState.ACCEPTED)
-    self.assertEqual(jobrequest.queue_id(), None)
-    self.assertEqual(jobrequest.queue, expected_job_request.queue)
-    self.assertEqual(jobrequest.program, expected_job_request.program)
-    self.assertEqual(jobrequest.description, expected_job_request.description)
-    self.assertEqual(jobrequest.hide_from_gui,
-                     expected_job_request.hide_from_gui)
-    self.assertEqual(jobrequest.popup_on_state_change,
-                     expected_job_request.popup_on_state_change)
+    self.assertEqual(molequeue_id, job.molequeue_id())
+    self.assertEqual(job.job_state(), molequeue.JobState.ACCEPTED)
+    self.assertEqual(job.queue_id(), None)
+    self.assertEqual(job.queue, expected_job.queue)
+    self.assertEqual(job.program, expected_job.program)
+    self.assertEqual(job.description, expected_job.description)
+    self.assertEqual(job.hide_from_gui,
+                     expected_job.hide_from_gui)
+    self.assertEqual(job.popup_on_state_change,
+                     expected_job.popup_on_state_change)
 
     client.disconnect()
 

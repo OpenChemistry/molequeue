@@ -19,16 +19,16 @@ class JsonRpc:
     return json.dumps(request)
 
   @staticmethod
-  def json_to_jobrequest(json):
-    jobrequest = molequeue.JobRequest()
-    # convert response into JobRequest object
+  def json_to_job(json):
+    job = molequeue.Job()
+    # convert response into Job object
     for key, value in json['result'].iteritems():
       field = camelcase_to_underscore(key)
       if key in JsonRpc.INTERNAL_FIELDS:
         field = '_' + field
-      jobrequest.__dict__[field] = value
+      job.__dict__[field] = value
 
-    return jobrequest
+    return job
 
   @staticmethod
   def json_to_queues(json):
@@ -43,10 +43,10 @@ class JsonRpc:
     return queues;
 
   @staticmethod
-  def object_to_json_params(jobrequest):
+  def object_to_json_params(job):
     params = {}
 
-    for key, value in jobrequest.__dict__.iteritems():
+    for key, value in job.__dict__.iteritems():
       field = underscore_to_camelcase(key)
 
       if type(value) == types.InstanceType:
