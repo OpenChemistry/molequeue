@@ -87,7 +87,7 @@ class TestClient(unittest.TestCase):
 
     self.assertEqual(molequeue_id, jobrequest.molequeue_id())
     self.assertEqual(jobrequest.job_state(), molequeue.JobState.ACCEPTED)
-    self.assertTrue(isinstance(jobrequest.queue_id(), int))
+    self.assertEqual(jobrequest.queue_id(), None)
     self.assertEqual(jobrequest.queue, expected_job_request.queue)
     self.assertEqual(jobrequest.program, expected_job_request.program)
     self.assertEqual(jobrequest.description, expected_job_request.description)
