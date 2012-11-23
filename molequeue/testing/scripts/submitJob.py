@@ -38,12 +38,12 @@ def run_test():
 
   molequeue_ids = []
   for i in range(num_jobs):
-    job = mq.JobRequest()
+    job = mq.Job()
     job.queue   = "TestQueue"
     job.program = "TestProgram"
     job.description = "Test job %d from python client %s"%(i+1, clientId)
     job.popup_on_state_change = False
-    molequeue_id = client.submit_job_request(job, 30)
+    molequeue_id = client.submit_job(job, 30)
     molequeue_ids.append(molequeue_id)
     if molequeue_id == None:
       # Timeout

@@ -49,7 +49,7 @@ class FileContents:
     self.filename = None
     self.contents = None
 
-class JobRequest:
+class Job:
   def __init__(self):
     self.queue = None
     self.program = None
@@ -94,13 +94,13 @@ class MoleQueueException(Exception):
   """The base class of all MoleQueue exceptions """
   pass
 
-class JobRequestException(MoleQueueException):
+class JobException(MoleQueueException):
   def __init__(self, packet_id, code, message):
     self.packet_id = packet_id
     self.code = code
     self.message = message
 
-class JobRequestInformationException(MoleQueueException):
+class JobInformationException(MoleQueueException):
   def __init__(self, packet_id, data, code, message):
     self.packet_id = packet_id
     self.data = data
@@ -162,7 +162,7 @@ class Client:
 
     return queues
 
-  def submit_job_request(self, request, timeout=None):
+  def submit_job(self, request, timeout=None):
     params = JsonRpc.object_to_json_params(request)
     packet_id = self._next_packet_id()
 
@@ -179,9 +179,9 @@ class Client:
 
     # if we an error occurred then throw an exception
     if 'error' in response:
-      exception = JobRequestException(response['id'],
-                                      response['error']['code'],
-                                      response['error']['message'])
+      exception = JobException(response['id'],
+                               response['error']['code'],
+                               response['error']['message'])
       raise exception
 
     # otherwise return the molequeue id
@@ -209,15 +209,15 @@ class Client:
 
     # if we an error occurred then throw an exception
     if 'error' in response:
-      exception = JobRequestInformationException(response['id'],
-                                                 response['error']['data'],
-                                                 response['error']['code'],
-                                                 response['error']['message'])
+      exception = JobInformationException(response['id'],
+                                          response['error']['data'],
+                                          response['error']['code'],
+                                          response['error']['message'])
       raise exception
 
-    jobrequest = JsonRpc.json_to_jobrequest(response)
+    job = JsonRpc.json_to_job(response)
 
-    return jobrequest
+    return job
 
 
   def _on_response(self, packet_id, msg):

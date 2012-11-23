@@ -1,2 +1,2 @@
-from client import Client, JobRequest, JobState, JobRequestException, \
-FilePath, FileContents, Queue
+from client import Client, Job, JobState, JobException, \
+FilePath, FileContents, Queue, JobInformationException
