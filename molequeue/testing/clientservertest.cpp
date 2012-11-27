@@ -168,6 +168,7 @@ void ClientServerTest::initTestCase()
            << m_moleQueueDefaultArgs.join(" ");
   m_serverProcess->start(m_moleQueueExecutable, m_moleQueueDefaultArgs);
   QVERIFY(m_serverProcess->waitForStarted(10*1000));
+  QTest::qSleep(1 * 1000); // Wait one second for server to start
 }
 
 void ClientServerTest::cleanupTestCase()
