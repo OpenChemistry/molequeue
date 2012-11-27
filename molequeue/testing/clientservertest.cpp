@@ -42,6 +42,10 @@ public:
       m_moleQueueExecutable(MoleQueue_BINARY_DIR "/bin/molequeue"),
       m_serverProcess(NULL)
   {
+#ifdef __APPLE__
+    m_moleQueueExecutable = MoleQueue_BINARY_DIR "/bin/molequeue.app/Contents/"
+        "MacOS/molequeue"
+#endif // __APPLE__
     randomizeSocketName();
   }
 
