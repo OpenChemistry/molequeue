@@ -11,6 +11,7 @@ endif()
 find_package(Qt4 4.8.0 COMPONENTS ${qt_components})
 include(${QT_USE_FILE})
 
+set(MoleQueue_HAS_ZMQ ${USE_ZERO_MQ})
 set(MoleQueue_TESTDATA_DIR "${MoleQueue_SOURCE_DIR}/molequeue/testing/data/")
 set(MoleQueue_TESTSCRIPT_DIR "${MoleQueue_SOURCE_DIR}/molequeue/testing/scripts/")
 set(MoleQueue_TESTEXEC_DIR "${MoleQueue_BINARY_DIR}/bin/")
@@ -55,7 +56,7 @@ set(MyTests
   )
 
 # This test is currently only configured to run on unix
-if(USE_ZERO_MQ AND NOT WIN32)
+if(NOT WIN32)
   list(APPEND MyTests clientserver)
 endif()
 

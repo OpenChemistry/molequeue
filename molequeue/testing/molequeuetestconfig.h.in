@@ -12,6 +12,9 @@
 /* Path to python 2.x executable, if available. */
 #cmakedefine MoleQueue_PYTHON_EXECUTABLE "@MoleQueue_PYTHON_EXECUTABLE@"
 
+/* Whether the build has ZeroMQ enabled. */
+#cmakedefine MoleQueue_HAS_ZMQ
+
 /* Location of the MoleQueue sources. */
 #cmakedefine MoleQueue_SOURCE_DIR "@MoleQueue_SOURCE_DIR@"
 
