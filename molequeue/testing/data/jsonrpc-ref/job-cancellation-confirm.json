@@ -1,5 +1,7 @@
 {
    "id" : "15",
    "jsonrpc" : "2.0",
-   "result" : 18
+   "result" : {
+      "moleQueueId" : 18
+   }
 }

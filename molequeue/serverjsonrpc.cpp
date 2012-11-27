@@ -57,7 +57,10 @@ PacketType ServerJsonRpc::generateJobCancellationConfirmation(
 {
   Json::Value packet = generateEmptyResponse(packetId);
 
-  packet["result"] = moleQueueId;
+  Json::Value result = Json::Value(Json::objectValue);
+  result["moleQueueId"] = moleQueueId;
+
+  packet["result"] = result;
 
   Json::StyledWriter writer;
   std::string ret_stdstr = writer.write(packet);
@@ -72,9 +75,12 @@ PacketType ServerJsonRpc::generateJobCancellationError(
 {
   Json::Value packet = generateEmptyError(packetId);
 
+  Json::Value data = Json::Value(Json::objectValue);
+  data["moleQueueId"] = moleQueueId;
+
   packet["error"]["code"]    = errorCode;
   packet["error"]["message"] = message.toStdString();
-  packet["error"]["data"]    = moleQueueId;
+  packet["error"]["data"]    = data;
 
   Json::StyledWriter writer;
   std::string ret_stdstr = writer.write(packet);
@@ -90,12 +96,18 @@ ServerJsonRpc::generateLookupJobResponse(const Job &req,
 {
   Json::Value packet;
 
+
   if (!req.isValid()) {
     packet = generateEmptyError(packetId);
+
     Json::Value errorObject(Json::objectValue);
     errorObject["message"] = "Unknown MoleQueue ID";
     errorObject["code"] = 0;
-    errorObject["data"] = moleQueueId;
+
+    Json::Value data = Json::Value(Json::objectValue);
+    data["moleQueueId"] = moleQueueId;
+    errorObject["data"] = data;
+
     packet["error"] = errorObject;
   }
   else {
