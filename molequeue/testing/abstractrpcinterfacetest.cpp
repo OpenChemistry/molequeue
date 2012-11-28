@@ -82,8 +82,7 @@ void AbstractRpcInterfaceTest::initTestCase()
   connect(m_connection, SIGNAL(newMessage(const MoleQueue::Message)),
           m_rpc, SLOT(readMessage(MoleQueue::Message)));
 
-  // Let the event loop run a bit to handle the connections
-  qApp->processEvents(QEventLoop::AllEvents, 1000);
+  QVERIFY2(m_server->waitForConnection(), "Server connection failed to start");
 }
 
 void AbstractRpcInterfaceTest::cleanupTestCase()
