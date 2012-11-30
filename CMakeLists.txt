@@ -46,6 +46,10 @@ if(BUILD_DOCUMENTATION)
   add_subdirectory(docs)
 endif()
 
+if(USE_ZERO_MQ)
+  add_subdirectory(python)
+endif()
+
 include(CPack)
 
 if(ENABLE_TESTING)
