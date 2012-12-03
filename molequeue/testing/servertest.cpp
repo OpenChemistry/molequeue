@@ -161,8 +161,14 @@ void ServerTest::testNewConnection()
   m_server->stop();
   m_server->start();
 
+  int origConns = m_server->m_connections.size();
   m_testSocket.connectToServer(m_connectionString);
-  qApp->processEvents(QEventLoop::AllEvents, 1000);
+  // Wait 5 seconds for a timeout.
+  QTimer timer;
+  timer.setSingleShot(true);
+  timer.start(5000);
+  while (timer.isActive() && m_server->m_connections.size() == origConns)
+    qApp->processEvents(QEventLoop::AllEvents, 1000);
   QCOMPARE(m_testSocket.state(), QLocalSocket::ConnectedState);
 
   // Check that we've received the connections
@@ -182,8 +188,14 @@ void ServerTest::testClientDisconnected()
   QCOMPARE(m_server->m_connections.size(), 1);
 #endif
 
+  int origConns = m_server->m_connections.size();
   m_testSocket.disconnectFromServer();
-  qApp->processEvents(QEventLoop::AllEvents, 1000);
+  // Wait 5 seconds for a timeout.
+  QTimer timer;
+  timer.setSingleShot(true);
+  timer.start(5000);
+  while (timer.isActive() && m_server->m_connections.size() == origConns)
+    qApp->processEvents(QEventLoop::AllEvents, 1000);
 
 #ifdef USE_ZERO_MQ
   // The zero mq socket will be left ...
