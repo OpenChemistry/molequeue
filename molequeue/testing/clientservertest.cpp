@@ -24,6 +24,13 @@
 #include <QtCore/QProcess>
 #include <QtCore/QProcessEnvironment>
 
+// Define ENABLE_ZMQ_TESTS if both zeromq and python are available
+#ifndef MoleQueue_PYTHON_EXECUTABLE
+#ifndef MoleQueue_HAS_ZMQ
+#define ENABLE_ZMQ_TESTS
+#endif // MoleQueue_HAS_ZMQ
+#endif // MoleQueue_PYTHON_EXECUTABLE
+
 class ClientServerTest : public QObject
 {
   Q_OBJECT
@@ -35,6 +42,10 @@ public:
       m_moleQueueExecutable(MoleQueue_BINARY_DIR "/bin/molequeue"),
       m_serverProcess(NULL)
   {
+#ifdef __APPLE__
+    m_moleQueueExecutable = MoleQueue_BINARY_DIR "/bin/molequeue.app/Contents/"
+        "MacOS/molequeue";
+#endif // __APPLE__
     randomizeSocketName();
   }
 
@@ -61,11 +72,11 @@ private:
   /// Create a Cxx client process
   QProcess *addClientProcess();
 
-#ifdef MoleQueue_PYTHON_EXECUTABLE
+#ifdef ENABLE_ZMQ_TESTS
   /// Create a client process initialized for python. The process is returned
   /// and added to m_clientProcesses.
   QProcess *addPythonClientProcess();
-#endif // MoleQueue_PYTHON_EXECUTABLE
+#endif // ENABLE_ZMQ_TESTS
 
 private slots:
   /// Called before the first test function is executed.
@@ -78,11 +89,11 @@ private slots:
   void cleanup();
 
   // Python client tests:
-#ifdef MoleQueue_PYTHON_EXECUTABLE
+#ifdef ENABLE_ZMQ_TESTS
   void submitOnePy();
   void submit200Py();
   void submit200FromManyClientsPy();
-#endif // MoleQueue_PYTHON_EXECUTABLE
+#endif // ENABLE_ZMQ_TESTS
 };
 
 
@@ -134,7 +145,7 @@ QProcess *ClientServerTest::addClientProcess()
   return clientProcess;
 }
 
-#ifdef MoleQueue_PYTHON_EXECUTABLE
+#ifdef ENABLE_ZMQ_TESTS
 QProcess *ClientServerTest::addPythonClientProcess()
 {
   QProcess *clientProcess = addClientProcess();
@@ -146,7 +157,7 @@ QProcess *ClientServerTest::addPythonClientProcess()
   clientProcess->setProcessEnvironment(env);
   return clientProcess;
 }
-#endif // MoleQueue_PYTHON_EXECUTABLE
+#endif // ENABLE_ZMQ_TESTS
 
 void ClientServerTest::initTestCase()
 {
@@ -161,6 +172,7 @@ void ClientServerTest::initTestCase()
            << m_moleQueueDefaultArgs.join(" ");
   m_serverProcess->start(m_moleQueueExecutable, m_moleQueueDefaultArgs);
   QVERIFY(m_serverProcess->waitForStarted(10*1000));
+  QTest::qSleep(1 * 1000); // Wait one second for server to start
 }
 
 void ClientServerTest::cleanupTestCase()
@@ -207,7 +219,7 @@ void ClientServerTest::cleanup()
   m_clientProcesses.clear();
 }
 
-#ifdef MoleQueue_PYTHON_EXECUTABLE
+#ifdef ENABLE_ZMQ_TESTS
 void ClientServerTest::submitOnePy()
 {
   // Setup client process
@@ -297,7 +309,7 @@ void ClientServerTest::submit200FromManyClientsPy()
     QCOMPARE(cliProc->exitCode(), 0);
   }
 }
-#endif // MoleQueue_PYTHON_EXECUTABLE
+#endif // ENABLE_ZMQ_TESTS
 QTEST_MAIN(ClientServerTest)
 
 #include "clientservertest.moc"

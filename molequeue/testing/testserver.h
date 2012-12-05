@@ -53,6 +53,17 @@ public:
     m_socket->flush();
   }
 
+  bool waitForConnection(int timeout_ms = 5000)
+  {
+    QTimer timer;
+    timer.setSingleShot(true);
+    timer.start(timeout_ms);
+    while (timer.isActive() && m_socket == NULL) {
+      qApp->processEvents(QEventLoop::AllEvents, 500);
+    }
+    return m_socket != NULL;
+  }
+
   bool waitForPacket(int timeout_ms = 5000)
   {
     QTimer timer;
