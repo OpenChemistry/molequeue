@@ -242,7 +242,8 @@ public:
   QString lookupKeywordReplacement(const QString &keyword) const;
 
   /// Apply the replacements in the keywords() hash to the @a script.
-  void replaceLaunchScriptKeywords(QString &launchScript) const;
+  /// @note Do not call this directly, use Queue::replaceKeywords instead.
+  void replaceKeywords(QString &launchScript) const;
 };
 
 } // end namespace MoleQueue

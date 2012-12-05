@@ -56,7 +56,7 @@ private slots:
   void testProgramNames();
   void testRemoveProgram();
   void testCleanup();
-  void testReplaceLaunchScriptKeywords();
+  void testReplaceKeywords();
 };
 
 void QueueTest::initTestCase()
@@ -148,34 +148,34 @@ void QueueTest::testCleanup()
   QCOMPARE(program.data(), static_cast<MoleQueue::Program*>(NULL));
 }
 
-void QueueTest::testReplaceLaunchScriptKeywords()
+void QueueTest::testReplaceKeywords()
 {
   QString script = "$$moleQueueId$$\n";
   MoleQueue::JobManager jobManager;
   MoleQueue::Job job = jobManager.newJob();
   DummyQueue queue;
-  queue.replaceLaunchScriptKeywords(script, job);
+  queue.replaceKeywords(script, job);
   QCOMPARE(script, QString("%1\n")
            .arg(MoleQueue::idTypeToString(job.moleQueueId())));
 
   script = "$$numberOfCores$$\n";
   job.setNumberOfCores(32);
-  queue.replaceLaunchScriptKeywords(script, job);
+  queue.replaceKeywords(script, job);
   QCOMPARE(script, QString("%1\n").arg(job.numberOfCores()));
 
   script = "Ain't no newline!";
-  queue.replaceLaunchScriptKeywords(script, job);
+  queue.replaceKeywords(script, job);
   QCOMPARE(script, QString("Ain't no newline!\n"));
 
   // Job specific keywords:
   job.setKeywordReplacement("Failure", "Success");
   script = "$$Failure$$\n";
-  queue.replaceLaunchScriptKeywords(script, job);
+  queue.replaceKeywords(script, job);
   QCOMPARE(script, QString("Success\n"));
 
   // Unhandled keywords:
   script = "$$aTerriblyLongKeywordThatYouWontRememberAnddWilLieklyMissspel$$\n";
-  queue.replaceLaunchScriptKeywords(script, job);
+  queue.replaceKeywords(script, job);
   QCOMPARE(script, QString("\n"));
 }
 

@@ -75,9 +75,9 @@ public:
    */
   int defaultMaxWallTime() const { return m_defaultMaxWallTime; }
 
-  /// Reimplemented from Queue::replaceLaunchScriptKeywords
-  void replaceLaunchScriptKeywords(QString &launchScript, const Job &job,
-                                   bool addNewline = true);
+  /// Reimplemented from Queue::replaceKeywords
+  void replaceKeywords(QString &launchScript, const Job &job,
+                       bool addNewline = true);
 
 public slots:
 

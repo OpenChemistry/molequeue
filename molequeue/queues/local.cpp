@@ -352,6 +352,8 @@ bool QueueLocal::startJob(IdType moleQueueId)
     return false;
   }
 
+  FileSpecification inputFileSpec(job.inputFile());
+
   // Create and setup process
   QProcess *proc = new QProcess (this);
   QDir dir (job.localWorkingDirectory());
@@ -380,18 +382,26 @@ bool QueueLocal::startJob(IdType moleQueueId)
   case Program::PLAIN:
     break;
   case Program::INPUT_ARG:
-    arguments << program->inputFilename();
+    arguments << inputFileSpec.filename();
     break;
   case Program::INPUT_ARG_NO_EXT:
-    arguments << program->inputFilenameNoExtension();
+    arguments << inputFileSpec.fileBaseName();
     break;
   case Program::REDIRECT:
-    proc->setStandardInputFile(dir.absoluteFilePath(program->inputFilename()));
-    proc->setStandardOutputFile(dir.absoluteFilePath(program->outputFilename()));
+  {
+    proc->setStandardInputFile(dir.absoluteFilePath(inputFileSpec.filename()));
+    QString outputFilename(program->outputFilename());
+    replaceKeywords(outputFilename, job, false);
+    proc->setStandardOutputFile(dir.absoluteFilePath(outputFilename));
+  }
     break;
   case Program::INPUT_ARG_OUTPUT_REDIRECT:
-    arguments << program->inputFilename();
-    proc->setStandardOutputFile(dir.absoluteFilePath(program->outputFilename()));
+  {
+    arguments << inputFileSpec.filename();
+    QString outputFilename(program->outputFilename());
+    replaceKeywords(outputFilename, job, false);
+    proc->setStandardOutputFile(dir.absoluteFilePath(outputFilename));
+  }
     break;
   case Program::SYNTAX_COUNT:
   default:
@@ -405,7 +415,7 @@ bool QueueLocal::startJob(IdType moleQueueId)
 
   // Handle any keywords in the arguments
   QString args = arguments.join(" ");
-  replaceLaunchScriptKeywords(args, job, false);
+  replaceKeywords(args, job, false);
 
   proc->start(command + " " + args);
   Logger::logNotification(tr("Executing '%1 %2' in %3", "command, args, dir")

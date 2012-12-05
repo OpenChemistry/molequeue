@@ -22,6 +22,8 @@
 #include <QtCore/QList>
 #include <QtCore/QRegExp>
 
+class QDir;
+
 namespace MoleQueue
 {
 
@@ -87,6 +89,8 @@ public:
   bool isValidForJob(const Job &job) const;
 
 protected:
+  bool scanDirectoryForRecognizedFiles(const QDir &baseDir,
+                                       const QDir &dir) const;
   QList<QRegExp> m_recognizedFilePatterns;
 };
 

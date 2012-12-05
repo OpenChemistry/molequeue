@@ -378,15 +378,18 @@ bool Queue::removeProgram(const QString &programName)
   return true;
 }
 
-void Queue::replaceLaunchScriptKeywords(QString &launchScript, const Job &job,
-                                        bool addNewline)
+void Queue::replaceKeywords(QString &launchScript, const Job &job,
+                            bool addNewline)
 {
-  launchScript.replace("$$moleQueueId$$", idTypeToString(job.moleQueueId()));
+  if (job.isValid()) {
+    if (Program *program = lookupProgram(job.program())) {
+      // This will probably contain other keywords (like inputFileBaseName), so
+      // keep it towards the top of the replacement list.
+      launchScript.replace("$$outputFileName$$", program->outputFilename());
+    }
 
-  launchScript.replace("$$numberOfCores$$",
-                       QString::number(job.numberOfCores()));
-
-  job.replaceLaunchScriptKeywords(launchScript);
+    job.replaceKeywords(launchScript);
+  }
 
   // Remove any unreplaced keywords
   QRegExp expr("[^\\$]?(\\${2,3}[^\\$\\s]+\\${2,3})[^\\$]?");
@@ -442,17 +445,14 @@ bool Queue::writeInputFiles(const Job &job)
 
   // Create input files
   FileSpecification inputFile = job.inputFile();
-  if (!program->inputFilename().isEmpty() && inputFile.isValid()) {
-    /// @todo Allow custom file names, only specify extension in program.
-    /// Use $$basename$$ keyword replacement.
-    inputFile.writeFile(dir, program->inputFilename());
-  }
+  if (inputFile.isValid())
+    inputFile.writeFile(dir);
 
   // Write additional input files
   QList<FileSpecification> additionalInputFiles = job.additionalInputFiles();
   foreach (const FileSpecification &filespec, additionalInputFiles) {
     if (!filespec.isValid()) {
-      Logger::logError(tr("Writing additional input files...invalid FileSpec:\n"
+      Logger::logError(tr("Writing additional input file...invalid FileSpec:\n"
                           "%1").arg(filespec.asJsonString()),
                        job.moleQueueId());
       return false;
@@ -506,7 +506,7 @@ bool Queue::writeInputFiles(const Job &job)
     }
     QString launchString = program->launchTemplate();
 
-    replaceLaunchScriptKeywords(launchString, job);
+    replaceKeywords(launchString, job);
 
     launcherFile.write(launchString.toLatin1());
     if (!launcherFile.setPermissions(

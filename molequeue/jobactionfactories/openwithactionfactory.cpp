@@ -34,23 +34,22 @@
 #include <QtCore/QUrl>
 #include <QtCore/QVariant>
 
-Q_DECLARE_METATYPE(QList<MoleQueue::Job>)
-
 namespace MoleQueue
 {
 
 OpenWithActionFactory::OpenWithActionFactory()
   : JobActionFactory()
 {
-  qRegisterMetaType<QList<Job> >("QList<Job>");
-  m_isMultiJob = true;
+  qRegisterMetaType<Job>("Job");
+  m_isMultiJob = false;
   m_flags |= JobActionFactory::ContextItem;
 }
 
 OpenWithActionFactory::OpenWithActionFactory(const OpenWithActionFactory &other)
   : JobActionFactory(other),
     m_executableFilePath(other.m_executableFilePath),
-    m_executableName(other.m_executableName)
+    m_executableName(other.m_executableName),
+    m_menuText(other.m_menuText)
 {
 }
 
@@ -81,30 +80,38 @@ void OpenWithActionFactory::writeSettings(QSettings &settings) const
   JobActionFactory::writeSettings(settings);
 }
 
+void OpenWithActionFactory::clearJobs()
+{
+  JobActionFactory::clearJobs();
+  m_filenames.clear();
+  m_menuText = QString();
+}
+
+bool OpenWithActionFactory::useMenu() const
+{
+  return true;
+}
+
+QString OpenWithActionFactory::menuText() const
+{
+  return m_menuText;
+}
+
 QList<QAction *> OpenWithActionFactory::createActions()
 {
   QList<QAction*> result;
 
   if (m_attemptedJobAdditions == 1 && m_jobs.size() == 1) {
-    QAction *newAction = new QAction (
-          tr("Open '%1' in %2...").arg(m_jobs.first().description())
-          .arg(m_executableName), NULL);
-    newAction->setData(QVariant::fromValue(m_jobs));
-    connect(newAction, SIGNAL(triggered()), this, SLOT(actionTriggered()));
-    result << newAction;
-  }
-  else if (m_attemptedJobAdditions > 1) {
-    QAction *newAction = new QAction (NULL);
-    if (static_cast<unsigned int>(m_jobs.size()) == m_attemptedJobAdditions)
-      newAction->setText(tr("Open %1 jobs in %2").arg(m_jobs.size())
-                         .arg(m_executableName));
-    else
-      newAction->setText(tr("Open %1 of %2 selected jobs in %3...")
-                         .arg(m_jobs.size()).arg(m_attemptedJobAdditions)
-                         .arg(m_executableName));
-    newAction->setData(QVariant::fromValue(m_jobs));
-    connect(newAction, SIGNAL(triggered()), this, SLOT(actionTriggered()));
-    result << newAction;
+    const Job &job = m_jobs.first();
+    QStringList filenames = m_filenames.keys();
+    m_menuText = tr("Open '%1' in %2").arg(job.description(), m_executableName);
+    foreach (const QString &filename, filenames) {
+      QAction *newAction = new QAction(filename, NULL);
+      newAction->setData(QVariant::fromValue(job));
+      newAction->setProperty("filename", m_filenames.value(filename));
+      connect(newAction, SIGNAL(triggered()), this, SLOT(actionTriggered()));
+      result << newAction;
+    }
   }
 
   return result;
@@ -121,9 +128,14 @@ void OpenWithActionFactory::actionTriggered()
   if (!action)
     return;
 
-  // The sender was a QAction. Is its data a list of jobs?
-  QList<Job> jobs = action->data().value<QList<Job> >();
-  if (!jobs.size())
+  // The sender was a QAction. Is its data a jobs?
+  Job job = action->data().value<Job>();
+  if (!job.isValid())
+    return;
+
+  // Filename was set?
+  QString filename = action->property("filename").toString();
+  if (!QFileInfo(filename).exists())
     return;
 
   QSettings settings;
@@ -165,38 +177,9 @@ void OpenWithActionFactory::actionTriggered()
   settings.setValue("path", m_executableFilePath);
   settings.endGroup();
 
-  // Attempt to lookup program for output filenames
-  QueueManager *queueManager = m_server ? m_server->queueManager() : NULL;
-
-  foreach (const Job &job, jobs) {
-    if (!job.isValid())
-      continue;
-
-    QString outputFile = job.outputDirectory();
-
-    Queue *queue = queueManager ? queueManager->lookupQueue(job.queue())
-                                  : NULL;
-    Program *program = queue ? queue->lookupProgram(job.program()) : NULL;
-
-    if (program) {
-      outputFile = QUrl::fromLocalFile(
-            outputFile + "/" + program->outputFilename()).toLocalFile();
-    }
-
-    // Output file does not exist -- prompt user for which file to open
-    if (!QFile::exists(outputFile)) {
-      outputFile =
-          QFileDialog::getOpenFileName(NULL, tr("Select output file to open in "
-                                                "%1").arg(m_executableName),
-                                       outputFile);
-      // User cancel
-      if (outputFile.isNull())
-        return;
-    }
-
-    // Should be ready to go!
-    QProcess::startDetached(m_executableFilePath + " " + outputFile);
-  }
+  // Should be ready to go!
+  QProcess::startDetached(QString("\"%1\" \"%2\"").arg(m_executableFilePath,
+                                                       filename));
 }
 
 bool OpenWithActionFactory::searchPathForExecutable(const QString &exec)
@@ -205,7 +188,13 @@ bool OpenWithActionFactory::searchPathForExecutable(const QString &exec)
   if (!env.contains("PATH"))
     return false;
 
-  static QRegExp pathSplitter = QRegExp(":");
+  static QRegExp pathSplitter = QRegExp(
+#ifdef WIN32
+        ";"
+#else // WIN32
+        ":"
+#endif// WIN32
+        );
   QStringList paths =
       env.value("PATH").split(pathSplitter, QString::SkipEmptyParts);
 

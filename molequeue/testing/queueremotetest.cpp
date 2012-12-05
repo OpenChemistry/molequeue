@@ -55,7 +55,7 @@ private slots:
   void testFinalizePipeline();
   void testKillPipeline();
   void testQueueUpdate();
-  void testReplaceLaunchScriptKeywords();
+  void testReplaceKeywords();
 };
 
 void QueueRemoteTest::initTestCase()
@@ -69,7 +69,6 @@ void QueueRemoteTest::initTestCase()
   program->setExecutable("");
   program->setUseExecutablePath(false);
   program->setArguments("");
-  program->setInputFilename("input.in");
   program->setOutputFilename("output.out");
   program->setLaunchSyntax(Program::REDIRECT);
   m_queue->addProgram(program);
@@ -117,6 +116,7 @@ void QueueRemoteTest::testSubmitJob()
 {
   // valid job
   Job job = m_server.jobManager()->newJob();
+  job.setInputFile(FileSpecification("input.in", "\n"));
   QVERIFY(m_queue->submitJob(job));
 
   // invalid job
@@ -168,7 +168,7 @@ void QueueRemoteTest::testSubmissionPipeline()
   job.setQueue("Dummy");
   job.setProgram("DummyProgram");
   job.setDescription("DummyJob");
-  job.setInputFile(FileSpecification("file.ext", "do stuff, return answers."));
+  job.setInputFile(FileSpecification("input.in", "do stuff, return answers."));
   job.setOutputDirectory(job.localWorkingDirectory() + "/../output");
   job.setCleanRemoteFiles(true);
   job.setCleanLocalWorkingDirectory(true);
@@ -190,7 +190,7 @@ void QueueRemoteTest::testSubmissionPipeline()
   Program *program = m_queue->lookupProgram(job.program());
   QVERIFY(program != NULL);
   QString inputFileName = job.localWorkingDirectory() + "/"
-      + program->inputFilename();
+      + job.inputFile().filename();
   QVERIFY(QFile::exists(inputFileName));
   QFile inputFile(inputFileName);
   QVERIFY(inputFile.open(QFile::ReadOnly | QFile::Text));
@@ -502,7 +502,7 @@ void QueueRemoteTest::testQueueUpdate()
 
 }
 
-void QueueRemoteTest::testReplaceLaunchScriptKeywords()
+void QueueRemoteTest::testReplaceKeywords()
 {
   // $$maxWallTime$$
   QStringList list;
@@ -514,7 +514,7 @@ void QueueRemoteTest::testReplaceLaunchScriptKeywords()
 
   Job job = m_server.jobManager()->newJob();
   job.setMaxWallTime(-1);
-  m_queue->replaceLaunchScriptKeywords(script, job);
+  m_queue->replaceKeywords(script, job);
   QCOMPARE(script,
            QString("24:00:00 at start\nAt end 24:00:00\n"
                    "In middle 24:00:00 of line\n"));
@@ -531,7 +531,7 @@ void QueueRemoteTest::testReplaceLaunchScriptKeywords()
        << "Safe maxWallTime=$$maxWallTime$$";
   script = list.join("\n");
 
-  m_queue->replaceLaunchScriptKeywords(script, job);
+  m_queue->replaceKeywords(script, job);
   QCOMPARE(script,
            QString("Test first line\nTest third line\nTest fifth line\n"
                    "Test sixth line\nSafe maxWallTime=24:00:00\n"));

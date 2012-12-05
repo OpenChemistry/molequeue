@@ -19,6 +19,8 @@
 
 #include "../jobactionfactory.h"
 
+#include "molequeueglobal.h"
+
 namespace MoleQueue
 {
 
@@ -33,6 +35,7 @@ namespace MoleQueue
  *
  * Subclasses should, at minimum, set m_executableName to the name of the
  * external application in the constructor and reimplement isValidForJob.
+ * See ProgrammableOpenWithActionFactory for an example.
  */
 class OpenWithActionFactory : public JobActionFactory
 {
@@ -53,6 +56,8 @@ public:
    */
   virtual void writeSettings(QSettings &settings) const;
 
+  void clearJobs();
+
   /**
    * Get the absolute path to the executable. May be empty until
    * actionTriggered is called.
@@ -64,26 +69,21 @@ public:
    */
   QString executableName() const { return m_executableName; }
 
-  /**
-   * Return true if the Job @a job can be opened by the application, false
-   * otherwise.
-   */
-  virtual bool isValidForJob(const Job &job) const = 0;
+  bool useMenu() const;
+  QString menuText() const;
 
   /**
    * Return a list of new QActions. The QActions will be preconfigured and must
    * be deleted by the caller.
    *
-   * The default implementation returns a single QAction. The text will be:
-   * - "Open '[job description]' in [executable name]..." if only one job was
-   *   shown to addJobIfValid.
-   * - "Open [m_jobs.size()] jobs in [executable name]..." if several jobs were
-   *   shown to addJobIfValid and all of them were accepted.
-   * - "Open [m_jobs.size()] of [m_attemptedJobAdditions] in
-   *   [executable name]..." if several jobs were shown to addJobIfValid and
-   *   some were rejected.
+   * The default implementation returns a QAction for each filename that the
+   * executable can handle. The text of the action will be the filename, and
+   * will be placed in a submenu with text
+   * "Open ['job description]' in [executable name]..."
    *
    * The QVariant data member of the action is set to the list of accepted job.
+   *
+   * The action's "filename" property contains the absolute path to the file.
    *
    * The QAction::triggered() signal is connected to the actionTriggered slot
    * of the factory. See that functions documentation for details its default
@@ -110,7 +110,8 @@ protected slots:
    * An outline of this function's behavior:
    *
    * -# Check that sender() is a QAction
-   * -# Extract the list of Job pointers from the sender's QVariant data.
+   * -# Extract the Job from the sender's QVariant data.
+   * -# Extract the filename from the sender's dynamic properties.
    * -# Set m_executableFilePath using the following methods, until one finds a
    *    file that both exists and is executable:
    *    -# Check QSettings "ActionFactory/OpenWith/path/[executable name]" path
@@ -118,13 +119,8 @@ protected slots:
    *    -# Search the locations in the PATH environment variable for the
    *       executable.
    *    -# Ask the user to specify the location of the executable.
-   * -# For each job in the sender's data list:
-   *    -# Check that the filename (as determined by Job::outputDirectory() and
-   *       Program::outputFilename()) refers to an existing file.
-   *       -# If the file does not exist or the job's Program is no longer
-   *          valid, ask the user which file in Job::outputDirectory() to open.
-   *    -# Call "[m_executableFilePath] [absolute path to output file]" via
-   *       QProcess::startDetached().
+   *  -# Call "[m_executableFilePath] [filename]" via
+   *     QProcess::startDetached().
    */
   virtual void actionTriggered();
 
@@ -134,6 +130,9 @@ protected:
 
   QString m_executableFilePath;
   QString m_executableName;
+  // display text, absolute file path
+  mutable QMap<QString, QString> m_filenames;
+  QString m_menuText;
 };
 
 } // end namespace MoleQueue
