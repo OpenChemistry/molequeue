@@ -240,6 +240,7 @@ QJsonValue &QJsonValue::operator =(const QJsonValue &other)
 
     t = other.t;
     dbl = other.dbl;
+    stringValue = other.stringValue;
 
     if (d != other.d) {
 
