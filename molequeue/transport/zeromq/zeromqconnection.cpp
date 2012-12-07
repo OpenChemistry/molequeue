@@ -22,7 +22,6 @@
 namespace MoleQueue
 {
 
-
 const QString ZeroMqConnection::zeroMqPrefix = "zmq";
 
 ZeroMqConnection::ZeroMqConnection(QObject *parentObject,
@@ -93,46 +92,6 @@ QString ZeroMqConnection::connectionString() const
   return m_connectionString;
 }
 
-void ZeroMqConnection::send(const Message &msg)
-{
-  zmq::message_t message(msg.data().size());
-  memcpy(message.data(), msg.data().constData(), msg.data().size());
-  bool rc;
-
-  // If on the server side send the endpoint id first
-  if (m_socketType == ZMQ_ROUTER) {
-    zmq::message_t identity(msg.endpoint().size());
-    memcpy(identity.data(), msg.endpoint().data(), msg.endpoint().size());
-    try {
-     rc  = m_socket->send(identity, ZMQ_SNDMORE | ZMQ_NOBLOCK);
-    }
-    catch (zmq::error_t e) {
-      qWarning("zmq exception during endpoint send: Error %d: %s",
-               e.num(), e.what());
-      return;
-    }
-
-    if (!rc) {
-      qWarning() << "zmq_send failed with EAGAIN";
-      return;
-    }
-  }
-
-  // Send message body
-  try {
-    rc = m_socket->send(message, ZMQ_NOBLOCK);
-  }
-  catch (zmq::error_t e) {
-    qWarning("zmq exception during message send: Error %d: %s",
-             e.num(), e.what());
-    return;
-  }
-
-  if (!rc) {
-    qWarning() << "zmq_send failed with EAGAIN";
-  }
-}
-
 void ZeroMqConnection::listen()
 {
   if (m_listening) {
@@ -179,10 +138,8 @@ bool ZeroMqConnection::dealerReceive()
   zmq::message_t message;
   if(m_socket->recv(&message, ZMQ_NOBLOCK)) {
     int size = message.size();
-    PacketType messageBuffer(static_cast<char*>(message.data()), size);
-    Message msg(this, EndpointIdType(), messageBuffer);
-
-    emit newMessage(msg);
+    PacketType packet(static_cast<char*>(message.data()), size);
+    emit packetReceived(packet, EndpointIdType());
     return true;
   }
   return false;
@@ -202,15 +159,56 @@ bool ZeroMqConnection::routerReceive()
       return true;
     }
 
-    size = message.size();
-    PacketType packet(static_cast<char*>(message.data()), size);
+    PacketType packet(static_cast<char*>(message.data()), message.size());
 
-    Message msg(this, replyTo, packet);
+    emit packetReceived(packet, replyTo);
 
-    emit newMessage(msg);
     return true;
   }
   return false;
+}
+
+bool MoleQueue::ZeroMqConnection::send(const MoleQueue::PacketType &packet,
+                                       const MoleQueue::EndpointIdType &endpoint)
+{
+  zmq::message_t zmqMessage(packet.size());
+  memcpy(zmqMessage.data(), packet.constData(), packet.size());
+  bool rc;
+
+  // If on the server side send the endpoint id first
+  if (m_socketType == ZMQ_ROUTER) {
+    zmq::message_t identity(endpoint.size());
+    memcpy(identity.data(), endpoint.data(), endpoint.size());
+    try {
+     rc  = m_socket->send(identity, ZMQ_SNDMORE | ZMQ_NOBLOCK);
+    }
+    catch (zmq::error_t e) {
+      qWarning("zmq exception during endpoint send: Error %d: %s",
+               e.num(), e.what());
+      return false;
+    }
+
+    if (!rc) {
+      qWarning() << "zmq_send failed with EAGAIN";
+      return false;
+    }
+  }
+
+  // Send message body
+  try {
+    rc = m_socket->send(zmqMessage, ZMQ_NOBLOCK);
+  }
+  catch (zmq::error_t e) {
+    qWarning("zmq exception during message send: Error %d: %s",
+             e.num(), e.what());
+    return false;
+  }
+
+  if (!rc) {
+    qWarning() << "zmq_send failed with EAGAIN";
+    return false;
+  }
+  return true;
 }
 
 } /* namespace MoleQueue */

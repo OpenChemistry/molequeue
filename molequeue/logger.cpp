@@ -23,7 +23,10 @@
 #include <QtCore/QFile>
 #include <QtCore/QSettings>
 
-#include <json/json.h>
+#include <qjsonarray.h>
+#include <qjsondocument.h>
+#include <qjsonobject.h>
+#include <qjsonvalue.h>
 
 namespace MoleQueue
 {
@@ -60,19 +63,34 @@ Logger::Logger() :
     QByteArray logData = lfile->readAll();
     lfile->close();
 
-    Json::Value root;
-    Json::Reader reader;
-    reader.parse(logData.constData(), logData.constData() + logData.size(),
-                 root);
+    QJsonParseError error;
+    QJsonDocument doc = QJsonDocument::fromJson(logData, &error);
+    if (error.error != QJsonParseError::NoError) {
+      qWarning() << "MoleQueue::Logger::~Logger() -- Error parsing log file"
+                 << lfile->fileName() << ":" << error.errorString()
+                 << "(at offset" << error.offset << ").";
+      return;
+    }
 
-    if (root["maxEntries"].isIntegral())
-      m_maxEntries = root["maxEntries"].asInt();
+    if (!doc.isObject()) {
+      qWarning() << "MoleQueue::Logger::~Logger() -- Error parsing log file"
+                 << lfile->fileName() << ": Invalid format, expected JSON "
+                    "object at top level.";
+      return;
+    }
 
-    const Json::Value &entries = root["entries"];
-    if (entries.isArray()) {
-      for (Json::ValueIterator it = entries.begin(), it_end = entries.end();
-           it != it_end; ++it) {
-        m_log.push_back(LogEntry(*it));
+    QJsonObject logObject = doc.object();
+
+    if (logObject.value("maxEntries").isDouble()) {
+      m_maxEntries =
+          static_cast<int>(logObject.value("maxEntries").toDouble() + 0.5);
+    }
+
+    if (logObject.value("entries").isArray()) {
+      const QJsonArray &entries = logObject.value("entries").toArray();
+      foreach (QJsonValue val, entries) {
+        if (val.isObject())
+          m_log.push_back(LogEntry(val.toObject()));
       }
     }
   } // end if (lfile)
@@ -90,18 +108,18 @@ Logger::~Logger()
       return;
     }
 
-    Json::Value root(Json::objectValue);
-    root["maxEntries"] = m_maxEntries;
+    QJsonObject root;
+    root.insert("maxEntries", static_cast<double>(m_maxEntries));
 
-    Json::Value entriesArray(Json::arrayValue);
+    QJsonArray entriesArray;
     foreach(const LogEntry &entry, m_log) {
-      Json::Value entryObject(Json::objectValue);
+      QJsonObject entryObject;
       entry.writeSettings(entryObject);
       entriesArray.append(entryObject);
     }
-    root["entries"] = entriesArray;
+    root.insert("entries", entriesArray);
 
-    lfile->write(root.toStyledString().c_str());
+    lfile->write(QJsonDocument(root).toJson());
     lfile->close();
 
     QSettings settings;

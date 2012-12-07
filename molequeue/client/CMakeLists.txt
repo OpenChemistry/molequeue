@@ -12,7 +12,7 @@ set(headers
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
-add_library(MoleQueueClient ${sources} ${jsoncpp_srcs})
+add_library(MoleQueueClient ${sources})
 set_target_properties(MoleQueueClient PROPERTIES AUTOMOC TRUE)
 target_link_libraries(MoleQueueClient
   ${QT_QTCORE_LIBRARY}

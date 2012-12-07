@@ -80,7 +80,7 @@ void JobManagerTest::testJobAboutToBeAdded()
   m_jobManager.newJob();
   QCOMPARE(spy.count(), 1);
 
-  m_jobManager.newJob(m_jobManager.jobAt(m_jobManager.count()-1).hash());
+  m_jobManager.newJob(m_jobManager.jobAt(m_jobManager.count()-1).toJsonObject());
   QCOMPARE(spy.count(), 2);
 }
 

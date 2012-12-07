@@ -1,0 +1,8 @@
+{
+    "id": 104,
+    "jsonrpc": "2.0",
+    "method": "cancelJob",
+    "params": {
+        "moleQueueId": 335
+    }
+}

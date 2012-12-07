@@ -21,9 +21,12 @@
 #include "logger.h"
 #include "queue.h"
 #include "queuemanager.h"
-#include "serverjsonrpc.h"
 #include "pluginmanager.h"
 #include "transport/connectionlistenerfactory.h"
+
+#include <qjsonarray.h>
+#include <qjsonobject.h>
+#include <qjsonvalue.h>
 
 #include <QtCore/QCoreApplication>
 #include <QtCore/QDateTime>
@@ -36,21 +39,20 @@ namespace MoleQueue
 {
 
 Server::Server(QObject *parentObject, QString serverName_)
-  : AbstractRpcInterface(parentObject),
+  : QObject(parentObject),
     m_jobManager(new JobManager (this)),
     m_queueManager(new QueueManager (this)),
-    m_isTesting(false),
+    m_jsonrpc(new JsonRpc(this)),
     m_moleQueueIdCounter(0),
     m_serverName(serverName_),
     m_jobSyncTimer(startTimer(20000)) // 20 seconds
 {
   qRegisterMetaType<ConnectionListener::Error>("ConnectionListener::Error");
-  qRegisterMetaType<ServerConnection*>("MoleQueue::ServerConnection*");
-  qRegisterMetaType<const ServerConnection*>("const MoleQueue::ServerConnection*");
   qRegisterMetaType<const Job*>("const MoleQueue::Job*");
   qRegisterMetaType<QueueListType>("MoleQueue::QueueListType");
 
-  this->setJsonRpc(new ServerJsonRpc(this));
+  connect(m_jsonrpc, SIGNAL(messageReceived(MoleQueue::Message)),
+          SLOT(handleMessage(MoleQueue::Message)));
 
   connect(m_jobManager, SIGNAL(jobAboutToBeAdded(MoleQueue::Job)),
           this, SLOT(jobAboutToBeAdded(MoleQueue::Job)),
@@ -65,9 +67,6 @@ Server::Server(QObject *parentObject, QString serverName_)
 
   connect(m_jobManager, SIGNAL(jobRemoved(MoleQueue::IdType)),
           this, SLOT(jobRemoved(MoleQueue::IdType)));
-
-  //connect(m_connection, SIGNAL(disconnected()),
-  //        this, SIGNAL(disconnected()));
 
   // load the transport plugins so we know what to listen on
   PluginManager *pluginManager = PluginManager::instance();
@@ -106,7 +105,7 @@ void Server::createConnectionListeners()
             this, SLOT(newConnectionAvailable(MoleQueue::Connection*)));
 
     m_connectionListeners.append(listener);
-
+    m_jsonrpc->addConnectionListener(listener);
   }
 }
 
@@ -181,93 +180,14 @@ void Server::dispatchJobStateChange(const Job &job, JobState oldState,
   if (connection == NULL)
     return;
 
-  Message msg(connection, endpoint);
-
-  sendJobStateChangeNotification(msg, job, oldState, newState);
-}
-
-void Server::queueListRequestReceived(const Message &request)
-{
-  sendQueueList(request, m_queueManager->toQueueList());
-}
-
-void Server::jobCancellationRequestReceived(const Message &request,
-                                            IdType moleQueueId)
-{
-  Job job = m_jobManager->lookupJobByMoleQueueId(moleQueueId);
-  if (!job.isValid()) {
-    Logger::logWarning(tr("Received cancellation request for job with unknown "
-                          "MoleQueue id '%1'.")
-                       .arg(idTypeToString(moleQueueId)), moleQueueId);
-    QString err(tr("Unrecognized molequeue id: %1")
-                .arg(idTypeToString(moleQueueId)));
-    this->sendFailedCancellationResponse(request, moleQueueId,
-                                         InvalidMoleQueueId, err);
-    return;
-  }
-
-  JobState state = job.jobState();
-  bool stateValid = false;
-  switch (state) {
-  case MoleQueue::LocalQueued:
-  case MoleQueue::Submitted:
-  case MoleQueue::RemoteQueued:
-  case MoleQueue::RunningLocal:
-  case MoleQueue::RunningRemote:
-    stateValid = true;
-  default:
-    break;
-  }
-
-  if (!stateValid) {
-    Logger::logWarning(tr("Cannot cancel job with MoleQueue id '%1': Invalid "
-                          "job state ('%2').")
-                       .arg(idTypeToString(job.moleQueueId()))
-                       .arg(jobStateToString(state)));
-    QString err(tr("Cannot kill non-running job %1 (job state: %2)")
-                .arg(idTypeToString(moleQueueId)).arg(jobStateToString(state)));
-    this->sendFailedCancellationResponse(request, moleQueueId,
-                                         InvalidJobState, err);
-    return;
-  }
-
-  Queue *queue = m_queueManager->lookupQueue(job.queue());
-  if (!queue) {
-    Logger::logWarning(tr("Cannot cancel job with MoleQueue id '%1': Unknown "
-                          "Queue ('%2').")
-                       .arg(idTypeToString(job.moleQueueId()))
-                       .arg(job.queue()));
-    QString err(tr("Cannot kill job %1. Unknown queue (%2)")
-                .arg(idTypeToString(moleQueueId)).arg(job.queue()));
-    this->sendFailedCancellationResponse(request, moleQueueId, InvalidQueue,
-                                         err);
-    return;
-  }
-
-  queue->killJob(job);
-
-  sendSuccessfulCancellationResponse(request, moleQueueId);
-}
-
-void Server::lookupJobRequestReceived(const MoleQueue::Message &request,
-                                      IdType moleQueueId)
-{
-  Job job = m_jobManager->lookupJobByMoleQueueId(moleQueueId);
-  if (job.isValid())
-    sendSuccessfulLookupJobResponse(request, job);
-  else
-    sendFailedLookupJobResponse(request, moleQueueId);
-}
-
-void Server::rpcKillRequestReceived(const Message &request)
-{
-  QSettings settings;
-  bool enabled = settings.value("enableRpcKill", false).toBool();
-
-  sendRpcKillResponse(request, enabled);
-
-  if (enabled)
-    qApp->quit();
+  Message msg(Message::Notification, connection, endpoint);
+  msg.setMethod("jobStateChanged");
+  QJsonObject paramsObject;
+  paramsObject.insert("moleQueueId", idTypeToJson(job.moleQueueId()));
+  paramsObject.insert("oldState", QString(jobStateToString(oldState)));
+  paramsObject.insert("newState", QString(jobStateToString(newState)));
+  msg.setParams(paramsObject);
+  msg.send();
 }
 
 void Server::jobAboutToBeAdded(Job job)
@@ -298,12 +218,7 @@ void Server::jobAboutToBeAdded(Job job)
 void Server::newConnectionAvailable(Connection *connection)
 {
   m_connections.append(connection);
-  connect(connection, SIGNAL(newMessage(const MoleQueue::Message)),
-          this, SLOT(readMessage(const MoleQueue::Message)));
-
   connect(connection, SIGNAL(disconnected()), this, SLOT(clientDisconnected()));
-
-  connection->start();
 
   Logger::logDebugMessage(tr("Client connected: %1")
                           .arg(connection->connectionString()));
@@ -332,147 +247,335 @@ void Server::clientDisconnected()
   conn->deleteLater();
 }
 
-void Server::sendQueueList(const Message &request,
-                           const QueueListType &queueList)
-{
-  PacketType packet = serverJsonRpc()->generateQueueList(queueList,
-                                                         request.id());
-  Message msg(request, packet);
-  msg.send();
-}
-
-void Server::sendSuccessfulSubmissionResponse(const Message &request,
-                                              const Job &job)
-{
-  const IdType moleQueueId = job.moleQueueId();
-  PacketType packet =  serverJsonRpc()->generateJobSubmissionConfirmation(
-        moleQueueId, job.localWorkingDirectory(), request.id());
-
-  Message msg(request, packet);
-  msg.send();
-}
-
-void Server::sendFailedSubmissionResponse(const Message &request,
-                                          ErrorCode ec,
-                                          const QString &errorMessage)
-{
-  PacketType packet = serverJsonRpc()->generateErrorResponse(
-        static_cast<int>(ec), errorMessage, request.id());
-  Message msg(request, packet);
-  msg.send();
-}
-
-void Server::sendSuccessfulCancellationResponse(const Message &request,
-                                                IdType moleQueueId)
-{
-  PacketType packet = serverJsonRpc()->generateJobCancellationConfirmation(
-      moleQueueId, request.id());
-  Message msg(request, packet);
-  msg.send();
-}
-
-void Server::sendFailedCancellationResponse(const Message &request,
-                                            IdType moleQueueId,
-                                            ErrorCode error,
-                                            const QString &message)
-{
-  PacketType packet =  serverJsonRpc()->generateJobCancellationError(
-        error, message, moleQueueId, request.id());
-
-  Message msg(request, packet);
-  msg.send();
-}
-
-void Server::sendSuccessfulLookupJobResponse(const Message &request,
-                                             const Job &req)
-{
-  PacketType packet = serverJsonRpc()->generateLookupJobResponse(
-        req, req.moleQueueId(), request.id());
-  Message msg(request, packet);
-  msg.send();
-}
-
-void Server::sendFailedLookupJobResponse(const Message &request,
-                                         IdType moleQueueId)
-{
-  PacketType packet = serverJsonRpc()->generateLookupJobResponse(Job(),
-                                                                 moleQueueId,
-                                                                 request.id());
-  Message msg(request, packet);
-  msg.send();
-}
-
-void Server::sendJobStateChangeNotification(const Message &connectionInfo,
-                                            const Job &job, JobState oldState,
-                                            JobState newState)
-{
-  PacketType packet = serverJsonRpc()->generateJobStateChangeNotification(
-        job.moleQueueId(), oldState, newState);
-  Message msg(connectionInfo, packet);
-  msg.send();
-}
-
-void Server::sendRpcKillResponse(const Message &request, bool success)
-{
-  PacketType packet = serverJsonRpc()->generateRpcKillResponse(success,
-                                                               request.id());
-  Message msg(request, packet);
-  msg.send();
-}
-
-void Server::jobSubmissionRequestReceived(const Message &request,
-                                          const QVariantHash &options)
-{
-  Job job = jobManager()->newJob(options);
-
-  m_connectionLUT.insert(job.moleQueueId(), request.connection());
-  m_endpointLUT.insert(job.moleQueueId(), request.endpoint());
-  m_ownedJobMoleQueueIds.append(job.moleQueueId());
-
-  Logger::logDebugMessage(tr("Job submission requested:\n%1")
-                          .arg(request.data().constData()), job.moleQueueId());
-
-  // Lookup queue and submit job.
-  Queue *queue = m_queueManager->lookupQueue(job.queue());
-  if (!queue) {
-    sendFailedSubmissionResponse(request, MoleQueue::InvalidQueue,
-                                 tr("Unknown queue: %1").arg(job.queue()));
-    Logger::logError(tr("Rejecting job: Unknown queue '%1'").arg(job.queue()),
-                     job.moleQueueId());
-    Job(job).setJobState(Error);
-    return;
-  }
-
-  // Check program
-  Program *program = queue->lookupProgram(job.program());
-  if (!program) {
-    sendFailedSubmissionResponse(request, MoleQueue::InvalidProgram,
-                                 tr("Unknown program: %1").arg(job.program()));
-    Logger::logError(tr("Rejecting job: Program '%1' Does not exist on queue "
-                        "'%2'").arg(job.program(), job.queue()),
-                     job.moleQueueId());
-    Job(job).setJobState(Error);
-    return;
-  }
-
-  // Record the new job.
-  m_jobManager->syncJobState();
-
-  // Send the submission confirmation first so that the client can update the
-  // MoleQueue id and properly handle packets sent during job submission.
-  sendSuccessfulSubmissionResponse(request, job);
-
-  if (!queue->submitJob(job)) {
-    Logger::logError(tr("Error starting job! (Refused by queue)"),
-                     job.moleQueueId());
-    Job(job).setJobState(Error);
-  }
-}
-
 void Server::jobRemoved(MoleQueue::IdType moleQueueId)
 {
   m_connectionLUT.remove(moleQueueId);
   m_endpointLUT.remove(moleQueueId);
+}
+
+void Server::handleMessage(const Message &message)
+{
+  switch (message.type()) {
+  case Message::Request:
+    handleRequest(message);
+    break;
+  default:
+    Logger::logDebugMessage(tr("Unhandled message; no handler for type: %1\n%2")
+                            .arg(message.type())
+                            .arg(QString(message.toJson())));
+    break;
+  }
+}
+
+void Server::handleRequest(const Message &message)
+{
+  const QString method = message.method();
+  if (method == "listQueues")
+    handleListQueuesRequest(message);
+  else if (method == "submitJob")
+    handleSubmitJobRequest(message);
+  else if (method == "cancelJob")
+    handleCancelJobRequest(message);
+  else if (method == "lookupJob")
+    handleLookupJobRequest(message);
+  else if (method == "rpcKill")
+    handleRpcKillRequest(message);
+  else
+    handleUnknownMethod(message);
+}
+
+void Server::handleUnknownMethod(const Message &message)
+{
+  Message errorMessage = message.generateErrorResponse();
+  errorMessage.setErrorCode(-32601);
+  errorMessage.setErrorMessage("Method not found");
+  QJsonObject errorDataObject;
+  errorDataObject.insert("request", message.toJsonObject());
+  errorMessage.setErrorData(errorDataObject);
+  errorMessage.send();
+
+  Logger::logDebugMessage(
+        tr("Received JSON-RPC request with invalid method '%1':\n%2")
+        .arg(message.method()).arg(QString(message.toJson())));
+}
+
+void Server::handleInvalidParams(const Message &message,
+                                 const QString &description)
+{
+  Message errorMessage = message.generateErrorResponse();
+  errorMessage.setErrorCode(-32602);
+  errorMessage.setErrorMessage("Invalid params");
+  QJsonObject errorDataObject;
+  errorDataObject.insert("description", description);
+  errorDataObject.insert("request", message.toJsonObject());
+  errorMessage.setErrorData(errorDataObject);
+  errorMessage.send();
+
+  Logger::logDebugMessage(
+        tr("Received JSON-RPC request with invalid parameters (%1):\n%2")
+        .arg(description).arg(QString(message.toJson())));
+}
+
+void Server::handleListQueuesRequest(const Message &message)
+{
+  // Build result object (queue list)
+  QueueListType queueList = m_queueManager->toQueueList();
+  QJsonObject jsonQueueList;
+  foreach (QString queueName, queueList.keys()) {
+    jsonQueueList.insert(queueName,
+                         QJsonArray::fromStringList(queueList[queueName]));
+  }
+
+  // Create response message
+  Message response = message.generateResponse();
+  response.setResult(jsonQueueList);
+  response.send();
+}
+
+void Server::handleSubmitJobRequest(const Message &message)
+{
+  // Validate params -- are the params an object?
+  if (!message.params().isObject()) {
+    handleInvalidParams(message, "submitJob params member must be an object.");
+    return;
+  }
+
+  QJsonObject paramsObject = message.params().toObject();
+
+  // Are the required queue and program members present?
+  if (!paramsObject.contains("queue")) {
+    handleInvalidParams(message, "Required params.queue member missing.");
+    return;
+  }
+  if (!paramsObject.contains("program")) {
+    handleInvalidParams(message, "Required params.program member missing.");
+    return;
+  }
+  if (!paramsObject.value("queue").isString()) {
+    handleInvalidParams(message, "params.queue member must be a string.");
+    return;
+  }
+  if (!paramsObject.value("program").isString()) {
+    handleInvalidParams(message, "params.program member must be a string.");
+    return;
+  }
+
+  // Do the queue and program exist?
+  QString queueString = paramsObject.value("queue").toString();
+  QString programString = paramsObject.value("program").toString();
+  Queue *queue = m_queueManager->lookupQueue(queueString);
+  if (!queue) {
+    Message errorMessage = message.generateErrorResponse();
+    errorMessage.setErrorCode(MoleQueue::InvalidQueue);
+    errorMessage.setErrorMessage("Invalid queue");
+    QJsonObject errorDataObject;
+    errorDataObject.insert("queue", queueString);
+    QJsonArray validQueues =
+        QJsonArray::fromStringList(m_queueManager->queueNames());
+    errorDataObject.insert("valid queues", validQueues);
+    errorDataObject.insert("request", message.toJsonObject());
+    errorMessage.setErrorData(errorDataObject);
+    errorMessage.send();
+
+    Logger::logDebugMessage(
+          tr("Received submitJob request with invalid queue (%1):\n%2")
+          .arg(queueString).arg(QString(message.toJson())));
+    return;
+  }
+  Program *program = queue->lookupProgram(programString);
+  if (!program) {
+    Message errorMessage = message.generateErrorResponse();
+    errorMessage.setErrorCode(MoleQueue::InvalidProgram);
+    errorMessage.setErrorMessage("Invalid program");
+    QJsonObject errorDataObject;
+    errorDataObject.insert("program", programString);
+    QJsonArray validPrograms =
+        QJsonArray::fromStringList(queue->programNames());
+    errorDataObject.insert("valid programs for queue", validPrograms);
+    errorDataObject.insert("request", message.toJsonObject());
+    errorMessage.setErrorData(errorDataObject);
+    errorMessage.send();
+
+    Logger::logDebugMessage(
+          tr("Received submitJob request with invalid program (%1/%2):\n%3")
+          .arg(queueString).arg(programString).arg(QString(message.toJson())));
+    return;
+  }
+
+  // Everything checks out -- Create the job and send the response.
+  Job job = m_jobManager->newJob(paramsObject);
+  Logger::logDebugMessage(tr("Job submission requested:\n%1")
+                          .arg(QString(message.toJson())), job.moleQueueId());
+
+  Message response = message.generateResponse();
+  QJsonObject resultObject;
+  resultObject.insert("moleQueueId", idTypeToJson(job.moleQueueId()));
+  resultObject.insert("workingDirectory", job.localWorkingDirectory());
+  response.setResult(resultObject);
+  response.send();
+
+  m_connectionLUT.insert(job.moleQueueId(), message.connection());
+  m_endpointLUT.insert(job.moleQueueId(), message.endpoint());
+
+  // Submit the job after sending the response -- otherwise the client can
+  // receive job state change notifications for a job before knowing its
+  // MoleQueueId...
+  queue->submitJob(job);
+}
+
+void Server::handleCancelJobRequest(const Message &message)
+{
+  // Validate request
+  if (!message.params().isObject()) {
+    handleInvalidParams(message, "cancelJob params member must be an object.");
+    return;
+  }
+
+  QJsonObject paramsObject = message.params().toObject();
+
+  // Is the required moleQueueId member present?
+  if (!paramsObject.contains("moleQueueId")) {
+    handleInvalidParams(message, "Required params.moleQueueId member missing.");
+    return;
+  }
+
+  // Is the required moleQueueId member valid?
+  IdType moleQueueId = toIdType(paramsObject.value("moleQueueId"));
+  Job job = m_jobManager->lookupJobByMoleQueueId(moleQueueId);
+  if (!job.isValid()) {
+    Message errorMessage = message.generateErrorResponse();
+    errorMessage.setErrorCode(MoleQueue::InvalidMoleQueueId);
+    errorMessage.setErrorMessage("Unknown MoleQueue ID");
+    QJsonObject errorDataObject;
+    errorDataObject.insert("moleQueueId", paramsObject.value("moleQueueId"));
+    errorMessage.setErrorData(errorDataObject);
+    errorMessage.send();
+
+    Logger::logDebugMessage(
+          tr("Received cancelJob request with invalid MoleQueue ID (%1):\n%2")
+          .arg(idTypeToString(moleQueueId)).arg(QString(message.toJson())),
+          moleQueueId);
+    return;
+  }
+
+  // Is the job in a state that it can be canceled?
+  JobState state = job.jobState();
+  bool stateValid = false;
+  switch (state) {
+  case MoleQueue::Accepted:
+  case MoleQueue::LocalQueued:
+  case MoleQueue::Submitted:
+  case MoleQueue::RemoteQueued:
+  case MoleQueue::RunningLocal:
+  case MoleQueue::RunningRemote:
+    stateValid = true;
+  default:
+    break;
+  }
+
+  if (!stateValid) {
+    Message errorMessage = message.generateErrorResponse();
+    errorMessage.setErrorCode(MoleQueue::InvalidJobState);
+    errorMessage.setErrorMessage("Cannot cancel job: Job not running.");
+    QJsonObject errorDataObject;
+    errorDataObject.insert("moleQueueId", paramsObject.value("moleQueueId"));
+    errorDataObject.insert("jobState", QLatin1String(jobStateToString(state)));
+    errorMessage.setErrorData(errorDataObject);
+    errorMessage.send();
+
+    Logger::logDebugMessage(
+          tr("Received cancelJob request for non-running job (%1, %2):\n%3")
+          .arg(idTypeToString(moleQueueId))
+          .arg(jobStateToString(state))
+          .arg(QString(message.toJson())),
+          moleQueueId);
+    return;
+  }
+
+  Queue *queue = m_queueManager->lookupQueue(job.queue());
+  if (!queue) {
+    Message errorMessage = message.generateErrorResponse();
+    errorMessage.setErrorCode(MoleQueue::InvalidQueue);
+    errorMessage.setErrorMessage("Queue no longer exists");
+    QJsonObject errorDataObject;
+    errorDataObject.insert("moleQueueId", paramsObject.value("moleQueueId"));
+    errorDataObject.insert("queue", job.queue());
+    errorMessage.setErrorData(errorDataObject);
+    errorMessage.send();
+
+    Logger::logDebugMessage(
+          tr("Received cancelJob request for deleted queue (%1, %2):\n%3")
+          .arg(idTypeToString(moleQueueId))
+          .arg(job.queue())
+          .arg(QString(message.toJson())));
+    return;
+  }
+
+  queue->killJob(job);
+
+  Message response = message.generateResponse();
+  QJsonObject resultObject;
+  resultObject.insert("moleQueueId", idTypeToJson(moleQueueId));
+  response.setResult(resultObject);
+  response.send();
+}
+
+void Server::handleLookupJobRequest(const Message &message)
+{
+  // Validate request
+  if (!message.params().isObject()) {
+    handleInvalidParams(message, "lookupJob params member must be an object.");
+    return;
+  }
+
+  QJsonObject paramsObject = message.params().toObject();
+
+  // Is the required moleQueueId member present?
+  if (!paramsObject.contains("moleQueueId")) {
+    handleInvalidParams(message, "Required params.moleQueueId member missing.");
+    return;
+  }
+
+  // Is the required moleQueueId member valid?
+  IdType moleQueueId = toIdType(paramsObject.value("moleQueueId"));
+  Job job = m_jobManager->lookupJobByMoleQueueId(moleQueueId);
+  if (!job.isValid()) {
+    Message errorMessage = message.generateErrorResponse();
+    errorMessage.setErrorCode(MoleQueue::InvalidMoleQueueId);
+    errorMessage.setErrorMessage("Unknown MoleQueue ID");
+    QJsonObject errorDataObject;
+    errorDataObject.insert("moleQueueId", paramsObject.value("moleQueueId"));
+    errorMessage.setErrorData(errorDataObject);
+    errorMessage.send();
+
+    Logger::logDebugMessage(
+          tr("Received lookupJob request with invalid MoleQueue ID (%1):\n%2")
+          .arg(idTypeToString(moleQueueId)).arg(QString(message.toJson())),
+          moleQueueId);
+    return;
+  }
+
+  // Send reply
+  Message response = message.generateResponse();
+  response.setResult(job.toJsonObject());
+  response.send();
+}
+
+void Server::handleRpcKillRequest(const Message &message)
+{
+  QSettings settings;
+  bool enabled = settings.value("enableRpcKill", false).toBool();
+
+  Message response = message.generateResponse();
+  QJsonObject resultObject;
+  resultObject.insert("success", enabled);
+  response.setResult(resultObject);
+  response.send();
+
+  if (enabled) {
+    qApp->processEvents(QEventLoop::AllEvents, 1000);
+    qApp->quit();
+  }
 }
 
 void Server::timerEvent(QTimerEvent *e)
@@ -484,32 +587,6 @@ void Server::timerEvent(QTimerEvent *e)
   }
 
   QObject::timerEvent(e);
-}
-
-void Server::setJsonRpc(JsonRpc *jsonrpc)
-{
-  AbstractRpcInterface::setJsonRpc(jsonrpc);
-
-  connect(serverJsonRpc(), SIGNAL(queueListRequestReceived(MoleQueue::Message)),
-          this, SLOT(queueListRequestReceived(MoleQueue::Message)));
-
-  connect(serverJsonRpc(),
-          SIGNAL(jobSubmissionRequestReceived(MoleQueue::Message,QVariantHash)),
-          this,
-          SLOT(jobSubmissionRequestReceived(MoleQueue::Message,QVariantHash)));
-
-  connect(serverJsonRpc(),
-          SIGNAL(jobCancellationRequestReceived(MoleQueue::Message,
-                                                MoleQueue::IdType)),
-          this, SLOT(jobCancellationRequestReceived(MoleQueue::Message,
-                                                    MoleQueue::IdType)));
-
-  connect(serverJsonRpc(), SIGNAL(lookupJobRequestReceived(MoleQueue::Message,
-                                                           MoleQueue::IdType)),
-          this, SLOT(lookupJobRequestReceived(MoleQueue::Message,
-                                              MoleQueue::IdType)));
-  connect(serverJsonRpc(), SIGNAL(rpcKillRequestReceived(MoleQueue::Message)),
-          this, SLOT(rpcKillRequestReceived(MoleQueue::Message)));
 }
 
 } // end namespace MoleQueue

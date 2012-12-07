@@ -34,9 +34,9 @@ public:
                        QueueManager *parentManager = 0);
   ~QueueRemote();
 
-  bool writeJsonSettings(Json::Value &value, bool exportOnly,
+  bool writeJsonSettings(QJsonObject &json, bool exportOnly,
                          bool includePrograms) const;
-  bool readJsonSettings(const Json::Value &value, bool importOnly,
+  bool readJsonSettings(const QJsonObject &json, bool importOnly,
                         bool includePrograms);
 
   virtual AbstractQueueSettingsWidget* settingsWidget() = 0;

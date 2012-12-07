@@ -54,8 +54,8 @@ bool JobReferenceBase::isValid() const
 
         qWarning() << "Job with molequeue id" << m_moleQueueId << "maps to a "
                       "different job than expected.\nExpected:\n"
-                   << m_jobData->hash() << "\nLookup returned:\n"
-                   << ref->hash();
+                   << m_jobData << "\nLookup returned:\n"
+                   << ref;
         return false;
       }
     }

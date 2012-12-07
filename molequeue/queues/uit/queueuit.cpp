@@ -31,6 +31,9 @@
 #include "logger.h"
 #include "mainwindow.h"
 
+#include <qjsonobject.h>
+#include <qjsondocument.h>
+
 #include <QtCore/QTimer>
 #include <QtCore/QDebug>
 #include <QtCore/QXmlStreamWriter>
@@ -56,35 +59,35 @@ QueueUit::~QueueUit()
 }
 
 
-bool QueueUit::writeJsonSettings(Json::Value &root, bool exportOnly,
-                                    bool includePrograms) const
+
+bool QueueUit::writeJsonSettings(QJsonObject &json, bool exportOnly,
+                                 bool includePrograms) const
 {
-  if (!QueueRemote::writeJsonSettings(root, exportOnly, includePrograms))
+  if (!QueueRemote::writeJsonSettings(json, exportOnly, includePrograms))
     return false;
 
-  root["kerberosPrinciple"] = m_kerberosPrinciple.toStdString();
-  root["kerberosHostName"] = m_hostName.toStdString();
+  json["kerberosPrinciple"] = m_kerberosPrinciple;
+  json["kerberosHostName"] = m_hostName;
 
   return true;
 }
 
-bool QueueUit::readJsonSettings(const Json::Value &root, bool importOnly,
-                                   bool includePrograms)
+bool QueueUit::readJsonSettings(const QJsonObject &json, bool importOnly,
+                                bool includePrograms)
 {
   // Validate JSON:
-  if (!root.isObject() ||
-      (!root["kerberosPrinciple"].isString() ||
-       !root["kerberosHostName"].isString())) {
+  if ((!json["kerberosPrinciple"].isString() ||
+       !json["kerberosHostName"].isString())) {
     Logger::logError(tr("Error reading queue settings: Invalid format:\n%1")
-                     .arg(QString(root.toStyledString().c_str())));
+                     .arg(QJsonDocument(json).toJson().constData()));
     return false;
   }
 
-  if (!QueueRemote::readJsonSettings(root, importOnly, includePrograms))
+  if (!QueueRemote::readJsonSettings(json, importOnly, includePrograms))
     return false;
 
-  m_kerberosPrinciple = root["kerberosPrinciple"].asCString();
-  m_hostName = root["kerberosHostName"].asCString();
+  m_kerberosPrinciple = json["kerberosPrinciple"].toString();
+  m_hostName = json["kerberosHostName"].toString();
 
   return true;
 }

@@ -88,19 +88,21 @@ Job JobManager::newJob()
   emit jobAboutToBeAdded(Job(jobdata));
 
   insertJobData(jobdata);
+  syncJobState();
   return Job(jobdata);
 }
 
-Job JobManager::newJob(const QVariantHash &jobState)
+Job JobManager::newJob(const QJsonObject &jobState)
 {
   JobData *jobdata = new JobData(this);
-  jobdata->setFromHash(jobState);
+  jobdata->setFromJson(jobState);
   jobdata->setMoleQueueId(InvalidId);
 
   m_jobs.append(jobdata);
   emit jobAboutToBeAdded(Job(jobdata));
 
   insertJobData(jobdata);
+  syncJobState();
   return Job(jobdata);
 }
 

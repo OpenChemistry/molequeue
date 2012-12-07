@@ -1,25 +1,27 @@
-add_library(mqconnection
-  abstractrpcinterface.cpp
-  connection.h
-  jsonrpc.cpp
-  message.cpp
-  qtjson.cpp
-  ${jsoncpp_srcs}
-)
-set_target_properties(mqconnection PROPERTIES AUTOMOC TRUE)
-target_link_libraries(mqconnection ${QT_LIBRARIES})
-
 add_library(mqconnectionlistener connectionlistener.h)
 set_target_properties(mqconnectionlistener PROPERTIES AUTOMOC TRUE)
 target_link_libraries(mqconnectionlistener ${QT_LIBRARIES})
 
+add_library(mqconnection
+  connection.h
+  jsonrpc.cpp
+  message.cpp
+  messageidmanager_p.cpp
+)
+set_target_properties(mqconnection PROPERTIES AUTOMOC TRUE)
+target_link_libraries(mqconnection
+  mqconnectionlistener
+  ${QT_LIBRARIES}
+  Qt5Json
+)
+
 set(hdrs
-  abstractrpcinterface.h
   connection.h
   connectionlistener.h
   connectionlistenerfactory.h
   jsonrpc.h
-  message.h)
+  message.h
+)
 
 generate_export_header(mqconnection EXPORT_FILE_NAME mqconnectionexport.h)
 generate_export_header(mqconnectionlistener EXPORT_FILE_NAME mqconnectionlistenerexport.h)

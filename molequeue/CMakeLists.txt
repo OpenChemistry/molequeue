@@ -15,16 +15,8 @@ include(GenerateExportHeader)
 option(MoleQueue_BUILD_APPLICATION "Build the MoleQueue server application" ON)
 option(MoleQueue_BUILD_CLIENT "Build the MoleQueue client library" ON)
 
-# Pull in JsonCpp
-set(JSONCPP_SOURCE_DIR "${MoleQueue_SOURCE_DIR}/thirdparty/jsoncpp/")
-aux_source_directory(${JSONCPP_SOURCE_DIR} jsoncpp_srcs)
-
-# Disable JsonCpp warnings for most platforms
-silence_warnings(${jsoncpp_srcs})
-
 include_directories(${CMAKE_CURRENT_BINARY_DIR}
   ${CMAKE_CURRENT_SOURCE_DIR}
-  ${JSONCPP_SOURCE_DIR}
   ${CMAKE_CURRENT_BINARY_DIR}/transport
   ${CMAKE_CURRENT_BINARY_DIR}/transport/localsocket)
 
@@ -89,7 +81,6 @@ if(MoleQueue_BUILD_APPLICATION)
     queuesettingsdialog.cpp
     remotequeuewidget.cpp
     server.cpp
-    serverjsonrpc.cpp
     sshcommand.cpp
     sshcommandfactory.cpp
     sshconnection.cpp
@@ -136,7 +127,7 @@ if(MoleQueue_BUILD_APPLICATION)
     list(APPEND mq_srcs puttycommand.cpp)
   endif()
 
-  set(mq_srcs ${mq_srcs} ${jsoncpp_srcs})
+  set(mq_srcs ${mq_srcs})
 
   set(ui_files
     ui/addqueuedialog.ui

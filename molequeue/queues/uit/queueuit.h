@@ -44,10 +44,10 @@ public:
 
   virtual QString typeName() const { return "ezHPC UIT"; }
 
-  bool writeJsonSettings(Json::Value &root, bool exportOnly,
+  bool writeJsonSettings(QJsonObject &json, bool exportOnly,
                          bool includePrograms) const;
 
-  bool readJsonSettings(const Json::Value &root, bool importOnly,
+  bool readJsonSettings(const QJsonObject &json, bool importOnly,
                         bool includePrograms);
 
   AbstractQueueSettingsWidget* settingsWidget();

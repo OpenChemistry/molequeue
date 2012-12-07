@@ -1,0 +1,12 @@
+{
+    "error": {
+        "code": 4,
+        "data": {
+            "jobState": "Finished",
+            "moleQueueId": 333
+        },
+        "message": "Cannot cancel job: Job not running."
+    },
+    "id": 104,
+    "jsonrpc": "2.0"
+}

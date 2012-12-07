@@ -23,8 +23,6 @@
 
 #include <QtCore/QMap>
 
-class QSettings;
-
 namespace MoleQueue
 {
 class Queue;

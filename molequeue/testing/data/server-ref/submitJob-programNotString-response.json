@@ -1,0 +1,21 @@
+{
+    "error": {
+        "code": -32602,
+        "data": {
+            "description": "params.program member must be a string.",
+            "request": {
+                "id": 103,
+                "jsonrpc": "2.0",
+                "method": "submitJob",
+                "params": {
+                    "description": "testDescription",
+                    "program": 68.9,
+                    "queue": "testQueue"
+                }
+            }
+        },
+        "message": "Invalid params"
+    },
+    "id": 103,
+    "jsonrpc": "2.0"
+}
