@@ -34,6 +34,11 @@ ReferenceString::ReferenceString(const QString &filename)
   refFile.close();
 }
 
+QString ReferenceString::toString() const
+{
+  return m_refString;
+}
+
 ReferenceString::operator QString&()
 {
   return m_refString;
