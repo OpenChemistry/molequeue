@@ -1,0 +1,20 @@
+{
+    "error": {
+        "code": -32602,
+        "data": {
+            "description": "Required params.program member missing.",
+            "request": {
+                "id": 103,
+                "jsonrpc": "2.0",
+                "method": "submitJob",
+                "params": {
+                    "description": "testDescription",
+                    "queue": "testQueue"
+                }
+            }
+        },
+        "message": "Invalid params"
+    },
+    "id": 103,
+    "jsonrpc": "2.0"
+}

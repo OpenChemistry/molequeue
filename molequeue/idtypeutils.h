@@ -19,11 +19,11 @@
 
 #include "molequeueglobal.h"
 
+#include <qjsonvalue.h>
+
 #include <QtCore/QByteArray>
 #include <QtCore/QString>
 #include <QtCore/QVariant>
-
-#include <json/json.h>
 
 namespace MoleQueue
 {
@@ -57,20 +57,22 @@ inline IdType toIdType(const QByteArray &str)
   return toIdType(QString(str.constData()));
 }
 
-/// Convert a Json::Value to an IdType. This will prevent the literal value of
+/// Convert a QJsonValue to an IdType. This will prevent the literal value of
 /// InvalidId from being used for serialization, RPC, etc.
-inline IdType toIdType(const Json::Value &json)
+inline IdType toIdType(const QJsonValue &json)
 {
-  // Json::LargestInt is a Json::Int64, if available.
-  return json.isIntegral() ? static_cast<IdType>(json.asLargestInt())
-                           : InvalidId;
+  // QJsonValue cannot handle integer types, only double, so round off the
+  // value as a double.
+  return json.isDouble() ? static_cast<IdType>(json.toDouble() + 0.5)
+                         : InvalidId;
 }
 
-/// Convert an IdType to a Json::Value. This will prevent the literal value of
+/// Convert an IdType to a QJsonValue. This will prevent the literal value of
 /// InvalidId from being used for serialization, RPC, etc.
-inline Json::Value idTypeToJson(IdType id)
+inline QJsonValue idTypeToJson(IdType id)
 {
-  return id != InvalidId ? Json::Value(id) : Json::Value(Json::nullValue);
+  return id != InvalidId ? QJsonValue(static_cast<double>(id))
+                         : QJsonValue(QJsonValue::Null);
 }
 
 /// Convert a QVariant to an IdType. This will prevent the literal value of

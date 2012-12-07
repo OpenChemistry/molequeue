@@ -71,16 +71,6 @@ public:
   void start();
 
   /**
-   * Send a message on the connection, write the bytes to the sockets
-   * data stream.
-   *
-   * @packet The message to send.
-   *
-   * @see Connection::send()
-   */
-  void send(const Message &msg);
-
-  /**
    * Close the underlying socket. Once closed the connection can no longer be used
    * to receive or send messages.
    *
@@ -101,6 +91,8 @@ public:
    * @see Connection::connectionString()
    */
   QString connectionString() const;
+
+  bool send(const PacketType &packet, const EndpointIdType &endpoint);
 
 private slots:
 

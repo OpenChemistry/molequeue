@@ -1,0 +1,23 @@
+{
+    "id": 104,
+    "jsonrpc": "2.0",
+    "result": {
+        "cleanLocalWorkingDirectory": false,
+        "cleanRemoteFiles": false,
+        "description": "testDescription",
+        "hideFromGui": false,
+        "inputFile": {
+        },
+        "jobState": "Error",
+        "localWorkingDirectory": "/jobs/1",
+        "maxWallTime": -1,
+        "moleQueueId": 1,
+        "numberOfCores": 1,
+        "outputDirectory": "/jobs/1",
+        "popupOnStateChange": false,
+        "program": "testProgram",
+        "queue": "testQueue",
+        "queueId": null,
+        "retrieveOutput": true
+    }
+}

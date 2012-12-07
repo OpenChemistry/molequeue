@@ -48,11 +48,6 @@ public:
   void start();
 
   /**
-   * Send a message on the connection
-   */
-  void send(const Message &msg);
-
-  /**
    * Close the connection. Once a conneciton is closed if can't reused.
    */
   void close();
@@ -69,11 +64,9 @@ public:
    */
   QString connectionString() const;
 
-  static const QString zeroMqPrefix;
+  bool send(const PacketType &packet, const EndpointIdType &endpoint);
 
-  // needed to call onMessage(...)
-  friend class ZeroMqConnectionListener;
-  friend class ZeroMqIdentityWrapper;
+  static const QString zeroMqPrefix;
 
 private slots:
   void listen();

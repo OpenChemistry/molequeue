@@ -1,0 +1,11 @@
+{
+    "error": {
+        "code": 666,
+        "data": {
+            "test": "value"
+        },
+        "message": "Server is possessed."
+    },
+    "id": 13,
+    "jsonrpc": "2.0"
+}

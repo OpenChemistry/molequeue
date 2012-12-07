@@ -16,12 +16,11 @@
 
 #include "localsocketconnection.h"
 
-#include "transport/abstractrpcinterface.h"
 #include "transport/message.h"
-#include "logger.h"
 
 #include <QtCore/QDateTime>
 #include <QtCore/QDebug>
+#include <QtCore/QTimer>
 #include <QtNetwork/QLocalSocket>
 
 namespace MoleQueue
@@ -95,19 +94,11 @@ void LocalSocketConnection::readSocket()
   PacketType packet;
   (*m_dataStream) >> packet;
 
-  const Message msg(this, EndpointIdType(), packet);
-
-  emit newMessage(msg);
+  emit packetReceived(packet, EndpointIdType());
 
   // if there are more bytes available call again
-  if(m_socket->bytesAvailable())
-    readSocket();
-}
-
-void LocalSocketConnection::send(const Message &msg)
-{
-  (*m_dataStream) << msg.data();
-  m_socket->flush();
+  if (m_socket->bytesAvailable())
+    QTimer::singleShot(0, this, SLOT(readSocket()));
 }
 
 void LocalSocketConnection::open()
@@ -152,6 +143,16 @@ bool  LocalSocketConnection::isOpen()
 QString LocalSocketConnection::connectionString() const
 {
   return m_connectionString;
+}
+
+bool LocalSocketConnection::send(const PacketType &packet,
+                                 const EndpointIdType &endpoint)
+{
+  Q_UNUSED(endpoint);
+  (*m_dataStream) << packet;
+
+  m_socket->flush();
+  return true;
 }
 
 void LocalSocketConnection::socketDestroyed()

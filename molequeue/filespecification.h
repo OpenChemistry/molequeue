@@ -17,7 +17,10 @@
 #ifndef MOLEQUEUE_FILESPEC_H
 #define MOLEQUEUE_FILESPEC_H
 
-#include <QtCore/QVariantHash>
+#include <qjsonobject.h>
+
+#include <QtCore/QByteArray>
+#include <QtCore/QString>
 
 class QDir;
 class QFile;
@@ -31,7 +34,7 @@ class FileSpecificationPrivate;
  * @brief Specify files for simplifying Client-Server communication.
  * @author David C. Lonie
  *
- * The FileSpecification class converts between Qt and JsonCpp types to facilite
+ * The FileSpecification class contains a description of a file to facilite
  * file manipulation during RPC communication. Files are stored as either a path
  * to the local file on disk, or a filename and content string.
  */
@@ -51,8 +54,8 @@ public:
   /// Creates an invalid FileSpecification.
   FileSpecification();
 
-  /// Create a FileSpecification using the members of the input QVariantHash.
-  explicit FileSpecification(const QVariantHash &hash);
+  /// Create a FileSpecification using the members of the input QJsonObject.
+  explicit FileSpecification(const QJsonObject &json);
 
   /// Create a FileSpecification from the input absolute filepath.
   explicit FileSpecification(const QString &path);
@@ -82,10 +85,10 @@ public:
   bool isValid() const { return format() != InvalidFileSpecification; }
 
   /// @return The FileSpecification as a formatted JSON string.
-  QString asJsonString() const;
+  QByteArray toJson() const;
 
-  /// @return The FileSpecification as a QVariantHash.
-  QVariantHash asVariantHash() const;
+  /// @return The FileSpecification as a formatted JSON string.
+  QJsonObject toJsonObject() const;
 
   /// @return Whether or not the FileSpecification refers to an existing file
   /// @note This will always be false if format() does not return
@@ -120,8 +123,7 @@ public:
   QString fileExtension() const;
 
 private:
-  FileSpecificationPrivate * const d_ptr;
-  Q_DECLARE_PRIVATE(FileSpecification)
+  QJsonObject m_json;
 };
 
 } // namespace MoleQueue

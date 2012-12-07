@@ -18,10 +18,21 @@
 
 #include "server.h"
 
+#include "molequeuetestconfig.h"
+
+#include "jobmanager.h"
 #include "molequeueglobal.h"
+#include "program.h"
 #include "transport/connectionlistener.h"
 #include "transport/localsocket/localsocketconnectionlistener.h"
+#include "transport/message.h"
+#include "testing/dummyconnection.h"
+#include "testing/referencestring.h"
 #include "testing/testserver.h"
+#include "queue.h"
+#include "queuemanager.h"
+
+#include <qjsondocument.h>
 
 #include <QtGui/QApplication>
 
@@ -32,6 +43,8 @@
 
 #include <assert.h>
 
+using namespace MoleQueue;
+
 class ServerTest : public QObject
 {
   Q_OBJECT
@@ -39,9 +52,9 @@ class ServerTest : public QObject
 private:
   QString m_connectionString;
   QLocalSocket m_testSocket;
-  MoleQueue::Server *m_server;
+  Server *m_server;
 
-  MoleQueue::LocalSocketConnectionListener * localSocketConnectionListener();
+  LocalSocketConnectionListener * localSocketConnectionListener();
 
 private slots:
   /// Called before the first test function is executed.
@@ -59,13 +72,38 @@ private slots:
 
   void testNewConnection();
   void testClientDisconnected();
+
+  void handleMessage_data();
+  void handleMessage();
 };
 
 void ServerTest::initTestCase()
 {
+  // Change qsettings so that we don't overwrite the installed configuration:
+  QString workDir = MoleQueue_BINARY_DIR "/Testing/Temporary/ServerTest";
+  QDir dir;
+  dir.mkpath(workDir);
+  QSettings::setPath(QSettings::NativeFormat, QSettings::UserScope,
+                     workDir + "/config");
+  QSettings settings;
+  settings.setValue("workingDirectoryBase", workDir);
+
   m_connectionString = TestServer::getRandomSocketName();
-  m_server = new MoleQueue::Server(this, m_connectionString);
-  m_server->m_isTesting = true;
+  m_server = new Server(this, m_connectionString);
+
+  // Setup some fake queues/programs for rpc testing
+  Queue *testQueue = m_server->queueManager()->addQueue("testQueue", "Local");
+  Program *testProgram = new Program(testQueue);
+  testProgram->setName("testProgram");
+  testQueue->addProgram(testProgram);
+
+  Queue *fakeQueue = m_server->queueManager()->addQueue("fakeQueue", "Local");
+  Program *fakeProgram1 = new Program(fakeQueue);
+  fakeProgram1->setName("fakeProgram1");
+  fakeQueue->addProgram(fakeProgram1);
+  Program *fakeProgram2 = new Program(fakeQueue);
+  fakeProgram2->setName("fakeProgram2");
+  fakeQueue->addProgram(fakeProgram2);
 }
 
 void ServerTest::cleanupTestCase()
@@ -125,7 +163,6 @@ void ServerTest::testForceStart()
 
   // Start a duplicate server to take the socket address
   MoleQueue::Server dupServer(this, m_connectionString);
-  dupServer.m_isTesting = true;
   dupServer.start();
 
   // Attempt to start the server. Check that the AddressInUseError is emitted.
@@ -203,6 +240,114 @@ void ServerTest::testClientDisconnected()
 #else
   QCOMPARE(m_server->m_connections.size(), 0);
 #endif
+}
+
+void ServerTest::handleMessage_data()
+{
+  // Load testing jobs:
+  m_server->jobManager()->loadJobState(MoleQueue_TESTDATA_DIR "server-ref");
+
+
+  QTest::addColumn<QString>("requestFile");
+  QTest::addColumn<QString>("responseFile");
+
+  // Invalid method
+  QTest::newRow("invalidMethod")
+      << "server-ref/invalidMethod-request.json"
+      << "server-ref/invalidMethod-response.json";
+
+  // listQueues
+  QTest::newRow("listQueues")
+      << "server-ref/listQueues-request.json"
+      << "server-ref/listQueues-response.json";
+
+  // submitJob
+  QTest::newRow("submitJob-paramsNotObject")
+      << "server-ref/submitJob-paramsNotObject-request.json"
+      << "server-ref/submitJob-paramsNotObject-response.json";
+  QTest::newRow("submitJob-queueMissing")
+      << "server-ref/submitJob-queueMissing-request.json"
+      << "server-ref/submitJob-queueMissing-response.json";
+  QTest::newRow("submitJob-programMissing")
+      << "server-ref/submitJob-programMissing-request.json"
+      << "server-ref/submitJob-programMissing-response.json";
+  QTest::newRow("submitJob-queueNotString")
+      << "server-ref/submitJob-queueNotString-request.json"
+      << "server-ref/submitJob-queueNotString-response.json";
+  QTest::newRow("submitJob-programNotString")
+      << "server-ref/submitJob-programNotString-request.json"
+      << "server-ref/submitJob-programNotString-response.json";
+  QTest::newRow("submitJob-queueDoesNotExist")
+      << "server-ref/submitJob-queueDoesNotExist-request.json"
+      << "server-ref/submitJob-queueDoesNotExist-response.json";
+  QTest::newRow("submitJob-programDoesNotExist")
+      << "server-ref/submitJob-programDoesNotExist-request.json"
+      << "server-ref/submitJob-programDoesNotExist-response.json";
+  QTest::newRow("submitJob")
+      << "server-ref/submitJob-request.json"
+      << "server-ref/submitJob-response.json";
+
+  // cancelJob
+  QTest::newRow("cancelJob-paramsNotObject")
+      << "server-ref/cancelJob-paramsNotObject-request.json"
+      << "server-ref/cancelJob-paramsNotObject-response.json";
+  QTest::newRow("cancelJob-moleQueueIdMissing")
+      << "server-ref/cancelJob-moleQueueIdMissing-request.json"
+      << "server-ref/cancelJob-moleQueueIdMissing-response.json";
+  QTest::newRow("cancelJob-moleQueueIdInvalid")
+      << "server-ref/cancelJob-moleQueueIdInvalid-request.json"
+      << "server-ref/cancelJob-moleQueueIdInvalid-response.json";
+  QTest::newRow("cancelJob-jobNotRunning")
+      << "server-ref/cancelJob-jobNotRunning-request.json"
+      << "server-ref/cancelJob-jobNotRunning-response.json";
+  QTest::newRow("cancelJob-invalidQueue")
+      << "server-ref/cancelJob-invalidQueue-request.json"
+      << "server-ref/cancelJob-invalidQueue-response.json";
+  QTest::newRow("cancelJob")
+      << "server-ref/cancelJob-request.json"
+      << "server-ref/cancelJob-response.json";
+
+  // lookupJob
+  QTest::newRow("lookupJob-paramsNotObject")
+      << "server-ref/lookupJob-paramsNotObject-request.json"
+      << "server-ref/lookupJob-paramsNotObject-response.json";
+  QTest::newRow("lookupJob-moleQueueIdMissing")
+      << "server-ref/lookupJob-moleQueueIdMissing-request.json"
+      << "server-ref/lookupJob-moleQueueIdMissing-response.json";
+  QTest::newRow("lookupJob-moleQueueIdInvalid")
+      << "server-ref/lookupJob-moleQueueIdInvalid-request.json"
+      << "server-ref/lookupJob-moleQueueIdInvalid-response.json";
+  QTest::newRow("lookupJob")
+      << "server-ref/lookupJob-request.json"
+      << "server-ref/lookupJob-response.json";
+}
+
+void ServerTest::handleMessage()
+{
+  // Fetch the filenames for this iteration
+  QFETCH(QString, requestFile);
+  QFETCH(QString, responseFile);
+
+  // Load the json strings
+  ReferenceString requestString(requestFile);
+  ReferenceString responseString(responseFile);
+
+  // Parse the request into a message
+  DummyConnection conn;
+  QJsonDocument doc =
+      QJsonDocument::fromJson(requestString.toString().toLatin1());
+  QVERIFY(doc.isObject());
+  Message message(doc.object(), &conn);
+  QVERIFY(message.parse());
+
+  // Pass the message to the server for handling:
+  m_server->handleMessage(message);
+
+  // Verify that a reply was sent:
+  QVERIFY(conn.messageCount() > 0);
+
+  // Compare the reply with the reference reply
+  QCOMPARE(QString(conn.popMessage().toJson()), responseString.toString());
 }
 
 QTEST_MAIN(ServerTest)

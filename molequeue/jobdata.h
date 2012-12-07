@@ -21,13 +21,13 @@
 
 #include "filespecification.h"
 
+#include <qjsonobject.h>
+
 #include <QtCore/QMetaType>
 #include <QtCore/QString>
-#include <QtCore/QVariantHash>
 
 class ClientTest;
 class JobManagerTest;
-class JsonRpcTest;
 class ServerConnectionTest;
 
 namespace MoleQueue
@@ -304,12 +304,11 @@ public:
   /// @return The keyword replacement hash
   QHash<QString, QString> keywords() const { return m_keywords; }
 
-  /// @return The Job's internal state as a QVariantHash
-  QVariantHash hash() const;
+  /// @return The Job's internal state as a QJsonObject
+  QJsonObject toJsonObject() const;
 
-  /// Update the Job's internal state from a QVariantHash
-  /// @param hash The Job
-  void setFromHash(const QVariantHash &state);
+  /// Update the Job's internal state from a QJsonObject
+  void setFromJson(const QJsonObject &state);
 
   /// Initialize the JobData from the state in JSON file @a stateFileName
   bool load(const QString& stateFilename);

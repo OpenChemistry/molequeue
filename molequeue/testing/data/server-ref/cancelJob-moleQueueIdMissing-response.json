@@ -1,0 +1,19 @@
+{
+    "error": {
+        "code": -32602,
+        "data": {
+            "description": "Required params.moleQueueId member missing.",
+            "request": {
+                "id": 104,
+                "jsonrpc": "2.0",
+                "method": "cancelJob",
+                "params": {
+                    "test": 5.3
+                }
+            }
+        },
+        "message": "Invalid params"
+    },
+    "id": 104,
+    "jsonrpc": "2.0"
+}

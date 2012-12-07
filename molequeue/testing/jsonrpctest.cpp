@@ -14,33 +14,26 @@
 
 ******************************************************************************/
 
+#include <QtTest>
 #include "transport/jsonrpc.h"
-#include "dummyjsonrpc.h"
 
-#include "molequeuetestconfig.h"
+#include "dummyconnection.h"
+#include "dummyconnectionlistener.h"
+
 #include "transport/message.h"
 
-#include <json/json.h>
-
-#include <QtTest>
-#include <QtCore/QFile>
-
-using namespace MoleQueue;
+#include <QtCore/QCoreApplication>
 
 class JsonRpcTest : public QObject
 {
   Q_OBJECT
 
 private:
-  PacketType readReferenceString(const QString &filename);
-  void printNode(const Json::Value &);
-
-  bool m_error;
-  DummyJsonRpc m_rpc;
-  PacketType m_packet;
-  Json::Reader m_reader;
-  Json::StyledWriter m_writer;
-  Json::Value m_root;
+  DummyConnection m_conn1;
+  DummyConnection *m_conn2;
+  DummyConnectionListener m_connList1;
+  DummyConnectionListener *m_connList2;
+  MoleQueue::JsonRpc m_jsonRpc;
 
 private slots:
   /// Called before the first test function is executed.
@@ -52,292 +45,82 @@ private slots:
   /// Called after every test function.
   void cleanup();
 
-  // Unit test functions go below:
-  void validateRequest();
-  void validateResponse();
-  void validateNotification();
-
-  void interpretIncomingMessage_unparsable();
-  void interpretIncomingMessage_invalidRequest();
-  void interpretIncomingMessage_unrecognizedRequest();
+  void addConnectionListener();
+  void addConnection();
+  void messageReceived();
+  void removeConnection();
+  void removeConnectionListener();
 };
-
-PacketType JsonRpcTest::readReferenceString(const QString &filename)
-{
-  QString realFilename = MoleQueue_TESTDATA_DIR + filename;
-  QFile refFile (realFilename);
-  if (!refFile.open(QFile::ReadOnly | QIODevice::Text)) {
-    qDebug() << "Cannot access reference file" << realFilename;
-    return "";
-  }
-  PacketType contents = refFile.readAll();
-  refFile.close();
-  return contents;
-}
-
-void JsonRpcTest::printNode(const Json::Value &root)
-{
-  std::string str;
-  str = m_writer.write(root);
-  qDebug() << str.c_str();
-}
 
 void JsonRpcTest::initTestCase()
 {
-  qRegisterMetaType<MoleQueue::Connection*>("MoleQueue::Connection*");
-  qRegisterMetaType<MoleQueue::EndpointIdType>("MoleQueue::EndpointIdType");
+  m_conn2 = NULL;
+  m_connList2 = NULL;
 }
 
 void JsonRpcTest::cleanupTestCase()
 {
-
 }
 
 void JsonRpcTest::init()
 {
-  // Reset error monitor
-  m_error = false;
 }
 
 void JsonRpcTest::cleanup()
 {
-
 }
 
-void JsonRpcTest::validateRequest()
+void JsonRpcTest::addConnectionListener()
 {
-  // Test valid requests
-  m_packet = readReferenceString("jsonrpc-ref/valid-requests.json");
-  m_reader.parse(m_packet.constData(), m_packet.constData() + m_packet.size(),
-               m_root, false);
-  if (!m_root.isArray()) {
-    qDebug() << "Error reading valid requests file (not a test failure).";
-    m_error = true;
-  }
-  else {
-    for (Json::Value::iterator it = m_root.begin(), it_end = m_root.end();
-         it != it_end; ++it) {
-      if (!m_rpc.validateRequest(Message(*it), false)) {
-        qDebug() << "Valid request failed validation:";
-        printNode(*it);
-        m_error = true;
-      }
-    }
-  }
-
-  // Test invalid requests
-  m_packet = readReferenceString("jsonrpc-ref/invalid-requests.json");
-  m_reader.parse(m_packet.constData(), m_packet.constData() + m_packet.size(),
-               m_root, false);
-  if (!m_root.isArray()) {
-    qDebug() << "Error reading invalid requests file (not a test failure).";
-    m_error = true;
-  }
-  else {
-    for (Json::Value::iterator it = m_root.begin(), it_end = m_root.end();
-         it != it_end; ++it) {
-      if (m_rpc.validateRequest(Message(*it), false)) {
-        qDebug() << "Invalid request passed validation:";
-        printNode(*it);
-        m_error = true;
-      }
-    }
-  }
-
-  // Test strictly invalid requests
-  m_packet = readReferenceString("jsonrpc-ref/strictly-invalid-requests.json");
-  m_reader.parse(m_packet.constData(), m_packet.constData() + m_packet.size(),
-               m_root, false);
-  if (!m_root.isArray()) {
-    qDebug() << "Error reading strictly invalid requests file "
-                "(not a test failure).";
-    m_error = true;
-  }
-  else {
-    for (Json::Value::iterator it = m_root.begin(), it_end = m_root.end();
-         it != it_end; ++it) {
-      if (m_rpc.validateRequest(Message(*it), true)) {
-        qDebug() << "Strictly invalid request passed strict validation:";
-        printNode(*it);
-        m_error = true;
-      }
-      if (!m_rpc.validateRequest(Message(*it), false)) {
-        qDebug() << "Strictly invalid request failed loose validation:";
-        printNode(*it);
-        m_error = true;
-      }
-    }
-  }
-
-  QVERIFY(m_error == false);
+  QCOMPARE(m_jsonRpc.m_connections.size(), 0);
+  m_jsonRpc.addConnectionListener(&m_connList1);
+  QCOMPARE(m_jsonRpc.m_connections.size(), 1);
+  m_connList2 = new DummyConnectionListener(this);
+  m_jsonRpc.addConnectionListener(m_connList2);
+  QCOMPARE(m_jsonRpc.m_connections.size(), 2);
 }
 
-void JsonRpcTest::validateResponse()
+void JsonRpcTest::addConnection()
 {
-  // Test valid responses
-  m_packet = readReferenceString("jsonrpc-ref/valid-responses.json");
-  m_reader.parse(m_packet.constData(), m_packet.constData() + m_packet.size(),
-               m_root, false);
-  if (!m_root.isArray()) {
-    qDebug() << "Error reading valid responses file (not a test failure).";
-    m_error = true;
-  }
-  else {
-    for (Json::Value::iterator it = m_root.begin(), it_end = m_root.end();
-         it != it_end; ++it) {
-      if (!m_rpc.validateResponse(Message(*it), false)) {
-        qDebug() << "Valid response failed validation:";
-        printNode(*it);
-        m_error = true;
-      }
-    }
-  }
-
-  // Test invalid responses
-  m_packet = readReferenceString("jsonrpc-ref/invalid-responses.json");
-  m_reader.parse(m_packet.constData(), m_packet.constData() + m_packet.size(),
-               m_root, false);
-  if (!m_root.isArray()) {
-    qDebug() << "Error reading invalid responses file (not a test failure).";
-    m_error = true;
-  }
-  else {
-    for (Json::Value::iterator it = m_root.begin(), it_end = m_root.end();
-         it != it_end; ++it) {
-      if (m_rpc.validateResponse(Message(*it), false)) {
-        qDebug() << "Invalid response passed validation:";
-        printNode(*it);
-        m_error = true;
-      }
-    }
-  }
-
-  // Test strictly invalid responses
-  m_packet = readReferenceString("jsonrpc-ref/strictly-invalid-responses.json");
-  m_reader.parse(m_packet.constData(), m_packet.constData() + m_packet.size(),
-               m_root, false);
-  if (!m_root.isArray()) {
-    qDebug() << "Error reading strictly invalid responses file "
-                "(not a test failure).";
-    m_error = true;
-  }
-  else {
-    for (Json::Value::iterator it = m_root.begin(), it_end = m_root.end();
-         it != it_end; ++it) {
-      if (m_rpc.validateResponse(Message(*it), true)) {
-        qDebug() << "Strictly invalid response passed strict validation:";
-        printNode(*it);
-        m_error = true;
-      }
-      if (!m_rpc.validateResponse(Message(*it), false)) {
-        qDebug() << "Strictly invalid response failed loose validation:";
-        printNode(*it);
-        m_error = true;
-      }
-    }
-  }
-
-  QVERIFY(m_error == false);
+  QCOMPARE(m_jsonRpc.m_connections.size(), 2);
+  QCOMPARE(m_jsonRpc.m_connections[&m_connList1].size(), 0);
+  m_connList1.emitNewConnection(&m_conn1);
+  QCOMPARE(m_jsonRpc.m_connections[&m_connList1].size(), 1);
+  m_conn2 = new DummyConnection(this);
+  m_connList1.emitNewConnection(m_conn2);
+  QCOMPARE(m_jsonRpc.m_connections[&m_connList1].size(), 2);
 }
 
-void JsonRpcTest::validateNotification()
+void JsonRpcTest::messageReceived()
 {
-  // Test valid notifications
-  m_packet = readReferenceString("jsonrpc-ref/valid-notifications.json");
-  m_reader.parse(m_packet.constData(), m_packet.constData() + m_packet.size(),
-               m_root, false);
-  if (!m_root.isArray()) {
-    qDebug() << "Error reading valid notifications file (not a test failure).";
-    m_error = true;
-  }
-  else {
-    for (Json::Value::iterator it = m_root.begin(), it_end = m_root.end();
-         it != it_end; ++it) {
-      if (!m_rpc.validateNotification(Message(*it), false)) {
-        qDebug() << "Valid notification failed validation:";
-        printNode(*it);
-        m_error = true;
-      }
-    }
-  }
-
-  // Test invalid notifications
-  m_packet = readReferenceString("jsonrpc-ref/invalid-notifications.json");
-  m_reader.parse(m_packet.constData(), m_packet.constData() + m_packet.size(),
-               m_root, false);
-  if (!m_root.isArray()) {
-    qDebug() << "Error reading invalid notifications file "
-                "(not a test failure).";
-    m_error = true;
-  }
-  else {
-    for (Json::Value::iterator it = m_root.begin(), it_end = m_root.end();
-         it != it_end; ++it) {
-      if (m_rpc.validateNotification(Message(*it), false)) {
-        qDebug() << "Invalid notification passed validation:";
-        printNode(*it);
-        m_error = true;
-      }
-    }
-  }
-
-  // Test strictly invalid notifications
-  m_packet = readReferenceString("jsonrpc-ref/strictly-invalid-notifications.json");
-  m_reader.parse(m_packet.constData(), m_packet.constData() + m_packet.size(),
-               m_root, false);
-  if (!m_root.isArray()) {
-    qDebug() << "Error reading strictly invalid notifications file "
-                "(not a test failure).";
-    m_error = true;
-  }
-  else {
-    for (Json::Value::iterator it = m_root.begin(), it_end = m_root.end();
-         it != it_end; ++it) {
-      if (m_rpc.validateNotification(Message(*it), true)) {
-        qDebug() << "Strictly invalid notification passed strict validation:";
-        printNode(*it);
-        m_error = true;
-      }
-      if (!m_rpc.validateNotification(Message(*it), false)) {
-        qDebug() << "Strictly invalid notification failed loose validation:";
-        printNode(*it);
-        m_error = true;
-      }
-    }
-  }
-
-  QVERIFY(m_error == false);
-}
-
-void JsonRpcTest::interpretIncomingMessage_unparsable()
-{
-  QSignalSpy spy(&m_rpc, SIGNAL(invalidMessageReceived(MoleQueue::Message,
-                                                       Json::Value)));
-  m_packet = "[I'm not valid JSON!}";
-  m_rpc.interpretIncomingMessage(Message(m_packet));
-
+  MoleQueue::Message dummyMsg(MoleQueue::Message::Request, &m_conn1);
+  dummyMsg.setMethod("testMethod");
+  QSignalSpy spy(&m_jsonRpc, SIGNAL(messageReceived(MoleQueue::Message)));
+  m_conn1.emitPacketReceived(dummyMsg);
+  qApp->processEvents(QEventLoop::AllEvents, 1000);
   QCOMPARE(spy.count(), 1);
 }
 
-void JsonRpcTest::interpretIncomingMessage_invalidRequest()
+void JsonRpcTest::removeConnection()
 {
-  QSignalSpy spy(&m_rpc, SIGNAL(invalidRequestReceived(MoleQueue::Message,
-                                                       Json::Value)));
-  m_packet = "{\"I'm valid JSON\" : \"but not JSON-RPC\"}";
-  m_rpc.interpretIncomingMessage(Message(m_packet));
-
-  QCOMPARE(spy.count(), 1);
+  // Destroying a connection should remove it from the JsonRpc instance. This
+  // tests all code paths involved in removing a connection.
+  QVERIFY(m_conn2 != NULL);
+  QCOMPARE(m_jsonRpc.m_connections[&m_connList1].size(), 2);
+  delete m_conn2;
+  qApp->processEvents(QEventLoop::AllEvents, 1000);
+  QCOMPARE(m_jsonRpc.m_connections[&m_connList1].size(), 1);
 }
 
-void JsonRpcTest::interpretIncomingMessage_unrecognizedRequest()
+void JsonRpcTest::removeConnectionListener()
 {
-  QSignalSpy spy(&m_rpc,
-                 SIGNAL(unrecognizedRequestReceived(MoleQueue::Message,
-                                                    Json::Value)));
-  m_packet = "{ \"jsonrpc\" : \"2.0\", \"id\" : \"0\", \"method\" : \"asdf\" }";
-  m_rpc.interpretIncomingMessage(Message(m_packet));
-
-  QCOMPARE(spy.count(), 1);
+  // Destroying a connectionlistener should remove it from the JsonRpc instance.
+  // This tests all code paths involved in removing a connectionlistener.
+  QVERIFY(m_connList2 != NULL);
+  QCOMPARE(m_jsonRpc.m_connections.size(), 2);
+  delete m_connList2;
+  qApp->processEvents(QEventLoop::AllEvents, 1000);
+  QCOMPARE(m_jsonRpc.m_connections.size(), 1);
 }
 
 QTEST_MAIN(JsonRpcTest)
