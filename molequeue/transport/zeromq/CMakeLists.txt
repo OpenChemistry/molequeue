@@ -7,7 +7,6 @@ add_definitions(-DUSE_ZERO_MQ)
 # Connection
 add_library(mqzeromqconnection STATIC
   zeromqconnection.cpp
-  ${jsoncpp_srcs}
 )
 list(APPEND zeromq_targets mqzeromqconnection)
 list(APPEND zeromq_headers zeromqconnection.h)

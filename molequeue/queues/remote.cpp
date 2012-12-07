@@ -25,6 +25,10 @@
 #include "../remotequeuewidget.h"
 #include "../server.h"
 
+#include <qjsondocument.h>
+#include <qjsonobject.h>
+#include <qjsonvalue.h>
+
 #include <QtCore/QTimer>
 #include <QtCore/QDebug>
 
@@ -49,40 +53,45 @@ QueueRemote::~QueueRemote()
 {
 }
 
-bool QueueRemote::writeJsonSettings(Json::Value &root, bool exportOnly,
+bool QueueRemote::writeJsonSettings(QJsonObject &json, bool exportOnly,
                                     bool includePrograms) const
 {
-  if (!Queue::writeJsonSettings(root, exportOnly, includePrograms))
+  if (!Queue::writeJsonSettings(json, exportOnly, includePrograms))
     return false;
 
-  root["workingDirectoryBase"] = m_workingDirectoryBase.toStdString();
-  root["queueUpdateInterval"] = m_queueUpdateInterval;
-  root["defaultMaxWallTime"] = m_defaultMaxWallTime;
+  if (!exportOnly)
+    json.insert("workingDirectoryBase", m_workingDirectoryBase);
+
+  json.insert("queueUpdateInterval",
+              static_cast<double>(m_queueUpdateInterval));
+  json.insert("defaultMaxWallTime",
+              static_cast<double>(m_defaultMaxWallTime));
 
   return true;
 }
 
-bool QueueRemote::readJsonSettings(const Json::Value &root, bool importOnly,
+bool QueueRemote::readJsonSettings(const QJsonObject &json, bool importOnly,
                                    bool includePrograms)
 {
   // Validate JSON:
-  if (!root.isObject() ||
-      (!importOnly && !root["workingDirectoryBase"].isString()) ||
-      !root["queueUpdateInterval"].isIntegral() ||
-      !root["defaultMaxWallTime"].isIntegral()) {
+  if ((!importOnly && !json.value("workingDirectoryBase").isString()) ||
+      !json.value("queueUpdateInterval").isDouble() ||
+      !json.value("defaultMaxWallTime").isDouble()) {
     Logger::logError(tr("Error reading queue settings: Invalid format:\n%1")
-                     .arg(QString(root.toStyledString().c_str())));
+                     .arg(QString(QJsonDocument(json).toJson())));
     return false;
   }
 
-  if (!Queue::readJsonSettings(root, importOnly, includePrograms))
+  if (!Queue::readJsonSettings(json, importOnly, includePrograms))
     return false;
 
   if (!importOnly)
-    m_workingDirectoryBase = QString(root["workingDirectoryBase"].asCString());
+    m_workingDirectoryBase = json.value("workingDirectoryBase").toString();
 
-  m_queueUpdateInterval = root["queueUpdateInterval"].asInt();
-  m_defaultMaxWallTime= root["defaultMaxWallTime"].asInt();
+  m_queueUpdateInterval =
+      static_cast<int>(json.value("queueUpdateInterval").toDouble() + 0.5);
+  m_defaultMaxWallTime =
+      static_cast<int>(json.value("defaultMaxWallTime").toDouble() + 0.5);
 
   return true;
 }
@@ -140,6 +149,8 @@ bool QueueRemote::submitJob(Job job)
     job.setJobState(MoleQueue::Accepted);
     return true;
   }
+  Logger::logError(tr("Refusing to submit job to Queue '%1': Job object is "
+                      "invalid.").arg(m_name), job.moleQueueId());
   return false;
 }
 

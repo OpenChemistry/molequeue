@@ -1,0 +1,12 @@
+{
+    "error": {
+        "code": 1,
+        "data": {
+            "moleQueueId": 334,
+            "queue": "invalidQueue"
+        },
+        "message": "Queue no longer exists"
+    },
+    "id": 104,
+    "jsonrpc": "2.0"
+}

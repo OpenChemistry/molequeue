@@ -1,0 +1,19 @@
+{
+    "error": {
+        "code": -32602,
+        "data": {
+            "description": "submitJob params member must be an object.",
+            "request": {
+                "id": 102,
+                "jsonrpc": "2.0",
+                "method": "submitJob",
+                "params": [
+                    5.3
+                ]
+            }
+        },
+        "message": "Invalid params"
+    },
+    "id": 102,
+    "jsonrpc": "2.0"
+}

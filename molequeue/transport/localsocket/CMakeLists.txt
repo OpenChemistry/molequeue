@@ -1,7 +1,6 @@
 # Connection
 set(mq_localsocket_connection_srcs
   localsocketconnection.cpp
-  ${jsoncpp_srcs}
 )
 
 add_library(mqlocalsocketconnection STATIC ${mq_localsocket_connection_srcs})

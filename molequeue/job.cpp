@@ -41,17 +41,17 @@ Job::~Job()
 {
 }
 
-void Job::setFromHash(const QVariantHash &state)
+void Job::setFromJson(const QJsonObject &state)
 {
   if (warnIfInvalid())
-    m_jobData->setFromHash(state);
+    m_jobData->setFromJson(state);
 }
 
-QVariantHash Job::hash() const
+QJsonObject Job::toJsonObject() const
 {
   if (warnIfInvalid())
-    return m_jobData->hash();
-  return QVariantHash();
+    return m_jobData->toJsonObject();
+  return QJsonObject();
 }
 
 void Job::setQueue(const QString &newQueue)

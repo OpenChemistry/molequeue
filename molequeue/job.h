@@ -22,9 +22,10 @@
 #include "filespecification.h"
 #include "molequeueglobal.h"
 
+#include <qjsonobject.h>
+
 #include <QtCore/QMetaType>
 #include <QtCore/QString>
-#include <QtCore/QVariantHash>
 
 namespace MoleQueue
 {
@@ -77,12 +78,11 @@ public:
 
   ~Job();
 
-  /// @return The JobData's internal state as a QVariantHash
-  QVariantHash hash() const;
+  /// @return The JobData's internal state as a QJsonObject
+  QJsonObject toJsonObject() const;
 
-  /// Update the JobData's internal state from a QVariantHash
-  /// @param hash The Job
-  void setFromHash(const QVariantHash &state);
+  /// Update the JobData's internal state from a QJsonObject
+  void setFromJson(const QJsonObject &state);
 
   /// @param newQueue name of the queue.
   void setQueue(const QString &newQueue);

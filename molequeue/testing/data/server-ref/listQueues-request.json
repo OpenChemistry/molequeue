@@ -1,0 +1,5 @@
+{
+    "id": 101,
+    "jsonrpc": "2.0",
+    "method": "listQueues"
+}

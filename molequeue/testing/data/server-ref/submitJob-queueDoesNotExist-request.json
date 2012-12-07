@@ -1,0 +1,10 @@
+{
+    "id": 103,
+    "jsonrpc": "2.0",
+    "method": "submitJob",
+    "params": {
+        "description": "testDescription",
+        "program": "testProgram",
+        "queue": "invalidQueue"
+    }
+}

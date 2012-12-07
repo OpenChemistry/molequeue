@@ -27,13 +27,17 @@
 #include "../queuemanager.h"
 #include "../server.h"
 
+#include <qjsonarray.h>
+#include <qjsondocument.h>
+#include <qjsonobject.h>
+#include <qjsonvalue.h>
+
 #include <QtCore/QProcess>
 #include <QtCore/QProcessEnvironment>
 
 #include <QtCore/QDir>
 #include <QtCore/QFile>
 #include <QtCore/QProcess>
-#include <QtCore/QSettings>
 #include <QtCore/QTimerEvent>
 #include <QtCore/QThread> // For ideal thread count
 
@@ -69,65 +73,60 @@ QueueLocal::~QueueLocal()
 {
 }
 
-bool QueueLocal::writeJsonSettings(Json::Value &root, bool exportOnly,
+bool QueueLocal::writeJsonSettings(QJsonObject &json, bool exportOnly,
                                    bool includePrograms) const
 {
-  if (!Queue::writeJsonSettings(root, exportOnly, includePrograms))
+  if (!Queue::writeJsonSettings(json, exportOnly, includePrograms))
     return false;
 
-  root["cores"] = m_cores;
+  json.insert("cores", static_cast<double>(m_cores));
 
   if (!exportOnly) {
-    QList<IdType> jobsToResume;
-    jobsToResume.append(m_runningJobs.keys());
-    jobsToResume.append(m_pendingJobQueue);
-    Json::Value jobsToResumeObject(Json::arrayValue);
+    QJsonArray jobsToResumeArray;
     foreach (IdType jobId, m_runningJobs.keys())
-      jobsToResumeObject.append(jobId);
+      jobsToResumeArray.append(idTypeToJson(jobId));
     foreach (IdType jobId, m_pendingJobQueue)
-      jobsToResumeObject.append(jobId);
-    root["jobsToResume"] = jobsToResumeObject;
+      jobsToResumeArray.append(idTypeToJson(jobId));
+    json.insert("jobsToResume", jobsToResumeArray);
   }
 
   return true;
 }
 
-bool QueueLocal::readJsonSettings(const Json::Value &root, bool importOnly,
+bool QueueLocal::readJsonSettings(const QJsonObject &json, bool importOnly,
                                   bool includePrograms)
 {
   // Validate JSON
-  if (!root.isObject() ||
-      !root["cores"].isIntegral()) {
+  if (!json.value("cores").isDouble()) {
     Logger::logError(tr("Error reading queue settings: Invalid format:\n%1")
-                     .arg(QString(root.toStyledString().c_str())));
+                     .arg(QString(QJsonDocument(json).toJson())));
     return false;
   }
 
   QList<IdType> jobsToResume;
-  if (!importOnly && root.isMember("jobsToResume")) {
-    const Json::Value &jobsToResumeObject = root["jobsToResume"];
-    if (!jobsToResumeObject.isArray()) {
+  if (!importOnly && json.contains("jobsToResume")) {
+    if (!json.value("jobsToResume").isArray()) {
       Logger::logError(tr("Error reading queue settings: Invalid format:\n%1")
-                       .arg(QString(root.toStyledString().c_str())));
+                       .arg(QString(QJsonDocument(json).toJson())));
       return false;
     }
 
-    for (Json::ValueIterator it = jobsToResumeObject.begin(),
-         it_end = jobsToResumeObject.end(); it != it_end; ++it) {
-      if (!(*it).isIntegral()) {
+    QJsonArray jobsToResumeArray = json.value("jobsToResume").toArray();
+    foreach (QJsonValue val, jobsToResumeArray) {
+      if (val.isDouble()) {
         Logger::logError(tr("Error reading queue settings: Invalid format:\n%1")
-                         .arg(QString(root.toStyledString().c_str())));
+                         .arg(QString(QJsonDocument(json).toJson())));
         return false;
       }
-      jobsToResume.append(toIdType(*it));
+      jobsToResume.append(toIdType(val));
     }
   }
 
-  if (!Queue::readJsonSettings(root, importOnly, includePrograms))
+  if (!Queue::readJsonSettings(json, importOnly, includePrograms))
     return false;
 
   // Everything is validated -- go ahead and update object.
-  m_cores = root["cores"].asInt();
+  m_cores = static_cast<int>(json.value("cores").toDouble() + 0.5);
   m_pendingJobQueue = jobsToResume;
 
   return true;
@@ -145,6 +144,8 @@ bool QueueLocal::submitJob(Job job)
     Job(job).setJobState(MoleQueue::Accepted);
     return prepareJobForSubmission(job);;
   }
+  Logger::logError(tr("Refusing to submit job to Queue '%1': Job object is "
+                      "invalid.").arg(m_name), job.moleQueueId());
   return false;
 }
 

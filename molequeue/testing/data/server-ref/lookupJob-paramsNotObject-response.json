@@ -1,0 +1,19 @@
+{
+    "error": {
+        "code": -32602,
+        "data": {
+            "description": "lookupJob params member must be an object.",
+            "request": {
+                "id": 104,
+                "jsonrpc": "2.0",
+                "method": "lookupJob",
+                "params": [
+                    5.3
+                ]
+            }
+        },
+        "message": "Invalid params"
+    },
+    "id": 104,
+    "jsonrpc": "2.0"
+}

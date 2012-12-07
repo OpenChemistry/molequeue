@@ -26,6 +26,10 @@
 #include "../server.h"
 #include "../sshcommandfactory.h"
 
+#include <qjsondocument.h>
+#include <qjsonobject.h>
+#include <qjsonvalue.h>
+
 #include <QtCore/QTimer>
 #include <QtCore/QDebug>
 
@@ -51,62 +55,61 @@ QueueRemoteSsh::~QueueRemoteSsh()
 {
 }
 
-bool QueueRemoteSsh::writeJsonSettings(Json::Value &root, bool exportOnly,
+bool QueueRemoteSsh::writeJsonSettings(QJsonObject &json, bool exportOnly,
                                        bool includePrograms) const
 {
-  if (!QueueRemote::writeJsonSettings(root, exportOnly, includePrograms))
+  if (!QueueRemote::writeJsonSettings(json, exportOnly, includePrograms))
     return false;
 
-  root["submissionCommand"] = m_submissionCommand.toStdString();
-  root["requestQueueCommand"] = m_requestQueueCommand.toStdString();
-  root["killCommand"] = m_killCommand.toStdString();
-  root["hostName"] = m_hostName.toStdString();
-  root["sshPort"] = m_sshPort;
+  json.insert("submissionCommand", m_submissionCommand);
+  json.insert("requestQueueCommand", m_requestQueueCommand);
+  json.insert("killCommand", m_killCommand);
+  json.insert("hostName", m_hostName);
+  json.insert("sshPort", static_cast<double>(m_sshPort));
 
   if (!exportOnly) {
-    root["sshExecutable"] = m_sshExecutable.toStdString();
-    root["scpExecutable"] = m_scpExecutable.toStdString();
-    root["userName"] = m_userName.toStdString();
-    root["identityFile"] = m_identityFile.toStdString();
+    json.insert("sshExecutable", m_sshExecutable);
+    json.insert("scpExecutable", m_scpExecutable);
+    json.insert("userName", m_userName);
+    json.insert("identityFile", m_identityFile);
   }
 
   return true;
 }
 
-bool QueueRemoteSsh::readJsonSettings(const Json::Value &root, bool importOnly,
+bool QueueRemoteSsh::readJsonSettings(const QJsonObject &json, bool importOnly,
                                       bool includePrograms)
 {
   // Validate JSON
-  if (!root.isObject() ||
-      !root["submissionCommand"].isString() ||
-      !root["requestQueueCommand"].isString() ||
-      !root["killCommand"].isString() ||
-      !root["hostName"].isString() ||
-      !root["sshPort"].isIntegral() ||
+  if (!json.value("submissionCommand").isString() ||
+      !json.value("requestQueueCommand").isString() ||
+      !json.value("killCommand").isString() ||
+      !json.value("hostName").isString() ||
+      !json.value("sshPort").isDouble() ||
       (!importOnly && (
-         !root["sshExecutable"].isString() ||
-         !root["scpExecutable"].isString() ||
-         !root["userName"].isString() ||
-         !root["identityFile"].isString()))) {
+         !json.value("sshExecutable").isString() ||
+         !json.value("scpExecutable").isString() ||
+         !json.value("userName").isString() ||
+         !json.value("identityFile").isString()))) {
     Logger::logError(tr("Error reading queue settings: Invalid format:\n%1")
-                     .arg(QString(root.toStyledString().c_str())));
+                     .arg(QString(QJsonDocument(json).toJson())));
     return false;
   }
 
-  if (!QueueRemote::readJsonSettings(root, importOnly, includePrograms))
+  if (!QueueRemote::readJsonSettings(json, importOnly, includePrograms))
     return false;
 
-  m_submissionCommand = QString(root["submissionCommand"].asCString());
-  m_requestQueueCommand = QString(root["requestQueueCommand"].asCString());
-  m_killCommand = QString(root["killCommand"].asCString());
-  m_hostName = QString(root["hostName"].asCString());
-  m_sshPort = root["sshPort"].asInt();
+  m_submissionCommand = json.value("submissionCommand").toString();
+  m_requestQueueCommand = json.value("requestQueueCommand").toString();
+  m_killCommand = json.value("killCommand").toString();
+  m_hostName = json.value("hostName").toString();
+  m_sshPort = static_cast<int>(json.value("sshPort").toDouble() + 0.5);
 
   if (!importOnly) {
-    m_sshExecutable = QString(root["sshExecutable"].asCString());
-    m_scpExecutable = QString(root["scpExecutable"].asCString());
-    m_userName = QString(root["userName"].asCString());
-    m_identityFile = QString(root["identityFile"].asCString());
+    m_sshExecutable = json.value("sshExecutable").toString();
+    m_scpExecutable = json.value("scpExecutable").toString();
+    m_userName = json.value("userName").toString();
+    m_identityFile = json.value("identityFile").toString();
   }
 
   return true;

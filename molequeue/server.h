@@ -17,44 +17,36 @@
 #ifndef SERVER_H
 #define SERVER_H
 
-#include "transport/abstractrpcinterface.h"
+#include <QtCore/QObject>
 
 #include "job.h"
 #include "molequeueglobal.h"
 #include "transport/connectionlistener.h"
 #include "transport/jsonrpc.h"
 
-#include <QtCore/QObject>
 #include <QtCore/QList>
 
 class ServerTest;
-class ServerConnectionTest;
 
 class QSettings;
 
 namespace MoleQueue
 {
 class Connection;
-class Error;
 class Job;
 class JobManager;
 class QueueManager;
-class ServerConnection;
-class ServerJsonRpc;
+class JsonRpc;
 
 /**
  * @class Server server.h <molequeue/server.h>
- * @brief The Server class handles incoming Client connections and spawns
- * a ServerConnection instance for each.
+ * @brief The Server class handles incoming JSON-RPC messages.
  * @author David C. Lonie
  *
- * The Server class is the root of the server-side heirarchy. It is responsible
- * for listening for incoming connections and owns the JobManager and
- * QueueManager used to track Job and Queue objects. It also routes client
- * requests to the appropriate server-side objects.
- *
+ * The Server class is the root of the server-side heirarchy. It owns the
+ * JobManager, QueueManager, and JsonRpc listener.
  */
-class Server : public AbstractRpcInterface
+class Server : public QObject
 {
   Q_OBJECT
 public:
@@ -102,38 +94,15 @@ public:
   /// The string the server uses to listen for connections.
   QString serverName() const { return m_serverName; }
 
-  /// Used for internal lookup structures
-  typedef QMap<IdType, MessageIdType> PacketLookupTable;
-
-  /// Used for unit testing
-  friend class ::ServerConnectionTest;
-
   /// Used for unit testing
   friend class ::ServerTest;
 
 signals:
-
   /**
-   * Emitted when an error occurs.
-   *
-   * @param error
-   * @param message
+   * Emitted when a connection listener fails to start.
    */
   void connectionError(MoleQueue::ConnectionListener::Error error,
                        const QString &message);
-
-  /**
-   * Emitted when the connection is disconnected.
-   */
-  void disconnected();
-
-  /**
-   * Emitted when a non-critical error occurs that the user should be notified
-   * of.
-   * @param title Title of the error message
-   * @param message Details of the error.
-   */
-  void errorNotification(const QString &title, const QString &message);
 
 public slots:
 
@@ -177,93 +146,6 @@ public slots:
                               MoleQueue::JobState oldState,
                               MoleQueue::JobState newState);
 
-  /**
-   * Sends the @a list to the connected client.
-   *
-   * @param request The request Message
-   * @param queueList The queue List
-   */
-  void sendQueueList(const MoleQueue::Message &request,
-                     const MoleQueue::QueueListType &queueList);
-
-  /**
-   * Sends a reply to the client informing them that the job submission was
-   * successful.
-   * @param request The request Message
-   * @param job The Job
-   */
-  void sendSuccessfulSubmissionResponse(const MoleQueue::Message &request,
-                                        const MoleQueue::Job &job);
-
-  /**
-   * Sends a reply to the client informing them that the job submission failed.
-   * @param request The request Message
-   * @param ec Error code
-   * @param errorMessage Descriptive string
-   */
-  void sendFailedSubmissionResponse(const MoleQueue::Message &request,
-                                    MoleQueue::ErrorCode ec,
-                                    const QString &errorMessage);
-
-  /**
-   * Sends a reply to the client informing them that the job cancellation was
-   * successful.
-   * @param request The request Message
-   * @param moleQueueId The id of the job being cancelled
-   */
-  void sendSuccessfulCancellationResponse(const MoleQueue::Message &request,
-                                          IdType moleQueueId);
-
-  /**
-   * Sends a reply to the client informing them that the job cancellation was
-   * unsuccessful.
-   * @param request The request Message
-   * @param moleQueueId The id of the job being cancelled
-   * @param error The ErrorCode describing the failure
-   * @param message A descriptive string detailing the failure.
-   */
-  void sendFailedCancellationResponse(const MoleQueue::Message &request,
-                                      MoleQueue::IdType moleQueueId,
-                                      MoleQueue::ErrorCode error,
-                                      const QString &message);
-
-  /**
-   * Sends a requested job details to the client.
-   * @param request The request Message
-   * @param req The Job
-   */
-  void sendSuccessfulLookupJobResponse(const MoleQueue::Message &request,
-                                       const MoleQueue::Job &req);
-
-  /**
-   * Sends a reply to the client informing them that the job lookup failed.
-   * @param request The request Message
-   * @param moleQueueId The unknown MoleQueue id.
-   */
-  void sendFailedLookupJobResponse(const MoleQueue::Message &request,
-                                   MoleQueue::IdType moleQueueId);
-
-  /**
-   * Sends a notification to the connected client informing them that a job
-   * has changed status.
-   * @param connectionInfo A Message object populated with connection details
-   * for routing the message.
-   * @param req The Job that changed JobState.
-   * @param oldState The old JobState
-   * @param newState The new JobState
-   */
-  void sendJobStateChangeNotification(const MoleQueue::Message &connectionInfo,
-                                      const MoleQueue::Job &req,
-                                      MoleQueue::JobState oldState,
-                                      MoleQueue::JobState newState);
-
-  /**
-   * Sends rpcKill reply to the server.
-   * @param request The request Message
-   * @param success Whether or not the request can be handled.
-   */
-  void sendRpcKillResponse(const MoleQueue::Message &request, bool success);
-
 protected slots:
 
   /**
@@ -284,36 +166,9 @@ protected slots:
   void clientDisconnected();
 
   /**
-   * Called when the JsonRpc instance handles a listQueues request.
+   * @brief handleMessage Called when the JsonRpc listener receives a message.
    */
-  void queueListRequestReceived(const MoleQueue::Message &request);
-
-  /**
-   * Called when the JsonRpc instance handles a submitJob request.
-   * @param options Option hash (see Job::hash())
-   */
-  void jobSubmissionRequestReceived(const MoleQueue::Message &request,
-                                    const QVariantHash &options);
-
-  /**
-   * Called when the JsonRpc instance handles a cancelJob request.
-   * @param moleQueueId The MoleQueue identifier of the job to cancel.
-   */
-  void jobCancellationRequestReceived(const MoleQueue::Message &request,
-                                      MoleQueue::IdType moleQueueId);
-
-  /**
-   * Called when the JsonRpc instance handles a lookupJob request.
-   * @param moleQueueId The MoleQueue identifier of the requested job.
-   */
-  void lookupJobRequestReceived(const MoleQueue::Message &request,
-                                MoleQueue::IdType moleQueueId);
-
-  /**
-   * Called when the JsonRpc instance handles an rpcKill request.
-   */
-  void rpcKillRequestReceived(const MoleQueue::Message &request);
-
+  void handleMessage(const MoleQueue::Message &message);
 
 private slots:
 
@@ -322,29 +177,29 @@ private slots:
    */
   void jobRemoved(MoleQueue::IdType moleQueueId);
 
+private:
+
+  /**
+   * @{
+   * Handlers for different message types.
+   */
+  void handleRequest(const MoleQueue::Message &message);
+  void handleUnknownMethod(const MoleQueue::Message &message);
+  void handleInvalidParams(const MoleQueue::Message &message,
+                           const QString &description);
+  void handleListQueuesRequest(const MoleQueue::Message &message);
+  void handleSubmitJobRequest(const MoleQueue::Message &message);
+  void handleCancelJobRequest(const MoleQueue::Message &message);
+  void handleLookupJobRequest(const MoleQueue::Message &message);
+  void handleRpcKillRequest(const MoleQueue::Message &message);
+  /**@}*/
+
 protected:
 
   /**
    * @brief timerEvent Reimplemented from QObject.
    */
   void timerEvent(QTimerEvent *);
-
-  /**
-   * Find the ServerConnection that owns the Job with the request MoleQueue id.
-   * @param moleQueueId MoleQueue id of Job.
-   * @return A pointer to the ServerConnection, or NULL if no active connection
-   * found.
-   */
-  ServerConnection * lookupConnection(IdType moleQueueId);
-
-  /// Reimplemented from base class
-  void setJsonRpc(JsonRpc *jsonrpc);
-
-  /// Get the internal JsonRpc instance as a ServerJsonRpc object.
-  ServerJsonRpc *serverJsonRpc()
-  {
-    return reinterpret_cast<ServerJsonRpc*>(m_jsonrpc);
-  }
 
   /// List of active connections
   QList<Connection*> m_connections;
@@ -355,17 +210,14 @@ protected:
   /// The QueueManager for this Server.
   QueueManager *m_queueManager;
 
-  /// Used to change the socket name for unit testing.
-  bool m_isTesting;
+  /// The JsonRpc listener for this Server.
+  JsonRpc *m_jsonrpc;
 
   /// Local directory for running jobs.
   QString m_workingDirectoryBase;
 
   /// Counter for MoleQueue job ids.
   IdType m_moleQueueIdCounter;
-
-  /// Tracks MoleQueue ids belonging to this connection
-  QList<IdType> m_ownedJobMoleQueueIds;
 
   // job id --> connection for notifications.
   QMap<IdType, Connection*> m_connectionLUT;

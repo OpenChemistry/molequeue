@@ -19,7 +19,8 @@
 #include "molequeueglobal.h"
 #include "idtypeutils.h"
 
-#include <json/json.h>
+#include <qjsonobject.h>
+#include <qjsonvalue.h>
 
 namespace MoleQueue
 {
@@ -32,15 +33,16 @@ LogEntry::LogEntry(LogEntryType type, const QString &message_,
 {
 }
 
-LogEntry::LogEntry(const Json::Value &json)
-  : m_message(json["message"].isString() ? json["message"].asCString()
-                                         : "Invalid JSON!"),
-    m_moleQueueId(toIdType(json["moleQueueId"])),
-    m_entryType(json["entryType"].isIntegral()
-                ? static_cast<LogEntryType>(json["entryType"].asInt())
+LogEntry::LogEntry(const QJsonObject &json)
+  : m_message(json.value("message").isString()
+              ? json.value("message").toString() : QString("Invalid JSON!")),
+    m_moleQueueId(toIdType(json.value("moleQueueId"))),
+    m_entryType(json.value("entryType").isDouble()
+                ? static_cast<LogEntryType>(
+                    static_cast<int>(json.value("entryType").toDouble() + 0.5))
                 : Error),
-    m_timeStamp(json["time"].isString()
-                ? QDateTime::fromString(json["time"].asCString())
+    m_timeStamp(json.value("time").isString()
+                ? QDateTime::fromString(json.value("time").toString())
                 : QDateTime())
 {
 }
@@ -57,12 +59,12 @@ LogEntry::~LogEntry()
 {
 }
 
-void LogEntry::writeSettings(Json::Value &root) const
+void LogEntry::writeSettings(QJsonObject &root) const
 {
-  root["message"] = m_message.toStdString();
-  root["moleQueueId"] = idTypeToJson(m_moleQueueId);
-  root["entryType"] = static_cast<int>(m_entryType);
-  root["time"] = m_timeStamp.toString().toStdString();
+  root.insert("message", m_message);
+  root.insert("moleQueueId", idTypeToJson(m_moleQueueId));
+  root.insert("entryType", static_cast<double>(m_entryType));
+  root.insert("time", m_timeStamp.toString());
 }
 
 void LogEntry::setTimeStamp()

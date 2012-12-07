@@ -1,0 +1,6 @@
+{
+    "jobState": "LocalQueued",
+    "moleQueueId": 334,
+    "program": "fakeProgram",
+    "queue": "invalidQueue"
+}

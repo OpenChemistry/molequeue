@@ -1,0 +1,8 @@
+{
+    "id": 103,
+    "jsonrpc": "2.0",
+    "result": {
+        "moleQueueId": 1,
+        "workingDirectory": "/jobs/1"
+    }
+}

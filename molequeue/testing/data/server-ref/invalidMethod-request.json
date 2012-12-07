@@ -1,0 +1,5 @@
+{
+    "id": 100,
+    "jsonrpc": "2.0",
+    "method": "notARealMethod"
+}

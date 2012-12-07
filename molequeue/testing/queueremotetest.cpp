@@ -370,7 +370,8 @@ void QueueRemoteTest::testFinalizePipeline()
   // recursiveCopyDirectory //
   ////////////////////////////
   QCOMPARE(QDir(job.outputDirectory()).entryList(),
-           QStringList() << "." << ".." << "input.in" << "launcher.dummy");
+           QStringList() << "." << ".." << "input.in" << "launcher.dummy"
+           << "mqjobinfo.json");
 
   ////////////////////////
   // finalizeJobCleanup // (calls cleanLocalDirectory

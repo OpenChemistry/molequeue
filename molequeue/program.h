@@ -23,9 +23,7 @@
 #include <QtCore/QMetaType>
 #include <QtCore/QString>
 
-class QSettings;
-
-namespace Json { class Value; }
+class QJsonObject;
 
 namespace MoleQueue
 {
@@ -107,7 +105,7 @@ public:
    * specific paths, etc) is omitted.
    * @return True on success, false on failure.
    */
-  bool writeJsonSettings(Json::Value &value, bool exportOnly) const;
+  bool writeJsonSettings(QJsonObject &json, bool exportOnly) const;
 
   /**
    * @brief readJsonSettings Initialize the program's internal state from a JSON
@@ -117,7 +115,7 @@ public:
    * specific paths, etc) is ignored.
    * @return True on success, false on failure.
    */
-  bool readJsonSettings(const Json::Value &value, bool importOnly);
+  bool readJsonSettings(const QJsonObject &json, bool importOnly);
 
   /**
    * Set the name of the program. This is the name that will show up in

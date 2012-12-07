@@ -1,0 +1,11 @@
+{
+    "error": {
+        "code": 3,
+        "data": {
+            "moleQueueId": 100
+        },
+        "message": "Unknown MoleQueue ID"
+    },
+    "id": 104,
+    "jsonrpc": "2.0"
+}
