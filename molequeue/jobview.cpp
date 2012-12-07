@@ -81,11 +81,11 @@ void JobView::contextMenuEvent(QContextMenuEvent *e)
       if (menu->actions().size())
         menu->addSeparator();
       // Call createActions before menuText, as menuText isn't always static.
-      QList<QAction*> actions = factory->createActions();
+      QList<QAction*> someActions = factory->createActions();
       QMenu *actionMenu = menu;
       if (factory->useMenu())
         actionMenu = menu->addMenu(factory->menuText());
-      foreach (QAction *action, actions) {
+      foreach (QAction *action, someActions) {
         actionMenu->addAction(action);
         action->setParent(actionMenu);
       }
