@@ -17,7 +17,6 @@
 #ifndef MOLEQUEUE_MESSAGE_H
 #define MOLEQUEUE_MESSAGE_H
 
-#include <qjsonvalue.h>
 #include <qjsonobject.h>
 
 #include <QtCore/QByteArray>
@@ -248,7 +247,7 @@ public:
   PacketType toJson() const;
 
   /**
-   * @brief Send the message to the associate connection and endpoint.
+   * @brief Send the message to the associated connection and endpoint.
    * @return True on success, false on failure.
    * @note If this message is a Request, a unique id will be assigned prior to
    * sending. Use the id() method to retrieve the assigned id. The id is

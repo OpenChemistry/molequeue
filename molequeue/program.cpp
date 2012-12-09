@@ -23,8 +23,6 @@
 #include "server.h"
 
 #include <qjsondocument.h>
-#include <qjsonobject.h>
-#include <qjsonvalue.h>
 
 #include <QtCore/QDebug>
 #include <QtCore/QFileInfo>

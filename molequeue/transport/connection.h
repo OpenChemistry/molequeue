@@ -41,7 +41,7 @@ public:
    *
    * @param parentObject parent
    */
-  Connection(QObject *parentObject = 0 ) : QObject(parentObject) {};
+  explicit Connection(QObject *parentObject = 0 ) : QObject(parentObject) {}
 
   /**
    * Open the connection

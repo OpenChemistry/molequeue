@@ -21,8 +21,6 @@
 
 #include <qjsonarray.h>
 #include <qjsondocument.h>
-#include <qjsonobject.h>
-#include <qjsonvalue.h>
 
 #include <QtCore/QDebug>
 #include <QtCore/QStringList>
@@ -49,30 +47,30 @@ Message::Message(Message::MessageType type_, Connection *conn,
 {
   // Initialize data.
   switch (type_) {
-    case Request:
-    case Notification:
-      m_id = MessageIdType();
-      m_method = QString();
-      m_params = QJsonValue();
-      break;
-    case Response:
-      m_id = MessageIdType();
-      m_method = QString();
-      m_result = QJsonValue();
-      break;
-    case Error:
-      m_id = MessageIdType();
-      m_method = QString();
-      m_errorCode = 0;
-      m_errorMessage = QString();
-      m_errorData = QJsonValue();
-      break;
-    case Raw:
-      m_rawJson = QJsonObject();
-      break;
-    case Invalid:
-      break;
-    }
+  case Request:
+  case Notification:
+    m_id = MessageIdType();
+    m_method = QString();
+    m_params = QJsonValue();
+    break;
+  case Response:
+    m_id = MessageIdType();
+    m_method = QString();
+    m_result = QJsonValue();
+    break;
+  case Error:
+    m_id = MessageIdType();
+    m_method = QString();
+    m_errorCode = 0;
+    m_errorMessage = QString();
+    m_errorData = QJsonValue();
+    break;
+  case Raw:
+    m_rawJson = QJsonObject();
+    break;
+  case Invalid:
+    break;
+  }
 }
 
 Message::Message(const QJsonObject &rawJson, Connection *conn,
@@ -556,12 +554,10 @@ void Message::interpretError(const QJsonObject &json, const QString &method_)
       }
       else {
         double code = errorObject.value("code").toDouble();
-        if (qAbs(code - static_cast<double>(static_cast<int>(code))) > 1e-5) {
+        if (qAbs(code - static_cast<double>(static_cast<int>(code))) > 1e-5)
           errors << "error.code is not integral.";
-        }
-        else {
+        else
           m_errorCode = static_cast<int>(code);
-        }
       }
     }
 
@@ -570,12 +566,10 @@ void Message::interpretError(const QJsonObject &json, const QString &method_)
       errors << "error.message missing.";
     }
     else {
-      if (!errorObject.value("message").isString()) {
+      if (!errorObject.value("message").isString())
         errors << "error.message is not a string.";
-      }
-      else {
+      else
         m_errorMessage = errorObject.value("message").toString();
-      }
     }
 
     if (errorObject.contains("data"))

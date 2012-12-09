@@ -26,8 +26,6 @@
 #include "../server.h"
 
 #include <qjsondocument.h>
-#include <qjsonobject.h>
-#include <qjsonvalue.h>
 
 #include <QtCore/QTimer>
 #include <QtCore/QDebug>

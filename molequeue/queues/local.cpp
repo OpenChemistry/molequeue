@@ -29,8 +29,6 @@
 
 #include <qjsonarray.h>
 #include <qjsondocument.h>
-#include <qjsonobject.h>
-#include <qjsonvalue.h>
 
 #include <QtCore/QProcess>
 #include <QtCore/QProcessEnvironment>

@@ -82,7 +82,7 @@ public:
 
   /**
    * @brief Unregister a connection listener from this
-   * JsonRpc instance. Any connections owned by this listner will be
+   * JsonRpc instance. Any connections owned by this listener will be
    * unregistered as well.
    * @param connlist
    */
@@ -97,7 +97,7 @@ signals:
 private slots:
   /**
    * @brief Register a connection with this JsonRpc instance.
-   * @note The sender must be the connection listner (connect to
+   * @note The sender must be the connection listener (connect to
    * MoleQueue::ConnectionListener::newConnection(MoleQueue::Connection*))
    */
   void addConnection(MoleQueue::Connection *conn);
@@ -121,7 +121,7 @@ private slots:
    * @brief Unregister a connection from this JsonRpc instance.
    * The sender that triggers this slot must be a subclass of
    * Connection, which will be removed.
-  * @overload
+   * @overload
    */
   void removeConnection();
 

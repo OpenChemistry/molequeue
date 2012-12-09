@@ -19,8 +19,6 @@
 #include "logger.h"
 
 #include <qjsondocument.h>
-#include <qjsonobject.h>
-#include <qjsonvalue.h>
 
 #include <QtCore/QDir>
 #include <QtCore/QFile>

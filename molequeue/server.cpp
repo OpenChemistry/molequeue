@@ -26,7 +26,6 @@
 
 #include <qjsonarray.h>
 #include <qjsonobject.h>
-#include <qjsonvalue.h>
 
 #include <QtCore/QCoreApplication>
 #include <QtCore/QDateTime>

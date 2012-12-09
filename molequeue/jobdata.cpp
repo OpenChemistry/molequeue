@@ -20,8 +20,6 @@
 
 #include <qjsonarray.h>
 #include <qjsondocument.h>
-#include <qjsonobject.h>
-#include <qjsonvalue.h>
 
 #include <QtCore/QDir>
 #include <QtCore/QFile>
@@ -79,9 +77,8 @@ QJsonObject JobData::toJsonObject() const
   result.insert("inputFile", m_inputFile.toJsonObject());
   if (!m_additionalInputFiles.isEmpty()) {
     QJsonArray additionalFiles;
-    foreach (const FileSpecification &spec, m_additionalInputFiles) {
+    foreach (const FileSpecification &spec, m_additionalInputFiles)
       additionalFiles.append(spec.toJsonObject());
-    }
     result.insert("additionalInputFiles", additionalFiles);
   }
   result.insert("outputDirectory", m_outputDirectory);

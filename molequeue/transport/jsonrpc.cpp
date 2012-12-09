@@ -18,8 +18,6 @@
 
 #include <qjsondocument.h>
 #include <qjsonarray.h>
-#include <qjsonobject.h>
-#include <qjsonvalue.h>
 
 #include "connectionlistener.h"
 

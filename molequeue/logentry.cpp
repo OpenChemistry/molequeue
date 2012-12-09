@@ -20,7 +20,6 @@
 #include "idtypeutils.h"
 
 #include <qjsonobject.h>
-#include <qjsonvalue.h>
 
 namespace MoleQueue
 {

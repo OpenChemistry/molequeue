@@ -28,9 +28,7 @@
 #include "queuemanager.h"
 #include "server.h"
 
-#include <qjsonvalue.h>
 #include <qjsondocument.h>
-#include <qjsonobject.h>
 
 #include <QtCore/QDebug>
 #include <QtCore/QDir>
