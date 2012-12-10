@@ -24,8 +24,6 @@
 
 #include <QtGui/QMessageBox>
 
-#include <QtCore/QSettings>
-
 namespace MoleQueue
 {
 

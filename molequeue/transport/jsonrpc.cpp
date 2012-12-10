@@ -16,491 +16,179 @@
 
 #include "jsonrpc.h"
 
-#include "molequeueglobal.h"
-#include "qtjson.h"
+#include <qjsondocument.h>
+#include <qjsonarray.h>
 
-#include <json/json.h>
+#include "connectionlistener.h"
 
-#include <QtCore/QDateTime>
-#include <QtCore/QDebug>
-#include <QtCore/QDir>
-#include <QtCore/QHash>
-#include <QtCore/QPair>
-#include <QtCore/QVariantHash>
+namespace MoleQueue {
 
-namespace MoleQueue
+JsonRpc::JsonRpc(QObject *parent_) :
+  QObject(parent_)
 {
-
-JsonRpc::JsonRpc(QObject *parentObject)
-  : QObject(parentObject)
-{
-  qRegisterMetaType<QDir>("QDir");
-  qRegisterMetaType<Json::Value>("Json::Value");
-  qRegisterMetaType<IdType>("MoleQueue::IdType");
   qRegisterMetaType<Message>("MoleQueue::Message");
-  qRegisterMetaType<MessageIdType>("MoleQueue::MessageIdType");
-  qRegisterMetaType<JobState>("MoleQueue::JobState");
-  qRegisterMetaType<QueueListType>("MoleQueue::QueueListType");
-  qRegisterMetaType<ErrorCode>("MoleQueue::ErrorCode");
+  qRegisterMetaType<PacketType>("MoleQueue::PacketType");
+  qRegisterMetaType<EndpointIdType>("MoleQueue::EndpointIdType");
 }
 
 JsonRpc::~JsonRpc()
 {
 }
 
-PacketType JsonRpc::generateErrorResponse(int errorCode,
-                                          const QString &message,
-                                          const MessageIdType &packetId)
+void JsonRpc::addConnectionListener(ConnectionListener *connlist)
 {
-  Json::Value packet = generateEmptyError(packetId);
+  if (m_connections.keys().contains((connlist)))
+    return;
 
-  packet["error"]["code"]    = errorCode;
-  packet["error"]["message"] = message.toStdString();
-
-  Json::StyledWriter writer;
-  std::string ret_stdstr = writer.write(packet);
-  PacketType ret (ret_stdstr.c_str());
-
-  return ret;
+  m_connections.insert(connlist, QList<Connection*>());
+  connect(connlist, SIGNAL(newConnection(MoleQueue::Connection*)),
+          SLOT(addConnection(MoleQueue::Connection*)));
+  connect(connlist, SIGNAL(destroyed()),
+          SLOT(removeConnectionListenerInternal()));
 }
 
-PacketType JsonRpc::generateErrorResponse(int errorCode,
-                                          const QString &message,
-                                          const Json::Value &data,
-                                          const MessageIdType &packetId)
+void JsonRpc::removeConnectionListener(ConnectionListener *connlist)
 {
-  Json::Value packet = generateEmptyError(packetId);
+  disconnect(0, connlist);
+  foreach(Connection *conn, m_connections.value(connlist))
+    this->removeConnection(connlist, conn);
 
-  packet["error"]["code"]    = errorCode;
-  packet["error"]["message"] = message.toStdString();
-  packet["error"]["data"]    = data;
-
-  Json::StyledWriter writer;
-  std::string ret_stdstr = writer.write(packet);
-  PacketType ret (ret_stdstr.c_str());
-
-  return ret;
+  m_connections.remove(connlist);
 }
 
-void JsonRpc::interpretIncomingMessage(const Message &msg_orig)
+void JsonRpc::addConnection(Connection *conn)
 {
-  Message msg(msg_orig);
-  // Parse the message contents if the json value is null.
-  if (msg.json().isNull()) {
-    // A truly empty message? Nothing to do!
-    if (msg.data().isEmpty())
-      return;
-    if (!msg.parse()) {
-      handleUnparsableMessage(msg);
+  ConnectionListener *connlist = qobject_cast<ConnectionListener*>(sender());
+
+  if (!connlist || !m_connections.keys().contains(connlist))
+    return;
+
+  QList<Connection*> &conns = m_connections[connlist];
+  if (conns.contains(conn))
+    return;
+
+  conns << conn;
+
+  connect(conn, SIGNAL(destroyed()), SLOT(removeConnection()));
+  connect(conn, SIGNAL(packetReceived(MoleQueue::PacketType,
+                                      MoleQueue::EndpointIdType)),
+          SLOT(newPacket(MoleQueue::PacketType,MoleQueue::EndpointIdType)));
+
+  conn->start();
+}
+
+void JsonRpc::removeConnection(ConnectionListener *connlist, Connection *conn)
+{
+  disconnect(0, conn);
+
+  if (!m_connections.contains(connlist))
+    return;
+
+  QList<Connection*> &conns = m_connections[connlist];
+  conns.removeOne(conn);
+}
+
+void JsonRpc::removeConnection(Connection *conn)
+{
+  // Find the connection listener:
+  foreach (ConnectionListener *connlist, m_connections.keys()) {
+    if (m_connections[connlist].contains(conn)) {
+      removeConnection(connlist, conn);
       return;
     }
   }
+}
 
-  // Handle batch requests recursively:
-  if (msg.json().isArray()) {
-    for (Json::Value::const_iterator it = msg.json().begin(),
-         it_end = msg.json().end(); it != it_end; ++it) {
-      Message subMessage(msg);
-      subMessage.setJson(*it);
-      interpretIncomingMessage(subMessage);
-    }
+void JsonRpc::removeConnection()
+{
+  // Use a reinterpret cast -- this is connected to a QObject::destroyed()
+  // signal, and we can't qobject_cast to a Connection* after the Connection
+  // destructor has run. Since this is a private slot, we can ensure that only
+  // Connections will be connected to it. This pointer is never dereferenced
+  // and is ignored if it can't be found in m_connections, so there are no ill
+  // effects if sender() is not a Connection (other than a few wasted cycles).
+  if (Connection *conn = reinterpret_cast<Connection*>(sender()))
+    removeConnection(conn);
+}
+
+void JsonRpc::removeConnectionListenerInternal()
+{
+  // Use a reinterpret cast -- this is connected to a QObject::destroyed()
+  // signal, and we can't qobject_cast to a ConnectionListener* after the
+  // ConnectionListener destructor has run. Since this is a private slot, we can
+  // ensure that only ConnectionListeners will be connected to it. This pointer
+  // is never dereferenced and is ignored if it can't be found in m_connections,
+  // so there are no ill effects if sender() is not a ConnectionListener
+  // (other than a few wasted cycles).
+  if (ConnectionListener *cl = reinterpret_cast<ConnectionListener*>(sender()))
+    removeConnectionListener(cl);
+}
+
+void JsonRpc::newPacket(const MoleQueue::PacketType &packet,
+                        const MoleQueue::EndpointIdType &endpoint)
+{
+  Connection *conn = qobject_cast<Connection*>(sender());
+  if (!conn)
+    return;
+
+  // Parse the packet as JSON
+  QJsonParseError error;
+  QJsonDocument doc = QJsonDocument::fromJson(QByteArray(packet), &error);
+
+  // Send a server error and return if there was an issue parsing the packet.
+  if (error.error != QJsonParseError::NoError || doc.isNull()) {
+    Message errorMessage(Message::Error, conn, endpoint);
+    errorMessage.setErrorCode(-32700);
+    errorMessage.setErrorMessage("Parse error");
+
+    QJsonObject errorDataObject;
+    errorDataObject.insert("QJsonParseError::error", error.error);
+    errorDataObject.insert("QJsonParseError::errorString", error.errorString());
+    errorDataObject.insert("QJsonParseError::offset", error.offset);
+    errorDataObject.insert("bytes received", QLatin1String(packet.constData()));
+    errorMessage.send();
     return;
   }
-  if (!msg.json().isObject()) {
-    handleInvalidRequest(msg);
+
+  // Pass the JSON off for further processing. Must be an array or object.
+  handleJsonValue(conn, endpoint,
+                  doc.isArray() ? QJsonValue(doc.array())
+                                : QJsonValue(doc.object()));
+}
+
+void JsonRpc::handleJsonValue(Connection *conn, const EndpointIdType &endpoint,
+                              const QJsonValue &json)
+{
+  // Handle batch requests recursively
+  if (json.isArray()) {
+    /// @todo Stage batch replies into an array before sending.
+    foreach (const QJsonValue &val, json.toArray())
+      handleJsonValue(conn, endpoint, val);
     return;
   }
 
-  msg.setType(guessMessageType(msg));
+  // Objects are RPC calls
+  if (!json.isObject()) {
+    Message errorMessage(Message::Error, conn, endpoint);
+    errorMessage.setErrorCode(-32600);
+    errorMessage.setErrorMessage("Invalid Request");
 
-  // Validate detected type
-  switch (msg.type()) {
-  case Message::REQUEST_MESSAGE:
-    if (!validateRequest(msg, false))
-      msg.setType(Message::INVALID_MESSAGE);
-    break;
-  case Message::RESULT_MESSAGE:
-  case Message::ERROR_MESSAGE:
-    if (!validateResponse(msg, false))
-      msg.setType(Message::INVALID_MESSAGE);
-    break;
-  case Message::NOTIFICATION_MESSAGE:
-    if (!validateNotification(msg, false))
-      msg.setType(Message::INVALID_MESSAGE);
-    break;
-  default:
-  case Message::INVALID_MESSAGE:
-    break;
+    QJsonObject errorDataObject;
+    errorDataObject.insert("description", QLatin1String("Request is not a JSON "
+                                                        "object."));
+    errorDataObject.insert("request", json);
+    errorMessage.send();
+    return;
   }
 
-  // Set id if needed -- must be done before guessMessageMethod()
-  switch (msg.type()) {
-  case Message::REQUEST_MESSAGE:
-  case Message::RESULT_MESSAGE:
-  case Message::ERROR_MESSAGE:
-    msg.setId(msg.json()["id"]);
-    break;
-  default:
-  case Message::INVALID_MESSAGE:
-  case Message::NOTIFICATION_MESSAGE:
-    break;
+  Message message(json.toObject(), conn, endpoint);
+  Message errorMessage;
+  if (!message.parse(errorMessage)) {
+    errorMessage.send();
+    return;
   }
 
-  int method = guessMessageMethod(msg);
-
-  switch (method) {
-  case IGNORE_METHOD:
-    break;
-  case INVALID_METHOD:
-    handleInvalidRequest(msg);
-    break;
-  case UNRECOGNIZED_METHOD:
-    handleUnrecognizedRequest(msg);
-    break;
-  default:
-    handleMessage(method, msg);
-    break;
-  }
-
-  // Remove responses from pendingRequests lookup table
-  // id is guaranteed to exist after earlier validation
-  if (msg.type() == Message::RESULT_MESSAGE ||
-      msg.type() == Message::ERROR_MESSAGE) {
-    registerReply(msg.id());
-  }
+  emit messageReceived(message);
 }
 
-bool JsonRpc::validateRequest(const Message &msg, bool strict)
-{
-  if (!msg.json().isObject())
-    return false;
-
-  Json::Value::Members members = msg.json().getMemberNames();
-
-  // Check that the required members are present
-  bool found_jsonrpc = false;
-  bool found_method = false;
-  bool found_params = false;
-  bool found_id = false;
-  Json::Value::Members extraMembers;
-
-  for (Json::Value::Members::const_iterator it = members.begin(),
-       it_end = members.end(); it != it_end; ++it) {
-    if (!found_jsonrpc && it->compare("jsonrpc") == 0) {
-      found_jsonrpc = true;
-    }
-    else if (!found_method && it->compare("method") == 0) {
-      found_method = true;
-    }
-    else if (!found_params && it->compare("params") == 0) {
-      found_params = true;
-    }
-    else if (!found_id && it->compare("id") == 0) {
-      found_id = true;
-    }
-    else {
-      extraMembers.push_back(*it);
-    }
-  }
-
-  if (!found_jsonrpc && strict)
-      return false;
-
-  if (!found_method)
-    return false;
-
-  // Params are optional.
-  //  if (!found_params)
-  //    return false;
-
-  if (!found_id)
-    return false;
-
-  // Validate objects
-  // "method" must be a string
-  if (!msg.json()["method"].isString())
-    return false;
-
-  // "params" may be omitted, but must be structured if present
-  if (found_params &&
-      !msg.json()["params"].isObject() && !msg.json()["params"].isArray()) {
-      return false;
-  }
-
-  // "id" must be a string, a number, or null, but should not be null or
-  // fractional
-  const Json::Value & idValue = msg.json()["id"];
-  if (strict) {
-    if (!idValue.isString())
-      return false;
-  }
-  else if (!idValue.isString() && !idValue.isNumeric() && !idValue.isNull()) {
-    return false;
-  }
-
-  // Print extra members
-  if (extraMembers.size() != 0 && strict)
-    return false;
-
-  return true;
-}
-
-bool JsonRpc::validateResponse(const Message &msg, bool strict)
-{
-  if (!msg.json().isObject())
-    return false;
-
-  Json::Value::Members members = msg.json().getMemberNames();
-
-  // Check that the required members are present
-  bool found_jsonrpc = false;
-  bool found_result = false;
-  bool found_error = false;
-  bool found_id = false;
-  Json::Value::Members extraMembers;
-
-  for (Json::Value::Members::const_iterator it = members.begin(),
-       it_end = members.end(); it != it_end; ++it) {
-    if (!found_jsonrpc && it->compare("jsonrpc") == 0) {
-      found_jsonrpc = true;
-    }
-    else if (!found_result && it->compare("result") == 0) {
-      found_result = true;
-    }
-    else if (!found_error && it->compare("error") == 0) {
-      found_error = true;
-    }
-    else if (!found_id && it->compare("id") == 0) {
-      found_id = true;
-    }
-    else {
-      extraMembers.push_back(*it);
-    }
-  }
-
-  if (!found_jsonrpc && strict)
-    return false;
-
-  if (!found_result && !found_error)
-    return false;
-
-  if (found_result && found_error)
-    return false;
-
-  if (!found_id)
-    return false;
-
-  // Validate error object if present
-  if (found_error) {
-    const Json::Value & errorObject = msg.json()["error"];
-    if (!errorObject.isObject())
-      return false;
-
-    // "code" must be an integer
-    if (!errorObject["code"].isIntegral())
-      return false;
-
-    // "message" must be a string
-    if (!errorObject["message"].isString())
-      return false;
-  }
-
-  // "id" must be a string, a number, or null, but should not be null or
-  // fractional
-  const Json::Value & idValue = msg.json()["id"];
-  if (strict) {
-    if (!idValue.isString())
-      return false;
-  }
-  else if (!idValue.isString() && !idValue.isNumeric() && !idValue.isNull()) {
-    return false;
-  }
-
-  // Print extra members
-  if (extraMembers.size() != 0 && strict)
-    return false;
-
-  return true;
-}
-
-bool JsonRpc::validateNotification(const Message &msg, bool strict)
-{
-  if (!msg.json().isObject())
-    return false;
-
-  Json::Value::Members members = msg.json().getMemberNames();
-
-  // Check that the required members are present
-  bool found_jsonrpc = false;
-  bool found_method = false;
-  bool found_params = false;
-  bool found_id = false;
-  Json::Value::Members extraMembers;
-
-  for (Json::Value::Members::const_iterator it = members.begin(),
-       it_end = members.end(); it != it_end; ++it) {
-    if (!found_jsonrpc && it->compare("jsonrpc") == 0) {
-      found_jsonrpc = true;
-    }
-    else if (!found_method && it->compare("method") == 0) {
-      found_method = true;
-    }
-    else if (!found_params && it->compare("params") == 0) {
-      found_params = true;
-    }
-    else if (!found_id && it->compare("id") == 0) {
-      found_id = true;
-    }
-    else {
-      extraMembers.push_back(*it);
-    }
-  }
-
-  if (!found_jsonrpc && strict)
-      return false;
-
-  if (!found_method)
-    return false;
-
-  // Params are optional.
-  //  if (!found_params)
-  //    return false;
-
-  if (found_id)
-    return false;
-
-  // Validate objects
-  // "method" must be a string
-  if (!msg.json()["method"].isString())
-    return false;
-
-  // "params" may be omitted, but must be structured if present
-  if (found_params &&
-      !msg.json()["params"].isObject() && !msg.json()["params"].isArray()) {
-    return false;
-  }
-
-  // Print extra members
-  if (extraMembers.size() != 0 && strict)
-    return false;
-
-  return true;
-}
-
-Json::Value JsonRpc::generateEmptyRequest(const MessageIdType &id)
-{
-  Json::Value ret (Json::objectValue);
-  ret["jsonrpc"] = "2.0";
-  ret["method"] = Json::nullValue;
-  ret["id"] = id;
-
-  return ret;
-}
-
-Json::Value JsonRpc::generateEmptyResponse(const MessageIdType &id)
-{
-  Json::Value ret (Json::objectValue);
-  ret["jsonrpc"] = "2.0";
-  ret["result"] = Json::nullValue;
-  ret["id"] = id;
-
-  return ret;
-}
-
-Json::Value JsonRpc::generateEmptyError(const MessageIdType &id)
-{
-  Json::Value ret (Json::objectValue);
-  ret["jsonrpc"] = "2.0";
-  Json::Value errorValue (Json::objectValue);
-  errorValue["code"] = Json::nullValue;
-  errorValue["message"] = Json::nullValue;
-  ret["error"] = Json::nullValue;
-  ret["id"] = id;
-
-  return ret;
-}
-
-Json::Value JsonRpc::generateEmptyNotification()
-{
-  Json::Value ret (Json::objectValue);
-  ret["jsonrpc"] = "2.0";
-  ret["method"] = Json::nullValue;
-
-  return ret;
-}
-
-Message::Type JsonRpc::guessMessageType(const Message &msg) const
-{
-  if (!msg.json().isObject())
-    return Message::INVALID_MESSAGE;
-
-  if (msg.json()["method"] != Json::nullValue) {
-    if (msg.json()["id"] != Json::nullValue)
-      return Message::REQUEST_MESSAGE;
-    else
-      return Message::NOTIFICATION_MESSAGE;
-  }
-  else if (msg.json()["result"] != Json::nullValue)
-    return Message::RESULT_MESSAGE;
-  else if (msg.json()["error"] != Json::nullValue)
-    return Message::ERROR_MESSAGE;
-
-  return Message::INVALID_MESSAGE;
-}
-
-int JsonRpc::guessMessageMethod(const Message &msg) const
-{
-  if (!msg.json().isObject())
-    return INVALID_METHOD;
-
-  const Json::Value & methodValue = msg.json()["method"];
-
-  if (methodValue != Json::nullValue) {
-    if (!methodValue.isString())
-      return INVALID_METHOD;
-
-    return mapMethodNameToInt(QString(methodValue.asCString()));
-  }
-
-  // No method present -- this is a reply. Determine if it's a reply to this
-  // client.
-  if (!msg.id().isNull()) {
-    return m_pendingRequests.value(msg.id(), IGNORE_METHOD);
-  }
-
-  // No method or id present?
-  return INVALID_METHOD;
-}
-
-void JsonRpc::handleUnparsableMessage(const Message &msg) const
-{
-  Json::Value errorData(Json::objectValue);
-  errorData["receivedPacket"] = msg.data().constData();
-  emit invalidMessageReceived(msg, errorData);
-}
-
-void JsonRpc::handleInvalidRequest(const Message &msg) const
-{
-  Json::Value errorData(Json::objectValue);
-  errorData["receivedJson"] = msg.json();
-  emit invalidRequestReceived(msg, errorData);
-}
-
-void JsonRpc::handleUnrecognizedRequest(const Message &msg) const
-{
-  Json::Value errorData(Json::objectValue);
-  errorData["receivedJson"] = msg.json();
-  emit unrecognizedRequestReceived(msg, errorData);
-}
-
-void JsonRpc::registerRequest(const MessageIdType &packetId, int method)
-{
-  m_pendingRequests[packetId] = method;
-}
-
-void JsonRpc::registerReply(const MessageIdType &packetId)
-{
-  m_pendingRequests.remove(packetId);
-}
-
-} // end namespace MoleQueue
+} // namespace MoleQueue

@@ -19,7 +19,7 @@
 #include "filespecification.h"
 #include "molequeuetestconfig.h"
 
-#include <json/json.h>
+#include <qjsonobject.h>
 
 #include <QtCore/QTemporaryFile>
 
@@ -43,7 +43,7 @@ private slots:
   /// Called after every test function.
   void cleanup();
 
-  void ctorFromVariantHash();
+  void ctorFromJsonObject();
   void ctorFromPath();
   void ctorFromFileNameAndContents();
   void ctorFromFile();
@@ -52,7 +52,7 @@ private slots:
 
   void format();
   void isValid();
-  void asVariantHash();
+  void toJsonObject();
   void fileExists();
   void writeFile();
   void filename();
@@ -93,28 +93,28 @@ void FileSpecificationTest::cleanup()
 {
 }
 
-void FileSpecificationTest::ctorFromVariantHash()
+void FileSpecificationTest::ctorFromJsonObject()
 {
-  QVariantHash path;
-  path["path"] = QString("/some/path/to/a/file.ext");
+  QJsonObject json;
+  json.insert("path", QString("/some/path/to/a/file.ext"));
 
-  FileSpecification pathSpec(path);
+  FileSpecification pathSpec(json);
   QString ref = readReferenceString("filespec-ref/path.json");
-  QCOMPARE(pathSpec.asJsonString(), ref);
+  QCOMPARE(QString(pathSpec.toJson()), ref);
 }
 
 void FileSpecificationTest::ctorFromPath()
 {
   FileSpecification pathSpec(QString("/some/path/to/a/file.ext"));
   QString ref = readReferenceString("filespec-ref/path.json");
-  QCOMPARE(pathSpec.asJsonString(), ref);
+  QCOMPARE(QString(pathSpec.toJson()), ref);
 }
 
 void FileSpecificationTest::ctorFromFileNameAndContents()
 {
   FileSpecification contSpec(QString("file.ext"), QString("I'm input file text!\n"));
   QString ref = readReferenceString("filespec-ref/contents.json");
-  QCOMPARE(contSpec.asJsonString(), ref);
+  QCOMPARE(QString(contSpec.toJson()), ref);
 }
 
 void FileSpecificationTest::ctorFromFile()
@@ -143,7 +143,7 @@ void FileSpecificationTest::ctorCopy()
   FileSpecification spec1(QString("/path/to/some/file.ext"));
   FileSpecification spec2(spec1);
 
-  QCOMPARE(spec1.asJsonString(), spec2.asJsonString());
+  QCOMPARE(spec1.toJson(), spec2.toJson());
 }
 
 void FileSpecificationTest::assignment()
@@ -152,7 +152,7 @@ void FileSpecificationTest::assignment()
   FileSpecification spec2;
   spec2 = spec1;
 
-  QCOMPARE(spec1.asJsonString(), spec2.asJsonString());
+  QCOMPARE(spec1.toJson(), spec2.toJson());
 }
 
 void FileSpecificationTest::format()
@@ -163,18 +163,18 @@ void FileSpecificationTest::format()
   FileSpecification contSpec(QString("file.ext"), QString("I'm input file text!\n"));
   QCOMPARE(contSpec.format(), FileSpecification::ContentsFileSpecification);
 
-  QVariantHash hash;
+  QJsonObject json;
 
-  FileSpecification inv1(hash);
+  FileSpecification inv1(json);
   QCOMPARE(inv1.format(), FileSpecification::InvalidFileSpecification);
 
-  hash.insert("notARealKey", "Bad value!");
-  FileSpecification inv2(hash);
+  json.insert("notARealKey", QLatin1String("Bad value!"));
+  FileSpecification inv2(json);
   QCOMPARE(inv2.format(), FileSpecification::InvalidFileSpecification);
 
   // filename, but no contents
-  hash.insert("filename", "Bad value!");
-  FileSpecification inv3(hash);
+  json.insert("filename", QLatin1String("Bad value!"));
+  FileSpecification inv3(json);
   QCOMPARE(inv3.format(), FileSpecification::InvalidFileSpecification);
 
   FileSpecification inv4;
@@ -189,23 +189,23 @@ void FileSpecificationTest::isValid()
   FileSpecification contSpec(QString("file.ext"), QString("I'm input file text!\n"));
   QVERIFY(contSpec.isValid());
 
-  QVariantHash hash;
-  FileSpecification inv(hash);
+  QJsonObject json;
+  FileSpecification inv(json);
   QVERIFY(!inv.isValid());
 }
 
-void FileSpecificationTest::asVariantHash()
+void FileSpecificationTest::toJsonObject()
 {
   FileSpecification pathSpec(QString("/some/path/to/a/file.ext"));
-  QVariantHash pathHash = pathSpec.asVariantHash();
-  QCOMPARE(pathHash["path"].toString(),
+  QJsonObject pathJson = pathSpec.toJsonObject();
+  QCOMPARE(pathJson["path"].toString(),
            QString("/some/path/to/a/file.ext"));
 
   FileSpecification contSpec(QString("file.ext"), QString("I'm input file text!\n"));
-  QVariantHash contHash = contSpec.asVariantHash();
-  QCOMPARE(contHash["filename"].toString(),
+  QJsonObject contJson = contSpec.toJsonObject();
+  QCOMPARE(contJson["filename"].toString(),
            QString("file.ext"));
-  QCOMPARE(contHash["contents"].toString(),
+  QCOMPARE(contJson["contents"].toString(),
            QString("I'm input file text!\n"));
 }
 

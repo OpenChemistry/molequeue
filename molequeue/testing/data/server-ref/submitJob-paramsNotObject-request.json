@@ -1,0 +1,8 @@
+{
+    "id": 102,
+    "jsonrpc": "2.0",
+    "method": "submitJob",
+    "params": [
+        5.3
+    ]
+}

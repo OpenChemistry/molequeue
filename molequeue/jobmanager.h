@@ -23,11 +23,9 @@
 #include "job.h"
 
 #include <QtCore/QMap>
-#include <QtCore/QVariantHash>
 
-class QSettings;
+class QJsonObject;
 
-class ClientTest;
 class ConnectionTest;
 
 namespace MoleQueue
@@ -74,11 +72,11 @@ public:
   Job newJob();
 
   /**
-   * @param jobState A QVariantHash describing the state of the new Job.
+   * @param jobState A QJsonObject describing the state of the new Job.
    * @return A new Job object, initialized to the state in @a jobState.
-   * @sa Job::hash() Job::setFromHash()
+   * @sa Job::toJsonObject() Job::setFromJson()
    */
-  Job newJob(const QVariantHash &jobState);
+  Job newJob(const QJsonObject &jobState);
 
   /**
    * Remove the specified @a jobdata from this manager and delete it. All Job

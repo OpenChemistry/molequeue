@@ -1,157 +1,378 @@
 /******************************************************************************
 
- This source file is part of the MoleQueue project.
+  This source file is part of the MoleQueue project.
 
- Copyright 2012 Kitware, Inc.
+  Copyright 2012 Kitware, Inc.
 
- This source code is released under the New BSD License, (the "License").
+  This source code is released under the New BSD License, (the "License").
 
- Unless required by applicable law or agreed to in writing, software
- distributed under the License is distributed on an "AS IS" BASIS,
- WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- See the License for the specific language governing permissions and
- limitations under the License.
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
 
- ******************************************************************************/
+******************************************************************************/
 
-#ifndef MESSAGE_H_
-#define MESSAGE_H_
+#ifndef MOLEQUEUE_MESSAGE_H
+#define MOLEQUEUE_MESSAGE_H
+
+#include <qjsonobject.h>
+
+#include <QtCore/QByteArray>
+#include <QtCore/QFlags>
+#include <QtCore/QString>
 
 #include "mqconnectionexport.h"
-#include "molequeue/molequeueglobal.h"
 
-#include <json/json.h>
+class MessageTest;
+class ServerTest;
 
-namespace MoleQueue
-{
+namespace MoleQueue {
 class Connection;
+class JsonRpc;
 
 /// Type for Endpoint identifiers
 typedef QByteArray EndpointIdType;
 /// Type for Message identifiers (JSON-RPC ids)
-typedef Json::Value MessageIdType;
+typedef QJsonValue MessageIdType;
 /// Type for RPC packets
 typedef QByteArray PacketType;
 
 /**
  * @class Message message.h <molequeue/transport/message.h>
- * @brief Message Encapsulation of a single JSON-RPC communication.
- * @author Chris Harris, David C. Lonie
+ * @brief The Message class encaspulates a single JSON-RPC transmission.
+ * @author David C. Lonie
  *
- * The Message class stores the contents and metadata of a JSON-RPC
- * transmission. Connection details, such as the Connection, endpoint, and
- * message id are included to help route replies back to the correct peer.
- * The message contents are stored as both text (data()) and JsonCpp objects
- * (json()). These are kept synced -- setting either will cause the other to
- * be generated internally.
+ * The Message class provides an interface to construct, interpret, and
+ * manipulate JSON-RPC messages.
+ *
+ * There are four types of valid JSON-RPC messages: Requests, notifications,
+ * responses, and errors. The type() method can be used to determine a given
+ * Message's MessageType. A subset of the Message API is valid for each type;
+ * the allowed attributes are dependent on the message type:
+ *
+ * - Request
+ *   - id
+ *   - method
+ *   - params
+ * - Notification
+ *   - method
+ *   - params
+ * - Response
+ *   - id
+ *   - method (may be empty -- used only for convenience, not part of JSON-RPC
+ *     specification).
+ *   - result
+ * - Error
+ *   - id
+ *   - method (may be empty -- used only for convenience, not part of JSON-RPC
+ *     specification).
+ *   - errorCode
+ *   - errorMessage
+ *   - errorData
+ *
+ * Attempting to access an attribute that is invalid for the current type
+ * will cause a warning to be printed and a default-constructed value is
+ * returned.
+ *
+ * A Message may be constructed from a QJsonObject by using the QJsonObject
+ * constructor and calling parse(). See the parse() documentation for more
+ * details.
+ *
+ * When handling a Request Message, the generateResponse() and
+ * generateErrorResponse() methods may be used to easily construct an empty
+ * reply with the method, id, connection, and endpoint of the request.
+ *
+ * Once a message is ready to send, call the send() method. This will assign
+ * and set a unique id to outgoing requests and call Connection::send() with a
+ * JSON representation of the Message. If the application needs to track the id
+ * of a request in order to identify the reply, record the id after calling
+ * send().
+ *
+ * The Request ids and methods are stored in an internal lookup table upon
+ * sending. This is used to set the method of the incoming reply. If the lookup
+ * fails, the message will be parsed properly, but the method attribute will not
+ * be set.
+ *
+ * The JSON representation can be generated
+ * and obtained by calling toJson(), and a QJsonObject representation is
+ * available from the toJsonObject() method.
  */
-
 class MQCONNECTION_EXPORT Message
 {
 public:
-  Message();
-  explicit Message(const PacketType &data_);
-  explicit Message(const Json::Value &json_);
-  Message(Connection *connection_, const EndpointIdType &endpoint_);
-  Message(Connection *connection_, const EndpointIdType &endpoint_,
-          const PacketType &data_);
-  Message(Connection *connection_, const EndpointIdType &endpoint_,
-          const Json::Value &json_);
-  Message(const Message &other);
-  /// Use the connection, endpoint, and id of @a other, but the packet in @a
-  /// data_.
-  Message(const Message &other, const PacketType &data_);
-  /// Use the connection, endpoint, and id of @a other, but the packet in @a
-  /// json_.
-  Message(const Message &other, const Json::Value &json_);
-  Message & operator=(const Message &other);
+  // Used for unit testing:
+  friend class ::MessageTest;
+  friend class ::ServerTest;
 
-  /// Enumeration of the different JSON-RPC message types.
-  enum Type {
-    INVALID_MESSAGE = -1,
-    REQUEST_MESSAGE,
-    RESULT_MESSAGE,
-    ERROR_MESSAGE,
-    NOTIFICATION_MESSAGE
+  /// Flags representing different types of JSON-RPC messages
+  enum MessageType {
+    /// A JSON-RPC request, with id, method, and params attributes.
+    Request = 0x1,
+    /// A JSON-RPC notification, with method and params attributes.
+    Notification = 0x2,
+    /// A JSON-RPC response, with id, method, and result attributes.
+    Response = 0x4,
+    /// A JSON-RPC error, with id, method, and errorCode, errorMessage, and
+    /// errorData attributes.
+    Error = 0x8,
+    /// This MessageType indicates that this Message holds a raw QJsonObject
+    /// that has not been interpreted. Call parse() to convert this Message
+    /// into an appropriate type.
+    Raw = 0x10,
+    /// This Message is invalid.
+    Invalid = 0x11
   };
+  Q_DECLARE_FLAGS(MessageTypes, MessageType)
 
-  /// Copy the connection, endpoint, and message id from @a other into @a this.
-  /// @return a reference to @a this Message
-  Message &copyConnectionDetails(const Message &other)
-  {
-    m_connection = other.m_connection;
-    m_endpoint = other.m_endpoint;
-    m_id = other.m_id;
-    return *this;
-  }
+  /// Construct an Invalid Message using the @a conn and @a endpoint_.
+  Message(Connection *conn = NULL, EndpointIdType endpoint_ = EndpointIdType());
 
-  /// Connection from which the message originated
-  void setConnection(Connection *connection_) { m_connection = connection_; }
+  /// Construct an empty Message with the specified @a type that uses the
+  /// @a conn and @a endpoint_.
+  Message(MessageType type_, Connection *conn = NULL,
+          EndpointIdType endpoint_ = EndpointIdType());
 
-  /// Used internally by Connection subclasses.
-  void setEndpoint(const EndpointIdType &endpoint_) { m_endpoint = endpoint_; }
+  /// Construct a Raw Message with the specified @a type that uses the
+  /// @a conn and @a endpoint_. The @a rawJson QJsonObject will be cached to be
+  /// parsed by parse() later.
+  Message(const QJsonObject &rawJson, Connection *conn = NULL,
+          EndpointIdType endpoint_ = EndpointIdType());
 
-  /// The raw message data
-  void setData(const PacketType &data_);
+  /// Copy constructor
+  Message(const Message &other);
 
-  /// The parsed JSON data
-  void setJson(const Json::Value &json_);
+  /// Assignment operator
+  Message &operator=(const Message &other);
 
-  /// The ID used in the JSON-RPC call.
-  void setId(const MessageIdType &id_) { m_id = id_; }
+  /// @return The MessageType of this Message.
+  MessageType type() const;
 
-  /// The type of message.
-  void setType(Type type_) { m_type = type_; }
+  /**
+   * @{
+   * The name of the method used in the remote procedure call.
+   * @note This function is only valid for Request, Notification, Response, and
+   * Error messages.
+   */
+  QString method() const;
+  void setMethod(const QString &m);
+  /**@}*/
 
-  /// Connection from which the message originated
-  Connection *connection() const { return m_connection; }
+  /**
+   * @{
+   * The parameters used in the remote procedure call.
+   * @note This function is only valid for Request and Notification messages.
+   */
+  QJsonValue params() const;
+  QJsonValue& paramsRef();
+  void setParams(const QJsonArray &p);
+  void setParams(const QJsonObject &p);
+  /**@}*/
 
-  /// Used internally by Connection subclasses.
-  EndpointIdType endpoint() const { return m_endpoint; }
+  /**
+   * @{
+   * The result object used in a remote procedure call response.
+   * @note This function is only valid for Response messages.
+   */
+  QJsonValue result() const;
+  QJsonValue& resultRef();
+  void setResult(const QJsonValue &r);
+  /**@}*/
 
-  /// The raw message data
-  PacketType data() const { return m_data; }
+  /**
+   * @{
+   * The integral error code used in a remote procedure call error response.
+   * @note This function is only valid for Error messages.
+   */
+  int errorCode() const;
+  void setErrorCode(int e);
+  /**@}*/
 
-  /// The parsed JSON data
-  const Json::Value &json() const {return m_json; }
+  /**
+   * @{
+   * The error message string used in a remote procedure call error response.
+   * @note This function is only valid for Error messages.
+   */
+  QString errorMessage() const;
+  void setErrorMessage(const QString &e);
+  /**@}*/
 
-  /// The ID used in the JSON-RPC call.
-  MessageIdType id() const { return m_id; }
+  /**
+   * @{
+   * The data object used in a remote procedure call error response.
+   * @note This function is only valid for Error messages.
+   */
+  QJsonValue errorData() const;
+  QJsonValue& errorDataRef();
+  void setErrorData(const QJsonValue &e);
+  /**@}*/
 
-  /// The type of message.
-  Type type() const { return m_type; }
+  /**
+   * @{
+   * The message id used in a remote procedure call.
+   * @note This function is only valid for Request, Response, and Error
+   * messages.
+   */
+  MessageIdType id() const;
+protected: // Users should have no reason to set this:
+  void setId(const MessageIdType &i);
+public:
+  /**@}*/
 
-  /// Parse the data() string into the json() member.
+  /**
+   * @{
+   * The connection associated with the remote procedure call.
+   */
+  Connection* connection() const;
+  void setConnection(Connection* c);
+  /**@}*/
+
+  /**
+   * @{
+   * The connection endpoint associated with the remote procedure call.
+   */
+  EndpointIdType endpoint() const;
+  void setEndpoint(const EndpointIdType &e);
+  /**@}*/
+
+  /**
+   * @return A QJsonObject representation of the remote procedure call.
+   */
+  QJsonObject toJsonObject() const;
+
+  /**
+   * @return A string representation of the remote procedure call.
+   */
+  PacketType toJson() const;
+
+  /**
+   * @brief Send the message to the associated connection and endpoint.
+   * @return True on success, false on failure.
+   * @note If this message is a Request, a unique id will be assigned prior to
+   * sending. Use the id() method to retrieve the assigned id. The id is
+   * registered internally to properly identify the peer's Response or Error
+   * message.
+   */
+  bool send();
+
+  /**
+   * @brief Create a new Response message in reply to a
+   * Request. The connection, endpoint, id, and method will be copied from
+   * @a this Message.
+   * @note This function is only valid for Request messages.
+   */
+  Message generateResponse() const;
+
+  /**
+   * @brief Create a new Error message in reply to a Request.
+   * The connection, endpoint, id, and method will be copied from @a this
+   * Message.
+   * @note This function is only valid for Request, Raw, and Invalid messages.
+   */
+  Message generateErrorResponse() const;
+
+  /**
+   * @{
+   * @brief Interpret the raw QJsonObject passed to the constructor that
+   * takes a QJsonObject argument.
+   * @return True on success, false on failure.
+   * @note This function is only valid for Raw messages.
+   *
+   * This function will intepret the string as JSON, detect the type of message,
+   * and update this message's type, and populate the internal data structures.
+   *
+   * The function returns true if the message was successfully interpreted, and
+   * false if any error occured during parsing/interpretation. If any errors
+   * occurred, the optional Message reference argument will be overwritten with
+   * an appropriate error response. The following JSON-RPC 2.0 standard errors
+   * are detected:
+   *
+   * - -32600 Invalid request
+   *   - The message type could not be determined.
+   *
+   * The JsonRpc class will handle the following errors as message are received:
+   *
+   * - -32700 Parse error
+   *   - Invalid JSON received, an error occurred during parsing.
+   * - -32603 Internal error
+   *   - Internal JSON-RPC error
+   *
+   * The remaining standard JSON-RPC error codes should be handled by the
+   * application developer:
+   *
+   * - -32601 Method not found
+   *   - Method not supported by application
+   * - -32602 Invalid params
+   *   - Inappropriate parameters supplied for requested method.
+   *
+   * This method is intended to be used as follows:
+   @code
+   QJsonObject jsonObject = ...;
+   Message message(jsonObject, connection, endpoint);
+   Message errorMessage;
+   if (!message.parse(errorMessage))
+     errorMessage.send();
+   else
+     handleValidMessage(message);
+   @endcode
+   *
+   * The Request ids and methods are stored in an internal lookup table upon
+   * sending. This is used to set the method of the incoming reply. If the
+   * lookup fails, the message will be parsed properly, but the method attribute
+   * will not be set.
+   */
   bool parse();
-
-  /// Write the json() object into the data() string.
-  void write();
-
-  /// Sends the message. Connection must be set -- this method calls
-  /// connection()->send(this)
-  /// @return true if the message is sent (e.g. connection is set), false
-  /// otherwise.
-  bool send() const;
+  bool parse(Message &errorMessage_);
+  /**@}*/
 
 private:
+  /**
+   * @brief Validate the message type.
+   * @param method String representation of the method calling this function.
+   * @param validTypes Bitwise-or combination of allowed types.
+   * @return True if the type is valid, false otherwise.
+   *
+   * A warning will be printed if the type is invalid.
+   */
+  bool checkType(const char *method_, MessageTypes validTypes) const;
+
+  /**
+   * @{
+   * Helper functions for parse(). Validate and intepret @a json. @a
+   * errorMessage is used for error handling.
+   */
+  bool interpretRequest(const QJsonObject &json, Message &errorMessage);
+  void interpretNotification(const QJsonObject &json);
+  void interpretResponse(const QJsonObject &json, const QString &method_);
+  void interpretError(const QJsonObject &json, const QString &method_);
+  /**@}*/
+
+  /// Type of message
+  MessageType m_type;
+
+  /**
+   * @{
+   * Data storage.
+   */
+  QString m_method;
+  MessageIdType m_id;
+  QJsonValue m_params;
+  QJsonValue m_result;
+  int m_errorCode;
+  QString m_errorMessage;
+  QJsonValue m_errorData;
+  QJsonObject m_rawJson;
+  /**@}*/
+
   /// Connection from which the message originated
   Connection *m_connection;
+
   /// Used internally by Connection subclasses.
   EndpointIdType m_endpoint;
-  /// The raw message data
-  PacketType m_data;
-  /// The parsed JSON data
-  Json::Value m_json;
-  /// The ID used in the JSON-RPC call.
-  MessageIdType m_id;
-  /// The type of message.
-  Type m_type;
-
 };
+Q_DECLARE_OPERATORS_FOR_FLAGS(Message::MessageTypes)
 
-} /* namespace MoleQueue */
+} // namespace MoleQueue
 
-Q_DECLARE_METATYPE(MoleQueue::Message)
-Q_DECLARE_METATYPE(MoleQueue::MessageIdType)
-
-#endif /* MESSAGE_H_ */
+#endif // MOLEQUEUE_MESSAGE_H

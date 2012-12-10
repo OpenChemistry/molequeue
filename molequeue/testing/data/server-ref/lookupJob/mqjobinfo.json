@@ -1,0 +1,19 @@
+{
+    "cleanLocalWorkingDirectory": false,
+    "cleanRemoteFiles": false,
+    "description": "Some job",
+    "hideFromGui": false,
+    "inputFile": {
+    },
+    "jobState": "LocalQueued",
+    "localWorkingDirectory": "/working/directory/jobs/777",
+    "maxWallTime": -1,
+    "moleQueueId": 777,
+    "numberOfCores": 8,
+    "outputDirectory": "/working/directory/jobs/777",
+    "popupOnStateChange": false,
+    "program": "fakeProgram",
+    "queue": "fakeQueue",
+    "queueId": null,
+    "retrieveOutput": true
+}

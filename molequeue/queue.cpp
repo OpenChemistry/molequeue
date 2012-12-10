@@ -28,10 +28,11 @@
 #include "queuemanager.h"
 #include "server.h"
 
+#include <qjsondocument.h>
+
 #include <QtCore/QDebug>
 #include <QtCore/QDir>
 #include <QtCore/QFile>
-#include <QtCore/QSettings>
 
 namespace MoleQueue {
 
@@ -111,13 +112,13 @@ QString Queue::queueTypeFromFile(const QString &mqqFile)
   stateFile.close();
 
   // Try to read existing data in
-  Json::Value root;
-  Json::Reader reader;
-  if (!reader.parse(inputText.begin(), inputText.end(), root, false))
+  QJsonParseError error;
+  QJsonDocument doc = QJsonDocument::fromJson(inputText, &error);
+  if (error.error != QJsonParseError::NoError || !doc.isObject())
     return result;
 
-  if (root.isObject() && root.isMember("type") && root["type"].isString())
-    result = QString(root["type"].asCString());
+  if (doc.object().value("type").isString())
+    result = doc.object().value("type").toString();
 
   return result;
 }
@@ -147,23 +148,14 @@ bool Queue::writeJsonSettingsToFile(const QString &stateFilename,
     return false;
   }
 
-  Json::Value root(Json::objectValue);
+  QJsonObject root;
   if (!this->writeJsonSettings(root, exportOnly, includePrograms)) {
     stateFile.close();
     return false;
   }
 
-  if (!root.isObject()) {
-    Logger::logError(tr("Internal error writing state for queue %1 in %2:"
-                        " root is not an object!")
-                     .arg(name()).arg(stateFilename));
-    stateFile.close();
-    return false;
-  }
-
   // Write the data back out:
-  std::string outputText = root.toStyledString();
-  stateFile.write(QByteArray(outputText.c_str()));
+  stateFile.write(QJsonDocument(root).toJson());
   stateFile.close();
 
   return true;
@@ -184,17 +176,21 @@ bool Queue::readJsonSettingsFromFile(const QString &stateFilename,
   }
 
   // Try to read existing data in
-  Json::Value root;
-  Json::Reader reader;
   QByteArray inputText = stateFile.readAll();
-  if (!reader.parse(inputText.begin(), inputText.end(), root, false)) {
-    Logger::logError(tr("Cannot parse queue state from %1:\n%2")
-                     .arg(stateFilename).arg(inputText.data()));
+  QJsonParseError error;
+  QJsonDocument doc = QJsonDocument::fromJson(inputText, &error);
+  if (error.error != QJsonParseError::NoError) {
+    Logger::logError(tr("Error parsing queue state from %1: %2\n%3")
+                     .arg(stateFilename)
+                     .arg(tr("%1 (at offset %2)")
+                          .arg(error.errorString())
+                          .arg(error.offset))
+                     .arg(inputText.data()));
     stateFile.close();
     return false;
   }
 
-  if (!root.isObject()) {
+  if (!doc.isObject()) {
     Logger::logError(tr("Error reading queue state from %1: "
                         "root is not an object!\n%2")
                      .arg(stateFilename)
@@ -203,107 +199,101 @@ bool Queue::readJsonSettingsFromFile(const QString &stateFilename,
     return false;
   }
 
-  return readJsonSettings(root, importOnly, includePrograms);
+  return readJsonSettings(doc.object(), importOnly, includePrograms);
 }
 
-bool Queue::writeJsonSettings(Json::Value &root, bool exportOnly,
+bool Queue::writeJsonSettings(QJsonObject &root, bool exportOnly,
                               bool includePrograms) const
 {
-  root["type"] = typeName().toStdString();
-  root["launchTemplate"] = m_launchTemplate.toStdString();
-  root["launchScriptName"] = m_launchScriptName.toStdString();
+  root.insert("type", typeName());
+  root.insert("launchTemplate", m_launchTemplate);
+  root.insert("launchScriptName", m_launchScriptName);
 
   if (!exportOnly) {
-    Json::Value jobIdMap(Json::objectValue);
-    QList<IdType> keys = m_jobs.keys();
-    for (int i = 0; i < keys.size(); ++i) {
-      jobIdMap[idTypeToString(keys[i]).toStdString()] =
-          idTypeToString(m_jobs[keys[i]]).toStdString();
-    }
-    root["jobIdMap"] = jobIdMap;
+    QJsonObject jobIdMap;
+    foreach (IdType key, m_jobs.keys())
+      jobIdMap.insert(idTypeToString(key), idTypeToJson(m_jobs[key]));
+    root.insert("jobIdMap", jobIdMap);
   }
 
   if (includePrograms) {
-    Json::Value programsObject(Json::objectValue);
+    QJsonObject programsObject;
     foreach (const Program *prog, programs()) {
-      Json::Value programObject(Json::objectValue);
+      QJsonObject programObject;
       if (prog->writeJsonSettings(programObject, exportOnly)) {
-        programsObject[prog->name().toStdString()] = programObject;
+        programsObject.insert(prog->name(), programObject);
       }
       else {
         Logger::logError(tr("Could not save program %1 in queue %2's settings.")
                          .arg(prog->name(), name()));
       }
     }
-    root["programs"] = programsObject;
+    root.insert("programs", programsObject);
   }
 
   return true;
 }
 
-bool Queue::readJsonSettings(const Json::Value &root, bool importOnly,
+bool Queue::readJsonSettings(const QJsonObject &root, bool importOnly,
                              bool includePrograms)
 {
   // Verify JSON:
-  if (!root.isObject() ||
-      !root["type"].isString() ||
-      !root["launchTemplate"].isString() ||
-      !root["launchScriptName"].isString() ||
-      (root.isMember("programs") && !root["programs"].isObject())) {
+  if (!root.value("type").isString() ||
+      !root.value("launchTemplate").isString() ||
+      !root.value("launchScriptName").isString() ||
+      (root.contains("programs") && !root.value("programs").isObject())) {
     Logger::logError(tr("Error reading queue settings: Invalid format:\n%1")
-                     .arg(QString(root.toStyledString().c_str())));
+                     .arg(QString(QJsonDocument(root).toJson())));
     return false;
   }
 
-  if (typeName() != QString(root["type"].asCString())) {
+  if (typeName() != root.value("type").toString()) {
     Logger::logError(tr("Error reading queue settings: Types do not match.\n"
                         "Expected %1, got %2.").arg(typeName())
-                     .arg(QString(root["type"].asCString())));
+                     .arg(root.value("type").toString()));
     return false;
   }
 
   QMap<IdType, IdType> jobIdMap;
-  if (!importOnly && root.isMember("jobIdMap")) {
-    const Json::Value &jobIdObject = root["jobIdMap"];
-
-    if (!jobIdObject.isObject()) {
+  if (!importOnly && root.contains("jobIdMap")) {
+    if (!root.value("jobIdMap").isObject()) {
       Logger::logError(tr("Error reading queue settings: Invalid format:\n%1")
-                       .arg(QString(root.toStyledString().c_str())));
+                       .arg(QString(QJsonDocument(root).toJson())));
       return false;
     }
 
-    for (Json::ValueIterator it = jobIdObject.begin(),
-         it_end = jobIdObject.end(); it != it_end; ++it) {
-      IdType jobId = toIdType(QString(it.memberName()));
-      IdType moleQueueId = toIdType(*it);
+    QJsonObject jobIdObject = root.value("jobIdMap").toObject();
+
+    foreach (const QString &key, jobIdObject.keys()) {
+      IdType jobId = toIdType(key);
+      IdType moleQueueId = toIdType(jobIdObject.value(key));
       jobIdMap.insert(jobId, moleQueueId);
     }
   }
 
   QMap<QString, Program*> programMap;
-  if (includePrograms && root.isMember("programs")) {
-    const Json::Value &programObject = root["programs"];
-
-    if (!programObject.isObject()) {
+  if (includePrograms && root.contains("programs")) {
+    if (!root.value("programs").isObject()) {
       Logger::logError(tr("Error reading queue settings: Invalid format:\n%1")
-                       .arg(QString(root.toStyledString().c_str())));
+                       .arg(QString(QJsonDocument(root).toJson())));
       return false;
     }
 
-    for (Json::ValueIterator it = programObject.begin(),
-         it_end = programObject.end(); it != it_end; ++it) {
+    QJsonObject programObject = root.value("programs").toObject();
 
-      QString progName(it.memberName());
-      if (progName.isEmpty()) {
-        Logger::logError(tr("Error: empty program name in queue %1 config.")
-                         .arg(name()));
+    foreach (const QString &progName, programObject.keys()) {
+      if (!programObject.value(progName).isObject()) {
+        Logger::logError(tr("Error loading configuration for program %1 in "
+                            "queue %2.").arg(progName).arg(name()));
+        qDeleteAll(programMap.values());
         return false;
       }
 
       Program *prog = new Program(this);
       programMap.insert(progName, prog);
       prog->setName(progName);
-      if (!prog->readJsonSettings(*it, importOnly)) {
+      if (!prog->readJsonSettings(programObject.value(progName).toObject(),
+                                  importOnly)) {
         Logger::logError(tr("Error loading configuration for program %1 in "
                             "queue %2.").arg(progName).arg(name()));
         qDeleteAll(programMap.values());
@@ -313,8 +303,8 @@ bool Queue::readJsonSettings(const Json::Value &root, bool importOnly,
   }
 
   // Everything is verified -- go ahead and update queue.
-  m_launchTemplate = QString(root["launchTemplate"].asCString());
-  m_launchScriptName = QString(root["launchScriptName"].asCString());
+  m_launchTemplate = root.value("launchTemplate").toString();
+  m_launchScriptName = root.value("launchScriptName").toString();
 
   if (!importOnly)
     m_jobs = jobIdMap;
@@ -452,8 +442,8 @@ bool Queue::writeInputFiles(const Job &job)
   QList<FileSpecification> additionalInputFiles = job.additionalInputFiles();
   foreach (const FileSpecification &filespec, additionalInputFiles) {
     if (!filespec.isValid()) {
-      Logger::logError(tr("Writing additional input file...invalid FileSpec:\n"
-                          "%1").arg(filespec.asJsonString()),
+      Logger::logError(tr("Writing additional input files...invalid FileSpec:\n"
+                          "%1").arg(QString(filespec.toJson())),
                        job.moleQueueId());
       return false;
     }
@@ -462,7 +452,7 @@ bool Queue::writeInputFiles(const Job &job)
     default:
     case FileSpecification::InvalidFileSpecification:
       Logger::logWarning(tr("Cannot write input file. Invalid filespec:\n%1")
-                         .arg(filespec.asJsonString()), job.moleQueueId());
+                         .arg(QString(filespec.toJson())), job.moleQueueId());
       continue;
     case FileSpecification::PathFileSpecification: {
       QFileInfo source(filespec.filepath());

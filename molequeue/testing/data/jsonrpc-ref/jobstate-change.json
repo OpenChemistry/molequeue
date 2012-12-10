@@ -1,9 +1,0 @@
-{
-   "jsonrpc" : "2.0",
-   "method" : "jobStateChanged",
-   "params" : {
-      "moleQueueId" : 12,
-      "newState" : "Finished",
-      "oldState" : "RunningRemote"
-   }
-}

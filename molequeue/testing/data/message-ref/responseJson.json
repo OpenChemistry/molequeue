@@ -1,0 +1,17 @@
+{
+    "id": 42,
+    "jsonrpc": "2.0",
+    "result": [
+        null,
+        {
+            "test": "value"
+        },
+        [
+            "Test"
+        ],
+        true,
+        5,
+        5.36893,
+        "Abrakadabra"
+    ]
+}

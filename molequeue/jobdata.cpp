@@ -17,12 +17,12 @@
 #include "jobdata.h"
 #include "jobmanager.h"
 #include "logger.h"
-#include "transport/qtjson.h"
+
+#include <qjsonarray.h>
+#include <qjsondocument.h>
 
 #include <QtCore/QDir>
 #include <QtCore/QFile>
-
-#include <json/json.h>
 
 namespace MoleQueue
 {
@@ -66,45 +66,43 @@ JobData::JobData(const MoleQueue::JobData &other)
 {
 }
 
-QVariantHash JobData::hash() const
+QJsonObject JobData::toJsonObject() const
 {
-  QVariantHash state;
+  QJsonObject result;
 
-  state.insert("queue", m_queue);
-  state.insert("program", m_program);
-  state.insert("jobState", m_jobState);
-  state.insert("description", m_description);
-  state.insert("inputFile", m_inputFile.asVariantHash());
+  result.insert("queue", m_queue);
+  result.insert("program", m_program);
+  result.insert("jobState", QLatin1String(jobStateToString(m_jobState)));
+  result.insert("description", m_description);
+  result.insert("inputFile", m_inputFile.toJsonObject());
   if (!m_additionalInputFiles.isEmpty()) {
-    QList<QVariant> additionalFiles;
-    foreach (const FileSpecification &spec, m_additionalInputFiles) {
-      additionalFiles.append(spec.asVariantHash());
-    }
-    state.insert("additionalInputFiles", additionalFiles);
+    QJsonArray additionalFiles;
+    foreach (const FileSpecification &spec, m_additionalInputFiles)
+      additionalFiles.append(spec.toJsonObject());
+    result.insert("additionalInputFiles", additionalFiles);
   }
-  state.insert("outputDirectory", m_outputDirectory);
-  state.insert("localWorkingDirectory", m_localWorkingDirectory);
-  state.insert("cleanRemoteFiles", m_cleanRemoteFiles);
-  state.insert("retrieveOutput", m_retrieveOutput);
-  state.insert("cleanLocalWorkingDirectory", m_cleanLocalWorkingDirectory);
-  state.insert("hideFromGui", m_hideFromGui);
-  state.insert("popupOnStateChange", m_popupOnStateChange);
-  state.insert("numberOfCores", m_numberOfCores);
-  state.insert("maxWallTime", m_maxWallTime);
-  state.insert("moleQueueId", idTypeToVariant(m_moleQueueId));
-  state.insert("queueId", idTypeToVariant(m_queueId));
+  result.insert("outputDirectory", m_outputDirectory);
+  result.insert("localWorkingDirectory", m_localWorkingDirectory);
+  result.insert("cleanRemoteFiles", m_cleanRemoteFiles);
+  result.insert("retrieveOutput", m_retrieveOutput);
+  result.insert("cleanLocalWorkingDirectory", m_cleanLocalWorkingDirectory);
+  result.insert("hideFromGui", m_hideFromGui);
+  result.insert("popupOnStateChange", m_popupOnStateChange);
+  result.insert("numberOfCores", m_numberOfCores);
+  result.insert("maxWallTime", m_maxWallTime);
+  result.insert("moleQueueId", idTypeToJson(m_moleQueueId));
+  result.insert("queueId", idTypeToJson(m_queueId));
   if (!m_keywords.isEmpty()) {
-    // QVariant can only hold hashs of QVariantHash type.
-    QVariantHash keywordVariantHash;
+    QJsonObject keywords_;
     foreach (const QString &key, m_keywords.keys())
-      keywordVariantHash.insert(key, m_keywords.value(key));
-    state.insert("keywords", keywordVariantHash);
+      keywords_.insert(key, m_keywords.value(key));
+    result.insert("keywords", keywords_);
   }
 
-  return state;
+  return result;
 }
 
-void JobData::setFromHash(const QVariantHash &state)
+void JobData::setFromJson(const QJsonObject &state)
 {
   if (state.contains("queue"))
     m_queue = state.value("queue").toString();
@@ -113,14 +111,14 @@ void JobData::setFromHash(const QVariantHash &state)
   if (state.contains("description"))
     m_description = state.value("description").toString();
   if (state.contains("jobState"))
-    m_jobState = static_cast<JobState>(state.value("jobState").toInt());
+    m_jobState = stringToJobState(state.value("jobState").toString());
   if (state.contains("inputFile"))
-    m_inputFile = FileSpecification(state.value("inputFile").toHash());
+    m_inputFile = FileSpecification(state.value("inputFile").toObject());
   m_additionalInputFiles.clear();
   if (state.contains("additionalInputFiles")) {
-    foreach(const QVariant &variantHash,
-            state.value("additionalInputFiles").toList()) {
-      m_additionalInputFiles.append(FileSpecification(variantHash.toHash()));
+    foreach(const QJsonValue &inputFile_,
+            state.value("additionalInputFiles").toArray()) {
+      m_additionalInputFiles.append(FileSpecification(inputFile_.toObject()));
     }
   }
   if (state.contains("outputDirectory"))
@@ -140,18 +138,18 @@ void JobData::setFromHash(const QVariantHash &state)
   if (state.contains("popupOnStateChange"))
     m_popupOnStateChange = state.value("popupOnStateChange").toBool();
   if (state.contains("numberOfCores"))
-    m_numberOfCores = state.value("numberOfCores").toInt();
+    m_numberOfCores = static_cast<int>(state.value("numberOfCores").toDouble());
   if (state.contains("maxWallTime"))
-    m_maxWallTime = state.value("maxWallTime").toInt();
+    m_maxWallTime = static_cast<int>(state.value("maxWallTime").toDouble());
   if (state.contains("moleQueueId"))
     m_moleQueueId = toIdType(state.value("moleQueueId"));
   if (state.contains("queueId"))
     m_queueId = toIdType(state.value("queueId"));
   if (state.contains("keywords")) {
     m_keywords.clear();
-    QVariantHash keywordVariantHash = state.value("keywords").toHash();
-    foreach (const QString &key, keywordVariantHash.keys())
-      m_keywords.insert(key, keywordVariantHash.value(key).toString());
+    QJsonObject keywords_ = state.value("keywords").toObject();
+    foreach (const QString &key, keywords_.keys())
+      m_keywords.insert(key, keywords_.value(key).toString());
   }
 
   modified();
@@ -169,37 +167,40 @@ bool JobData::load(const QString &stateFilename)
     return false;
   }
 
-  Json::Value root;
-
-  // Try to read existing data in
-  Json::Reader reader;
+  // Read file
   QByteArray inputText = stateFile.readAll();
-  if (!reader.parse(inputText.begin(), inputText.end(), root, false)) {
-    Logger::logError(Logger::tr("Cannot parse job state from %1:\n%2")
-                     .arg(stateFilename).arg(inputText.data()));
-    stateFile.close();
+  stateFile.close();
+
+  // Parse JSON
+  QJsonParseError error;
+  QJsonDocument doc = QJsonDocument::fromJson(inputText, &error);
+  if (error.error != QJsonParseError::NoError) {
+    Logger::logError(Logger::tr("Cannot parse job state from %1: %2\n%3")
+                     .arg(stateFilename)
+                     .arg(Logger::tr("%1 (at offset %2)")
+                          .arg(error.errorString())
+                          .arg(error.offset))
+                     .arg(inputText.data()));
     return false;
   }
 
-  if (!root.isObject()) {
+  if (!doc.isObject()) {
     Logger::logError(Logger::tr("Error reading job state from %1: "
-                                "root is not an object!\n%2")
+                                "document is not an object!\n%2")
                      .arg(stateFilename)
                      .arg(inputText.data()));
-    stateFile.close();
     return false;
   }
 
-  QVariantHash jobHash = QtJson::toVariant(root).toHash();
-  if (!jobHash.contains("moleQueueId")) {
+  QJsonObject jobObject = doc.object();
+  if (!jobObject.contains("moleQueueId")) {
     Logger::logError(Logger::tr("Error reading job state from %1: "
                                 "No moleQueueId member!\n%2")
                      .arg(stateFilename).arg(inputText.data()));
-    stateFile.close();
     return false;
   }
 
-  setFromHash(jobHash);
+  setFromJson(jobObject);
 
   m_needsSync = false;
 
@@ -218,54 +219,50 @@ bool JobData::save()
     return false;
   }
 
-  Json::Value root;
-
   // Try to read existing data in
+  QJsonDocument doc;
+  QJsonParseError error;
+  QJsonObject root;
   QByteArray inputText = stateFile.readAll();
   if (!inputText.isEmpty()) {
-    Json::Reader reader;
-    if (!reader.parse(inputText.begin(), inputText.end(), root, true)) {
+    // Parse the file.
+    doc = QJsonDocument::fromJson(inputText, &error);
+    if (error.error != QJsonParseError::NoError) {
       Logger::logError(Logger::tr("Cannot parse existing state for job %1 in "
-                                  "%2:\n%3").arg(idTypeToString(moleQueueId()))
-                       .arg(stateFilename).arg(inputText.data()), moleQueueId());
+                                  "%2: %3. Job state not saved. File contents:"
+                                  "\n%4")
+                       .arg(idTypeToString(moleQueueId()))
+                       .arg(stateFilename)
+                       .arg(Logger::tr("%1 (at offset %2)")
+                            .arg(error.errorString())
+                            .arg(error.offset))
+                       .arg(inputText.data()), moleQueueId());
+      stateFile.close();
+      return false;
+    }
+
+    // Verify that the JSON represents an object
+    if (!doc.isObject()) {
+      Logger::logError(Logger::tr("Internal error writing state for job %1 in %2:"
+                                  " existing json root is not an object! Job "
+                                  "state not saved.")
+                       .arg(idTypeToString(moleQueueId())).arg(stateFilename),
+                       moleQueueId());
       stateFile.close();
       return false;
     }
   }
 
-  if (!root.isObject()) {
-    Logger::logError(Logger::tr("Internal error writing state for job %1 in %2:"
-                                " root is not an object!")
-                     .arg(idTypeToString(moleQueueId())).arg(stateFilename),
-                     moleQueueId());
-    stateFile.close();
-    return false;
-  }
-
-  // Get the data from the job
-  Json::Value jobRoot = QtJson::toJson(hash());
-
-  if (!jobRoot.isObject()) {
-    Logger::logError(Logger::tr("Internal error writing state for job %1 in %2:"
-                                " jobRoot is not an object!")
-                     .arg(idTypeToString(moleQueueId())).arg(stateFilename),
-                     moleQueueId());
-    stateFile.close();
-    return false;
-  }
-
-  // Overlay jobRoot onto root:
-  for (Json::ValueIterator it = jobRoot.begin(), it_end = jobRoot.end();
-       it != it_end; ++it) {
-    if (it.memberName()[0] != '\0') {
-      root[it.memberName()] = *it;
-    }
-  }
+  // Overlay the current job state onto the existing json:
+  QJsonObject jobObject = toJsonObject();
+  foreach (const QString &key, jobObject.keys())
+    root.insert(key, jobObject.value(key));
 
   // Write the data back out:
+  QByteArray outputText = QJsonDocument(root).toJson();
+
   stateFile.resize(0);
-  std::string outputText = root.toStyledString();
-  stateFile.write(QByteArray(outputText.c_str()));
+  stateFile.write(outputText);
   stateFile.close();
 
   m_needsSync = false;

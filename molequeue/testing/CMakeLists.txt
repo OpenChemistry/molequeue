@@ -25,7 +25,8 @@ if(USE_ZERO_MQ)
 endif()
 
 set(testutils_SRCS
-  dummyjsonrpc.cpp
+  dummyconnection.cpp
+  dummyconnectionlistener.cpp
   dummyqueuemanager.cpp
   dummyqueueremote.cpp
   dummyserver.cpp
@@ -40,17 +41,16 @@ set_target_properties(testutils PROPERTIES AUTOMOC TRUE)
 target_link_libraries(testutils molequeue_static)
 
 set(MyTests
-  abstractrpcinterface
   filespecification
   jobmanager
   jsonrpc
+  message
   pbs
   program
   queue
   queuemanager
   queueremote
   server
-  serverjsonrpc
   sge
   sshcommand
   )

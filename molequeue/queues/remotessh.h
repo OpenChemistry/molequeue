@@ -36,9 +36,9 @@ public:
                        QueueManager *parentManager = 0);
   ~QueueRemoteSsh();
 
-  bool writeJsonSettings(Json::Value &value, bool exportOnly,
+  bool writeJsonSettings(QJsonObject &json, bool exportOnly,
                          bool includePrograms) const;
-  bool readJsonSettings(const Json::Value &value, bool importOnly,
+  bool readJsonSettings(const QJsonObject &json, bool importOnly,
                         bool includePrograms);
 
   void setSshExecutable(const QString &exe)

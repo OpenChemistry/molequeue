@@ -1,0 +1,25 @@
+{
+    "error": {
+        "code": 1,
+        "data": {
+            "queue": "invalidQueue",
+            "request": {
+                "id": 103,
+                "jsonrpc": "2.0",
+                "method": "submitJob",
+                "params": {
+                    "description": "testDescription",
+                    "program": "testProgram",
+                    "queue": "invalidQueue"
+                }
+            },
+            "valid queues": [
+                "fakeQueue",
+                "testQueue"
+            ]
+        },
+        "message": "Invalid queue"
+    },
+    "id": 103,
+    "jsonrpc": "2.0"
+}

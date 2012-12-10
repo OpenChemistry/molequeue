@@ -1,0 +1,13 @@
+{
+    "id": 101,
+    "jsonrpc": "2.0",
+    "result": {
+        "fakeQueue": [
+            "fakeProgram1",
+            "fakeProgram2"
+        ],
+        "testQueue": [
+            "testProgram"
+        ]
+    }
+}

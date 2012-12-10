@@ -28,12 +28,7 @@
 #include <QtCore/QPointer>
 #include <QtCore/QStringList>
 
-class QSettings;
-
-namespace Json
-{
-class Value;
-}
+class QJsonObject;
 
 namespace MoleQueue
 {
@@ -118,7 +113,7 @@ public:
   bool writeSettings() const;
 
   /**
-   * Populate the passed QSettings object with this queue's configuration.
+   * Write this Queue's configuration to the .mqq file @a fileName.
    * Sensitive data (such as usernames, etc) and mutatable state data (like
    * current jobs) are not written, see writeSettings() if these are needed.
    * @param includePrograms Export this queue's programs as well. Default: true
@@ -130,7 +125,7 @@ public:
                       bool includePrograms = true) const;
 
   /**
-   * Set this Queue's configuration from the passed QSettings object.
+   * Set this Queue's configuration using the the .mqq file @a fileName.
    * Sensitive data (such as usernames, etc) and mutatable state data (like
    * current jobs) are not read, see readSettings() if these are needed.
    * @param includePrograms Import any programs contained in the importer.
@@ -163,7 +158,7 @@ public:
    * configurations.
    * @return True on success, false on failure.
    */
-  virtual bool writeJsonSettings(Json::Value &value, bool exportOnly,
+  virtual bool writeJsonSettings(QJsonObject &value, bool exportOnly,
                                  bool includePrograms) const;
 
   /**
@@ -180,7 +175,7 @@ public:
    * into temporary variables, then call the base class implementation and only
    * modify the queue if the call returns true.
    */
-  virtual bool readJsonSettings(const Json::Value &value, bool importOnly,
+  virtual bool readJsonSettings(const QJsonObject &value, bool importOnly,
                                 bool includePrograms);
 
 

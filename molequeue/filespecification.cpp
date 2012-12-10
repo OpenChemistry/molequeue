@@ -17,73 +17,54 @@
 #include "filespecification.h"
 
 #include "logger.h"
-#include "transport/qtjson.h"
+
+#include <qjsondocument.h>
 
 #include <QtCore/QDir>
 #include <QtCore/QFile>
 #include <QtCore/QFileInfo>
-
-#include <json/json.h>
 
 #include <string>
 
 namespace MoleQueue
 {
 
-class FileSpecificationPrivate
-{
-public:
-  Json::Value json;
-};
-
 FileSpecification::FileSpecification()
-  : d_ptr(new FileSpecificationPrivate())
 {
 }
 
-FileSpecification::FileSpecification(const QVariantHash &hash)
-  : d_ptr(new FileSpecificationPrivate())
+FileSpecification::FileSpecification(const QJsonObject &json)
 {
-  Q_D(FileSpecification);
-  d->json = QtJson::toJson(hash);
+  m_json = json;
 }
 
 FileSpecification::FileSpecification(const QString &path)
-  : d_ptr(new FileSpecificationPrivate())
 {
-  Q_D(FileSpecification);
-  d->json = Json::Value(Json::objectValue);
-  d->json["path"] = path.toStdString();
+  m_json.insert("path", path);
 }
 
-FileSpecification::FileSpecification(const QString &filename_, const QString &contents_)
-  : d_ptr(new FileSpecificationPrivate())
+FileSpecification::FileSpecification(const QString &filename_,
+                                     const QString &contents_)
 {
-  Q_D(FileSpecification);
-  d->json = Json::Value(Json::objectValue);
-  d->json["filename"] = filename_.toStdString();
-  d->json["contents"] = contents_.toStdString();
+  m_json.insert("filename", filename_);
+  m_json.insert("contents", contents_);
 }
 
-FileSpecification::FileSpecification(QFile *file, FileSpecification::Format format_)
-  : d_ptr(new FileSpecificationPrivate())
+FileSpecification::FileSpecification(QFile *file,
+                                     FileSpecification::Format format_)
 {
-  Q_D(FileSpecification);
   switch (format_) {
   case PathFileSpecification:
-    d->json = Json::Value(Json::objectValue);
-    d->json["path"] =
-        QFileInfo(*file).absoluteFilePath().toStdString();
+    m_json.insert("path", QFileInfo(*file).absoluteFilePath());
     break;
   case ContentsFileSpecification: {
-    d->json = Json::Value(Json::objectValue);
-    d->json["filename"] = QFileInfo(*file).fileName().toStdString();
+    m_json.insert("filename", QFileInfo(*file).fileName());
     if (!file->open(QFile::ReadOnly | QFile::Text)) {
       Logger::logError(Logger::tr("Error opening file for read: '%1'")
                        .arg(file->fileName()));
       return;
     }
-    d->json["contents"] = file->readAll().data();
+    m_json.insert("contents", QString(file->readAll()));
     file->close();
     break;
   }
@@ -99,63 +80,47 @@ FileSpecification::FileSpecification(QFile *file, FileSpecification::Format form
 }
 
 FileSpecification::FileSpecification(const FileSpecification &other)
-  : d_ptr(new FileSpecificationPrivate())
 {
-  Q_D(FileSpecification);
-  d->json = other.d_ptr->json;
+  m_json = other.m_json;
 }
 
 FileSpecification &FileSpecification::operator=(const FileSpecification &other)
 {
-  Q_D(FileSpecification);
-  d->json = other.d_ptr->json;
+  m_json = other.m_json;
   return *this;
 }
 
 FileSpecification::~FileSpecification()
 {
-  delete d_ptr;
 }
 
 FileSpecification::Format FileSpecification::format() const
 {
-  Q_D(const FileSpecification);
-  if (d->json.isObject()) {
-    if (d->json.isMember("path")) {
-      return PathFileSpecification;
-    }
-    else if (d->json.isMember("filename") &&
-             d->json.isMember("contents")) {
-      return ContentsFileSpecification;
-    }
+  if (m_json.contains("path")) {
+    return PathFileSpecification;
+  }
+  else if (m_json.contains("filename") &&
+           m_json.contains("contents")) {
+    return ContentsFileSpecification;
   }
 
   return InvalidFileSpecification;
 }
 
-QString FileSpecification::asJsonString() const
+QByteArray FileSpecification::toJson() const
 {
-  Q_D(const FileSpecification);
-  Json::StyledWriter writer;
-  return QString::fromStdString(writer.write(d->json));
+  return QJsonDocument(m_json).toJson();
 }
 
-QVariantHash FileSpecification::asVariantHash() const
+QJsonObject FileSpecification::toJsonObject() const
 {
-  Q_D(const FileSpecification);
-  if (d->json.isObject())
-    return QtJson::toVariant(d->json).toHash();
-  return QVariantHash();
+  return m_json;
 }
 
 bool FileSpecification::fileExists() const
 {
-  Q_D(const FileSpecification);
-  if (format() == PathFileSpecification) {
-    const char *path = d->json["path"].asCString();
-    bool result = QFile::exists(path);
-    return result;
-  }
+  if (format() == PathFileSpecification)
+    return QFile::exists(m_json.value("path").toString());
 
   return false;
 }
@@ -183,28 +148,26 @@ bool FileSpecification::writeFile(const QDir &dir, const QString &filename_) con
 
 QString FileSpecification::filename() const
 {
-  Q_D(const FileSpecification);
   switch (format()) {
   default:
   case InvalidFileSpecification:
     Logger::logDebugMessage(Logger::tr("Cannot extract filename from invalid "
-                                       "filespec\n%1").arg(asJsonString()));
+                                       "filespec\n%1").arg(QString(toJson())));
     return QString();
   case PathFileSpecification:
-    return QFileInfo(d->json["path"].asCString()).fileName();
+    return QFileInfo(m_json.value("path").toString()).fileName();
   case ContentsFileSpecification:
-    return QFileInfo(d->json["filename"].asCString()).fileName();
+    return QFileInfo(m_json.value("filename").toString()).fileName();
   }
 }
 
 QString FileSpecification::contents() const
 {
-  Q_D(const FileSpecification);
   switch (format()) {
   default:
   case InvalidFileSpecification:
     Logger::logWarning(Logger::tr("Cannot read contents of invalid filespec:"
-                                  "\n%1").arg(asJsonString()));
+                                  "\n%1").arg(QString(toJson())));
     return QString();
   case PathFileSpecification: {
     QFile file(filepath());
@@ -218,16 +181,15 @@ QString FileSpecification::contents() const
     return result;
   }
   case ContentsFileSpecification:
-    return QString(d->json["contents"].asCString());
+    return QString(m_json.value("contents").toString());
   }
 
 }
 
 QString FileSpecification::filepath() const
 {
-  Q_D(const FileSpecification);
   if (format() == PathFileSpecification)
-    return QFileInfo(d->json["path"].asCString()).absoluteFilePath();
+    return QFileInfo(m_json.value("path").toString()).absoluteFilePath();
   return QString();
 }
 
