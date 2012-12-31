@@ -92,7 +92,9 @@ if(MoleQueue_BUILD_APPLICATION)
 
     find_package(KDSoap REQUIRED)
     include_directories(${KDSoap_INCLUDE_DIRS})
-    kdsoap_generate_wsdl(ezHPC_UIT_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/wsdl/uitapi.wsdl)
+    kdsoap_generate_wsdl(ezHPC_UIT_SRCS
+      ${CMAKE_CURRENT_SOURCE_DIR}/wsdl/uitapi.wsdl
+    )
 
     list(APPEND mq_srcs
       ${ezHPC_UIT_SRCS}
@@ -100,10 +102,28 @@ if(MoleQueue_BUILD_APPLICATION)
       queues/uit/authenticatecont.cpp
       queues/uit/authenticateresponse.cpp
       queues/uit/authresponseprocessor.cpp
+      queues/uit/compositeiodevice.cpp
+      queues/uit/dirlistinginfo.cpp
+      queues/uit/fileinfo.cpp
+      queues/uit/filestreamingdata.cpp
+      queues/uit/jobevent.cpp
+      queues/uit/jobeventlist.cpp
+      queues/uit/jobsubmissioninfo.cpp
       queues/uit/kerberoscredentials.cpp
-      queues/uit/queueuit.cpp
+      queues/uit/messagehandler.cpp
+      queues/queueuit.cpp
       queues/uit/sslsetup.cpp
-      queues/uit/uitauthenticator.cpp
+      queues/uit/authenticator.cpp
+      queues/uit/directoryupload.cpp
+      queues/uit/directorycreate.cpp
+      queues/uit/directorydelete.cpp
+      queues/uit/directorydownload.cpp
+      queues/uit/filesystemoperation.cpp
+      queues/uit/requests.cpp
+      queues/uit/session.cpp
+      queues/uit/sessionmanager.cpp
+      queues/uit/userhostassoc.cpp
+      queues/uit/userhostassoclist.cpp
       uitqueuewidget.cpp
       wsdl_uitapi.cpp
       )

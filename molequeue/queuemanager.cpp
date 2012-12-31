@@ -26,7 +26,7 @@
 #include "queues/pbs.h"
 #include "queues/sge.h"
 #ifdef MoleQueue_USE_EZHPC_UIT
-#include "queues/uit/queueuit.h"
+#include "queues/queueuit.h"
 #endif
 #include <QtCore/QDebug>
 #include <QtCore/QDir>

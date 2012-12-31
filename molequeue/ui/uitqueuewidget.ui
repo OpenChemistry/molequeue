@@ -26,31 +26,35 @@
       <item row="2" column="0">
        <widget class="QLabel" name="label4">
         <property name="text">
-         <string>&amp;Hostname:</string>
+         <string>Kerberos Realm</string>
         </property>
         <property name="buddy">
-         <cstring>editHostName</cstring>
+         <cstring>editKerberosRealm</cstring>
         </property>
        </widget>
       </item>
       <item row="2" column="1">
-       <widget class="QLineEdit" name="editHostName"/>
+       <widget class="QLineEdit" name="editKerberosRealm">
+        <property name="text">
+         <string>HPCMP.HPC.MIL</string>
+        </property>
+       </widget>
       </item>
       <item row="3" column="0">
        <widget class="QLabel" name="label">
         <property name="text">
-         <string>&amp;Kerberos Principle:</string>
+         <string>&amp;Kerberos Username</string>
         </property>
         <property name="buddy">
-         <cstring>editKerberosPrinciple</cstring>
+         <cstring>editKerberosUserName</cstring>
         </property>
        </widget>
       </item>
       <item row="3" column="1">
-       <widget class="QLineEdit" name="editKerberosPrinciple"/>
+       <widget class="QLineEdit" name="editKerberosUserName"/>
       </item>
       <item row="5" column="1">
-       <layout class="QHBoxLayout" name="keyFileLayout">
+       <layout class="QHBoxLayout" name="layout2">
         <item>
          <spacer name="horizontalSpacer">
           <property name="orientation">
@@ -79,7 +83,7 @@
    <item row="0" column="0">
     <widget class="QGroupBox" name="groupBox">
      <property name="sizePolicy">
-      <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+      <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
        <horstretch>0</horstretch>
        <verstretch>0</verstretch>
       </sizepolicy>
@@ -192,6 +196,43 @@
          <widget class="QPushButton" name="pushSleepTest">
           <property name="text">
            <string>S&amp;ubmit test job...</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item row="0" column="0">
+       <widget class="QLabel" name="hostNameLabel">
+        <property name="text">
+         <string>Hostname:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <layout class="QHBoxLayout" name="keyFileLayout">
+        <item>
+         <widget class="QComboBox" name="hostNameComboBox">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>190</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="sizeAdjustPolicy">
+           <enum>QComboBox::AdjustToContents</enum>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="pushGetHostNames">
+          <property name="text">
+           <string>Get Hosts...</string>
           </property>
          </widget>
         </item>
