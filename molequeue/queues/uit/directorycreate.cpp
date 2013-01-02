@@ -82,7 +82,7 @@ void DirectoryCreate::processStatResponse()
   if (!request) {
     Logger::logError(tr("Internal error: %1\n%2").arg(Q_FUNC_INFO)
                      .arg("Sender is not StatFileRequest!"));
-      return;
+    return;
   }
 
   request->deleteLater();
@@ -122,7 +122,7 @@ void DirectoryCreate::createDirectoryComplete()
   if (!request) {
     Logger::logError(tr("Internal error: %1\n%2").arg(Q_FUNC_INFO)
                      .arg("Sender is not CreateDirectoryRequest!"));
-      return;
+    return;
   }
   request->deleteLater();
 

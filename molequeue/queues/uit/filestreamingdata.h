@@ -41,52 +41,64 @@ public:
   /**
    * @return The file name.
    */
-  QString fileName() const {
+  QString fileName() const
+  {
     return m_fileName;
   }
+
   /**
    * @param file The file name.
    */
-  void setFileName(const QString& file) {
+  void setFileName(const QString& file)
+  {
     m_fileName = file;
   }
 
   /**
    * @return The host ID for the host this file is associated with.
    */
-  qint64 hostID() const {
+  qint64 hostID() const
+  {
     return m_hostID;
   }
+
   /**
    * @param hostId The host ID for the host the file is associatd with.
    */
-  void setHostID(qint64 hostId) {
+  void setHostID(qint64 hostId)
+  {
     m_hostID = hostId;
   }
 
   /**
    * @return The UIT session token.
    */
-  QString token() const {
+  QString token() const
+  {
     return m_token;
   }
+
   /**
    * @param tok The UIT session token to use.
    */
-  void setToken(const QString& tok) {
+  void setToken(const QString& tok)
+  {
     m_token = tok;
   }
 
   /**
    * @return The user name for user which owns this file.
    */
-  QString userName() const {
+  QString userName() const
+  {
     return m_userName;
   }
+
   /**
    * @param user The user name for the user which owns this file.
    */
-  void setUserName(const QString& user) {
+  void setUserName(const QString& user)
+  {
   m_userName = user;
   }
 

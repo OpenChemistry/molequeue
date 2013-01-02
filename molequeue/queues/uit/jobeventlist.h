@@ -39,7 +39,8 @@ public:
   /**
    * @return The list of JobEvents.
    */
-  QList<JobEvent> jobEvents() const {
+  QList<JobEvent> jobEvents() const
+  {
     return m_jobEvents;
   }
 
@@ -47,14 +48,16 @@ public:
    * @return true, if the instance represents a valid JobEventList document,
    * false otherwise.
    */
-  bool isValid() const {
+  bool isValid() const
+  {
     return m_valid;
   }
 
   /**
    * @return The raw XML that this object was generated from.
    */
-  QString xml() const {
+  QString xml() const
+  {
     return m_xml;
   }
 
@@ -65,6 +68,7 @@ public:
    * @param xml The XML document to parse.
    */
   static JobEventList fromXml(const QString &xml);
+
   /**
    * Converts JobEventList XML document into object model.
    *

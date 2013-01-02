@@ -36,5 +36,4 @@ public:
 
 } /* namespace Uit */
 } /* namespace MoleQueue */
-
 #endif /* SSLSETUP_H_ */

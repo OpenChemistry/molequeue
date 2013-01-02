@@ -68,8 +68,8 @@ void Session::authenticate(QObject *completeReciever,
             this, SLOT(authenticationCompleteInternal(const QString&)));
     connect(m_authenticator, SIGNAL(authenticationError(const QString&)),
               this, SLOT(authenticationErrorInternal(const QString&)));
-    connect(m_authenticator, SIGNAL(authenticationCancelled()),
-                  this, SLOT(authenticationCancelledInternal()));
+    connect(m_authenticator, SIGNAL(authenticationCanceled()),
+                  this, SLOT(authenticationCanceledInternal()));
 
     m_authenticator->authenticate();
   }
@@ -100,7 +100,7 @@ void Session::authenticationErrorInternal(const QString &errorString)
   disconnect();
 }
 
-void Session::authenticationCancelledInternal()
+void Session::authenticationCanceledInternal()
 {
   QMutexLocker locker(&m_authMutex);
 

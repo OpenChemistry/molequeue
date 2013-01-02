@@ -200,8 +200,8 @@ void Authenticator::showCredentialsDialog(const QString banner,
   connect(m_credentialsDialog, SIGNAL(entered(const QString&)),
           this, enteredSlot);
 
-  connect(m_credentialsDialog, SIGNAL(cancelled()),
-          this, SIGNAL(authenticationCancelled()));
+  connect(m_credentialsDialog, SIGNAL(canceled()),
+          this, SIGNAL(authenticationCanceled()));
 
   m_credentialsDialog->show();
 }

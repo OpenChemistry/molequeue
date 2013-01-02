@@ -29,54 +29,54 @@ namespace Uit {
 class JobSubmissionInfo
 {
 public:
-    JobSubmissionInfo();
-    /**
-     * @param other The instance to copy.
-     */
-    JobSubmissionInfo(const JobSubmissionInfo &other);
-    /**
-     * @param other The instance to assign.
-     */
-    JobSubmissionInfo &operator=(const JobSubmissionInfo &other);
+  JobSubmissionInfo();
+  /**
+   * @param other The instance to copy.
+   */
+  JobSubmissionInfo(const JobSubmissionInfo &other);
+  /**
+   * @param other The instance to assign.
+   */
+  JobSubmissionInfo &operator=(const JobSubmissionInfo &other);
 
-    /**
-     * @return true if this object represents a valid JobSubmissionInfo
-     * document, false otherwise.
-     */
-    bool isValid() const;
+  /**
+   * @return true if this object represents a valid JobSubmissionInfo
+   * document, false otherwise.
+   */
+  bool isValid() const;
 
-    /**
-     * @return the job number.
-     */
-    qint64 jobNumber() const;
+  /**
+   * @return the job number.
+   */
+  qint64 jobNumber() const;
 
-    /**
-     * @return the STDOUT produced by submitting the job.
-     */
-    QString stdout() const;
+  /**
+   * @return the STDOUT produced by submitting the job.
+   */
+  QString stdout() const;
 
-    /**
-     * @return the STDERR produced by submitting the job.
-     */
-    QString stderr() const;
+  /**
+   * @return the STDERR produced by submitting the job.
+   */
+  QString stderr() const;
 
-    /**
-     * @param xml The XML to parse and populate the object model with.
-     */
-    void setContent(const QString &xml);
+  /**
+   * @param xml The XML to parse and populate the object model with.
+   */
+  void setContent(const QString &xml);
 
-    /**
-     * @return The raw XML parse and used to populare the object model with.
-     */
-    QString xml() const;
+  /**
+   * @return The raw XML parse and used to populare the object model with.
+   */
+  QString xml() const;
 
-    /**
-     * Convert a JobSubmissionInfo XML document into object model.
-     *
-     * @return The JobSubmissionInfo object representing the XML.
-     * @param xml The JobSubmissionInfo XML document to parse.
-     */
-    static JobSubmissionInfo fromXml(const QString &xml);
+  /**
+   * Convert a JobSubmissionInfo XML document into object model.
+   *
+   * @return The JobSubmissionInfo object representing the XML.
+   * @param xml The JobSubmissionInfo XML document to parse.
+   */
+  static JobSubmissionInfo fromXml(const QString &xml);
 
 private:
     bool m_valid;

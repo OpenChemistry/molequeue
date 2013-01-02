@@ -84,11 +84,11 @@ KDSoapJob * SubmitBatchScriptJobRequest::createJob()
  SubmitBatchScriptJobJob *soapJob = new SubmitBatchScriptJobJob(
                                           m_session->uitService(), this);
 
- soapJob->setToken(m_session->token());
- soapJob->setHostID(m_hostID);
- soapJob->setBatchScript("job.uit");
- soapJob->setWorkingDir(m_workingDir);
- soapJob->setUsername(m_userName);
+  soapJob->setToken(m_session->token());
+  soapJob->setHostID(m_hostID);
+  soapJob->setBatchScript("job.uit");
+  soapJob->setWorkingDir(m_workingDir);
+  soapJob->setUsername(m_userName);
 
  return soapJob;
 }
@@ -113,11 +113,11 @@ GetUserHostAssocRequest::GetUserHostAssocRequest(Session *session,
 
 KDSoapJob * GetUserHostAssocRequest::createJob()
 {
- GetUserHostAssocJob *soapJob = new GetUserHostAssocJob(
+  GetUserHostAssocJob *soapJob = new GetUserHostAssocJob(
                                           m_session->uitService(), this);
- soapJob->setToken(m_session->token());
+  soapJob->setToken(m_session->token());
 
- return soapJob;
+  return soapJob;
 }
 
 UserHostAssocList GetUserHostAssocRequest::userHostAssocList()

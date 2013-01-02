@@ -45,39 +45,48 @@ public:
   /**
    * @return The remote path being downloaded.
    */
-  QString remotePath() const {
+  QString remotePath() const
+  {
     return m_remotePath;
   }
+
   /**
    * @param path The remote path to be downloaded.
    */
-  void setRemotePath(const QString& path) {
+  void setRemotePath(const QString& path)
+  {
     m_remotePath = path;
   }
 
   /**
    * @return The local path to download the directory to.
    */
-  QString localPath() const {
+  QString localPath() const
+  {
     return m_localPath;
   }
+
   /**
    * @param path The local path to download the directory to.
    */
-  void setLocalPath(const QString& path) {
+  void setLocalPath(const QString& path)
+  {
     m_localPath = path;
   }
 
   /**
    * @return The download URL.
    */
-  QString url() const {
+  QString url() const
+  {
     return m_url;
   }
+
   /**
    * @param The download URL to use.
    */
-  void setUrl(const QString& u) {
+  void setUrl(const QString& u)
+  {
     m_url = u;
   }
 

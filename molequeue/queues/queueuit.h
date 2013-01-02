@@ -25,7 +25,6 @@
 #include "uit/jobevent.h"
 #include "remote.h"
 
-
 #include <QtXmlPatterns/QXmlQuery>
 #include <QtXmlPatterns/QAbstractXmlReceiver>
 #include <QtCore/QList>

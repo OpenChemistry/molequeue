@@ -48,39 +48,47 @@ public:
   /**
    * @return The current directory.
    */
-  QString currentDirectory() const {
+  QString currentDirectory() const
+  {
     return m_currentDirectory;
   }
+
   /**
    * @param current The current directory.
    */
-  void setCurrentDirectory(const QString& current) {
+  void setCurrentDirectory(const QString& current)
+  {
     m_currentDirectory = current;
   }
 
   /**
    * @return The list of directories.
    */
-  const QList<FileInfo>& directories() const {
+  const QList<FileInfo>& directories() const
+  {
     return m_directories;
   }
+
   /**
    * @param dirs The list of directories.
    */
-  void setDirectories(const QList<FileInfo>& dirs) {
+  void setDirectories(const QList<FileInfo>& dirs)
+  {
     m_directories = dirs;
   }
 
   /**
    * @return The list of files.
    */
-  const QList<FileInfo>& files() const {
+  const QList<FileInfo>& files() const
+  {
     return m_files;
   }
   /**
    * @param files The list of files.
    */
-  void setFiles(const QList<FileInfo>& fs) {
+  void setFiles(const QList<FileInfo>& fs)
+  {
     m_files = fs;
   }
 
@@ -88,14 +96,16 @@ public:
    * @returns true if this DirListingInfo object represents a valid XML
    * document, false otherwise.
    */
-  bool isValid() const {
+  bool isValid() const
+  {
     return m_valid;
   }
 
   /**
    * @return The raw XML used to generate this object.
    */
-  QString xml() {
+  QString xml()
+  {
     return m_xml;
   }
 

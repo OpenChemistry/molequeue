@@ -164,7 +164,7 @@ void DirListingInfo::setContent(const QString &content)
   m_valid = query.evaluateTo(&dir);
 
   if (!m_valid)
-   return;
+    return;
 
   m_currentDirectory = dir.trimmed();
 

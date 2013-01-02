@@ -45,40 +45,48 @@ public:
   /**
    * @return The host ID for the host this operation associated with.
    */
-  qint64 hostId() const {
+  qint64 hostId() const
+  {
     return m_hostID;
   }
+
   /**
    * @param id The host ID for the host this operation is associated with.
    */
-  void setHostId(qint64 id) {
+  void setHostId(qint64 id)
+  {
     m_hostID = id;
   }
 
   /**
    * @return The user name of the user performing this file system operation.
    */
-  QString userName() const {
+  QString userName() const
+  {
     return m_userName;
   }
+
   /**
    * @param user The user name of the user performing this file system
    * operation.
    */
-  void setUserName(const QString& user) {
+  void setUserName(const QString& user)
+  {
     m_userName = user;
   }
 
   /**
    * @return The MoleQueue job this operation is associated with.
    */
-  const Job& job() const {
+  const Job& job() const
+  {
     return m_job;
   }
   /**
    * @param j The MoleQueue job this operation is associated with.
    */
-  void setJob(const Job& j) {
+  void setJob(const Job& j)
+  {
     this->m_job = j;
   }
 
