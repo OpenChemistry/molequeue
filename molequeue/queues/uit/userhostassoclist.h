@@ -46,14 +46,16 @@ public:
   /**
    * @return The list of user host associations.
    */
-  QList<UserHostAssoc> userHostAssocs() const {
+  QList<UserHostAssoc> userHostAssocs() const
+  {
     return m_userHostAssocs;
   }
 
   /**
    * @return The raw XML used to generate this instance.
    */
-  QString xml() const {
+  QString xml() const
+  {
     return m_xml;
   }
 

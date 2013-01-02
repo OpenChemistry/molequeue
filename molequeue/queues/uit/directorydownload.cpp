@@ -131,8 +131,7 @@ void DirectoryDownload::processDirectoryListing()
 void DirectoryDownload::downloadNext()
 {
   // Process all files in a directory first
-  if (!m_files.isEmpty())
-  {
+  if (!m_files.isEmpty()) {
     QString remoteFilePath = m_files.dequeue();
     QString localFilePath = remoteFilePath;
     localFilePath = m_localPath + localFilePath.replace(m_remotePath, "");

@@ -63,7 +63,7 @@ void UserHostAssocList::setContent(const QString &content)
     m_valid = query.evaluateTo(&user);
 
     if (!m_valid)
-        return;
+      return;
 
     userHostAssoc.setAccount(user.trimmed());
 
@@ -73,7 +73,7 @@ void UserHostAssocList::setContent(const QString &content)
     m_valid = query.evaluateTo(&system);
 
     if (!m_valid)
-        return;
+      return;
 
     userHostAssoc.setSystemName(system.trimmed());
 
@@ -84,7 +84,7 @@ void UserHostAssocList::setContent(const QString &content)
     m_valid = query.evaluateTo(&transport);
 
     if (!m_valid)
-        return;
+      return;
 
     userHostAssoc.setTransportMethod(transport.trimmed());
 
@@ -94,7 +94,7 @@ void UserHostAssocList::setContent(const QString &content)
     m_valid = query.evaluateTo(&des);
 
     if (!m_valid)
-        return;
+      return;
 
     userHostAssoc.setDescription(des.trimmed());
 
@@ -104,7 +104,7 @@ void UserHostAssocList::setContent(const QString &content)
     m_valid = query.evaluateTo(&host);
 
     if (!m_valid)
-        return;
+      return;
 
     userHostAssoc.setHostName(host.trimmed());
 

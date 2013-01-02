@@ -33,22 +33,27 @@ public:
   /**
    * @return The date string for this file.
    */
-  QString date() const {
+  QString date() const
+  {
     return m_date;
   }
+
   /**
    * @param d The date string.
    */
-  void setDate(const QString& d) {
+  void setDate(const QString& d)
+  {
     m_date = d;
   }
 
   /**
    * @return The string describing the group the file belongs to.
    */
-  QString group() const {
+  QString group() const
+  {
     return m_group;
   }
+
   /**
    * @param g The string describing the group the file belongs to.
    */
@@ -59,52 +64,64 @@ public:
   /**
    * @return The name of the file.
    */
-  QString name() const {
+  QString name() const
+  {
     return m_name;
   }
+
   /**
    * @param n The name of the file.
    */
-  void setName(const QString& n) {
+  void setName(const QString& n)
+  {
     m_name = n;
   }
 
   /**
    * @return The permissions of the file.
    */
-  QString perms() const {
+  QString perms() const
+  {
     return m_perms;
   }
+
   /**
    * @param p The string describing the permssion for this file.
    */
-  void setPerms(const QString& p) {
+  void setPerms(const QString& p)
+  {
     m_perms = p;
   }
 
   /**
    * @return The size of the file.
    */
-  qint64 size() const {
+  qint64 size() const
+  {
     return m_size;
   }
+
   /**
    * @param s The size of the file.
    */
-  void setSize(qint64 s) {
+  void setSize(qint64 s)
+  {
     m_size = s;
   }
 
   /**
    * @return The user who owns the file.
    */
-  QString user() const {
+  QString user() const
+  {
     return m_user;
   }
+
   /**
    * @param u The user who owns this file.
    */
-  void setUser(const QString& u) {
+  void setUser(const QString& u)
+  {
     m_user = u;
   }
 

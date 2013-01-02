@@ -41,80 +41,96 @@ public:
   /**
    * @return The account string.
    */
-  QString account() const {
+  QString account() const
+  {
     return m_account;
   }
+
   /**
    * @param acc The account string.
    */
-  void setAccount(const QString& acc) {
+  void setAccount(const QString& acc)
+  {
     m_account = acc;
   }
 
   /**
    * @return The description field.
    */
-  QString description() const {
+  QString description() const
+  {
     return m_description;
   }
+
   /**
    * @param des The description field.
    */
-  void setDescription(const QString& des) {
+  void setDescription(const QString& des)
+  {
     m_description = des;
   }
 
   /**
    * @return host ID for the host associated with the user.
    */
-  qint64 hostId() const {
+  qint64 hostId() const
+  {
     return m_hostID;
   }
+
   /**
    * @param id The host ID for the host associated with this user.
    */
-  void setHostId(qint64 id) {
+  void setHostId(qint64 id)
+  {
     m_hostID = id;
   }
 
   /**
    * @return The host name.
    */
-  QString hostName() const {
+  QString hostName() const
+  {
     return m_hostName;
   }
 
   /**
    * @param name The host name.
    */
-  void setHostName(const QString& name) {
+  void setHostName(const QString& name)
+  {
     m_hostName = name;
   }
 
   /**
    * @return The system name.
    */
-  QString systemName() const {
+  QString systemName() const
+  {
     return m_systemName;
   }
 
   /**
    * @param name The system name.
    */
-  void setSystemName(const QString& name) {
+  void setSystemName(const QString& name)
+  {
     m_systemName = name;
   }
 
   /**
    * @return The transport method.
    */
-  QString transportMethod() const {
+  QString transportMethod() const
+  {
     return m_transportMethod;
   }
+
   /**
    * @param method The transport method.
    */
-  void setTransportMethod(const QString& method) {
+  void setTransportMethod(const QString& method)
+  {
     m_transportMethod = method;
   }
 

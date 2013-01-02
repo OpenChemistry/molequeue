@@ -45,25 +45,32 @@ public:
   /**
    * @return The local path to be uploaded.
    */
-  QString localPath() const {
+  QString localPath() const
+  {
     return m_localPath;
   }
+
   /**
    * @param path The local path to be uploaded.
    */
-  void setLocalPath(const QString& path) {
+  void setLocalPath(const QString& path)
+  {
     m_localPath = path;
   }
+
   /**
    * @return The remote file path for the directory to be uploaded to.
    */
-  QString targetPath() const {
+  QString targetPath() const
+  {
     return m_remotePath;
   }
+
   /**
    * @param path The target path on the remote system.
    */
-  void setRemotePath(const QString& path) {
+  void setRemotePath(const QString& path)
+  {
     m_remotePath = path;
   }
 

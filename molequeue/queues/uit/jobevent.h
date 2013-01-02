@@ -41,91 +41,112 @@ public:
   /**
    * @return The account host.
    */
-  QString acctHost() const {
+  QString acctHost() const
+  {
     return m_acctHost;
   }
+
   /**
    * @param host The account host.
    */
-  void setAcctHost(const QString& host) {
+  void setAcctHost(const QString& host)
+  {
     m_acctHost = host;
   }
 
   /**
    * @return The event time for this job event.
    */
-  qint64 eventTime() const {
+  qint64 eventTime() const
+  {
     return m_eventTime;
   }
+
   /**
    * @param time The event time.
    */
-  void setEventTime(qint64 time) {
+  void setEventTime(qint64 time)
+  {
     m_eventTime = time;
   }
 
   /**
    * @return The event type for this job event
    */
-  QString eventType() const {
+  QString eventType() const
+  {
     return m_eventType;
   }
+
   /**
    * @param type The event type.
    */
-  void setEventType(const QString& type) {
+  void setEventType(const QString& type)
+  {
     m_eventType = type;
   }
 
   /**
    * @return The job ID for this job event.
    */
-  qint64 jobId() const {
+  qint64 jobId() const
+  {
     return m_jobID;
   }
+
   /**
    * @param id The job ID.
    */
-  void setJobId(qint64 id) {
+  void setJobId(qint64 id)
+  {
     m_jobID = id;
   }
 
   /**
    * @return The job queue associated with this job event.
    */
-  QString jobQueue() const {
+  QString jobQueue() const
+  {
     return m_jobQueue;
   }
+
   /**
    * @param queue The queue name.
    */
-  void setJobQueue(const QString& queue) {
+  void setJobQueue(const QString& queue)
+  {
     m_jobQueue = queue;
   }
 
   /**
    * @return The job status associated with this job event.
    */
-  QString jobStatus() const {
+  QString jobStatus() const\
+  {
     return m_jobStatus;
   }
+
   /**
    * @param status The job status.
    */
-  void setJobStatus(const QString &status) {
+  void setJobStatus(const QString &status)
+  {
     m_jobStatus = status;
   }
 
   /**
    * @return The job status text associated with this job event.
    */
-  QString jobStatusText() const {
+  QString jobStatusText() const
+  {
     return m_jobStatusText;
   }
+
   /**
    * @param text The job status text.
    */
-  void setJobStatusText(const QString& text) {
+  void setJobStatusText(const QString& text)
+  {
     m_jobStatusText = text;
   }
 

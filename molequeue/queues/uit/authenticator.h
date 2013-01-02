@@ -57,7 +57,7 @@ signals:
   /**
    * Emitted if an user cancels authentication.
    */
-  void authenticationCancelled();
+  void authenticationCanceled();
 
 
 public slots:

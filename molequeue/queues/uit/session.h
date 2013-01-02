@@ -73,7 +73,7 @@ signals:
 private slots:
   void authenticationCompleteInternal(const QString &token);
   void authenticationErrorInternal(const QString &errorMessage);
-  void authenticationCancelledInternal();
+  void authenticationCanceledInternal();
 
 private:
   QString m_kerberosUserName;

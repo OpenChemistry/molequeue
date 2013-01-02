@@ -84,8 +84,7 @@ void DirectoryDelete::deleteNext()
     request->deleteLater();
 
   // Delete all file in a directory first
-  if (!m_files.isEmpty())
-  {
+  if (!m_files.isEmpty()) {
     QString remoteFilePath = m_files.takeFirst();
 
     DeleteFileRequest *deleteRequest = new DeleteFileRequest(m_session, this);

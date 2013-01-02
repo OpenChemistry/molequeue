@@ -38,7 +38,6 @@ private slots:
   void testSslSetup();
   void testJobIdRegex();
   void testHandleQueueUpdate();
-  void testTmp();
 };
 
 void QueueUitTest::testSslSetup()
@@ -108,36 +107,6 @@ void QueueUitTest::testHandleQueueUpdate()
 
   QVERIFY(jobRemoteQueued.jobState() == MoleQueue::RemoteQueued);
   QVERIFY(jobRemoteRunning.jobState() == MoleQueue::RunningRemote);
-}
-
-void QueueUitTest::testTmp()
-{
-   QString src = "/u/mhanewell/mq/345/";
-   QString target = "/u/local/mq/345/";
-   QString remoteFilePath = "/u/mhanewell/mq/345/test.txt";
-   QString localFilePath = remoteFilePath;
-   localFilePath = target + localFilePath.replace(src, "");
-
-   qDebug() << localFilePath;
-
-    // Ensure the directory exists
-//    QString path = QFileInfo("/tmp/testing/test.txt").path();
-//    if (!QDir("/tmp").mkpath(path)) {
-//      qDebug() << "error";
-//
-//      return;
-//    }
-
-
-//   qDebug() << localFilePath;
-//   qDebug() << QFileInfo(localFilePath).path();
-
-   // Ensure the directory exists
-   //QString path = QFileInfo(localFilePath).path();
-   //if (!QDir(m_targetPath).mkpath(path)) {
-   //  Logger::logError(tr("Unable to create directory: %1").arg(path));
-   //}
-
 }
 
 QTEST_MAIN(QueueUitTest)

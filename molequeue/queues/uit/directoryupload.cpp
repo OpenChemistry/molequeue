@@ -184,13 +184,9 @@ void DirectoryUpload::finished(QNetworkReply *reply)
     Logger::logError(response, m_job.moleQueueId());
 
   if (reply->error() == QNetworkReply::NoError)
-  {
-   uploadNext();
-  }
+    uploadNext();
   else
-  {
     emit error(reply->errorString());
-  }
 }
 
 } /* namespace Uit */

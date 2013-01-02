@@ -104,10 +104,10 @@ void  JobEventListXmlReceiver::endElement ()
     m_currentEvent.setJobQueue(m_currentValue);
   }
   else if (m_currentName == "jobStatus") {
-  m_currentEvent.setJobStatus(m_currentValue);
+    m_currentEvent.setJobStatus(m_currentValue);
   }
   else if (m_currentName == "jobStatusText") {
-  m_currentEvent.setJobStatusText(m_currentValue);
+    m_currentEvent.setJobStatusText(m_currentValue);
   }
 
   m_currentName.clear();

@@ -47,13 +47,16 @@ public:
   /**
    * @return The directory to create.
    */
-  QString directory() const {
+  QString directory() const
+  {
     return m_directory;
   }
+
   /**
    * @param dir The directory to create.
    */
-  void setDirectory(const QString& dir) {
+  void setDirectory(const QString& dir)
+  {
     m_directory = dir;
   }
 

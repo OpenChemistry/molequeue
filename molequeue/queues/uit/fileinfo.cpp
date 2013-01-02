@@ -22,7 +22,6 @@ namespace Uit {
 FileInfo::FileInfo()
   : m_size(-1)
 {
-  // TODO Auto-generated constructor stub
 
 }
 

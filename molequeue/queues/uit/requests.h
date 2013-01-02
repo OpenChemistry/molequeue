@@ -58,26 +58,32 @@ public slots:
   /**
    * @return the host ID of the UIT host this request is associated with.
    */
-  qint64 hostId() const {
+  qint64 hostId() const
+  {
     return m_hostID;
   }
+
   /**
    * @param id The host ID.
    */
-  void setHostId(qint64 id) {
+  void setHostId(qint64 id)
+  {
     m_hostID = id;
   }
 
   /**
    * @return The user name this request is associated with.
    */
-  QString userName() const {
+  QString userName() const
+  {
     return m_userName;
   }
+
   /**
    * @param user The user name this request should be associated with.
    */
-  void setUserName(const QString& user) {
+  void setUserName(const QString& user)
+  {
     m_userName = user;
   }
 
@@ -149,38 +155,45 @@ public:
   /**
    * @return The Job being submitted.
    */
-  Job job() const {
+  Job job() const
+  {
     return m_job;
   }
-  void setJob(const Job &j) {
+
+  void setJob(const Job &j)
+  {
     m_job = j;
   }
 
   /**
    * @return The path the batch script to submit.
    */
-  QString batchScript() const {
+  QString batchScript() const
+  {
     return m_batchScript;
   }
 
   /**
    * @param script The path to the batch script to submit.
    */
-  void setBatchScript(const QString& script) {
+  void setBatchScript(const QString& script)
+  {
     m_batchScript = script;
   }
 
   /**
    * @return The working directory to submit the job from.
    */
-  QString workingDir() {
+  QString workingDir()
+  {
     return m_workingDir;
   }
 
   /**
    * @param dir The working directory to submit the job from.
    */
-  void setWorkingDir(const QString& dir) {
+  void setWorkingDir(const QString& dir)
+  {
     m_workingDir = dir;
   }
 
@@ -247,26 +260,32 @@ public:
   /**
    * @return The directory the request is going to create.
    */
-  QString directory() const {
+  QString directory() const
+  {
     return m_directory;
   }
+
   /**
    * @param dir The directory to create.
    */
-  void setDirectory(const QString& dir) {
+  void setDirectory(const QString& dir)
+  {
     m_directory = dir;
   }
 
   /**
    * @return The job associated with this request.
    */
-  Job job() const{
+  Job job() const
+  {
     return m_job;
   }
+
   /**
    * @param j The job associated with this request.
    */
-  void setJob(const Job& j) {
+  void setJob(const Job& j)
+  {
     m_job = j;
   }
 
@@ -295,13 +314,16 @@ public:
   /**
    * @return The job associated with this request.
    */
-  Job job() const {
+  Job job() const
+  {
     return m_job;
   }
+
   /**
    * @param j The job associated with this request.
    */
-  void setJob(const Job& j) {
+  void setJob(const Job& j)
+  {
     m_job = j;
   }
 
@@ -338,26 +360,32 @@ public:
   /**
    * @return The number of days of events to retrieve.
    */
-  qint64 numDays() const {
+  qint64 numDays() const
+  {
     return m_numDays;
   }
+
   /**
    * @param days The number of days of events to retrieve.
    */
-  void setNumDays(qint64 days) {
+  void setNumDays(qint64 days)
+  {
     m_numDays = days;
   }
 
   /**
    * @return The user to filter events by.
    */
-  QString searchUser() const {
+  QString searchUser() const
+  {
     return m_searchUser;
   }
+
   /**
    * @param user The user to filter events by.
    */
-  void setSearchUser(const QString& user) {
+  void setSearchUser(const QString& user)
+  {
     m_searchUser = user;
   }
 
@@ -425,13 +453,16 @@ public:
   /**
    * @return The directory to get the list of.
    */
-  QString directory() const {
+  QString directory() const
+  {
     return m_directory;
   }
+
   /**
    * @param The directory we want a listing for.
    */
-  void setDirectory(const QString& dir) {
+  void setDirectory(const QString& dir)
+  {
     m_directory = dir;
   }
 
@@ -471,13 +502,16 @@ public:
   /**
    * @return The file being deleted.
    */
-  QString file() const {
+  QString file() const
+  {
     return m_file;
   }
+
   /**
    * @param f The file to be deleted.
    */
-  void setFile(const QString& f) {
+  void setFile(const QString& f)
+  {
     m_file = f;
   }
 
@@ -505,13 +539,16 @@ public:
   /**
    * @return The directory being deleted.
    */
-  QString directory() const {
+  QString directory() const
+  {
     return m_directory;
   }
+
   /**
    * @param dir The directory to be deleted.
    */
-  void setDirectory(const QString& dir) {
+  void setDirectory(const QString& dir)
+  {
     m_directory = dir;
   }
 
@@ -539,13 +576,16 @@ public:
   /**
    * @return The job associated with this request.
    */
-  Job job() const {
+  Job job() const
+  {
     return m_job;
   }
+
   /**
    * @param The job associated with this request.
    */
-  void setJob(const Job& j) {
+  void setJob(const Job& j)
+  {
     m_job = j;
   }
 
@@ -573,20 +613,26 @@ public:
   /**
    * @return The job associated with this request.
    */
-  Job job() const {
+  Job job() const
+  {
     return m_job;
   }
+
   /**
    * @param The job associated with this request.
    */
-  void setJob(const Job& j) {
+  void setJob(const Job& j)
+  {
     m_job = j;
   }
 
-  QString filename() const {
+  QString filename() const
+  {
     return m_filename;
   }
-  void setFilename(QString name) {
+
+  void setFilename(QString name)
+  {
     m_filename = name;
   }
 
