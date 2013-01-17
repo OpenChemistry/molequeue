@@ -48,7 +48,7 @@ SshCommandFactory *SshCommandFactory::instance()
 
 SshCommand *SshCommandFactory::newSshCommand(QObject *parentObject)
 {
-#ifdef WIN32
+#ifdef _WIN32
   return newSshCommand(Putty, parentObject);
 #else
   return newSshCommand(OpenSsh, parentObject);
@@ -61,7 +61,7 @@ SshCommand *SshCommandFactory::newSshCommand(SshClient sshClient,
     switch(sshClient) {
     case OpenSsh:
       return new OpenSshCommand(parentObject);
-#ifdef WIN32
+#ifdef _WIN32
     case Putty:
       return new PuttyCommand(parentObject);
 #endif
@@ -73,7 +73,7 @@ SshCommand *SshCommandFactory::newSshCommand(SshClient sshClient,
 
 QString SshCommandFactory::defaultSshCommand()
 {
-#ifdef WIN32
+#ifdef _WIN32
   return QString("plink");
 #else
   return QString("ssh");
@@ -81,7 +81,7 @@ QString SshCommandFactory::defaultSshCommand()
 }
 QString SshCommandFactory::defaultScpCommand()
 {
-#ifdef WIN32
+#ifdef _WIN32
   return QString("pscp");
 #else
   return QString("scp");

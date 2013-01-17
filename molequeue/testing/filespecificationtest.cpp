@@ -266,7 +266,7 @@ void FileSpecificationTest::contents()
 void FileSpecificationTest::filepath()
 {
   FileSpecification pathSpec(QString("/path/to/some/file.ext"));
-#ifdef WIN32
+#ifdef _WIN32
   QCOMPARE(pathSpec.filepath(), QString("C:/path/to/some/file.ext"));
 #else
   QCOMPARE(pathSpec.filepath(), QString("/path/to/some/file.ext"));

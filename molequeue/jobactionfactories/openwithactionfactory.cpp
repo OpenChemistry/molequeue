@@ -189,7 +189,7 @@ bool OpenWithActionFactory::searchPathForExecutable(const QString &exec)
     return false;
 
   static QRegExp pathSplitter = QRegExp(
-#ifdef WIN32
+#ifdef _WIN32
         ";"
 #else // WIN32
         ":"
