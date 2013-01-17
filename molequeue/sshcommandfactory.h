@@ -38,7 +38,7 @@ public:
     /// Ssh clients
     enum SshClient {
         OpenSsh
-#ifdef WIN32
+#ifdef _WIN32
         , Putty
 #endif
     };

@@ -159,7 +159,7 @@ void ServerTest::testForceStart()
 {
 // For now exclude this on Windows named pipes do now throw an error
 // when you create one using the same name ...
-#ifndef WIN32
+#ifndef _WIN32
 
   // Start a duplicate server to take the socket address
   MoleQueue::Server dupServer(this, m_connectionString);

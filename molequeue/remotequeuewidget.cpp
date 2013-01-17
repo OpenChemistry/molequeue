@@ -318,7 +318,7 @@ void RemoteQueueWidget::showFileDialog()
                                       ui->editIdentityFile->text()).toString();
   if (initialDir.isEmpty()) {
     initialDir = QDir::homePath();
-#ifndef WIN32
+#ifndef _WIN32
     initialDir += "/.ssh/";
 #endif
   }

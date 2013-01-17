@@ -44,7 +44,7 @@
 
 #include <QtCore/QDebug>
 
-#ifdef WIN32
+#ifdef _WIN32
 #include <Windows.h> // For _PROCESS_INFORMATION (PID parsing)
 #endif
 
@@ -55,7 +55,7 @@ QueueLocal::QueueLocal(QueueManager *parentManager) :
   m_checkJobLimitTimerId(-1),
   m_cores(-1)
 {
-#ifdef WIN32
+#ifdef _WIN32
   m_launchTemplate = "@echo off\n\n$$programExecution$$\n";
   m_launchScriptName = "MoleQueueLauncher.bat";
 #else // WIN32
@@ -196,7 +196,7 @@ void QueueLocal::processStarted()
     return;
 
   IdType queueId;
-#ifdef WIN32
+#ifdef _WIN32
   queueId = static_cast<IdType>(process->pid()->dwProcessId);
 #else // WIN32
   queueId = static_cast<IdType>(process->pid());
@@ -372,7 +372,7 @@ bool QueueLocal::startJob(IdType moleQueueId)
 
   switch (program->launchSyntax()) {
   case Program::CUSTOM:
-#ifdef WIN32
+#ifdef _WIN32
     command = "cmd.exe /c " + launchScriptName();
 #else // WIN32
     command = "./" + launchScriptName();
