@@ -2,7 +2,7 @@
 
   This source file is part of the MoleQueue project.
 
-  Copyright 2012 Kitware, Inc.
+  Copyright 2012-2013 Kitware, Inc.
 
   This source code is released under the New BSD License, (the "License").
 
@@ -23,15 +23,11 @@
 #include <QtCore/QObject>
 
 #include <QtCore/QHash>
-#include <QtCore/QStringList>
-
-class QLocalSocket;
 
 namespace MoleQueue
 {
 
-class Connection;
-class Message;
+class JsonRpcClient;
 class JobObject;
 
 /*!
@@ -52,14 +48,10 @@ public:
   explicit Client(QObject *parent_ = 0);
   ~Client();
 
-  enum MessageType {
-    Invalid = -1,
-    ListQueues,
-    SubmitJob,
-    CancelJob,
-    LookupJob
-  };
-
+  /**
+   * Query if the client is connected to a server.
+   * @return True if connected, false if not.
+   */
   bool isConnected() const;
 
 public slots:
@@ -108,17 +100,6 @@ public slots:
    */
   void flush();
 
-protected slots:
-  /*!
-   * Read incoming packets of data from the server.
-   */
-  void readPacket(const QByteArray message);
-
-  /*!
-   * Read incoming data, interpret JSON stream.
-   */
-  void readSocket();
-
 signals:
   /*!
    * Emitted when the connection state changes.
@@ -165,24 +146,27 @@ signals:
    */
   void errorReceived(int localId, unsigned int moleQueueId, QString error);
 
-protected:
-  unsigned int m_packetCounter;
-
-  QLocalSocket *m_socket;
-
-  QHash<unsigned int, MessageType> m_requests;
-
-  /*! Create a standard empty JSON-RPC 2.0 packet, the method etc is empty. */
-  void emptyRequest(QJsonObject &request);
-
-  /*! Send the Json request over the transport. */
-  void sendRequest(const QJsonObject &request);
-
+protected slots:
   /*! Parse the response object and emit the appropriate signal(s). */
   void processResult(const QJsonObject &response);
 
   /*! Parse a notification object and emit the appropriate signal(s). */
   void processNotification(const QJsonObject &notification);
+
+  /*! Parse an error object and emit the appropriate signal(s). */
+  void processError(const QJsonObject &notification);
+
+protected:
+  enum MessageType {
+    Invalid = -1,
+    ListQueues,
+    SubmitJob,
+    CancelJob,
+    LookupJob
+  };
+
+  JsonRpcClient *m_jsonRpcClient;
+  QHash<unsigned int, MessageType> m_requests;
 };
 
 } // End namespace MoleQueue
