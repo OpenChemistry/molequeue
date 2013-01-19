@@ -3,11 +3,13 @@ find_package(Qt4 4.8 COMPONENTS QtCore QtNetwork REQUIRED)
 set(sources
   client.cpp
   job.cpp
+  jsonrpcclient.cpp
   )
 
 set(headers
   client.h
   job.h
+  jsonrpcclient.h
   )
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
