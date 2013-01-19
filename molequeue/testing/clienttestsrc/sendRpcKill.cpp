@@ -14,20 +14,20 @@
 
 ******************************************************************************/
 
-#include <client.h>
+#include <jsonrpcclient.h>
 
 #include <QtCore/QCoreApplication>
+#include <QtCore/QStringList>
 
-class Killer : public MoleQueue::Client
+class Killer : public MoleQueue::JsonRpcClient
 {
   Q_OBJECT
 public:
-  Killer() : MoleQueue::Client() {}
+  Killer(QObject *p = 0) : MoleQueue::JsonRpcClient(p) {}
   ~Killer() {}
   void sendRpcKill()
   {
-    QJsonObject request;
-    emptyRequest(request);
+    QJsonObject request = emptyRequest();
     request["method"] = QLatin1String("rpcKill");
     sendRequest(request);
   }
@@ -46,7 +46,7 @@ int main(int argc, char *argv[])
       socketName = *(++it);
   }
 
-  Killer killer;
+  Killer killer(&app);
   killer.connectToServer(socketName);
   if (!killer.isConnected())
     return 1;
