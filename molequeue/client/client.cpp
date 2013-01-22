@@ -2,7 +2,7 @@
 
   This source file is part of the MoleQueue project.
 
-  Copyright 2012 Kitware, Inc.
+  Copyright 2012-2013 Kitware, Inc.
 
   This source code is released under the New BSD License, (the "License").
 
@@ -16,19 +16,16 @@
 
 #include "client.h"
 
+#include "jsonrpcclient.h"
 #include "job.h"
 
 #include <qjsondocument.h>
-#include <QtCore/QDebug>
-#include <QtCore/QDataStream>
-#include <QtNetwork/QLocalSocket>
 
 namespace MoleQueue
 {
 
-Client::Client(QObject *parent_) : QObject(parent_), m_socket(NULL)
+Client::Client(QObject *parent_) : QObject(parent_), m_jsonRpcClient(NULL)
 {
-  m_packetCounter = 0;
 }
 
 Client::~Client()
@@ -37,50 +34,39 @@ Client::~Client()
 
 bool Client::isConnected() const
 {
-  if (!m_socket)
+  if (!m_jsonRpcClient)
     return false;
   else
-    return m_socket->isOpen();
+    return m_jsonRpcClient->isConnected();
 }
 
 bool Client::connectToServer(const QString &serverName)
 {
-  if (m_socket && m_socket->isOpen()) {
-    if (m_socket->serverName() == serverName) {
-      return false;
-    }
-    else {
-      m_socket->close();
-      delete m_socket;
-      m_socket = NULL;
-    }
+  if (!m_jsonRpcClient) {
+    m_jsonRpcClient = new JsonRpcClient(this);
+    connect(m_jsonRpcClient, SIGNAL(resultReceived(QJsonObject)),
+            SLOT(processResult(QJsonObject)));
+    connect(m_jsonRpcClient, SIGNAL(notificationReceived(QJsonObject)),
+            SLOT(processNotification(QJsonObject)));
+    connect(m_jsonRpcClient, SIGNAL(errorReceived(QJsonObject)),
+            SLOT(processError(QJsonObject)));
+    connect(m_jsonRpcClient, SIGNAL(connectionStateChanged()),
+            SIGNAL(connectionStateChanged()));
   }
 
-  // New connection.
-  if (m_socket == NULL) {
-    m_socket = new QLocalSocket(this);
-    connect(m_socket, SIGNAL(readyRead()), this, SLOT(readSocket()));
-  }
-
-  if (serverName.isEmpty()) {
-    return false;
-  }
-  else {
-    m_socket->connectToServer(serverName);
-    return isConnected();
-  }
-
-  return false;
+  return m_jsonRpcClient->connectToServer(serverName);
 }
 
 int Client::requestQueueList()
 {
-  QJsonObject packet;
-  emptyRequest(packet);
+  if (!m_jsonRpcClient)
+    return -1;
 
+  QJsonObject packet = m_jsonRpcClient->emptyRequest();
   packet["method"] = QLatin1String("listQueues");
+  if (!m_jsonRpcClient->sendRequest(packet))
+    return -1;
 
-  sendRequest(packet);
   int localId = static_cast<int>(packet["id"].toDouble());
   m_requests[localId] = ListQueues;
   return localId;
@@ -88,13 +74,15 @@ int Client::requestQueueList()
 
 int Client::submitJob(const JobObject &job)
 {
-  QJsonObject packet;
-  emptyRequest(packet);
+  if (!m_jsonRpcClient)
+    return -1;
 
+  QJsonObject packet = m_jsonRpcClient->emptyRequest();
   packet["method"] = QLatin1String("submitJob");
   packet["params"] = job.json();
+  if (!m_jsonRpcClient->sendRequest(packet))
+    return -1;
 
-  sendRequest(packet);
   int localId = static_cast<int>(packet["id"].toDouble());
   m_requests[localId] = SubmitJob;
   return localId;
@@ -102,14 +90,17 @@ int Client::submitJob(const JobObject &job)
 
 int Client::lookupJob(unsigned int moleQueueId)
 {
-  QJsonObject packet;
-  emptyRequest(packet);
+  if (!m_jsonRpcClient)
+    return -1;
 
+  QJsonObject packet = m_jsonRpcClient->emptyRequest();
   packet["method"] = QLatin1String("lookupJob");
   QJsonObject params;
   params["moleQueueId"] = static_cast<int>(moleQueueId);
   packet["params"] = params;
-  sendRequest(packet);
+  if (!m_jsonRpcClient->sendRequest(packet))
+    return -1;
+
   int localId = static_cast<int>(packet["id"].toDouble());
   m_requests[localId] = LookupJob;
   return localId;
@@ -117,14 +108,17 @@ int Client::lookupJob(unsigned int moleQueueId)
 
 int Client::cancelJob(unsigned int moleQueueId)
 {
-  QJsonObject packet;
-  emptyRequest(packet);
+  if (!m_jsonRpcClient)
+    return -1;
 
+  QJsonObject packet = m_jsonRpcClient->emptyRequest();
   packet["method"] = QLatin1String("cancelJob");
   QJsonObject params;
   params["moleQueueId"] = static_cast<int>(moleQueueId);
   packet["params"] = params;
-  sendRequest(packet);
+  if (!m_jsonRpcClient->sendRequest(packet))
+    return -1;
+
   int localId = static_cast<int>(packet["id"].toDouble());
   m_requests[localId] = CancelJob;
   return localId;
@@ -132,74 +126,8 @@ int Client::cancelJob(unsigned int moleQueueId)
 
 void Client::flush()
 {
-  if (m_socket)
-    m_socket->flush();
-}
-
-void Client::readPacket(const QByteArray message)
-{
-  // Read packet into a Json value
-  QJsonParseError error;
-  QJsonDocument reader = QJsonDocument::fromJson(message, &error);
-
-  if (error.error != QJsonParseError::NoError) {
-    qDebug() << "Unparseable message received\n:" << error.errorString()
-             << "\nContent: " << message;
-    return;
-  }
-  else if (!reader.isObject()) {
-    // We need a valid object, something bad happened.
-    return;
-  }
-  else {
-    QJsonObject root = reader.object();
-    if (root["method"] != QJsonValue::Null) {
-      if (root["id"] != QJsonValue::Null)
-        qDebug() << "Received a request packet - that shouldn't happen here.";
-      else
-        processNotification(root);
-    }
-    if (root["result"] != QJsonValue::Null) {
-      // This is a result packet, and should emit a signal.
-      processResult(root);
-    }
-    else if (root["error"] != QJsonValue::Null) {
-      // FIXME: Add error signal here.
-      qDebug() << "Error packet:\n" << message;
-    }
-  }
-
-}
-
-void Client::readSocket()
-{
-  QDataStream stream(m_socket);
-
-  while (m_socket->bytesAvailable()) {
-    QByteArray json;
-    stream >> json;
-    readPacket(json);
-  }
-}
-
-void Client::emptyRequest(QJsonObject &request)
-{
-  request["jsonrpc"] = QLatin1String("2.0");
-  request["id"] = static_cast<int>(m_packetCounter++);
-}
-
-void Client::sendRequest(const QJsonObject &request)
-{
-  if (!m_socket)
-    return;
-
-  QJsonDocument document(request);
-  QDataStream stream(m_socket);
-  stream.setVersion(QDataStream::Qt_4_8);
-  stream << document.toJson();
-
-  //m_connection->send(PacketType(jsonString.c_str()));
-  qDebug() << "sending request:" << document.toJson();
+  if (m_jsonRpcClient)
+    m_jsonRpcClient->flush();
 }
 
 void Client::processResult(const QJsonObject &response)
@@ -227,7 +155,7 @@ void Client::processResult(const QJsonObject &response)
     }
   }
   else {
-    qDebug() << "We couldn't find a valid ID for the response :-(";
+    emit errorReceived("We couldn't find a valid ID for the response.");
   }
 }
 
@@ -239,6 +167,13 @@ void Client::processNotification(const QJsonObject &notification)
           static_cast<unsigned int>(params["moleQueueId"].toDouble()),
           params["oldState"].toString(), params["newState"].toString());
   }
+}
+
+void Client::processError(const QJsonObject &error)
+{
+  emit errorReceived(static_cast<int>(error["id"].toDouble()),
+                     static_cast<unsigned int>(0),
+                     error["error"].toObject()["message"].toString());
 }
 
 } // End namespace MoleQueue
