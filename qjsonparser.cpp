@@ -830,8 +830,8 @@ static inline bool scanUtf8Char(const char *&json, const char *end, uint *result
         uc = (uc << 6) | (ch & 0x3f);
     }
 
-    if (uc < min_uc || QChar::isNonCharacter(uc) ||
-        QChar::isSurrogate(uc) || uc > QChar::LastValidCodePoint) {
+    if (uc < min_uc) /* || isUnicodeNonCharacter(uc) ||
+        QChar::isSurrogate(uc) || uc > QChar::LastValidCodePoint) */ {
         return false;
     }
 

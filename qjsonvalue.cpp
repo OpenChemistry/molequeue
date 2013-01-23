@@ -112,9 +112,9 @@ QJsonValue::QJsonValue(QJsonPrivate::Data *data, QJsonPrivate::Base *base, const
         dbl = v.toDouble(base);
         break;
     case String: {
-        QString s = v.toString(base);
-        stringData = s.data_ptr();
-        stringData->ref.ref();
+        stringValue = v.toString(base);
+        /*stringData = s.data_ptr();
+        stringData->ref.ref();*/
         break;
     }
     case Array:
@@ -161,8 +161,9 @@ QJsonValue::QJsonValue(int n)
 QJsonValue::QJsonValue(const QString &s)
     : d(0), t(String)
 {
-    stringData = *(QStringData **)(&s);
-    stringData->ref.ref();
+//    stringData = *(QStringData **)(&s);
+//    stringData->ref.ref();
+    stringValue = s;
 }
 
 /*!
@@ -172,9 +173,9 @@ QJsonValue::QJsonValue(QLatin1String s)
     : d(0), t(String)
 {
     // ### FIXME: Avoid creating the temp QString below
-    QString str(s);
-    stringData = *(QStringData **)(&str);
-    stringData->ref.ref();
+    stringValue = s;
+    /*stringData = *(QStringData **)(&str);
+    stringData->ref.ref();*/
 }
 
 /*!
@@ -205,8 +206,8 @@ QJsonValue::QJsonValue(const QJsonObject &o)
  */
 QJsonValue::~QJsonValue()
 {
-    if (t == String && stringData && !stringData->ref.deref())
-        free(stringData);
+    /*if (t == String && stringData && !stringData->ref.deref())
+        free(stringData);*/
 
     if (d && !d->ref.deref())
         delete d;
@@ -222,9 +223,10 @@ QJsonValue::QJsonValue(const QJsonValue &other)
     ui = other.ui;
     if (d)
         d->ref.ref();
+    stringValue = other.stringValue;
 
-    if (t == String && stringData)
-        stringData->ref.ref();
+    /*if (t == String && stringData)
+        stringData->ref.ref();*/
 }
 
 /*!
@@ -232,11 +234,12 @@ QJsonValue::QJsonValue(const QJsonValue &other)
  */
 QJsonValue &QJsonValue::operator =(const QJsonValue &other)
 {
-    if (t == String && stringData && !stringData->ref.deref())
-        free(stringData);
+    /*if (t == String && stringData && !stringData->ref.deref())
+        free(stringData);*/
 
     t = other.t;
     dbl = other.dbl;
+    stringValue = other.stringValue;
 
     if (d != other.d) {
 
@@ -248,8 +251,8 @@ QJsonValue &QJsonValue::operator =(const QJsonValue &other)
 
     }
 
-    if (t == String && stringData)
-        stringData->ref.ref();
+    /*if (t == String && stringData)
+        stringData->ref.ref();*/
 
     return *this;
 }
@@ -453,9 +456,9 @@ QString QJsonValue::toString(const QString &defaultValue) const
 {
     if (t != String)
         return defaultValue;
-    stringData->ref.ref(); // the constructor below doesn't add a ref.
-    QStringDataPtr holder = { stringData };
-    return QString(holder);
+    /*stringData->ref.ref(); // the constructor below doesn't add a ref.
+    QStringDataPtr holder = { stringData };*/
+    return stringValue;
 }
 
 /*!
