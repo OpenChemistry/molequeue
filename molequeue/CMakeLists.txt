@@ -183,10 +183,7 @@ if(MoleQueue_BUILD_APPLICATION)
   )
   set_target_properties(molequeue_static PROPERTIES AUTOMOC TRUE)
 
-  target_link_libraries(molequeue_static
-    mqconnection
-    mqconnectionlistener
-  )
+  target_link_libraries(molequeue_static mqconnection)
 
   if(MoleQueue_USE_EZHPC_UIT)
     target_link_libraries(molequeue_static kdsoap)

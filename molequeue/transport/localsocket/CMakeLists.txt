@@ -24,9 +24,7 @@ list(APPEND localsocket_targets mqlocalsocketconnectionlistener)
 list(APPEND localsocket_headers localsocketconnectionlistener.h)
 set_target_properties(mqlocalsocketconnectionlistener PROPERTIES AUTOMOC TRUE)
 target_link_libraries(mqlocalsocketconnectionlistener
-  mqconnectionlistener
   mqlocalsocketconnection
-  ${QT_LIBRARIES}
 )
 
 install(FILES ${localsocket_headers}
