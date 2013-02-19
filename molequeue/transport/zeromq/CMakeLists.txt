@@ -22,7 +22,6 @@ list(APPEND zeromq_targets mqzeromqconnectionlistener)
 list(APPEND zeromq_headers zeromqconnectionlistener.h)
 set_target_properties(mqzeromqconnectionlistener PROPERTIES AUTOMOC TRUE)
 target_link_libraries(mqzeromqconnectionlistener
-  mqconnectionlistener
   mqzeromqconnection)
 
 install(FILES ${zeromq_headers}
