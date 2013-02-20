@@ -84,6 +84,11 @@ public:
    */
   QString connectionString() const;
 
+  /**
+   * @return the full address the QLocalServer is listening on.
+   */
+  QString fullConnectionString() const;
+
   /// Used for unit testing
   friend class ::ServerTest;
 

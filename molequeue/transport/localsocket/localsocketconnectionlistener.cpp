@@ -70,6 +70,11 @@ QString LocalSocketConnectionListener::connectionString() const
   return m_connectionString;
 }
 
+QString LocalSocketConnectionListener::fullConnectionString() const
+{
+  return m_server->fullServerName();
+}
+
 void LocalSocketConnectionListener::newConnectionAvailable()
 {
   if (!m_server->hasPendingConnections())
