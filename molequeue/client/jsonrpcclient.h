@@ -27,11 +27,11 @@ class QLocalSocket;
 namespace MoleQueue
 {
 
-/*!
- * \class JsonRpcClient jsonrpcclient.h <molequeue/client/jsonrpcclient.h>
- * \brief The JsonRpcClient class is used by clients to submit calls to an RPC
+/**
+ * @class JsonRpcClient jsonrpcclient.h <molequeue/client/jsonrpcclient.h>
+ * @brief The JsonRpcClient class is used by clients to submit calls to an RPC
  * server using JSON-RPC 2.0.
- * \author Marcus D. Hanwell
+ * @author Marcus D. Hanwell
  *
  * Provides a simple Qt C++ API to make JSON-RPC 2.0 calls to an RPC server. To
  * create a client connection and call a method the following should be done:
@@ -73,7 +73,7 @@ public:
 public slots:
   /**
    * Connect to the server.
-   * \param serverName Name of the socket to connect to.
+   * @param serverName Name of the socket to connect to.
    */
   bool connectToServer(const QString &serverName);
 
