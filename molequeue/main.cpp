@@ -32,8 +32,8 @@ bool setWorkDir(const QString &workDir);
 
 int main(int argc, char *argv[])
 {
-  QCoreApplication::setOrganizationName("Kitware");
-  QCoreApplication::setOrganizationDomain("kitware.com");
+  QCoreApplication::setOrganizationName("OpenChemistry");
+  QCoreApplication::setOrganizationDomain("openchemistry.org");
   QCoreApplication::setApplicationName("MoleQueue");
   QCoreApplication::setApplicationVersion("0.2.0");
   
