@@ -230,7 +230,7 @@ void ServerTest::testClientDisconnected()
   // Wait 5 seconds for a timeout.
   QTimer timer;
   timer.setSingleShot(true);
-  timer.start(5000);
+  timer.start(30000);
   while (timer.isActive() && m_server->m_connections.size() == origConns)
     qApp->processEvents(QEventLoop::AllEvents, 1000);
 
