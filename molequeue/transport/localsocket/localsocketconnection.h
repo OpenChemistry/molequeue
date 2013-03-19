@@ -94,6 +94,8 @@ public:
 
   bool send(const PacketType &packet, const EndpointIdType &endpoint);
 
+  void flush();
+
 private slots:
 
   /**

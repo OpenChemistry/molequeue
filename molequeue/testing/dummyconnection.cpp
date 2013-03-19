@@ -62,3 +62,7 @@ bool DummyConnection::send(const MoleQueue::PacketType &packet,
   m_messageQueue.append(message);
   return true;
 }
+
+void DummyConnection::flush()
+{
+}

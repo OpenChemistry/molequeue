@@ -168,8 +168,8 @@ bool ZeroMqConnection::routerReceive()
   return false;
 }
 
-bool MoleQueue::ZeroMqConnection::send(const MoleQueue::PacketType &packet,
-                                       const MoleQueue::EndpointIdType &endpoint)
+bool ZeroMqConnection::send(const MoleQueue::PacketType &packet,
+                            const MoleQueue::EndpointIdType &endpoint)
 {
   zmq::message_t zmqMessage(packet.size());
   memcpy(zmqMessage.data(), packet.constData(), packet.size());
@@ -209,6 +209,11 @@ bool MoleQueue::ZeroMqConnection::send(const MoleQueue::PacketType &packet,
     return false;
   }
   return true;
+}
+
+void ZeroMqConnection::flush()
+{
+  // no op -- no flush command in zmq (http://www.zeromq.org/area:faq)
 }
 
 } /* namespace MoleQueue */
