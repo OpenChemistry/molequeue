@@ -76,6 +76,11 @@ public:
   virtual bool send(const PacketType &packet,
                     const EndpointIdType &endpoint) = 0;
 
+  /**
+   * Flush all pending messages to the other endpoint.
+   */
+  virtual void flush() = 0;
+
 signals:
   /**
    * Emitted when a new message has been received on this connection.

@@ -47,6 +47,7 @@ public:
   QString connectionString() const;
   bool send(const MoleQueue::PacketType &packet,
             const MoleQueue::EndpointIdType &endpoint);
+  void flush();
 
   QList<MoleQueue::Message> m_messageQueue;
 

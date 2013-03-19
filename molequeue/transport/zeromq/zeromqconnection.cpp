@@ -211,4 +211,9 @@ bool ZeroMqConnection::send(const MoleQueue::PacketType &packet,
   return true;
 }
 
+void ZeroMqConnection::flush()
+{
+  // no op -- no flush command in zmq (http://www.zeromq.org/area:faq)
+}
+
 } /* namespace MoleQueue */

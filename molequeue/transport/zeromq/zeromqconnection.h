@@ -66,6 +66,8 @@ public:
 
   bool send(const PacketType &packet, const EndpointIdType &endpoint);
 
+  void flush();
+
   static const QString zeroMqPrefix;
 
 private slots:

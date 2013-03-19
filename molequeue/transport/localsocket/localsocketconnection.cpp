@@ -151,8 +151,12 @@ bool LocalSocketConnection::send(const PacketType &packet,
   Q_UNUSED(endpoint);
   (*m_dataStream) << packet;
 
-  m_socket->flush();
   return true;
+}
+
+void LocalSocketConnection::flush()
+{
+  m_socket->flush();
 }
 
 void LocalSocketConnection::socketDestroyed()
