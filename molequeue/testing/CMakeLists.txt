@@ -52,6 +52,7 @@ set(MyTests
   queueremote
   server
   sge
+  slurm
   sshcommand
   )
 
