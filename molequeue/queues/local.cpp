@@ -279,7 +279,7 @@ bool QueueLocal::addJobToQueue(const Job &job)
 {
   m_pendingJobQueue.append(job.moleQueueId());
 
-  Job(job).setJobState(MoleQueue::LocalQueued);
+  Job(job).setJobState(MoleQueue::QueuedLocal);
 
   return true;
 }

@@ -122,7 +122,7 @@ void QueueSlurmTest::testParseQueueLine_data()
       << "231     debug job2 dave CF   0:00     8 (Resources)"
       << true
       << static_cast<MoleQueue::IdType>(231)
-      << MoleQueue::RemoteQueued;
+      << MoleQueue::QueuedRemote;
 
   QTest::newRow("Status: Completing")
       << "231     debug job2 dave CG   0:00     8 (Resources)"
@@ -146,7 +146,7 @@ void QueueSlurmTest::testParseQueueLine_data()
       << "231     debug job2 dave PD   0:00     8 (Resources)"
       << true
       << static_cast<MoleQueue::IdType>(231)
-      << MoleQueue::RemoteQueued;
+      << MoleQueue::QueuedRemote;
 
   QTest::newRow("Status: Running")
       << "231     debug job2 dave R   0:00     8 (Resources)"

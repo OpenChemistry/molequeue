@@ -179,11 +179,11 @@ void MainWindow::notifyJobStateChange(const Job &job,
   if (job.popupOnStateChange()) {
     m_trayIcon->showMessage(tr("Job '%1' is %2")
                             .arg(job.description())
-                            .arg(jobStateToString(job.jobState())),
+                            .arg(jobStateToGuiString(job.jobState())),
                             tr("MoleQueue Job #%1 has changed from %2 to %3.")
                             .arg(idTypeToString(job.moleQueueId()))
-                            .arg(jobStateToString(oldState))
-                            .arg(jobStateToString(newState)),
+                            .arg(jobStateToGuiString(oldState))
+                            .arg(jobStateToGuiString(newState)),
                             QSystemTrayIcon::Information,
                             5000);
   }

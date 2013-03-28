@@ -171,8 +171,8 @@ bool JobTableProxyModel::filterAcceptsRow(int sourceRow,
     if (!m_showStatusNew)
       return false;
     break;
-  case LocalQueued:
-  case RemoteQueued:
+  case QueuedLocal:
+  case QueuedRemote:
     if (!m_showStatusQueued)
       return false;
     break;

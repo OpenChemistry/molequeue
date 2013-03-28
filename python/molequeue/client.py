@@ -24,11 +24,11 @@ class JobState:
   # Job has been accepted by the server and is being prepared (Writing input files, etc).
   ACCEPTED = 1
   # Job is being queued locally, either waiting for local execution or remote submission.
-  LOCAL_QUEUED = 2
+  QUEUED_LOCAL = 2
   # Job has been submitted to a remote queuing system.
   SUBMITTED = 3
   # Job is pending execution on a remote queuing system.
-  REMOTE_QUEUED = 4
+  QUEUED_REMOTE = 4
   # Job is running locally.
   RUNNING_LOCAL = 5
   # Job is running remotely.

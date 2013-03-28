@@ -862,7 +862,7 @@ JobState QueueUit::jobEventToJobState(Uit::JobEvent jobEvent)
     case 't':
     case 'w':
     case 's':
-      jobState = RemoteQueued;
+      jobState = QueuedRemote;
       break;
     default:
       Logger::logWarning(tr("Unrecognized queue state '%1'.").arg(state));

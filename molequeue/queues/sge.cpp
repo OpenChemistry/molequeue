@@ -115,7 +115,7 @@ bool QueueSge::parseQueueLine(const QString &queueListOutput,
              stateStr == "s" ||
              stateStr == "h" ||
              stateStr == "t") {
-      *state = MoleQueue::RemoteQueued;
+      *state = MoleQueue::QueuedRemote;
       return true;
     }
     else {

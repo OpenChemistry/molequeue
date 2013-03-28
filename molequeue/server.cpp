@@ -462,9 +462,9 @@ void Server::handleCancelJobRequest(const Message &message)
   bool stateValid = false;
   switch (state) {
   case MoleQueue::Accepted:
-  case MoleQueue::LocalQueued:
+  case MoleQueue::QueuedLocal:
   case MoleQueue::Submitted:
-  case MoleQueue::RemoteQueued:
+  case MoleQueue::QueuedRemote:
   case MoleQueue::RunningLocal:
   case MoleQueue::RunningRemote:
     stateValid = true;
@@ -485,7 +485,7 @@ void Server::handleCancelJobRequest(const Message &message)
     Logger::logDebugMessage(
           tr("Received cancelJob request for non-running job (%1, %2):\n%3")
           .arg(idTypeToString(moleQueueId))
-          .arg(jobStateToString(state))
+          .arg(jobStateToGuiString(state))
           .arg(QString(message.toJson())),
           moleQueueId);
     return;
