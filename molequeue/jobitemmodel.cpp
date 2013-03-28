@@ -117,7 +117,7 @@ QVariant JobItemModel::data(const QModelIndex &modelIndex, int role) const
       case PROGRAM_NAME:
         return QVariant(job.program());
       case JOB_STATE:
-        return MoleQueue::jobStateToString(job.jobState());
+        return MoleQueue::jobStateToGuiString(job.jobState());
       default:
         return QVariant();
       }

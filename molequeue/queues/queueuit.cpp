@@ -775,7 +775,7 @@ void QueueUit::endKillJob()
   request->deleteLater();
 
   Job job = request->job();
-  job.setJobState(MoleQueue::Killed);
+  job.setJobState(MoleQueue::Canceled);
 }
 
 void QueueUit::getUserHostAssoc()
@@ -862,7 +862,7 @@ JobState QueueUit::jobEventToJobState(Uit::JobEvent jobEvent)
     case 't':
     case 'w':
     case 's':
-      jobState = RemoteQueued;
+      jobState = QueuedRemote;
       break;
     default:
       Logger::logWarning(tr("Unrecognized queue state '%1'.").arg(state));

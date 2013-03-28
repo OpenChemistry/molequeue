@@ -160,7 +160,7 @@ void QueueRemote::killJob(Job job)
   int pendingIndex = m_pendingSubmission.indexOf(job.moleQueueId());
   if (pendingIndex >= 0) {
     m_pendingSubmission.removeAt(pendingIndex);
-    job.setJobState(MoleQueue::Killed);
+    job.setJobState(MoleQueue::Canceled);
     return;
   }
 
@@ -175,7 +175,7 @@ void QueueRemote::killJob(Job job)
                         "to queue '%2', queue id '%3'.").arg(m_name)
                      .arg(job.queue()).arg(idTypeToString(job.queueId())),
                      job.moleQueueId());
-  job.setJobState(MoleQueue::Killed);
+  job.setJobState(MoleQueue::Canceled);
 }
 
 void QueueRemote::submitPendingJobs()

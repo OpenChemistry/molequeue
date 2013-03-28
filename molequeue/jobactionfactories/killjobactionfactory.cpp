@@ -46,9 +46,9 @@ bool KillJobActionFactory::isValidForJob(const Job &job) const
 {
   switch (job.jobState()) {
   case MoleQueue::Accepted:
-  case MoleQueue::LocalQueued:
+  case MoleQueue::QueuedLocal:
   case MoleQueue::Submitted:
-  case MoleQueue::RemoteQueued:
+  case MoleQueue::QueuedRemote:
   case MoleQueue::RunningLocal:
   case MoleQueue::RunningRemote:
   case MoleQueue::Error:
@@ -56,7 +56,7 @@ bool KillJobActionFactory::isValidForJob(const Job &job) const
   case MoleQueue::Unknown:
   case MoleQueue::None:
   case MoleQueue::Finished:
-  case MoleQueue::Killed:
+  case MoleQueue::Canceled:
   default:
     break;
   }

@@ -119,32 +119,32 @@ void QueueSgeTest::testParseQueueLine()
   line = "234      0       hydra        craig     qw       07/13/96            durin.q    MASTER";
   QVERIFY(m_queue.parseQueueLine(line, &jobId, &state));
   QCOMPARE(jobId, static_cast<MoleQueue::IdType>(234));
-  QCOMPARE(state, MoleQueue::RemoteQueued);
+  QCOMPARE(state, MoleQueue::QueuedRemote);
 
   line = "235      0       hydra        craig     q       07/13/96            durin.q    MASTER";
   QVERIFY(m_queue.parseQueueLine(line, &jobId, &state));
   QCOMPARE(jobId, static_cast<MoleQueue::IdType>(235));
-  QCOMPARE(state, MoleQueue::RemoteQueued);
+  QCOMPARE(state, MoleQueue::QueuedRemote);
 
   line = "236      0       hydra        craig     w       07/13/96            durin.q    MASTER";
   QVERIFY(m_queue.parseQueueLine(line, &jobId, &state));
   QCOMPARE(jobId, static_cast<MoleQueue::IdType>(236));
-  QCOMPARE(state, MoleQueue::RemoteQueued);
+  QCOMPARE(state, MoleQueue::QueuedRemote);
 
   line = "237      0       hydra        craig     s       07/13/96            durin.q    MASTER";
   QVERIFY(m_queue.parseQueueLine(line, &jobId, &state));
   QCOMPARE(jobId, static_cast<MoleQueue::IdType>(237));
-  QCOMPARE(state, MoleQueue::RemoteQueued);
+  QCOMPARE(state, MoleQueue::QueuedRemote);
 
   line = "238      0       hydra        craig     h       07/13/96            durin.q    MASTER";
   QVERIFY(m_queue.parseQueueLine(line, &jobId, &state));
   QCOMPARE(jobId, static_cast<MoleQueue::IdType>(238));
-  QCOMPARE(state, MoleQueue::RemoteQueued);
+  QCOMPARE(state, MoleQueue::QueuedRemote);
 
   line = "239      0       hydra        craig     t       07/13/96            durin.q    MASTER";
   QVERIFY(m_queue.parseQueueLine(line, &jobId, &state));
   QCOMPARE(jobId, static_cast<MoleQueue::IdType>(239));
-  QCOMPARE(state, MoleQueue::RemoteQueued);
+  QCOMPARE(state, MoleQueue::QueuedRemote);
 
 }
 

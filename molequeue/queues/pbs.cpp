@@ -102,7 +102,7 @@ bool QueuePbs::parseQueueLine(const QString &queueListOutput,
              stateStr == "t" ||
              stateStr == "w" ||
              stateStr == "s") {
-      *state = MoleQueue::RemoteQueued;
+      *state = MoleQueue::QueuedRemote;
       return true;
     }
     else {

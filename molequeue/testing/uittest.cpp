@@ -81,13 +81,13 @@ void QueueUitTest::testHandleQueueUpdate()
   DummyServer server;
 
   MoleQueue::JobManager *jobManager = server.jobManager();
-  MoleQueue::Job jobRemoteQueued = jobManager->newJob();
-  jobRemoteQueued.setMoleQueueId(100535);
-  jobRemoteQueued.setQueueId(100535);
+  MoleQueue::Job jobQueuedRemote = jobManager->newJob();
+  jobQueuedRemote.setMoleQueueId(100535);
+  jobQueuedRemote.setQueueId(100535);
 
-  MoleQueue::Job jobRemoteRunning = jobManager->newJob();
-  jobRemoteRunning.setMoleQueueId(100536);
-  jobRemoteRunning.setQueueId(100536);
+  MoleQueue::Job jobRunningRemote = jobManager->newJob();
+  jobRunningRemote.setMoleQueueId(100536);
+  jobRunningRemote.setQueueId(100536);
 
 
   MoleQueue::QueueUit queue(server.queueManager());
@@ -101,12 +101,12 @@ void QueueUitTest::testHandleQueueUpdate()
   MoleQueue::Uit::JobEventList list
     = MoleQueue::Uit::JobEventList::fromXml(m_jobEventXml);
 
-  QVERIFY(jobRemoteQueued.jobState() != MoleQueue::RemoteQueued);
-  QVERIFY(jobRemoteRunning.jobState() != MoleQueue::RunningRemote);
+  QVERIFY(jobQueuedRemote.jobState() != MoleQueue::QueuedRemote);
+  QVERIFY(jobRunningRemote.jobState() != MoleQueue::RunningRemote);
   queue.handleQueueUpdate(list.jobEvents());
 
-  QVERIFY(jobRemoteQueued.jobState() == MoleQueue::RemoteQueued);
-  QVERIFY(jobRemoteRunning.jobState() == MoleQueue::RunningRemote);
+  QVERIFY(jobQueuedRemote.jobState() == MoleQueue::QueuedRemote);
+  QVERIFY(jobRunningRemote.jobState() == MoleQueue::RunningRemote);
 }
 
 QTEST_MAIN(QueueUitTest)

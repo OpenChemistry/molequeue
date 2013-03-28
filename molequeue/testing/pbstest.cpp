@@ -120,27 +120,27 @@ void QueuePbsTest::testParseQueueLine()
   line = "234.host         scatter          user01           12:56:34 Q batch";
   QVERIFY(m_queue.parseQueueLine(line, &jobId, &state));
   QCOMPARE(jobId, static_cast<MoleQueue::IdType>(234));
-  QCOMPARE(state, MoleQueue::RemoteQueued);
+  QCOMPARE(state, MoleQueue::QueuedRemote);
 
   line = "235.host         scatter          user01           12:56:34 H batch";
   QVERIFY(m_queue.parseQueueLine(line, &jobId, &state));
   QCOMPARE(jobId, static_cast<MoleQueue::IdType>(235));
-  QCOMPARE(state, MoleQueue::RemoteQueued);
+  QCOMPARE(state, MoleQueue::QueuedRemote);
 
   line = "236.host         scatter          user01           12:56:34 T batch";
   QVERIFY(m_queue.parseQueueLine(line, &jobId, &state));
   QCOMPARE(jobId, static_cast<MoleQueue::IdType>(236));
-  QCOMPARE(state, MoleQueue::RemoteQueued);
+  QCOMPARE(state, MoleQueue::QueuedRemote);
 
   line = "237.host         scatter          user01           12:56:34 W batch";
   QVERIFY(m_queue.parseQueueLine(line, &jobId, &state));
   QCOMPARE(jobId, static_cast<MoleQueue::IdType>(237));
-  QCOMPARE(state, MoleQueue::RemoteQueued);
+  QCOMPARE(state, MoleQueue::QueuedRemote);
 
   line = "238.host         scatter          user01           12:56:34 S batch";
   QVERIFY(m_queue.parseQueueLine(line, &jobId, &state));
   QCOMPARE(jobId, static_cast<MoleQueue::IdType>(238));
-  QCOMPARE(state, MoleQueue::RemoteQueued);
+  QCOMPARE(state, MoleQueue::QueuedRemote);
 }
 
 QTEST_MAIN(QueuePbsTest)

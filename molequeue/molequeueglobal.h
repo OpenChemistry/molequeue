@@ -48,11 +48,11 @@ enum JobState {
   /// Job has been accepted by the server and is being prepared (Writing input files, etc).
   Accepted,
   /// Job is being queued locally, either waiting for local execution or remote submission.
-  LocalQueued,
+  QueuedLocal,
   /// Job has been submitted to a remote queuing system.
   Submitted,
   /// Job is pending execution on a remote queuing system.
-  RemoteQueued,
+  QueuedRemote,
   /// Job is running locally.
   RunningLocal,
   /// Job is running remotely.
@@ -60,7 +60,7 @@ enum JobState {
   /// Job has completed.
   Finished,
   /// Job has been terminated at a user request.
-  Killed,
+  Canceled,
   /// Job has been terminated due to an error.
   Error
 };
@@ -79,20 +79,56 @@ inline const char * jobStateToString(JobState state)
     return "None";
   case Accepted:
     return "Accepted";
-  case LocalQueued:
-    return "LocalQueued";
+  case QueuedLocal:
+    return "QueuedLocal";
   case Submitted:
     return "Submitted";
-  case RemoteQueued:
-    return "RemoteQueued";
+  case QueuedRemote:
+    return "QueuedRemote";
   case RunningLocal:
     return "RunningLocal";
   case RunningRemote:
     return "RunningRemote";
   case Finished:
     return "Finished";
-  case Killed:
-    return "Killed";
+  case Canceled:
+    return "Canceled";
+  case Error:
+    return "Error";
+  default:
+  case Unknown:
+    return "Unknown";
+  }
+}
+
+/**
+ * Convert a JobState value to a string that may be displayed in a GUI.
+ *
+ * @param state JobState
+ * @return C string
+ */
+inline const char * jobStateToGuiString(JobState state)
+{
+  switch (state)
+  {
+  case None:
+    return "None";
+  case Accepted:
+    return "Accepted";
+  case QueuedLocal:
+    return "Queued local";
+  case Submitted:
+    return "Submitted";
+  case QueuedRemote:
+    return "Queued remote";
+  case RunningLocal:
+    return "Running local";
+  case RunningRemote:
+    return "Running remote";
+  case Finished:
+    return "Finished";
+  case Canceled:
+    return "Canceled";
   case Error:
     return "Error";
   default:
@@ -113,20 +149,20 @@ inline JobState stringToJobState(const char *str)
     return None;
   else if (qstrcmp(str, "Accepted") == 0)
     return Accepted;
-  else if (qstrcmp(str, "LocalQueued") == 0)
-    return LocalQueued;
+  else if (qstrcmp(str, "QueuedLocal") == 0)
+    return QueuedLocal;
   else if (qstrcmp(str, "Submitted") == 0)
     return Submitted;
-  else if (qstrcmp(str, "RemoteQueued") == 0)
-    return RemoteQueued;
+  else if (qstrcmp(str, "QueuedRemote") == 0)
+    return QueuedRemote;
   else if (qstrcmp(str, "RunningLocal") == 0)
     return RunningLocal;
   else if (qstrcmp(str, "RunningRemote") == 0)
     return RunningRemote;
   else if (qstrcmp(str, "Finished") == 0)
     return Finished;
-  else if (qstrcmp(str, "Killed") == 0)
-    return Killed;
+  else if (qstrcmp(str, "Canceled") == 0)
+    return Canceled;
   else if (qstrcmp(str, "Error") == 0)
     return Error;
   else
