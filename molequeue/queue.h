@@ -327,7 +327,7 @@ public slots:
 
   /**
    * @brief killJob Stop the job and remove from the queue. Set the JobState to
-   * Killed.
+   * Canceled.
    * @param job Job to kill.
    */
   virtual void killJob(MoleQueue::Job job) = 0;

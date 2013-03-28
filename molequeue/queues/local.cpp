@@ -155,7 +155,7 @@ void QueueLocal::killJob(Job job)
   int pendingIndex = m_pendingJobQueue.indexOf(job.moleQueueId());
   if (pendingIndex >= 0) {
     m_pendingJobQueue.removeAt(pendingIndex);
-    job.setJobState(MoleQueue::Killed);
+    job.setJobState(MoleQueue::Canceled);
     return;
   }
 
@@ -165,11 +165,11 @@ void QueueLocal::killJob(Job job)
     process->disconnect(this);
     process->terminate();
     process->deleteLater();
-    job.setJobState(MoleQueue::Killed);
+    job.setJobState(MoleQueue::Canceled);
     return;
   }
 
-  job.setJobState(MoleQueue::Killed);
+  job.setJobState(MoleQueue::Canceled);
 }
 
 bool QueueLocal::prepareJobForSubmission(Job &job)
@@ -279,7 +279,7 @@ bool QueueLocal::addJobToQueue(const Job &job)
 {
   m_pendingJobQueue.append(job.moleQueueId());
 
-  Job(job).setJobState(MoleQueue::LocalQueued);
+  Job(job).setJobState(MoleQueue::QueuedLocal);
 
   return true;
 }

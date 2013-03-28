@@ -35,7 +35,7 @@ public:
   bool showStatusQueued() const { return m_showStatusQueued; }
   bool showStatusRunning() const { return m_showStatusRunning; }
   bool showStatusFinished() const { return m_showStatusFinished; }
-  bool showStatusKilled() const { return m_showStatusKilled; }
+  bool showStatusCanceled() const { return m_showStatusCanceled; }
   bool showStatusError() const { return m_showStatusError; }
 
   bool showHiddenJobs() const { return m_showHiddenJobs; }
@@ -51,7 +51,7 @@ public slots:
   void setShowStatusQueued(bool show);
   void setShowStatusRunning(bool show);
   void setShowStatusFinished(bool show);
-  void setShowStatusKilled(bool show);
+  void setShowStatusCanceled(bool show);
   void setShowStatusError(bool show);
 
   void setShowHiddenJobs(bool show);
@@ -68,7 +68,7 @@ private:
   bool m_showStatusQueued;
   bool m_showStatusRunning;
   bool m_showStatusFinished;
-  bool m_showStatusKilled;
+  bool m_showStatusCanceled;
   bool m_showStatusError;
 
   bool m_showHiddenJobs;

@@ -48,7 +48,7 @@ JobTableProxyModel::JobTableProxyModel(QObject *parent_) :
   m_showStatusQueued = settings.value("queued", true).toBool();
   m_showStatusRunning = settings.value("running", true).toBool();
   m_showStatusFinished = settings.value("finished", true).toBool();
-  m_showStatusKilled = settings.value("killed", true).toBool();
+  m_showStatusCanceled = settings.value("canceled", true).toBool();
   m_showStatusError = settings.value("error", true).toBool();
   settings.endGroup(); // status
 
@@ -121,12 +121,12 @@ void JobTableProxyModel::setShowStatusFinished(bool show)
   invalidateFilter();
 }
 
-void JobTableProxyModel::setShowStatusKilled(bool show)
+void JobTableProxyModel::setShowStatusCanceled(bool show)
 {
-  if (m_showStatusKilled == show)
+  if (m_showStatusCanceled == show)
     return;
 
-  m_showStatusKilled = show;
+  m_showStatusCanceled = show;
   saveState();
   invalidateFilter();
 }
@@ -171,8 +171,8 @@ bool JobTableProxyModel::filterAcceptsRow(int sourceRow,
     if (!m_showStatusNew)
       return false;
     break;
-  case LocalQueued:
-  case RemoteQueued:
+  case QueuedLocal:
+  case QueuedRemote:
     if (!m_showStatusQueued)
       return false;
     break;
@@ -189,8 +189,8 @@ bool JobTableProxyModel::filterAcceptsRow(int sourceRow,
     if (!m_showStatusFinished)
       return false;
     break;
-  case Killed:
-    if (!m_showStatusKilled)
+  case Canceled:
+    if (!m_showStatusCanceled)
       return false;
     break;
   case Error:
@@ -254,7 +254,7 @@ void JobTableProxyModel::saveState() const
   settings.setValue("queued", m_showStatusQueued);
   settings.setValue("running", m_showStatusRunning);
   settings.setValue("finished", m_showStatusFinished);
-  settings.setValue("killed", m_showStatusKilled);
+  settings.setValue("canceled", m_showStatusCanceled);
   settings.setValue("error", m_showStatusError);
   settings.endGroup(); // status
 

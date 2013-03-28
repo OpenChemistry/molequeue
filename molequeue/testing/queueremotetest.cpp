@@ -135,12 +135,12 @@ void QueueRemoteTest::testKillJob()
   // unknown job
   Job job = m_server.jobManager()->newJob();
   m_queue->killJob(job);
-  QCOMPARE(job.jobState(), Killed);
+  QCOMPARE(job.jobState(), Canceled);
 
   // pending job (from testSubmitJob)
   job = Job(m_server.jobManager(), m_queue->m_pendingSubmission.first());
   m_queue->killJob(job);
-  QCOMPARE(job.jobState(), Killed);
+  QCOMPARE(job.jobState(), Canceled);
   QCOMPARE(m_queue->m_pendingSubmission.size(), 0);
 
   // "Running" job:
@@ -447,7 +447,7 @@ void QueueRemoteTest::testKillPipeline()
   // endKillJob //
   ////////////////
 
-  QCOMPARE(job.jobState(), Killed);
+  QCOMPARE(job.jobState(), Canceled);
 }
 
 void QueueRemoteTest::testQueueUpdate()

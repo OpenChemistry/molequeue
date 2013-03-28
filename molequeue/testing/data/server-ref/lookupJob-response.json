@@ -8,7 +8,7 @@
         "hideFromGui": false,
         "inputFile": {
         },
-        "jobState": "LocalQueued",
+        "jobState": "QueuedLocal",
         "localWorkingDirectory": "/working/directory/jobs/777",
         "maxWallTime": -1,
         "moleQueueId": 777,

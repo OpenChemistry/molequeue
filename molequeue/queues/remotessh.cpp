@@ -616,7 +616,7 @@ void QueueRemoteSsh::endKillJob()
     return;
   }
 
-  job.setJobState(MoleQueue::Killed);
+  job.setJobState(MoleQueue::Canceled);
 }
 
 SshConnection *QueueRemoteSsh::newSshConnection()

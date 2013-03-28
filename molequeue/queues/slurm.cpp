@@ -141,7 +141,7 @@ bool QueueSlurm::parseQueueLine(const QString &queueListOutput,
     }
     else if (stateStr == "cf"
              || stateStr == "pd") {
-      *state = MoleQueue::RemoteQueued;
+      *state = MoleQueue::QueuedRemote;
       return true;
     }
     else {

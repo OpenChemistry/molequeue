@@ -34,7 +34,7 @@ AdvancedFilterDialog::AdvancedFilterDialog(JobTableProxyModel *model,
   ui->filterStatusQueued->setChecked(m_proxyModel->showStatusQueued());
   ui->filterStatusRunning->setChecked(m_proxyModel->showStatusRunning());
   ui->filterStatusFinished->setChecked(m_proxyModel->showStatusFinished());
-  ui->filterStatusKilled->setChecked(m_proxyModel->showStatusKilled());
+  ui->filterStatusCanceled->setChecked(m_proxyModel->showStatusCanceled());
   ui->filterStatusError->setChecked(m_proxyModel->showStatusError());
   ui->filterShowHidden->setChecked(m_proxyModel->showHiddenJobs());
 
@@ -53,7 +53,7 @@ AdvancedFilterDialog::AdvancedFilterDialog(JobTableProxyModel *model,
           this, SLOT(updateFilters()));
   connect(ui->filterStatusFinished, SIGNAL(toggled(bool)),
           this, SLOT(updateFilters()));
-  connect(ui->filterStatusKilled, SIGNAL(toggled(bool)),
+  connect(ui->filterStatusCanceled, SIGNAL(toggled(bool)),
           this, SLOT(updateFilters()));
   connect(ui->filterStatusError, SIGNAL(toggled(bool)),
           this, SLOT(updateFilters()));
@@ -73,7 +73,7 @@ void AdvancedFilterDialog::updateFilters()
   m_proxyModel->setShowStatusQueued(ui->filterStatusQueued->isChecked());
   m_proxyModel->setShowStatusRunning(ui->filterStatusRunning->isChecked());
   m_proxyModel->setShowStatusFinished(ui->filterStatusFinished->isChecked());
-  m_proxyModel->setShowStatusKilled(ui->filterStatusKilled->isChecked());
+  m_proxyModel->setShowStatusCanceled(ui->filterStatusCanceled->isChecked());
   m_proxyModel->setShowStatusError(ui->filterStatusError->isChecked());
   m_proxyModel->setShowHiddenJobs(ui->filterShowHidden->isChecked());
 }
@@ -85,7 +85,7 @@ void AdvancedFilterDialog::selectAllStatuses()
   ui->filterStatusQueued->setChecked(true);
   ui->filterStatusRunning->setChecked(true);
   ui->filterStatusFinished->setChecked(true);
-  ui->filterStatusKilled->setChecked(true);
+  ui->filterStatusCanceled->setChecked(true);
   ui->filterStatusError->setChecked(true);
 }
 
@@ -96,7 +96,7 @@ void AdvancedFilterDialog::selectNoStatuses()
   ui->filterStatusQueued->setChecked(false);
   ui->filterStatusRunning->setChecked(false);
   ui->filterStatusFinished->setChecked(false);
-  ui->filterStatusKilled->setChecked(false);
+  ui->filterStatusCanceled->setChecked(false);
   ui->filterStatusError->setChecked(false);
 }
 
