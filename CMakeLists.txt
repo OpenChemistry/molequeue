@@ -9,6 +9,7 @@ include(BuildLocation)
 include(CompilerFlags)
 include(InstallLocation)
 include(SilenceWarnings)
+include(DetermineVersion)
 
 # Set up our version.
 set(MoleQueue_VERSION_MAJOR   "0")
@@ -16,6 +17,8 @@ set(MoleQueue_VERSION_MINOR   "1")
 set(MoleQueue_VERSION_PATCH   "0")
 set(MoleQueue_VERSION
   "${MoleQueue_VERSION_MAJOR}.${MoleQueue_VERSION_MINOR}.${MoleQueue_VERSION_PATCH}")
+find_package(Git)
+determine_version(${MoleQueue_SOURCE_DIR} ${GIT_EXECUTABLE} "MoleQueue")
 
 option(ENABLE_TESTING "Enable testing" OFF)
 

@@ -108,6 +108,9 @@ protected:
   QLabel *m_statusHiddenJobs;
 
   Server *m_server;
+
+private slots:
+  void showAboutDialog();
 };
 
 } // End namespace

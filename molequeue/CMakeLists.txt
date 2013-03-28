@@ -31,6 +31,7 @@ endif()
 
 if(MoleQueue_BUILD_APPLICATION)
   set(mq_srcs
+    aboutdialog.cpp
     abstractqueuesettingswidget.cpp
     advancedfilterdialog.cpp
     actionfactorymanager.cpp
@@ -151,6 +152,7 @@ if(MoleQueue_BUILD_APPLICATION)
   set(mq_srcs ${mq_srcs})
 
   set(ui_files
+    ui/aboutdialog.ui
     ui/addqueuedialog.ui
     ui/advancedfilterdialog.ui
     ui/importprogramdialog.ui

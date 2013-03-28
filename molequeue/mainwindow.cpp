@@ -17,6 +17,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
+#include "aboutdialog.h"
 #include "actionfactorymanager.h"
 #include "job.h"
 #include "jobactionfactories/killjobactionfactory.h"
@@ -358,6 +359,7 @@ void MainWindow::createActions()
           this, SLOT(showAdvancedJobFilters()));
   connect(m_ui->actionClearFinishedJobs, SIGNAL(triggered()),
           m_ui->jobTableWidget, SLOT(clearFinishedJobs()));
+  connect(m_ui->actionAbout, SIGNAL(triggered()), SLOT(showAboutDialog()));
 }
 
 void MainWindow::createShortcuts()
@@ -440,6 +442,12 @@ void MainWindow::createStatusBar()
   statusBar()->addWidget(m_statusHiddenJobs);
   m_statusHiddenJobs->hide();
   statusBar()->show();
+}
+
+void MainWindow::showAboutDialog()
+{
+  AboutDialog about(this);
+  about.exec();
 }
 
 } // End namespace

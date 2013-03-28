@@ -11,3 +11,5 @@
 
 /* The location of the SSL certificates */
 #cmakedefine MoleQueue_SSL_CERT_DIR "@MoleQueue_SSL_CERT_DIR@"
+
+#cmakedefine MoleQueue_VERSION "@MoleQueue_VERSION@"
