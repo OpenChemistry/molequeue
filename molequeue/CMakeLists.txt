@@ -78,6 +78,7 @@ if(MoleQueue_BUILD_APPLICATION)
     queues/remote.cpp
     queues/remotessh.cpp
     queues/sge.cpp
+    queues/slurm.cpp
     queuesettingsdialog.cpp
     remotequeuewidget.cpp
     server.cpp
