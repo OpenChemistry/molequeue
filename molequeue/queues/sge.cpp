@@ -38,7 +38,7 @@ QueueSge::QueueSge(QueueManager *parentManager) :
       "#\n"
       "#$ -S /bin/bash\n"
       "#$ -N MoleQueueJob-$$moleQueueId$$\n"
-      "#$ -pe NODETYPE $$numberOfCores$$\n"
+      "##$ -pe NODETYPE $$numberOfCores$$\n"
       "#$ -l h_rt=$$maxWallTime$$\n"
       "\n"
       "cd $SGE_O_WORKDIR\n"
