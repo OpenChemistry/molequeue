@@ -63,7 +63,7 @@ public:
   /**
    * Set the name of the target application's executable.
    */
-  void setExecutableName(const QString &name) { m_executableName = name; }
+  void setExecutable(const QString &name) { m_executable = name; }
 
   /**
    * Set a list of QRegExp objects that define a set of valid job output

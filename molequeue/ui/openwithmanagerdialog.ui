@@ -255,7 +255,7 @@
            </sizepolicy>
           </property>
           <property name="text">
-           <string>Executable name: </string>
+           <string>Executable:</string>
           </property>
           <property name="buddy">
            <cstring>editExec</cstring>
@@ -272,6 +272,13 @@
           </property>
          </widget>
         </item>
+        <item>
+         <widget class="QToolButton" name="pushExec">
+          <property name="text">
+           <string>...</string>
+          </property>
+         </widget>
+        </item>
        </layout>
       </item>
      </layout>
@@ -280,10 +287,10 @@
   </layout>
  </widget>
  <tabstops>
-  <tabstop>listExec</tabstop>
   <tabstop>pushAddExec</tabstop>
   <tabstop>pushRemoveExec</tabstop>
   <tabstop>editExec</tabstop>
+  <tabstop>pushExec</tabstop>
   <tabstop>tablePattern</tabstop>
   <tabstop>pushAddPattern</tabstop>
   <tabstop>pushRemovePattern</tabstop>
@@ -294,6 +301,7 @@
   <tabstop>pushRevertPattern</tabstop>
   <tabstop>editTest</tabstop>
   <tabstop>buttonBox</tabstop>
+  <tabstop>listExec</tabstop>
  </tabstops>
  <resources/>
  <connections>

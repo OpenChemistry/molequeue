@@ -33,7 +33,7 @@ namespace MoleQueue
  * OpenWithActionFactory is an abstract subclass of JobActionFactory designed
  * to open job output with an external application.
  *
- * Subclasses should, at minimum, set m_executableName to the name of the
+ * Subclasses should, at minimum, set m_executable to the name of the
  * external application in the constructor and reimplement isValidForJob.
  * See ProgrammableOpenWithActionFactory for an example.
  */
@@ -62,12 +62,7 @@ public:
    * Get the absolute path to the executable. May be empty until
    * actionTriggered is called.
    */
-  QString executableFilePath() const { return m_executableFilePath; }
-
-  /**
-   * Get the name of the executable.
-   */
-  QString executableName() const { return m_executableName; }
+  QString executable() const { return m_executable; }
 
   bool useMenu() const;
   QString menuText() const;
@@ -81,13 +76,13 @@ public:
    * will be placed in a submenu with text
    * "Open ['job description]' in [executable name]..."
    *
-   * The QVariant data member of the action is set to the list of accepted job.
+   * The QVariant data member of the action is set a relevant Job object.
    *
    * The action's "filename" property contains the absolute path to the file.
    *
    * The QAction::triggered() signal is connected to the actionTriggered slot
-   * of the factory. See that functions documentation for details its default
-   * implementation.
+   * of the factory. See that function's documentation for details of its
+   * default implementation.
    */
   virtual QList<QAction*> createActions();
 
@@ -104,32 +99,13 @@ protected slots:
    *
    * The default implementation launches the external application for each job
    * in the sender's data list, with the absolute path to the job's output file
-   * as an argument. This function attempts to determine and set
-   * m_executableFilePath.
-   *
-   * An outline of this function's behavior:
-   *
-   * -# Check that sender() is a QAction
-   * -# Extract the Job from the sender's QVariant data.
-   * -# Extract the filename from the sender's dynamic properties.
-   * -# Set m_executableFilePath using the following methods, until one finds a
-   *    file that both exists and is executable:
-   *    -# Check QSettings "ActionFactory/OpenWith/path/[executable name]" path
-   *       for the last used path.
-   *    -# Search the locations in the PATH environment variable for the
-   *       executable.
-   *    -# Ask the user to specify the location of the executable.
-   *  -# Call "[m_executableFilePath] [filename]" via
-   *     QProcess::startDetached().
+   * as an argument.
    */
   virtual void actionTriggered();
 
 protected:
-  /// Return true and set m_executablePath if executable @a exec found in $PATH.
-  virtual bool searchPathForExecutable(const QString &exec);
 
-  QString m_executableFilePath;
-  QString m_executableName;
+  QString m_executable;
   // display text, absolute file path
   mutable QMap<QString, QString> m_filenames;
   QString m_menuText;

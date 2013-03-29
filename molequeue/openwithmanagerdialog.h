@@ -49,9 +49,10 @@ public:
   void accept();
   void reject();
 
-protected slots:
+private slots:
   void addExecutable();
   void removeExecutable();
+  void browseExecutable();
   void executableSelectionChanged();
   void executableDimensionsChanged();
   void setExecutableGuiEnabled(bool enable = true);
@@ -66,7 +67,15 @@ protected slots:
   void testTextMatch();
   void testTextNoMatch();
 
-protected:
+private:
+  /**
+   * @brief Search the environment variable PATH for a file with the specified
+   * name.
+   * @param exec The name of the file.
+   * @return The absolute path to the file on the system, or a null QString if
+   * not found.
+   */
+  static QString searchPathForExecutable(const QString &exec);
   QModelIndexList selectedExecutableIndices() const;
   QModelIndexList selectedPatternIndices() const;
   ProgrammableOpenWithActionFactory *selectedFactory();

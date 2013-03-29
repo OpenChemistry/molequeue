@@ -41,7 +41,7 @@ QVariant OpenWithExecutableModel::data(const QModelIndex &ind, int role) const
       || !ind.isValid() || ind.row() + 1 > m_factories->size() || ind.row() < 0)
     return QVariant();
 
-  return (*m_factories)[ind.row()].executableName();
+  return (*m_factories)[ind.row()].executable();
 }
 
 QVariant OpenWithExecutableModel::headerData(
@@ -62,7 +62,7 @@ bool OpenWithExecutableModel::insertRows(int row, int count,
 
   for (int i = 0; i < count; ++i) {
     ProgrammableOpenWithActionFactory newFactory;
-    newFactory.setExecutableName(
+    newFactory.setExecutable(
           tr("New%1").arg(count == 1 ? QString("") : QString::number(i+1)));
     m_factories->insert(row, newFactory);
   }
@@ -94,7 +94,7 @@ bool OpenWithExecutableModel::setData(const QModelIndex &ind,
       role != Qt::EditRole)
     return false;
 
-  (*m_factories)[ind.row()].setExecutableName(value.toString());
+  (*m_factories)[ind.row()].setExecutable(value.toString());
 
   emit dataChanged(ind, ind);
   return true;

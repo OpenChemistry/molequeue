@@ -24,11 +24,15 @@
 #include "patterntypedelegate.h"
 
 #include <QtGui/QDataWidgetMapper>
+#include <QtGui/QFileDialog>
 #include <QtGui/QHeaderView>
 #include <QtGui/QItemSelectionModel>
 #include <QtGui/QKeyEvent>
 #include <QtGui/QPalette>
 #include <QtGui/QStringListModel>
+
+#include <QtCore/QProcessEnvironment>
+#include <QtCore/QUrl>
 
 namespace MoleQueue
 {
@@ -83,6 +87,7 @@ OpenWithManagerDialog::OpenWithManagerDialog(QWidget *parentObject) :
           this, SLOT(addExecutable()));
   connect(ui->pushRemoveExec, SIGNAL(clicked()),
           this, SLOT(removeExecutable()));
+  connect(ui->pushExec, SIGNAL(clicked()), SLOT(browseExecutable()));
   connect(ui->listExec->selectionModel(),
           SIGNAL(selectionChanged(QItemSelection,QItemSelection)),
           this, SLOT(executableSelectionChanged()));
@@ -177,6 +182,38 @@ void OpenWithManagerDialog::removeExecutable()
     return;
 
   m_execModel->removeRow(index);
+}
+
+void OpenWithManagerDialog::browseExecutable()
+{
+  QString fileName = ui->editExec->text();
+  QFileInfo info(fileName);
+  QString initialPath;
+
+  if (!fileName.isEmpty()) {
+    // If the executable name is not an absolute path, try to look it up in PATH
+    if (info.isAbsolute()) {
+      initialPath = info.absolutePath();
+    }
+    else {
+      QString absoluteFilePath = searchPathForExecutable(info.fileName());
+      // Found the path; initialize the file dialog to it
+      if (!absoluteFilePath.isEmpty()) {
+        ui->editExec->setText(absoluteFilePath);
+        initialPath = absoluteFilePath;
+      }
+    }
+  }
+
+  // If we didn't find a path above, just use the user's home directory.
+  if (initialPath.isEmpty())
+    initialPath = QDir::homePath();
+
+  QString newFilePath = QFileDialog::getOpenFileName(
+        this, tr("Select executable"), initialPath);
+
+  if (!newFilePath.isEmpty())
+    ui->editExec->setText(newFilePath);
 }
 
 void OpenWithManagerDialog::executableSelectionChanged()
@@ -305,6 +342,34 @@ void OpenWithManagerDialog::testTextNoMatch()
   QPalette pal;
   pal.setColor(QPalette::Text, Qt::red);
   ui->editTest->setPalette(pal);
+}
+
+QString OpenWithManagerDialog::searchPathForExecutable(const QString &exec)
+{
+  QString result;
+  QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
+  if (!env.contains("PATH"))
+    return result;
+
+  static QRegExp pathSplitter = QRegExp(
+#ifdef Q_OS_WIN32
+        ";"
+#else // WIN32
+        ":"
+#endif// WIN32
+        );
+  QStringList paths =
+      env.value("PATH").split(pathSplitter, QString::SkipEmptyParts);
+
+  foreach (const QString &path, paths) {
+    QString testPath = QUrl::fromLocalFile(path + "/" + exec).toLocalFile();
+    if (!QFile::exists(testPath))
+      continue;
+    result = testPath;
+    break;
+  }
+
+  return result;
 }
 
 QModelIndexList OpenWithManagerDialog::selectedExecutableIndices() const
