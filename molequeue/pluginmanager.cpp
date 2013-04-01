@@ -59,17 +59,16 @@ PluginManager::PluginManager(QObject *p) : QObject(p)
 
 // For multi configuration types add correct one to search path.
 #ifdef MULTI_CONFIG_BUILD
-  // First extract the build type ( the name of the application dir )
+  // First extract the build type (the name of the application dir).
   QDir appDir(QCoreApplication::applicationDirPath());
   QString buildType = appDir.dirName();
 
-  QDir dir(QCoreApplication::applicationDirPath()
+  QDir condir(QCoreApplication::applicationDirPath()
            + "/../../lib/molequeue/plugins/"+ buildType);
-  m_pluginDirs.append(dir.absolutePath());
-#else
+  m_pluginDirs.append(condir.absolutePath());
+#endif
   QDir dir(QCoreApplication::applicationDirPath() + m_relativeToApp);
   m_pluginDirs.append(dir.absolutePath());
-#endif
 }
 
 PluginManager::~PluginManager()
@@ -97,6 +96,7 @@ void PluginManager::load()
 void PluginManager::load(const QString &path)
 {
   QDir dir(path);
+  qDebug() << "Checking for plugins in" << path;
   qDebug() << dir.entryList(QDir::Files);
   foreach(const QString &pluginPath, dir.entryList(QDir::Files)) {
     QPluginLoader pluginLoader(dir.absolutePath() + QDir::separator() + pluginPath);
