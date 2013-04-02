@@ -216,6 +216,7 @@ void MainWindow::showOpenWithManagerDialog()
   if (!m_openWithManagerDialog)
     m_openWithManagerDialog = new OpenWithManagerDialog(this);
 
+  m_openWithManagerDialog->loadFactories();
   m_openWithManagerDialog->show();
   m_openWithManagerDialog->raise();
 }

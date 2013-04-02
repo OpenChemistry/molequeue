@@ -36,6 +36,8 @@ public:
   RemoveJobActionFactory();
   ~RemoveJobActionFactory();
 
+  QString name() const { return tr("Remove job"); }
+
   bool isValidForJob(const Job &job) const;
 
   QList<QAction*> createActions();

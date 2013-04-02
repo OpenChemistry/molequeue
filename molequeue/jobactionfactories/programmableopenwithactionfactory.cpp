@@ -38,7 +38,8 @@ ProgrammableOpenWithActionFactory::ProgrammableOpenWithActionFactory()
 ProgrammableOpenWithActionFactory::ProgrammableOpenWithActionFactory(
     const ProgrammableOpenWithActionFactory &other)
   : OpenWithActionFactory(other),
-    m_recognizedFilePatterns(other.m_recognizedFilePatterns)
+    m_recognizedFilePatterns(other.m_recognizedFilePatterns),
+    m_name(other.m_name)
 {
 }
 
@@ -47,6 +48,7 @@ ProgrammableOpenWithActionFactory &ProgrammableOpenWithActionFactory::operator=(
 {
   OpenWithActionFactory::operator=(other);
   m_recognizedFilePatterns = other.recognizedFilePatterns();
+  m_name = other.name();
   return *this;
 }
 
@@ -56,6 +58,7 @@ ProgrammableOpenWithActionFactory::~ProgrammableOpenWithActionFactory()
 
 void ProgrammableOpenWithActionFactory::readSettings(QSettings &settings)
 {
+  m_name = settings.value("name", tr("(unnamed)")).toString();
   int numPatterns = settings.beginReadArray("recognizedFilePatterns");
 
   for (int i = 0; i < numPatterns; ++i) {
@@ -70,6 +73,7 @@ void ProgrammableOpenWithActionFactory::readSettings(QSettings &settings)
 
 void ProgrammableOpenWithActionFactory::writeSettings(QSettings &settings) const
 {
+  settings.setValue("name", m_name);
   settings.beginWriteArray("recognizedFilePatterns",
                            m_recognizedFilePatterns.size());
 

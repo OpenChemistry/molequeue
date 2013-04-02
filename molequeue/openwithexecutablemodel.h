@@ -17,20 +17,21 @@
 #ifndef MOLEQUEUE_OPENWITHEXECUTABLEMODEL_H
 #define MOLEQUEUE_OPENWITHEXECUTABLEMODEL_H
 
-#include <QtCore/QAbstractListModel>
+#include <QtCore/QAbstractItemModel>
 
 namespace MoleQueue
 {
 class ProgrammableOpenWithActionFactory;
 
 /// MVC item model for ProgrammableOpenWithActionFactory executable names.
-class OpenWithExecutableModel : public QAbstractListModel
+class OpenWithExecutableModel : public QAbstractItemModel
 {
   Q_OBJECT
 public:
   explicit OpenWithExecutableModel(QObject *parentObject = 0);
 
-  int rowCount(const QModelIndex &parent) const;
+  int rowCount(const QModelIndex &p = QModelIndex()) const;
+  int columnCount(const QModelIndex &p = QModelIndex()) const;
   QVariant data(const QModelIndex &ind, int role) const;
   QVariant headerData(int section, Qt::Orientation orientation, int role) const;
 
@@ -40,6 +41,10 @@ public:
   bool setData(const QModelIndex &ind, const QVariant &value, int role);
 
   Qt::ItemFlags flags(const QModelIndex &index) const;
+
+  QModelIndex index(int row, int column,
+                    const QModelIndex &parent = QModelIndex()) const;
+  QModelIndex parent(const QModelIndex &child) const;
 
 public slots:
   void setFactories(QList<ProgrammableOpenWithActionFactory> *factories);
