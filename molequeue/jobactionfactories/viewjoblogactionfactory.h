@@ -32,6 +32,8 @@ public:
   ViewJobLogActionFactory();
   ~ViewJobLogActionFactory();
 
+  QString name() const { return tr("View log"); }
+
   bool isValidForJob(const Job &job) const;
 
   QList<QAction*> createActions();

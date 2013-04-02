@@ -63,13 +63,20 @@ public:
   /**
    * Set the name of the target application's executable.
    */
-  void setExecutableName(const QString &name) { m_executableName = name; }
+  void setExecutable(const QString &exec) { m_executable = exec; }
 
   /**
    * Set a list of QRegExp objects that define a set of valid job output
    * filenames.
    */
   void setRecognizedFilePatterns(const QList<QRegExp> &patterns);
+
+  /**
+   * Set the name of this factory.
+   */
+  void setName(const QString &n) { m_name = n; }
+
+  QString name() const { return m_name; }
 
   /**
    * Return a list of the QRegExp objects used to identify valid jobs.
@@ -88,10 +95,11 @@ public:
    */
   bool isValidForJob(const Job &job) const;
 
-protected:
+private:
   bool scanDirectoryForRecognizedFiles(const QDir &baseDir,
                                        const QDir &dir) const;
   QList<QRegExp> m_recognizedFilePatterns;
+  QString m_name;
 };
 
 } // end namespace MoleQueue

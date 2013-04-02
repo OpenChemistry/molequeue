@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>680</width>
+    <width>763</width>
     <height>480</height>
    </rect>
   </property>
@@ -16,6 +16,9 @@
   <layout class="QGridLayout" name="gridLayout">
    <item row="0" column="1">
     <widget class="QGroupBox" name="groupPattern">
+     <property name="enabled">
+      <bool>true</bool>
+     </property>
      <property name="title">
       <string>Recognized Output File Names:</string>
      </property>
@@ -193,7 +196,7 @@
       <enum>Qt::Horizontal</enum>
      </property>
      <property name="standardButtons">
-      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+      <set>QDialogButtonBox::Apply|QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
      </property>
     </widget>
    </item>
@@ -234,9 +237,6 @@
         </item>
        </layout>
       </item>
-      <item row="0" column="0" colspan="2">
-       <widget class="QListView" name="listExec"/>
-      </item>
       <item row="2" column="0" colspan="2">
        <widget class="Line" name="line_3">
         <property name="orientation">
@@ -245,8 +245,11 @@
        </widget>
       </item>
       <item row="3" column="0" colspan="2">
-       <layout class="QHBoxLayout" name="horizontalLayout_3">
-        <item>
+       <layout class="QFormLayout" name="formLayout">
+        <property name="labelAlignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        </property>
+        <item row="0" column="0">
          <widget class="QLabel" name="labelExec">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
@@ -255,24 +258,58 @@
            </sizepolicy>
           </property>
           <property name="text">
-           <string>Executable name: </string>
+           <string>Executable:</string>
           </property>
           <property name="buddy">
            <cstring>editExec</cstring>
           </property>
          </widget>
         </item>
-        <item>
-         <widget class="QLineEdit" name="editExec">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
+        <item row="0" column="1">
+         <layout class="QHBoxLayout" name="horizontalLayout_3">
+          <item>
+           <widget class="QLineEdit" name="editExec">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QToolButton" name="pushExec">
+            <property name="text">
+             <string>...</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item row="1" column="0">
+         <widget class="QLabel" name="labelName">
+          <property name="text">
+           <string>Name:</string>
           </property>
          </widget>
         </item>
+        <item row="1" column="1">
+         <widget class="QLineEdit" name="editName"/>
+        </item>
        </layout>
+      </item>
+      <item row="0" column="0" colspan="2">
+       <widget class="QTableView" name="tableExec">
+        <property name="selectionMode">
+         <enum>QAbstractItemView::SingleSelection</enum>
+        </property>
+        <property name="selectionBehavior">
+         <enum>QAbstractItemView::SelectRows</enum>
+        </property>
+        <attribute name="horizontalHeaderStretchLastSection">
+         <bool>true</bool>
+        </attribute>
+       </widget>
       </item>
      </layout>
     </widget>
@@ -280,10 +317,12 @@
   </layout>
  </widget>
  <tabstops>
-  <tabstop>listExec</tabstop>
+  <tabstop>tableExec</tabstop>
   <tabstop>pushAddExec</tabstop>
   <tabstop>pushRemoveExec</tabstop>
   <tabstop>editExec</tabstop>
+  <tabstop>pushExec</tabstop>
+  <tabstop>editName</tabstop>
   <tabstop>tablePattern</tabstop>
   <tabstop>pushAddPattern</tabstop>
   <tabstop>pushRemovePattern</tabstop>

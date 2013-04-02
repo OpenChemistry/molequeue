@@ -17,6 +17,7 @@
 #include "openwithactionfactory.h"
 
 #include "../job.h"
+#include "../logger.h"
 #include "../program.h"
 #include "../queue.h"
 #include "../queuemanager.h"
@@ -28,10 +29,8 @@
 
 #include <QtCore/QFile>
 #include <QtCore/QProcess>
-#include <QtCore/QProcessEnvironment>
 #include <QtCore/QSettings>
 #include <QtCore/QStringList>
-#include <QtCore/QUrl>
 #include <QtCore/QVariant>
 
 namespace MoleQueue
@@ -47,8 +46,7 @@ OpenWithActionFactory::OpenWithActionFactory()
 
 OpenWithActionFactory::OpenWithActionFactory(const OpenWithActionFactory &other)
   : JobActionFactory(other),
-    m_executableFilePath(other.m_executableFilePath),
-    m_executableName(other.m_executableName),
+    m_executable(other.m_executable),
     m_menuText(other.m_menuText)
 {
 }
@@ -61,22 +59,19 @@ OpenWithActionFactory &OpenWithActionFactory::operator =(
     const OpenWithActionFactory &other)
 {
   JobActionFactory::operator=(other);
-  m_executableFilePath = other.m_executableFilePath;
-  m_executableName = other.executableName();
+  m_executable = other.executable();
   return *this;
 }
 
 void OpenWithActionFactory::readSettings(QSettings &settings)
 {
-  m_executableFilePath = settings.value("executableFilePath").toString();
-  m_executableName = settings.value("executableName").toString();
+  m_executable = settings.value("executable").toString();
   JobActionFactory::readSettings(settings);
 }
 
 void OpenWithActionFactory::writeSettings(QSettings &settings) const
 {
-  settings.setValue("executableFilePath", m_executableFilePath);
-  settings.setValue("executableName", m_executableName);
+  settings.setValue("executable", m_executable);
   JobActionFactory::writeSettings(settings);
 }
 
@@ -103,8 +98,9 @@ QList<QAction *> OpenWithActionFactory::createActions()
 
   if (m_attemptedJobAdditions == 1 && m_jobs.size() == 1) {
     const Job &job = m_jobs.first();
+    m_menuText = tr("Open '%1' with %2")
+        .arg(job.description(), name());
     QStringList filenames = m_filenames.keys();
-    m_menuText = tr("Open '%1' in %2").arg(job.description(), m_executableName);
     foreach (const QString &filename, filenames) {
       QAction *newAction = new QAction(filename, NULL);
       newAction->setData(QVariant::fromValue(job));
@@ -125,88 +121,50 @@ unsigned int OpenWithActionFactory::usefulness() const
 void OpenWithActionFactory::actionTriggered()
 {
   QAction *action = qobject_cast<QAction*>(sender());
-  if (!action)
+  if (!action) {
+    Logger::logWarning(tr("OpenWithActionFactory::actionTriggered: Sender is "
+                          "not a QAction!"));
     return;
+  }
 
-  // The sender was a QAction. Is its data a jobs?
+  // The sender was a QAction. Is its data a job?
   Job job = action->data().value<Job>();
-  if (!job.isValid())
+  if (!job.isValid()) {
+    Logger::logWarning(tr("OpenWithActionFactory::actionTriggered: Action data "
+                          "is not a Job."));
     return;
+  }
 
   // Filename was set?
   QString filename = action->property("filename").toString();
-  if (!QFileInfo(filename).exists())
+  if (!QFileInfo(filename).exists()) {
+    Logger::logWarning(tr("OpenWithActionFactory::actionTriggered: No filename "
+                          "associated with job."), job.moleQueueId());
     return;
-
-  QSettings settings;
-  settings.beginGroup("ActionFactory/OpenWith/" + m_executableName);
-  m_executableFilePath = settings.value("path", m_executableFilePath).toString();
-
-  // Ensure that the path to the executable is valid
-  if (m_executableFilePath.isEmpty() || !QFile::exists(m_executableFilePath) ||
-      !(QFile::permissions(m_executableFilePath) & QFile::ExeUser)) {
-    // Invalid path -- search system path:
-    if (!searchPathForExecutable(m_executableName)) {
-      // not found in path. Ask user.
-      m_executableFilePath = QFileDialog::getOpenFileName(
-            NULL, tr("Specify location of %1").arg(m_executableName),
-            m_executableFilePath, m_executableName, 0);
-      // Check for user cancel:
-      if (m_executableFilePath.isNull())
-        return;
-    }
-
-    // Does the new path exist?
-    if (!QFile::exists(m_executableFilePath)) {
-      QMessageBox::critical(NULL, tr("Executable does not exist!"),
-                            tr("The executable file at %1 does not exist!")
-                            .arg(m_executableFilePath));
-      return;
-    }
-
-    // Is the target executable?
-    if (!(QFile::permissions(m_executableFilePath) & QFile::ExeUser)) {
-      QMessageBox::critical(NULL, tr("File is not executable!"),
-                            tr("The file at %1 is not executable and cannot "
-                               "be used to open job output.")
-                            .arg(m_executableFilePath));
-      return;
-    }
   }
-
-  settings.setValue("path", m_executableFilePath);
-  settings.endGroup();
 
   // Should be ready to go!
-  QProcess::startDetached(QString("\"%1\" \"%2\"").arg(m_executableFilePath,
-                                                       filename));
-}
+  qint64 pid = -1;
+  QString workDir = QFileInfo(filename).absolutePath();
+  bool ok = QProcess::startDetached(
+        QString("%1").arg(m_executable),
+        QStringList() << filename, workDir, &pid);
 
-bool OpenWithActionFactory::searchPathForExecutable(const QString &exec)
-{
-  QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
-  if (!env.contains("PATH"))
-    return false;
-
-  static QRegExp pathSplitter = QRegExp(
-#ifdef _WIN32
-        ";"
-#else // WIN32
-        ":"
-#endif// WIN32
-        );
-  QStringList paths =
-      env.value("PATH").split(pathSplitter, QString::SkipEmptyParts);
-
-  foreach (const QString &path, paths) {
-    QString testPath = QUrl::fromLocalFile(path + "/" + exec).toLocalFile();
-    if (!QFile::exists(testPath))
-      continue;
-    m_executableFilePath = testPath;
-    return true;
+  // pid may be set to zero in certain cases in the UNIX QProcess implementation
+  if (ok && pid >= 0) {
+    Logger::logDebugMessage(tr("Running '%1 %2' in '%3' (PID=%4)",
+                               "1 is an executable, 2 is a filename, 3 is a "
+                               "directory, and 4 is a process id.")
+                            .arg(m_executable).arg(filename).arg(workDir)
+                            .arg(QString::number(pid)), job.moleQueueId());
   }
-
-  return false;
+  else {
+    QString err = tr("Error while starting '%1 %2' in '%3'",
+                     "1 is an executable, 2 is a filename, 3 is a directory.")
+        .arg(m_executable).arg(filename).arg(workDir);
+    Logger::logWarning(err, job.moleQueueId());
+    QMessageBox::critical(NULL, tr("Cannot start process"), err);
+  }
 }
 
 } // end namespace MoleQueue

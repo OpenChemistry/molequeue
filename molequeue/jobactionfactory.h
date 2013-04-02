@@ -64,6 +64,11 @@ public:
   /** Return the Server instance. */
   Server * server() const { return m_server; }
 
+  /**
+   * A name that uniquely identifies this factory.
+   */
+  virtual QString name() const = 0;
+
   /** Clear m_jobs and reset m_attemptedJobAdditions */
   virtual void clearJobs();
 
