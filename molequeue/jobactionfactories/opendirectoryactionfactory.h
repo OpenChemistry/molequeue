@@ -30,6 +30,8 @@ public:
   OpenDirectoryActionFactory();
   ~OpenDirectoryActionFactory();
 
+  QString name() const { return tr("Open directory"); }
+
   bool isValidForJob(const Job &job) const;
 
   QList<QAction*> createActions();

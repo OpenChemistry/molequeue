@@ -23,12 +23,19 @@
 #include "openwithpatternmodel.h"
 #include "patterntypedelegate.h"
 
+#include <QtGui/QCompleter>
 #include <QtGui/QDataWidgetMapper>
+#include <QtGui/QFileDialog>
+#include <QtGui/QFileSystemModel>
 #include <QtGui/QHeaderView>
 #include <QtGui/QItemSelectionModel>
 #include <QtGui/QKeyEvent>
+#include <QtGui/QMessageBox>
 #include <QtGui/QPalette>
 #include <QtGui/QStringListModel>
+
+#include <QtCore/QProcessEnvironment>
+#include <QtCore/QUrl>
 
 namespace MoleQueue
 {
@@ -40,24 +47,14 @@ OpenWithManagerDialog::OpenWithManagerDialog(QWidget *parentObject) :
   m_patternModel(new OpenWithPatternModel(this)),
   m_patternMapper(new QDataWidgetMapper(this)),
   m_execMapper(new QDataWidgetMapper(this)),
-  m_patternTypeDelegate(new PatternTypeDelegate(this))
+  m_patternTypeDelegate(new PatternTypeDelegate(this)),
+  m_dirty(false)
 {
+  // Setup ui:
   ui->setupUi(this);
 
-  // Get the programmableopenwithactionfactories from the manager and copy them
-  // into the cached m_factories.
-  ActionFactoryManager *manager = ActionFactoryManager::getInstance();
-  m_origFactories =
-      manager->getFactories(JobActionFactory::ProgrammableOpenWith);
-  foreach (JobActionFactory *factory,m_origFactories) {
-    m_factories << ProgrammableOpenWithActionFactory(
-                     *static_cast<ProgrammableOpenWithActionFactory*>(factory));
-  }
-
-  m_execModel->setFactories(&m_factories);
-  ui->groupPattern->setDisabled(true);
-
-  ui->listExec->setModel(m_execModel);
+  // Setup MVC:
+  ui->tableExec->setModel(m_execModel);
 
   ui->tablePattern->setModel(m_patternModel);
   ui->tablePattern->setItemDelegate(m_patternTypeDelegate);
@@ -66,7 +63,8 @@ OpenWithManagerDialog::OpenWithManagerDialog(QWidget *parentObject) :
 
   m_execMapper->setModel(m_execModel);
   m_execMapper->setSubmitPolicy(QDataWidgetMapper::AutoSubmit);
-  m_execMapper->addMapping(ui->editExec, 0);
+  m_execMapper->addMapping(ui->editName, 0);
+  m_execMapper->addMapping(ui->editExec, 1);
 
   m_patternMapper->setModel(m_patternModel);
   m_patternMapper->setSubmitPolicy(QDataWidgetMapper::ManualSubmit);
@@ -78,20 +76,22 @@ OpenWithManagerDialog::OpenWithManagerDialog(QWidget *parentObject) :
   m_patternMapper->addMapping(ui->checkCaseSensitive,
                               OpenWithPatternModel::CaseSensitivityCol);
 
+  // Setup executable completion
+  QFileSystemModel *fsModel = new QFileSystemModel(this);
+  fsModel->setFilter(QDir::Files | QDir::Dirs | QDir::NoDot);
+  fsModel->setRootPath(QDir::rootPath());
+  QCompleter *fsCompleter = new QCompleter(fsModel, this);
+  ui->editExec->setCompleter(fsCompleter);
+
   // Executable GUI:
   connect(ui->pushAddExec, SIGNAL(clicked()),
           this, SLOT(addExecutable()));
   connect(ui->pushRemoveExec, SIGNAL(clicked()),
           this, SLOT(removeExecutable()));
-  connect(ui->listExec->selectionModel(),
+  connect(ui->pushExec, SIGNAL(clicked()), SLOT(browseExecutable()));
+  connect(ui->tableExec->selectionModel(),
           SIGNAL(selectionChanged(QItemSelection,QItemSelection)),
           this, SLOT(executableSelectionChanged()));
-  connect(m_execModel, SIGNAL(rowsInserted(QModelIndex, int, int)),
-          this, SLOT(executableDimensionsChanged()));
-  connect(m_execModel, SIGNAL(rowsRemoved(QModelIndex, int, int)),
-          this, SLOT(executableDimensionsChanged()));
-  connect(m_execModel, SIGNAL(modelReset()),
-          this, SLOT(executableDimensionsChanged()));
 
   // Pattern GUI:
   connect(ui->pushAddPattern, SIGNAL(clicked()),
@@ -112,6 +112,9 @@ OpenWithManagerDialog::OpenWithManagerDialog(QWidget *parentObject) :
   connect(m_patternModel, SIGNAL(modelReset()),
           this, SLOT(patternDimensionsChanged()));
 
+  // Executable checking
+  connect(ui->editExec, SIGNAL(textChanged(QString)), SLOT(testExecutable()));
+
   // Test updates:
   connect(ui->editTest, SIGNAL(textChanged(QString)),
           this, SLOT(checkTestText()));
@@ -119,10 +122,27 @@ OpenWithManagerDialog::OpenWithManagerDialog(QWidget *parentObject) :
           this, SLOT(checkTestText()));
   connect(m_patternModel, SIGNAL(layoutChanged()),
           this, SLOT(checkTestText()));
+  connect(ui->tableExec->selectionModel(),
+          SIGNAL(selectionChanged(QItemSelection,QItemSelection)),
+          this, SLOT(checkTestText()));
 
-  // Initialize GUI state:
-  executableDimensionsChanged();
-  patternDimensionsChanged();
+  // handle apply button:
+  connect(ui->buttonBox, SIGNAL(clicked(QAbstractButton*)),
+          SLOT(buttonBoxClicked(QAbstractButton*)));
+
+  // Mark dirty when the data changes.
+  connect(m_execModel, SIGNAL(dataChanged(QModelIndex,QModelIndex)),
+          SLOT(markDirty()));
+  connect(m_execModel, SIGNAL(rowsInserted(QModelIndex, int, int)),
+          SLOT(markDirty()));
+  connect(m_execModel, SIGNAL(rowsRemoved(QModelIndex, int, int)),
+          SLOT(markDirty()));
+  connect(m_patternModel, SIGNAL(dataChanged(QModelIndex,QModelIndex)),
+          SLOT(markDirty()));
+  connect(m_patternModel, SIGNAL(rowsInserted(QModelIndex, int, int)),
+          SLOT(markDirty()));
+  connect(m_patternModel, SIGNAL(rowsRemoved(QModelIndex, int, int)),
+          SLOT(markDirty()));
 }
 
 OpenWithManagerDialog::~OpenWithManagerDialog()
@@ -130,8 +150,74 @@ OpenWithManagerDialog::~OpenWithManagerDialog()
   delete ui;
 }
 
-void OpenWithManagerDialog::accept()
+void OpenWithManagerDialog::loadFactories()
 {
+  reset();
+  ActionFactoryManager *manager = ActionFactoryManager::getInstance();
+  m_origFactories =
+      manager->getFactories(JobActionFactory::ProgrammableOpenWith);
+  foreach (JobActionFactory *factory,m_origFactories) {
+    m_factories << ProgrammableOpenWithActionFactory(
+                     *static_cast<ProgrammableOpenWithActionFactory*>(factory));
+  }
+  m_execModel->setFactories(&m_factories);
+}
+
+void OpenWithManagerDialog::reset()
+{
+  m_factories.clear();
+  m_origFactories.clear();
+  m_execModel->setFactories(NULL);
+  m_patternModel->setRegExps(NULL);
+  setExecutableGuiEnabled(false);
+  setPatternGuiEnabled(false);
+  markClean();
+}
+
+bool OpenWithManagerDialog::apply()
+{
+  // Check that all factories are using valid executables:
+  int index = -1;
+  foreach (const ProgrammableOpenWithActionFactory &factory, m_factories) {
+    ++index;
+    QString reason;
+    QString name = factory.name();
+    QString executable = factory.executable();
+    QString executableFilePath;
+    switch (validateExecutable(executable, executableFilePath)) {
+    case ExecOk:
+      break;
+    case ExecNotExec:
+      reason = tr("File is not executable: %1").arg(executableFilePath);
+      break;
+    case ExecInvalidPath:
+      reason = tr("File not found in specified path.");
+      break;
+    case ExecNotFound:
+      reason = tr("No file in system path named '%1'.").arg(executable);
+      break;
+    }
+
+    if (reason.isEmpty())
+      continue;
+
+    QMessageBox::StandardButton response =
+        QMessageBox::warning(this, name,
+                             tr("An issue was found with the executable for "
+                                "'%1':\n\n%2\n\nWould you like to change the "
+                                "executable now?").arg(name, reason),
+                             QMessageBox::Yes | QMessageBox::No,
+                             QMessageBox::Yes);
+
+    if (response == QMessageBox::No)
+      continue;
+
+    ui->tableExec->selectRow(index);
+    ui->editExec->selectAll();
+    ui->editExec->setFocus();
+    return false;
+  }
+
   // Delete the original factories from the manager and replace them with our
   // new ones
   ActionFactoryManager *manager = ActionFactoryManager::getInstance();
@@ -140,19 +226,84 @@ void OpenWithManagerDialog::accept()
   foreach (ProgrammableOpenWithActionFactory factory, m_factories)
     manager->addFactory(new ProgrammableOpenWithActionFactory(factory));
 
+  loadFactories();
+
+  return true;
+}
+
+void OpenWithManagerDialog::accept()
+{
+  if (!apply())
+    return;
+
+  reset();
   QDialog::accept();
 }
 
 void OpenWithManagerDialog::reject()
 {
+  reset();
   QDialog::reject();
+}
+
+void OpenWithManagerDialog::closeEvent(QCloseEvent *e)
+{
+  // Ensure that all forms are submitted
+  if (QWidget *focus = this->focusWidget())
+    focus->clearFocus();
+
+  if (m_dirty) {
+    // apply or discard changes?
+    QMessageBox::StandardButton reply =
+        QMessageBox::warning(this, tr("Unsaved changes"),
+                             tr("Your changes have not been saved. Would you "
+                                "like to save or discard them?"),
+                             QMessageBox::Save | QMessageBox::Discard |
+                             QMessageBox::Cancel,
+                             QMessageBox::Save);
+
+    switch (reply) {
+    case QMessageBox::Cancel:
+      e->ignore();
+      return;
+    case QMessageBox::Save:
+      if (!apply())
+        return;
+    case QMessageBox::NoButton:
+    case QMessageBox::Discard:
+    default:
+      break;
+    }
+  }
+
+  QDialog::closeEvent(e);
+}
+
+void OpenWithManagerDialog::buttonBoxClicked(QAbstractButton *button)
+{
+  // "Ok" and "Cancel" are directly connected to accept() and reject(), so only
+  // check for "apply" here:
+  if (button == ui->buttonBox->button(QDialogButtonBox::Apply))
+    apply();
+}
+
+void OpenWithManagerDialog::markClean()
+{
+  m_dirty = false;
+  ui->buttonBox->button(QDialogButtonBox::Apply)->setEnabled(false);
+}
+
+void OpenWithManagerDialog::markDirty()
+{
+  m_dirty = true;
+  ui->buttonBox->button(QDialogButtonBox::Apply)->setEnabled(true);
 }
 
 void OpenWithManagerDialog::addExecutable()
 {
   QModelIndexList sel = selectedExecutableIndices();
   int index = -1;
-  if (sel.size() == 1)
+  if (sel.size() == m_execModel->columnCount())
     index = sel.first().row();
 
   if (index + 1 > m_execModel->rowCount(QModelIndex()) || index < 0)
@@ -160,7 +311,7 @@ void OpenWithManagerDialog::addExecutable()
 
   m_execModel->insertRow(index);
 
-  ui->listExec->selectionModel()->select(
+  ui->tableExec->selectionModel()->select(
         m_execModel->index(index, 0),
         QItemSelectionModel::ClearAndSelect | QItemSelectionModel::Rows);
 }
@@ -168,7 +319,7 @@ void OpenWithManagerDialog::addExecutable()
 void OpenWithManagerDialog::removeExecutable()
 {
   QModelIndexList sel = selectedExecutableIndices();
-  if (sel.size() != 1)
+  if (sel.size() != m_execModel->columnCount())
     return;
 
   int index = sel.first().row();
@@ -179,24 +330,123 @@ void OpenWithManagerDialog::removeExecutable()
   m_execModel->removeRow(index);
 }
 
+void OpenWithManagerDialog::browseExecutable()
+{
+  QString fileName = ui->editExec->text();
+  QFileInfo info(fileName);
+  QString initialPath;
+
+  if (!fileName.isEmpty()) {
+    // If the executable name is not an absolute path, try to look it up in PATH
+    if (info.isAbsolute()) {
+      initialPath = info.absolutePath();
+    }
+    else {
+      QString absoluteFilePath = searchSystemPathForFile(info.fileName());
+      // Found the path; initialize the file dialog to it
+      if (!absoluteFilePath.isEmpty()) {
+        ui->editExec->setText(absoluteFilePath);
+        m_execMapper->submit();
+        initialPath = absoluteFilePath;
+      }
+    }
+  }
+
+  // If we didn't find a path above, just use the user's home directory.
+  if (initialPath.isEmpty())
+    initialPath = QDir::homePath();
+
+  QString newFilePath = QFileDialog::getOpenFileName(
+        this, tr("Select executable"), initialPath);
+
+  if (!newFilePath.isEmpty()) {
+    ui->editExec->setText(newFilePath);
+    m_execMapper->submit();
+  }
+
+  testExecutable();
+}
+
+OpenWithManagerDialog::ExecutableStatus
+OpenWithManagerDialog::validateExecutable(const QString &executable)
+{
+  QString tmp;
+  return validateExecutable(executable, tmp);
+}
+
+OpenWithManagerDialog::ExecutableStatus
+OpenWithManagerDialog::validateExecutable(const QString &executable,
+                                          QString &executableFilePath)
+{
+  QFileInfo info(executable);
+  if (info.isAbsolute()) {
+    executableFilePath = info.absoluteFilePath();
+    if (!info.exists() || !info.isFile())
+      return ExecInvalidPath;
+    else if (!info.isExecutable())
+      return ExecNotExec;
+    return ExecOk;
+  }
+  else {
+    executableFilePath = searchSystemPathForFile(executable);
+    info = QFileInfo(executableFilePath);
+    if (executableFilePath.isEmpty() || !info.isFile())
+      return ExecNotFound;
+    else if (!info.isExecutable())
+      return ExecNotExec;
+    return ExecOk;
+  }
+}
+
+void OpenWithManagerDialog::testExecutable()
+{
+  switch (validateExecutable(ui->editExec->text())) {
+  case ExecOk:
+    testExecutableMatch();
+    break;
+  default:
+  case ExecNotExec:
+  case ExecInvalidPath:
+  case ExecNotFound:
+    testExecutableNoMatch();
+    break;
+  }
+}
+
+void OpenWithManagerDialog::testExecutableMatch()
+{
+  QPalette pal;
+  pal.setColor(QPalette::Text, Qt::black);
+  ui->editExec->setPalette(pal);
+}
+
+void OpenWithManagerDialog::testExecutableNoMatch()
+{
+  QPalette pal;
+  pal.setColor(QPalette::Text, Qt::red);
+  ui->editExec->setPalette(pal);
+}
+
 void OpenWithManagerDialog::executableSelectionChanged()
 {
   // Get selected executable
   QModelIndexList sel = selectedExecutableIndices();
   int index = -1;
-  if (sel.size() == 1)
+  if (sel.size() == m_execModel->columnCount())
     index = sel.first().row();
 
   // If valid, set the regexp list
   if (index >= 0 && index < m_execModel->rowCount(QModelIndex())) {
-    ui->groupPattern->setEnabled(true);
+    setExecutableGuiEnabled(true);
+    setPatternGuiEnabled(true);
     m_patternModel->setRegExps(&m_factories[index].recognizedFilePatternsRef());
     m_patternMapper->toFirst();
   }
   // otherwise, clear the regexp list and disable the pattern GUI
   else {
+    setExecutableGuiEnabled(false);
+    setPatternGuiEnabled(false);
     m_patternModel->setRegExps(NULL);
-    ui->groupPattern->setEnabled(false);
   }
 
   // Update the execMapper
@@ -204,15 +454,22 @@ void OpenWithManagerDialog::executableSelectionChanged()
     m_execMapper->setCurrentIndex(sel.first().row());
 }
 
-void OpenWithManagerDialog::executableDimensionsChanged()
-{
-  setExecutableGuiEnabled(m_execModel->rowCount(QModelIndex()) != 0);
-}
-
 void OpenWithManagerDialog::setExecutableGuiEnabled(bool enable)
 {
   ui->editExec->setEnabled(enable);
   ui->labelExec->setEnabled(enable);
+  ui->pushExec->setEnabled(enable);
+  ui->editExec->setEnabled(enable);
+  ui->editName->setEnabled(enable);
+  ui->labelName->setEnabled(enable);
+  if (!enable) {
+    ui->editExec->blockSignals(true);
+    ui->editExec->clear();
+    ui->editExec->blockSignals(false);
+    ui->editName->blockSignals(true);
+    ui->editName->clear();
+    ui->editName->blockSignals(false);
+  }
 }
 
 void OpenWithManagerDialog::addPattern()
@@ -258,19 +515,31 @@ void OpenWithManagerDialog::patternSelectionChanged()
 
 void OpenWithManagerDialog::patternDimensionsChanged()
 {
-  setPatternGuiEnabled(m_patternModel->rowCount(QModelIndex()) != 0);
   ui->tablePattern->horizontalHeader()->setResizeMode(
         OpenWithPatternModel::PatternCol, QHeaderView::Stretch);
 }
 
 void OpenWithManagerDialog::setPatternGuiEnabled(bool enable)
 {
+  ui->groupPattern->setEnabled(enable);
   ui->labelPattern->setEnabled(enable);
   ui->editPattern->setEnabled(enable);
   ui->comboMatch->setEnabled(enable);
   ui->checkCaseSensitive->setEnabled(enable);
   ui->pushApplyPattern->setEnabled(enable);
   ui->pushRevertPattern->setEnabled(enable);
+  // also clear edits if disabling:
+  if (!enable) {
+    ui->editPattern->blockSignals(true);
+    ui->editPattern->clear();
+    ui->editPattern->blockSignals(false);
+    ui->comboMatch->blockSignals(true);
+    ui->comboMatch->setCurrentIndex(0);
+    ui->comboMatch->blockSignals(false);
+    ui->checkCaseSensitive->blockSignals(false);
+    ui->checkCaseSensitive->setEnabled(enable);
+    ui->checkCaseSensitive->blockSignals(true);
+  }
 }
 
 void OpenWithManagerDialog::checkTestText()
@@ -296,7 +565,7 @@ void OpenWithManagerDialog::checkTestText()
 void OpenWithManagerDialog::testTextMatch()
 {
   QPalette pal;
-  pal.setColor(QPalette::Text, Qt::darkGreen);
+  pal.setColor(QPalette::Text, Qt::black);
   ui->editTest->setPalette(pal);
 }
 
@@ -307,9 +576,39 @@ void OpenWithManagerDialog::testTextNoMatch()
   ui->editTest->setPalette(pal);
 }
 
+QString OpenWithManagerDialog::searchSystemPathForFile(const QString &exec)
+{
+  QString result;
+  QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
+  if (!env.contains("PATH"))
+    return result;
+
+  static QRegExp pathSplitter = QRegExp(
+#ifdef Q_OS_WIN32
+        ";"
+#else // WIN32
+        ":"
+#endif// WIN32
+        );
+  QStringList paths =
+      env.value("PATH").split(pathSplitter, QString::SkipEmptyParts);
+
+  foreach (const QString &path, paths) {
+    QFileInfo info(QUrl::fromLocalFile(path + "/" + exec).toLocalFile());
+    if (!info.exists()
+        || !info.isFile()) {
+      continue;
+    }
+    result = info.absoluteFilePath();
+    break;
+  }
+
+  return result;
+}
+
 QModelIndexList OpenWithManagerDialog::selectedExecutableIndices() const
 {
-  return ui->listExec->selectionModel()->selectedIndexes();
+  return ui->tableExec->selectionModel()->selectedIndexes();
 }
 
 QModelIndexList OpenWithManagerDialog::selectedPatternIndices() const
@@ -320,7 +619,7 @@ QModelIndexList OpenWithManagerDialog::selectedPatternIndices() const
 ProgrammableOpenWithActionFactory *OpenWithManagerDialog::selectedFactory()
 {
   QModelIndexList sel = selectedExecutableIndices();
-  if (sel.size() != 1)
+  if (sel.size() != m_execModel->columnCount())
     return NULL;
 
   int index = sel.first().row();
@@ -353,12 +652,20 @@ QRegExp *OpenWithManagerDialog::selectedRegExp()
 
 void OpenWithManagerDialog::keyPressEvent(QKeyEvent *ev)
 {
+  switch (ev->key()) {
+  // By default, the escape key bypasses the close event, but we still want to
+  // check if the settings widget is dirty.
+  case Qt::Key_Escape:
+    ev->accept();
+    close();
+    break;
+
   // Disable forwarding of enter and return to Ok/Cancel buttons. Too easy to
   // accidentally close the dialog while modifying line edits.
-  switch (ev->key()) {
   case Qt::Key_Return:
   case Qt::Key_Enter:
     break;
+
   default:
     QDialog::keyPressEvent(ev);
   }

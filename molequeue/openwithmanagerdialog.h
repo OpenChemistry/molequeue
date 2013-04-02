@@ -21,6 +21,7 @@
 
 #include <QtCore/QModelIndexList>
 
+class QAbstractButton;
 class QDataWidgetMapper;
 class QItemDelegate;
 
@@ -46,14 +47,46 @@ public:
   explicit OpenWithManagerDialog(QWidget *parentObject = 0);
   ~OpenWithManagerDialog();
 
+  void loadFactories();
+  void reset();
+  /** Return value is false if user refuses to accept changes. */
+  bool apply();
   void accept();
   void reject();
 
-protected slots:
+protected:
+  void closeEvent(QCloseEvent *);
+  void keyPressEvent(QKeyEvent *);
+
+private:
+  /** Return values for validateExecutable() */
+  enum ExecutableStatus {
+    /** Executable is found and has correct permissions. */
+    ExecOk = 0,
+    /** Executable is not marked executable by the filesystem. */
+    ExecNotExec,
+    /** The executable cannot be found in the specified path. */
+    ExecInvalidPath,
+    /** The executable cannot be found in the system path. */
+    ExecNotFound
+  };
+
+private slots:
+  void buttonBoxClicked(QAbstractButton*);
+
+  void markClean();
+  void markDirty();
+
   void addExecutable();
   void removeExecutable();
+  void browseExecutable();
+  ExecutableStatus validateExecutable(const QString &executable);
+  ExecutableStatus validateExecutable(const QString &executable,
+                                      QString &executableFilePath);
+  void testExecutable();
+  void testExecutableMatch();
+  void testExecutableNoMatch();
   void executableSelectionChanged();
-  void executableDimensionsChanged();
   void setExecutableGuiEnabled(bool enable = true);
 
   void addPattern();
@@ -66,14 +99,19 @@ protected slots:
   void testTextMatch();
   void testTextNoMatch();
 
-protected:
+private:
+  /**
+   * @brief Search the environment variable PATH for a file with the specified
+   * name.
+   * @param exec The name of the file.
+   * @return The absolute path to the file on the system, or a null QString if
+   * not found.
+   */
+  static QString searchSystemPathForFile(const QString &exec);
   QModelIndexList selectedExecutableIndices() const;
   QModelIndexList selectedPatternIndices() const;
   ProgrammableOpenWithActionFactory *selectedFactory();
   QRegExp *selectedRegExp();
-
-  /// Disable forwarding enter/return to the Ok/Cancel buttons:
-  void keyPressEvent(QKeyEvent *ev);
 
   Ui::OpenWithManagerDialog *ui;
 
@@ -85,6 +123,8 @@ protected:
   QDataWidgetMapper *m_execMapper;
 
   PatternTypeDelegate *m_patternTypeDelegate;
+
+  bool m_dirty;
 };
 
 } // end namespace MoleQueue

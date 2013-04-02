@@ -30,6 +30,8 @@ public:
   KillJobActionFactory();
   ~KillJobActionFactory();
 
+  QString name() const { return tr("Kill job"); }
+
   bool isValidForJob(const Job &job) const;
 
   QList<QAction*> createActions();

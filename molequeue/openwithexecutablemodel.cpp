@@ -18,11 +18,20 @@
 
 #include "jobactionfactories/programmableopenwithactionfactory.h"
 
+namespace {
+enum Column {
+  FactoryName = 0,
+  Executable,
+
+  COLUMN_COUNT
+};
+}
+
 namespace MoleQueue
 {
 
 OpenWithExecutableModel::OpenWithExecutableModel(QObject *parentObject) :
-  QAbstractListModel(parentObject),
+  QAbstractItemModel(parentObject),
   m_factories(NULL)
 {
 }
@@ -35,21 +44,50 @@ int OpenWithExecutableModel::rowCount(const QModelIndex &) const
   return m_factories->size();
 }
 
+int OpenWithExecutableModel::columnCount(const QModelIndex &) const
+{
+  return COLUMN_COUNT;
+}
+
 QVariant OpenWithExecutableModel::data(const QModelIndex &ind, int role) const
 {
-  if ((role != Qt::DisplayRole && role != Qt::EditRole) || !m_factories
-      || !ind.isValid() || ind.row() + 1 > m_factories->size() || ind.row() < 0)
+  if ((role != Qt::DisplayRole && role != Qt::EditRole)
+      || !m_factories
+      || !ind.isValid()
+      || ind.row() >= m_factories->size() || ind.row() < 0
+      || ind.column() >= COLUMN_COUNT || ind.column() < 0) {
     return QVariant();
+  }
 
-  return (*m_factories)[ind.row()].executableName();
+  switch (static_cast<Column>(ind.column())) {
+  case FactoryName:
+    return (*m_factories)[ind.row()].name();
+  case Executable:
+    return (*m_factories)[ind.row()].executable();
+  default:
+    break;
+  }
+
+  return QVariant();
 }
 
 QVariant OpenWithExecutableModel::headerData(
-    int, Qt::Orientation, int role) const
+    int section, Qt::Orientation orientation, int role) const
 {
-  if (!m_factories || role != Qt::DisplayRole)
-    return QVariant();
-  return tr("Executable Name");
+  if (m_factories
+      && role == Qt::DisplayRole
+      && orientation == Qt::Horizontal) {
+    switch (static_cast<Column>(section)) {
+    case FactoryName:
+      return tr("Name");
+    case Executable:
+      return tr("Executable");
+    default:
+      break;
+    }
+  }
+
+  return QVariant();
 }
 
 bool OpenWithExecutableModel::insertRows(int row, int count,
@@ -62,7 +100,7 @@ bool OpenWithExecutableModel::insertRows(int row, int count,
 
   for (int i = 0; i < count; ++i) {
     ProgrammableOpenWithActionFactory newFactory;
-    newFactory.setExecutableName(
+    newFactory.setName(
           tr("New%1").arg(count == 1 ? QString("") : QString::number(i+1)));
     m_factories->insert(row, newFactory);
   }
@@ -89,12 +127,25 @@ bool OpenWithExecutableModel::removeRows(
 bool OpenWithExecutableModel::setData(const QModelIndex &ind,
                                       const QVariant &value, int role)
 {
-  if (!m_factories || !value.canConvert(QVariant::String) || !ind.isValid() ||
-      ind.row() + 1 > m_factories->size() || ind.row() < 0 ||
-      role != Qt::EditRole)
+  if (!m_factories
+      || !value.canConvert(QVariant::String)
+      || !ind.isValid()
+      || ind.row() >= m_factories->size() || ind.row() < 0
+      || ind.column() >= COLUMN_COUNT || ind.column() < 0
+      || role != Qt::EditRole) {
     return false;
+  }
 
-  (*m_factories)[ind.row()].setExecutableName(value.toString());
+  switch (static_cast<Column>(ind.column())) {
+  case FactoryName:
+    (*m_factories)[ind.row()].setName(value.toString());
+    break;
+  case Executable:
+    (*m_factories)[ind.row()].setExecutable(value.toString());
+    break;
+  default:
+    break;
+  }
 
   emit dataChanged(ind, ind);
   return true;
@@ -104,6 +155,20 @@ Qt::ItemFlags OpenWithExecutableModel::flags(const QModelIndex &) const
 {
   return static_cast<Qt::ItemFlags>
       (Qt::ItemIsSelectable | Qt::ItemIsEditable | Qt::ItemIsEnabled);
+}
+
+QModelIndex OpenWithExecutableModel::index(int row, int column,
+                                           const QModelIndex &p) const
+{
+  if (p.isValid())
+    return QModelIndex();
+
+  return createIndex(row, column);
+}
+
+QModelIndex OpenWithExecutableModel::parent(const QModelIndex &) const
+{
+  return QModelIndex();
 }
 
 void OpenWithExecutableModel::setFactories(
