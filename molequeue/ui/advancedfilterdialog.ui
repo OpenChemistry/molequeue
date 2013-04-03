@@ -152,6 +152,19 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>filterStatusNew</tabstop>
+  <tabstop>filterStatusSubmitted</tabstop>
+  <tabstop>filterStatusQueued</tabstop>
+  <tabstop>filterStatusRunning</tabstop>
+  <tabstop>filterStatusFinished</tabstop>
+  <tabstop>filterStatusCanceled</tabstop>
+  <tabstop>filterStatusError</tabstop>
+  <tabstop>filterStatusAll</tabstop>
+  <tabstop>filterStatusNone</tabstop>
+  <tabstop>filterShowHidden</tabstop>
+  <tabstop>buttonBox</tabstop>
+ </tabstops>
  <resources/>
  <connections>
   <connection>

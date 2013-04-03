@@ -23,6 +23,9 @@
       <property name="fieldGrowthPolicy">
        <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
       </property>
+      <property name="labelAlignment">
+       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+      </property>
       <item row="2" column="0">
        <widget class="QLabel" name="label4">
         <property name="text">
@@ -94,6 +97,9 @@
      <layout class="QFormLayout" name="formLayout2">
       <property name="fieldGrowthPolicy">
        <enum>QFormLayout::ExpandingFieldsGrow</enum>
+      </property>
+      <property name="labelAlignment">
+       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
       </property>
       <item row="1" column="0">
        <widget class="QLabel" name="label_11">
@@ -206,6 +212,9 @@
         <property name="text">
          <string>Hostname:</string>
         </property>
+        <property name="alignment">
+         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+        </property>
        </widget>
       </item>
       <item row="0" column="1">
@@ -295,9 +304,16 @@
   </layout>
  </widget>
  <tabstops>
+  <tabstop>hostNameComboBox</tabstop>
+  <tabstop>pushGetHostNames</tabstop>
   <tabstop>updateIntervalSpin</tabstop>
+  <tabstop>editWorkingDirectoryBase</tabstop>
   <tabstop>wallTimeHours</tabstop>
   <tabstop>wallTimeMinutes</tabstop>
+  <tabstop>pushSleepTest</tabstop>
+  <tabstop>editKerberosRealm</tabstop>
+  <tabstop>editKerberosUserName</tabstop>
+  <tabstop>pushTestConnection</tabstop>
   <tabstop>text_launchTemplate</tabstop>
   <tabstop>templateHelpButton</tabstop>
  </tabstops>
