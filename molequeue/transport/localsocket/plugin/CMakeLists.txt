@@ -5,4 +5,5 @@ add_library(mqlocalsocketclf MODULE localsocketconnectionlistenerfactory.cpp)
 set_target_properties(mqlocalsocketclf PROPERTIES AUTOMOC TRUE)
 target_link_libraries(mqlocalsocketclf mqlocalsocketconnectionlistener)
 
-install(TARGETS mqlocalsocketclf DESTINATION lib/molequeue/plugins)
+install(TARGETS mqlocalsocketclf
+  DESTINATION ${INSTALL_LIBRARY_DIR}/molequeue/plugins)

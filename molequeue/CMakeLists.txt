@@ -196,11 +196,25 @@ if(MoleQueue_BUILD_APPLICATION)
     target_link_libraries(molequeue_static MoleQueueClient)
   endif()
 
-  add_executable(molequeue MACOSX_BUNDLE main.cpp ${rcc_srcs})
+  set(sources main.cpp)
+  # Handle Mac OS X specific icons etc.
+  if(APPLE)
+    list(APPEND sources icons/molequeue.icns)
+    set(MACOSX_BUNDLE_ICON_FILE molequeue.icns)
+    set(MACOSX_BUNDLE_BUNDLE_VERSION "${MoleQueue_VERSION}")
+    set_source_files_properties(icons/molequeue.icns PROPERTIES
+      MACOSX_PACKAGE_LOCATION Resources)
+  endif()
+
+  add_executable(molequeue MACOSX_BUNDLE ${sources} ${rcc_srcs})
   target_link_libraries(molequeue
     molequeue_static
     ${QT_LIBRARIES}
   )
+  if(APPLE)
+    set_target_properties(molequeue PROPERTIES
+      OUTPUT_NAME ${MACOSX_BUNDLE_NAME})
+  endif()
 
   install(TARGETS molequeue
     RUNTIME DESTINATION ${INSTALL_RUNTIME_DIR}
