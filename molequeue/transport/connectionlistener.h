@@ -17,7 +17,7 @@
 #ifndef CONNECTIONLISTENER_H_
 #define CONNECTIONLISTENER_H_
 
-#include "mqconnectionexport.h"
+#include "molequeueserverprivateexport.h"
 #include <molequeue/molequeueglobal.h>
 #include "connection.h"
 
@@ -33,7 +33,7 @@ namespace MoleQueue
  * signal. Subclasses provide concrete implements for example based on local sockets
  * @see LocalSocketConnectionListener
  */
-class MQCONNECTION_EXPORT ConnectionListener : public QObject
+class MOLEQUEUESERVERPRIVATE_EXPORT ConnectionListener : public QObject
 {
   Q_OBJECT
   Q_ENUMS(Error)

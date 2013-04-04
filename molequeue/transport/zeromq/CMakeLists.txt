@@ -12,7 +12,7 @@ list(APPEND zeromq_targets mqzeromqconnection)
 list(APPEND zeromq_headers zeromqconnection.h)
 set_target_properties(mqzeromqconnection PROPERTIES AUTOMOC TRUE)
 target_link_libraries(mqzeromqconnection
-  mqconnection
+  MoleQueueServerPrivate
   ${QT_LIBRARIES}
   ${ZeroMQ_LIBRARIES})
 

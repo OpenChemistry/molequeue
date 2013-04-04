@@ -8,7 +8,7 @@ list(APPEND localsocket_targets mqlocalsocketconnection)
 list(APPEND localsocket_headers localsocketconnection.h)
 set_target_properties(mqlocalsocketconnection PROPERTIES AUTOMOC TRUE)
 target_link_libraries(mqlocalsocketconnection
-  mqconnection
+  MoleQueueServerPrivate
   ${QT_LIBRARIES}
 )
 
