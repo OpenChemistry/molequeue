@@ -18,7 +18,28 @@
 
 #include <qjsondocument.h>
 #include <QtCore/QDataStream>
+#include <QtCore/QCoreApplication>
+#include <QtCore/QTimer>
 #include <QtNetwork/QLocalSocket>
+
+namespace {
+/** Helper for the static pingServer method. */
+class PingListener : public QObject
+{
+  Q_OBJECT
+public:
+  PingListener() : replyReceived(false), pingSuccessful(false) {}
+  virtual ~PingListener() {}
+  bool replyReceived;
+  bool pingSuccessful;
+public slots:
+  void receivePong(const QJsonObject &response)
+  {
+    pingSuccessful = (response.value("result").toString() == QString("pong"));
+    replyReceived = true;
+  }
+};
+}
 
 namespace MoleQueue
 {
@@ -76,6 +97,35 @@ QString JsonRpcClient::serverName() const
     return m_socket->serverName();
   else
     return QString();
+}
+
+bool JsonRpcClient::pingServer(const QString &serverName, int msTimeout)
+{
+  MoleQueue::JsonRpcClient client;
+  PingListener listener;
+  QTimer timeout;
+  timeout.setInterval(msTimeout);
+  timeout.setSingleShot(true);
+
+  bool result(client.connectToServer(serverName));
+
+  if (result) {
+    QJsonObject request(client.emptyRequest());
+    request["method"] = QLatin1String("internalPing");
+    QObject::connect(&client, SIGNAL(resultReceived(QJsonObject)),
+                     &listener, SLOT(receivePong(QJsonObject)));
+    result = client.sendRequest(request);
+    timeout.start();
+  }
+
+  // Wait for request
+  if (result) {
+    while (!listener.replyReceived && timeout.isActive())
+      qApp->processEvents();
+    result = listener.pingSuccessful;
+  }
+
+  return result;
 }
 
 void JsonRpcClient::flush()
@@ -150,3 +200,6 @@ void JsonRpcClient::readSocket()
 }
 
 } // End namespace MoleQueue
+
+// For the moc'd PingListener
+#include "jsonrpcclient.moc"

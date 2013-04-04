@@ -70,6 +70,15 @@ public:
    */
   QString serverName() const;
 
+  /**
+   * @brief Ping the server at @a serverName and wait @a msTimeout milliseconds
+   * for a reply. The default timeout is 200 ms.
+   * @note This method requires an event loop.
+   * @note This method will only work with MoleQueue::JsonRpc server instances.
+   * @return True if the server responds, false otherwise.
+   */
+  static bool pingServer(const QString &serverName, int msTimeout = 200);
+
 public slots:
   /**
    * Connect to the server.
