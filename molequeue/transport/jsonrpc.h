@@ -58,6 +58,10 @@ class ConnectionListener;
  * - -32602 Invalid params
  *   - Inappropriate parameters supplied for requested method.
  *
+ * Incoming requests with method="internalPing" will be automatically replied
+ * to with result="pong". This can be used to test if a server is alive or not.
+ * messageReceived will not be emitted in this case.
+ *
  * Use Message::generateResponse() and Message::generateErrorResponse() to
  * easily create replies to incoming requests.
  */

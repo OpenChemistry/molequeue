@@ -188,6 +188,15 @@ void JsonRpc::handleJsonValue(Connection *conn, const EndpointIdType &endpoint,
     return;
   }
 
+  // Handle ping requests internally
+  if (message.type() == Message::Request
+      && message.method() == "internalPing") {
+    Message response = message.generateResponse();
+    response.setResult(QLatin1String("pong"));
+    response.send();
+    return;
+  }
+
   emit messageReceived(message);
 }
 
