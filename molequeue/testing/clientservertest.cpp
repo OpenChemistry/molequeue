@@ -25,8 +25,8 @@
 #include <QtCore/QProcessEnvironment>
 
 // Define ENABLE_ZMQ_TESTS if both zeromq and python are available
-#ifndef MoleQueue_PYTHON_EXECUTABLE
-#ifndef MoleQueue_HAS_ZMQ
+#ifdef MoleQueue_PYTHON_EXECUTABLE
+#ifdef MoleQueue_HAS_ZMQ
 #define ENABLE_ZMQ_TESTS
 #endif // MoleQueue_HAS_ZMQ
 #endif // MoleQueue_PYTHON_EXECUTABLE
