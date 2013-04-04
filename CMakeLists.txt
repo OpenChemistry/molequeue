@@ -20,6 +20,16 @@ set(MoleQueue_VERSION
 find_package(Git)
 determine_version(${MoleQueue_SOURCE_DIR} ${GIT_EXECUTABLE} "MoleQueue")
 
+# Handle installation prefix for Mac bundles...
+if(APPLE)
+  set(MACOSX_BUNDLE_NAME "MoleQueue")
+  set(prefix "${MACOSX_BUNDLE_NAME}.app/Contents")
+  set(INSTALL_INCLUDE_DIR "${prefix}/${INSTALL_INCLUDE_DIR}")
+  set(INSTALL_LIBRARY_DIR "${prefix}/${INSTALL_LIBRARY_DIR}")
+  set(INSTALL_ARCHIVE_DIR "${prefix}/${INSTALL_ARCHIVE_DIR}")
+endif()
+message("CMAKE_INSTALL_PREFIX: ${CMAKE_INSTALL_PREFIX}")
+
 option(ENABLE_TESTING "Enable testing" OFF)
 
 option(BUILD_SHARED_LIBS "Build with shared libraries" ON)
@@ -53,8 +63,6 @@ if(USE_ZERO_MQ)
   add_subdirectory(python)
 endif()
 
-include(CPack)
-
 if(ENABLE_TESTING)
   include(BuildPackageTest)
   BuildPackageTest_Add("MoleQueue" "${CMAKE_CURRENT_BINARY_DIR}")
@@ -74,3 +82,5 @@ install(FILES
   DESTINATION "${INSTALL_LIBRARY_DIR}/cmake/molequeue")
 install(EXPORT "MoleQueueTargets"
   DESTINATION "${INSTALL_LIBRARY_DIR}/cmake/molequeue")
+
+include(CPack)

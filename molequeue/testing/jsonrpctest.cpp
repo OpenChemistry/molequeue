@@ -19,8 +19,12 @@
 
 #include "dummyconnection.h"
 #include "dummyconnectionlistener.h"
+#include "referencestring.h"
 
 #include "transport/message.h"
+
+#include <qjsondocument.h>
+#include <qjsonvalue.h>
 
 #include <QtCore/QCoreApplication>
 
@@ -50,6 +54,7 @@ private slots:
   void messageReceived();
   void removeConnection();
   void removeConnectionListener();
+  void internalPing();
 };
 
 void JsonRpcTest::initTestCase()
@@ -121,6 +126,19 @@ void JsonRpcTest::removeConnectionListener()
   delete m_connList2;
   qApp->processEvents(QEventLoop::AllEvents, 1000);
   QCOMPARE(m_jsonRpc.m_connections.size(), 1);
+}
+
+void JsonRpcTest::internalPing()
+{
+  ReferenceString request("jsonrpc-ref/internalPing-request.json");
+  ReferenceString response("jsonrpc-ref/internalPing-response.json");
+  DummyConnection connection;
+  QJsonDocument doc(QJsonDocument::fromJson(request.toString().toLatin1()));
+  m_jsonRpc.handleJsonValue(&connection, MoleQueue::EndpointIdType(),
+                            doc.object());
+  qApp->processEvents();
+  QCOMPARE(QString(connection.popMessage().toJson()),
+           QString(response.toString().toLatin1()));
 }
 
 QTEST_MAIN(JsonRpcTest)
