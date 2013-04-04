@@ -23,7 +23,7 @@
 #include <QtCore/QMap>
 #include <QtCore/QObject>
 
-#include "mqconnectionexport.h"
+#include "molequeueserverprivateexport.h"
 
 class JsonRpcTest;
 
@@ -65,7 +65,7 @@ class ConnectionListener;
  * Use Message::generateResponse() and Message::generateErrorResponse() to
  * easily create replies to incoming requests.
  */
-class MQCONNECTION_EXPORT JsonRpc : public QObject
+class MOLEQUEUESERVERPRIVATE_EXPORT JsonRpc : public QObject
 {
   Q_OBJECT
 public:

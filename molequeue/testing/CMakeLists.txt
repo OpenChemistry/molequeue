@@ -80,7 +80,7 @@ foreach(test ${MyTests})
   set_target_properties(${test}test PROPERTIES AUTOMOC TRUE)
   target_link_libraries(${test}test
     ${QT_LIBRARIES}
-    mqlocalsocketconnection
+    MoleQueueServerCore
     testutils
     )
   add_test(NAME molequeue-${test} COMMAND ${test}test)

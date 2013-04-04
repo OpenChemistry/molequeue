@@ -23,7 +23,7 @@
 #include <QtCore/QFlags>
 #include <QtCore/QString>
 
-#include "mqconnectionexport.h"
+#include "molequeueserverprivateexport.h"
 
 class MessageTest;
 class ServerTest;
@@ -99,7 +99,7 @@ typedef QByteArray PacketType;
  * and obtained by calling toJson(), and a QJsonObject representation is
  * available from the toJsonObject() method.
  */
-class MQCONNECTION_EXPORT Message
+class MOLEQUEUESERVERPRIVATE_EXPORT Message
 {
 public:
   // Used for unit testing:
