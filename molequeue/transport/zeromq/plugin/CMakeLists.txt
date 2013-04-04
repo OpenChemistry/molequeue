@@ -3,7 +3,6 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY
 
 add_library(mqzeromqclf MODULE zeromqconnectionlistenerfactory.cpp)
 set_target_properties(mqzeromqclf PROPERTIES AUTOMOC TRUE)
-target_link_libraries(mqzeromqclf
-  mqzeromqconnectionlistener)
+target_link_libraries(mqzeromqclf MoleQueueZeroMqServer)
 
 install(TARGETS mqzeromqclf DESTINATION lib/molequeue/plugins)
