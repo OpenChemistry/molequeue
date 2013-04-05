@@ -18,11 +18,10 @@ if((APPLE OR WIN32) AND NOT ${CMAKE_VERSION} VERSION_LESS 2.8.8)
     set(exe "${pfx}molequeue${sfx}")
   endif()
 
-  set(dirs "")
+  set(dirs "${CMAKE_INSTALL_PREFIX}/${INSTALL_LIBRARY_DIR}")
   if(CMAKE_PREFIX_PATH)
-    set(dirs "${CMAKE_PREFIX_PATH}/bin" "${CMAKE_PREFIX_PATH}/lib")
+    list(APPEND dirs "${CMAKE_PREFIX_PATH}/bin" "${CMAKE_PREFIX_PATH}/lib")
   endif()
-
   include(DeployQt4)
   install_qt4_executable(${exe} "" "" "${dirs}")
 endif()
