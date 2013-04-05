@@ -3,6 +3,9 @@ set(qt_components QtCore QtGui QtNetwork)
 if(MoleQueue_USE_EZHPC_UIT)
   list(APPEND qt_components QtXmlPatterns)
 endif()
+if(WIN32)
+  list(APPEND qt_components QtMain)
+endif()
 
 find_package(Qt4 4.8.0 COMPONENTS ${qt_components})
 
@@ -204,9 +207,11 @@ if(MoleQueue_BUILD_APPLICATION)
     set(MACOSX_BUNDLE_BUNDLE_VERSION "${MoleQueue_VERSION}")
     set_source_files_properties(icons/molequeue.icns PROPERTIES
       MACOSX_PACKAGE_LOCATION Resources)
+  elseif(WIN32)
+    list(APPEND sources icons/molequeue.rc)
   endif()
 
-  add_executable(molequeue MACOSX_BUNDLE ${sources} ${rcc_srcs})
+  add_executable(molequeue WIN32 MACOSX_BUNDLE ${sources} ${rcc_srcs})
   target_link_libraries(molequeue
     molequeue_static
     ${QT_LIBRARIES}
