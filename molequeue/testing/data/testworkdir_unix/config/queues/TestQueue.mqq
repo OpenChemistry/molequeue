@@ -9,11 +9,9 @@
          "arguments" : "empty.txt",
          "customLaunchTemplate" : "",
          "executable" : "touch",
-         "executablePath" : "",
          "inputFilename" : "job.inp",
          "launchSyntax" : 1,
-         "outputFilename" : "job.out",
-         "useExecutablePath" : false
+         "outputFilename" : "job.out"
       }
    },
    "type" : "Local"

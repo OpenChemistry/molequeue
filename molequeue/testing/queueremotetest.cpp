@@ -67,7 +67,6 @@ void QueueRemoteTest::initTestCase()
   Program *program = new Program(m_queue);
   program->setName("DummyProgram");
   program->setExecutable("");
-  program->setUseExecutablePath(false);
   program->setArguments("");
   program->setOutputFilename("output.out");
   program->setLaunchSyntax(Program::REDIRECT);

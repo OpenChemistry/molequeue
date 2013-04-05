@@ -36,8 +36,6 @@ Program::Program(Queue *parentQueue) :
   m_server((m_queueManager) ? m_queueManager->server() : NULL),
   m_name("Program"),
   m_executable("program"),
-  m_useExecutablePath(false),
-  m_executablePath(""),
   m_arguments(),
   m_outputFilename("$$inputFileBaseName$$.out"),
   m_launchSyntax(REDIRECT),
@@ -50,8 +48,6 @@ Program::Program(const Program &other)
     m_queue(other.m_queue),
     m_name(other.m_name),
     m_executable(other.m_executable),
-    m_useExecutablePath(other.m_useExecutablePath),
-    m_executablePath(other.m_executablePath),
     m_arguments(other.m_arguments),
     m_outputFilename(other.m_outputFilename),
     m_launchSyntax(other.m_launchSyntax),
@@ -68,8 +64,6 @@ Program &Program::operator=(const Program &other)
   m_queue = other.m_queue;
   m_name = other.m_name;
   m_executable = other.m_executable;
-  m_useExecutablePath = other.m_useExecutablePath;
-  m_executablePath = other.m_executablePath;
   m_arguments = other.m_arguments;
   m_outputFilename = other.m_outputFilename;
   m_launchSyntax = other.m_launchSyntax;
@@ -148,30 +142,29 @@ bool Program::exportSettings(const QString &fileName) const
 
 bool Program::writeJsonSettings(QJsonObject &json, bool exportOnly) const
 {
+  // No export sensitive data.
+  Q_UNUSED(exportOnly)
+
   json.insert("executable", m_executable);
   json.insert("arguments", m_arguments);
   json.insert("outputFilename", m_outputFilename);
   json.insert("customLaunchTemplate", m_customLaunchTemplate);
   json.insert("launchSyntax", static_cast<double>(m_launchSyntax));
 
-  if (!exportOnly) {
-    json.insert("useExecutablePath", m_useExecutablePath);
-    json.insert("executablePath", m_executablePath);
-  }
-
   return true;
 }
 
 bool Program::readJsonSettings(const QJsonObject &json, bool importOnly)
 {
+  // No import sensitive data.
+  Q_UNUSED(importOnly)
+
   // Validate JSON
   if (!json.value("executable").isString() ||
       !json.value("arguments").isString() ||
       !json.value("outputFilename").isString() ||
       !json.value("customLaunchTemplate").isString() ||
-      !json.value("launchSyntax").isDouble() ||
-      (!importOnly && (!json.value("useExecutablePath").isBool() ||
-                       !json.value("executablePath").isString()))) {
+      !json.value("launchSyntax").isDouble()) {
     Logger::logError(tr("Error reading program config: Invalid format:\n%1")
                      .arg(QString(QJsonDocument(json).toJson())));
     return false;
@@ -185,10 +178,6 @@ bool Program::readJsonSettings(const QJsonObject &json, bool importOnly)
       static_cast<LaunchSyntax>(
         static_cast<int>(json.value("launchSyntax").toDouble() + 0.5));
 
-  if (!importOnly) {
-    m_useExecutablePath = json.value("useExecutablePath").toBool();
-    m_executablePath = json.value("executablePath").toString();
-  }
   return true;
 }
 
@@ -201,8 +190,7 @@ QString Program::launchTemplate() const
                            : QString("$$programExecution$$");
   if (result.contains("$$programExecution$$")) {
     const QString progExec = Program::generateFormattedExecutionString(
-          m_executable, m_arguments, m_outputFilename, m_executablePath,
-          m_useExecutablePath, m_launchSyntax);
+          m_executable, m_arguments, m_outputFilename, m_launchSyntax);
     result.replace("$$programExecution$$", progExec);
   }
   if (QueueRemote *remoteQueue = qobject_cast<QueueRemote*>(m_queue)) {
@@ -218,39 +206,36 @@ QString Program::launchTemplate() const
 }
 
 QString Program::generateFormattedExecutionString(
-    const QString &executableName_, const QString &arguments_,
-    const QString &outputFilename_, const QString &executablePath_,
-    bool useExecutablePath_, Program::LaunchSyntax syntax_)
+    const QString &executable_, const QString &arguments_,
+    const QString &outputFilename_, Program::LaunchSyntax syntax_)
 {
   if (syntax_ == Program::CUSTOM) {
     return "";
   }
 
   QString execStr;
-  QString executable =
-      ((useExecutablePath_) ? executablePath_ + "/" : QString())
-      + executableName_
-      + ((arguments_.isEmpty()) ? QString() : " " + arguments_);
+  QString command = executable_ + (arguments_.isEmpty() ? QString()
+                                                        : " " + arguments_);
 
   switch (syntax_) {
   case Program::PLAIN:
-    execStr += executable;
+    execStr += command;
     break;
   case Program::INPUT_ARG:
-    execStr += QString("%1 $$inputFileName$$\n").arg(executable);
+    execStr += QString("%1 $$inputFileName$$\n").arg(command);
     break;
   case Program::INPUT_ARG_NO_EXT:
   {
-    execStr += QString("%1 $$inputFileBaseName$$\n").arg(executable);
+    execStr += QString("%1 $$inputFileBaseName$$\n").arg(command);
   }
     break;
   case Program::REDIRECT:
     execStr += QString("%1 < $$inputFileName$$ > %3\n")
-        .arg(executable).arg(outputFilename_);
+        .arg(command).arg(outputFilename_);
     break;
   case Program::INPUT_ARG_OUTPUT_REDIRECT:
     execStr += QString("%1 $$inputFileName$$ > %3\n")
-        .arg(executable).arg(outputFilename_);
+        .arg(command).arg(outputFilename_);
     break;
   case Program::CUSTOM:
     // Should be handled as a special case earlier.

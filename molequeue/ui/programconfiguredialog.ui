@@ -146,7 +146,7 @@
         <item row="1" column="0">
          <widget class="QLabel" name="label_3">
           <property name="text">
-           <string>E&amp;xecutable name:</string>
+           <string>E&amp;xecutable:</string>
           </property>
           <property name="buddy">
            <cstring>edit_executableName</cstring>
@@ -156,48 +156,17 @@
         <item row="1" column="1">
          <widget class="QLineEdit" name="edit_executableName"/>
         </item>
-        <item row="2" column="0" colspan="2">
-         <widget class="QGroupBox" name="gb_executablePath">
-          <property name="title">
-           <string>&amp;Use full path to executable</string>
-          </property>
-          <property name="checkable">
-           <bool>true</bool>
-          </property>
-          <property name="checked">
-           <bool>false</bool>
-          </property>
-          <layout class="QFormLayout" name="formLayout_3">
-           <property name="labelAlignment">
-            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-           </property>
-           <item row="0" column="0">
-            <widget class="QLabel" name="label_4">
-             <property name="text">
-              <string>&amp;Path:</string>
-             </property>
-             <property name="buddy">
-              <cstring>edit_executablePath</cstring>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="1">
-            <widget class="QLineEdit" name="edit_executablePath"/>
-           </item>
-          </layout>
-         </widget>
-        </item>
-        <item row="3" column="0">
+        <item row="2" column="0">
          <widget class="QLabel" name="label_7">
           <property name="text">
            <string>Arguments:</string>
           </property>
          </widget>
         </item>
-        <item row="3" column="1">
+        <item row="2" column="1">
          <widget class="QLineEdit" name="edit_arguments"/>
         </item>
-        <item row="4" column="0">
+        <item row="3" column="0">
          <widget class="QLabel" name="label_6">
           <property name="text">
            <string>&amp;Output filename:</string>
@@ -207,7 +176,7 @@
           </property>
          </widget>
         </item>
-        <item row="4" column="1">
+        <item row="3" column="1">
          <widget class="QLineEdit" name="edit_outputFilename"/>
         </item>
        </layout>
@@ -220,8 +189,6 @@
  <tabstops>
   <tabstop>edit_name</tabstop>
   <tabstop>edit_executableName</tabstop>
-  <tabstop>gb_executablePath</tabstop>
-  <tabstop>edit_executablePath</tabstop>
   <tabstop>edit_arguments</tabstop>
   <tabstop>edit_outputFilename</tabstop>
   <tabstop>combo_syntax</tabstop>

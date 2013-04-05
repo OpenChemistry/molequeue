@@ -365,10 +365,7 @@ bool QueueLocal::startJob(IdType moleQueueId)
   QString command;
 
   // Set default command. May be overwritten later.
-  if (program->useExecutablePath())
-    command = program->executablePath() + "/" + program->executable();
-  else
-    command = program->executable();
+  command = program->executable();
 
   switch (program->launchSyntax()) {
   case Program::CUSTOM:

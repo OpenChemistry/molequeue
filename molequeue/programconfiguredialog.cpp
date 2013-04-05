@@ -53,13 +53,9 @@ ProgramConfigureDialog::ProgramConfigureDialog(Program *program,
           this, SLOT(customizeLauncherClicked()));
   connect(ui->edit_executableName, SIGNAL(textChanged(QString)),
           this, SLOT(updateLaunchEditor()));
-  connect(ui->edit_executablePath, SIGNAL(textChanged(QString)),
-          this, SLOT(updateLaunchEditor()));
   connect(ui->edit_arguments, SIGNAL(textChanged(QString)),
           this, SLOT(updateLaunchEditor()));
   connect(ui->edit_outputFilename, SIGNAL(textChanged(QString)),
-          this, SLOT(updateLaunchEditor()));
-  connect(ui->gb_executablePath, SIGNAL(toggled(bool)),
           this, SLOT(updateLaunchEditor()));
   connect(ui->text_launchTemplate, SIGNAL(textChanged()),
           this, SLOT(launchEditorTextChanged()));
@@ -70,13 +66,9 @@ ProgramConfigureDialog::ProgramConfigureDialog(Program *program,
           this, SLOT(setDirty()));
   connect(ui->edit_executableName, SIGNAL(textChanged(QString)),
           this, SLOT(setDirty()));
-  connect(ui->edit_executablePath, SIGNAL(textChanged(QString)),
-          this, SLOT(setDirty()));
   connect(ui->edit_arguments, SIGNAL(textChanged(QString)),
           this, SLOT(setDirty()));
   connect(ui->edit_outputFilename, SIGNAL(textChanged(QString)),
-          this, SLOT(setDirty()));
-  connect(ui->gb_executablePath, SIGNAL(toggled(bool)),
           this, SLOT(setDirty()));
   connect(ui->combo_syntax, SIGNAL(currentIndexChanged(int)),
           this, SLOT(setDirty()));
@@ -149,8 +141,6 @@ void ProgramConfigureDialog::updateGuiFromProgram()
 {
   ui->edit_name->setText(m_program->name());
   ui->edit_executableName->setText(m_program->executable());
-  ui->gb_executablePath->setChecked(m_program->useExecutablePath());
-  ui->edit_executablePath->setText(m_program->executablePath());
   ui->edit_arguments->setText(m_program->arguments());
   ui->edit_outputFilename->setText(m_program->outputFilename());
 
@@ -187,8 +177,6 @@ bool ProgramConfigureDialog::updateProgramFromGui()
   }
 
   m_program->setExecutable(ui->edit_executableName->text());
-  m_program->setUseExecutablePath(ui->gb_executablePath->isChecked());
-  m_program->setExecutablePath(ui->edit_executablePath->text());
   m_program->setArguments(ui->edit_arguments->text());
   m_program->setOutputFilename(ui->edit_outputFilename->text());
 
@@ -222,14 +210,11 @@ void ProgramConfigureDialog::updateLaunchEditor()
   }
 
   const QString executableName = ui->edit_executableName->text();
-  const QString executablePath = ui->edit_executablePath->text();
   const QString arguments      = ui->edit_arguments->text();
   const QString outputFilename = ui->edit_outputFilename->text();
-  const bool useExecutablePath = ui->gb_executablePath->isChecked();
 
   QString programExecution = Program::generateFormattedExecutionString(
-        executableName, arguments, outputFilename, executablePath,
-        useExecutablePath, syntax);
+        executableName, arguments, outputFilename, syntax);
 
   launchText.replace("$$programExecution$$", programExecution);
 
