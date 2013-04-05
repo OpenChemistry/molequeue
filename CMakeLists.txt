@@ -83,4 +83,4 @@ install(FILES
 install(EXPORT "MoleQueueTargets"
   DESTINATION "${INSTALL_LIBRARY_DIR}/cmake/molequeue")
 
-include(CPack)
+include(MoleQueueCPack)
