@@ -27,6 +27,9 @@ if(APPLE)
   set(INSTALL_INCLUDE_DIR "${prefix}/${INSTALL_INCLUDE_DIR}")
   set(INSTALL_LIBRARY_DIR "${prefix}/${INSTALL_LIBRARY_DIR}")
   set(INSTALL_ARCHIVE_DIR "${prefix}/${INSTALL_ARCHIVE_DIR}")
+  set(INSTALL_CMAKE_DIR   "${prefix}/Resources")
+else()
+  set(INSTALL_CMAKE_DIR   "${INSTALL_LIBRARY_DIR}/cmake/molequeue")
 endif()
 
 option(ENABLE_TESTING "Enable testing" OFF)
@@ -78,8 +81,8 @@ configure_file("${MoleQueue_SOURCE_DIR}/cmake/MoleQueueConfigVersion.cmake.in"
 install(FILES
   "${MoleQueue_BINARY_DIR}/MoleQueueConfig.cmake"
   "${MoleQueue_BINARY_DIR}/MoleQueueConfigVersion.cmake"
-  DESTINATION "${INSTALL_LIBRARY_DIR}/cmake/molequeue")
+  DESTINATION "${INSTALL_CMAKE_DIR}")
 install(EXPORT "MoleQueueTargets"
-  DESTINATION "${INSTALL_LIBRARY_DIR}/cmake/molequeue")
+  DESTINATION "${INSTALL_CMAKE_DIR}")
 
 include(MoleQueueCPack)
