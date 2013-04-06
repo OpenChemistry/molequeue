@@ -20,9 +20,12 @@ set(MoleQueue_VERSION
 find_package(Git)
 determine_version(${MoleQueue_SOURCE_DIR} ${GIT_EXECUTABLE} "MoleQueue")
 
-# Handle installation prefix for Mac bundles...
 if(APPLE)
   set(MACOSX_BUNDLE_NAME "MoleQueue")
+  # Handle installation prefix for Mac bundles...
+  option(USE_BUNDLE_LAYOUT "Use the Mac OS X bundle layout" OFF)
+endif()
+if(APPLE AND USE_BUNDLE_LAYOUT)
   set(prefix "${MACOSX_BUNDLE_NAME}.app/Contents")
   set(INSTALL_INCLUDE_DIR "${prefix}/${INSTALL_INCLUDE_DIR}")
   set(INSTALL_LIBRARY_DIR "${prefix}/${INSTALL_LIBRARY_DIR}")
