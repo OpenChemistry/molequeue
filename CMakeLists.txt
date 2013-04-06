@@ -20,15 +20,20 @@ set(MoleQueue_VERSION
 find_package(Git)
 determine_version(${MoleQueue_SOURCE_DIR} ${GIT_EXECUTABLE} "MoleQueue")
 
-# Handle installation prefix for Mac bundles...
 if(APPLE)
   set(MACOSX_BUNDLE_NAME "MoleQueue")
+  # Handle installation prefix for Mac bundles...
+  option(USE_BUNDLE_LAYOUT "Use the Mac OS X bundle layout" OFF)
+endif()
+if(APPLE AND USE_BUNDLE_LAYOUT)
   set(prefix "${MACOSX_BUNDLE_NAME}.app/Contents")
   set(INSTALL_INCLUDE_DIR "${prefix}/${INSTALL_INCLUDE_DIR}")
   set(INSTALL_LIBRARY_DIR "${prefix}/${INSTALL_LIBRARY_DIR}")
   set(INSTALL_ARCHIVE_DIR "${prefix}/${INSTALL_ARCHIVE_DIR}")
+  set(INSTALL_CMAKE_DIR   "${prefix}/Resources")
+else()
+  set(INSTALL_CMAKE_DIR   "${INSTALL_LIBRARY_DIR}/cmake/molequeue")
 endif()
-message("CMAKE_INSTALL_PREFIX: ${CMAKE_INSTALL_PREFIX}")
 
 option(ENABLE_TESTING "Enable testing" OFF)
 
@@ -79,8 +84,8 @@ configure_file("${MoleQueue_SOURCE_DIR}/cmake/MoleQueueConfigVersion.cmake.in"
 install(FILES
   "${MoleQueue_BINARY_DIR}/MoleQueueConfig.cmake"
   "${MoleQueue_BINARY_DIR}/MoleQueueConfigVersion.cmake"
-  DESTINATION "${INSTALL_LIBRARY_DIR}/cmake/molequeue")
+  DESTINATION "${INSTALL_CMAKE_DIR}")
 install(EXPORT "MoleQueueTargets"
-  DESTINATION "${INSTALL_LIBRARY_DIR}/cmake/molequeue")
+  DESTINATION "${INSTALL_CMAKE_DIR}")
 
-include(CPack)
+include(MoleQueueCPack)
