@@ -36,6 +36,7 @@ if(MoleQueue_BUILD_APPLICATION)
     advancedfilterdialog.cpp
     actionfactorymanager.cpp
     addqueuedialog.cpp
+    filebrowsewidget.cpp
     filespecification.cpp
     filesystemtools.cpp
     importprogramdialog.cpp
