@@ -311,7 +311,7 @@
             <attribute name="title">
              <string>&amp;Advanced</string>
             </attribute>
-            <layout class="QFormLayout" name="formLayout">
+            <layout class="QFormLayout" name="formLayout2">
              <property name="labelAlignment">
               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
              </property>
