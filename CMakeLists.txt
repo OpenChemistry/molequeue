@@ -28,8 +28,11 @@ endif()
 if(APPLE AND USE_BUNDLE_LAYOUT)
   set(prefix "${MACOSX_BUNDLE_NAME}.app/Contents")
   set(INSTALL_INCLUDE_DIR "${prefix}/${INSTALL_INCLUDE_DIR}")
+  set(INSTALL_RUNTIME_DIR "${prefix}/MacOS")
   set(INSTALL_LIBRARY_DIR "${prefix}/${INSTALL_LIBRARY_DIR}")
   set(INSTALL_ARCHIVE_DIR "${prefix}/${INSTALL_ARCHIVE_DIR}")
+  set(INSTALL_DATA_DIR    "${prefix}/${INSTALL_DATA_DIR}")
+  set(INSTALL_DOC_DIR     "${prefix}/${INSTALL_DOC_DIR}")
   set(INSTALL_CMAKE_DIR   "${prefix}/Resources")
 else()
   set(INSTALL_CMAKE_DIR   "${INSTALL_LIBRARY_DIR}/cmake/molequeue")
@@ -87,5 +90,12 @@ install(FILES
   DESTINATION "${INSTALL_CMAKE_DIR}")
 install(EXPORT "MoleQueueTargets"
   DESTINATION "${INSTALL_CMAKE_DIR}")
+
+install(
+  FILES
+    README.md
+    CONTRIBUTING.md
+    COPYING
+  DESTINATION "${INSTALL_DOC_DIR}/molequeue")
 
 include(MoleQueueCPack)
