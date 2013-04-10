@@ -1,7 +1,8 @@
 find_package(Doxygen REQUIRED)
 
-set(doxygen_source_dirs "${MoleQueue_SOURCE_DIR}/molequeue")
-set(doxygen_output_dir "${MoleQueue_BINARY_DIR}/docs")
+set(doxygen_source_dirs
+  "${MoleQueue_SOURCE_DIR}/molequeue ${MoleQueue_SOURCE_DIR}/docs")
+set(doxygen_output_dir "${CMAKE_CURRENT_BINARY_DIR}")
 
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/doxyfile.in"
   "${CMAKE_CURRENT_BINARY_DIR}/doxyfile")
