@@ -17,12 +17,14 @@
 #include "programconfiguredialog.h"
 #include "ui_programconfiguredialog.h"
 
+#include "filebrowsewidget.h"
 #include "program.h"
 #include "queue.h"
 #include "queues/local.h"
 #include "templatekeyworddialog.h"
 
 #include <QtGui/QFileDialog>
+#include <QtGui/QLineEdit>
 #include <QtGui/QMessageBox>
 #include <QtGui/QRegExpValidator>
 #include <QtGui/QTextDocument>
@@ -41,9 +43,13 @@ ProgramConfigureDialog::ProgramConfigureDialog(Program *program,
   m_program(program),
   m_helpDialog(NULL),
   m_isCustomized((m_program->launchSyntax() == Program::CUSTOM)),
-  m_dirty(false)
+  m_dirty(false),
+  m_isLocal((m_program != NULL
+    && qobject_cast<QueueLocal*>(m_program->queue()) != NULL))
 {
   ui->setupUi(this);
+
+  setExecutableWidget();
 
   populateSyntaxCombo();
 
@@ -51,15 +57,9 @@ ProgramConfigureDialog::ProgramConfigureDialog(Program *program,
           this, SLOT(launchSyntaxChanged(int)));
   connect(ui->push_customize, SIGNAL(clicked()),
           this, SLOT(customizeLauncherClicked()));
-  connect(ui->edit_executableName, SIGNAL(textChanged(QString)),
-          this, SLOT(updateLaunchEditor()));
-  connect(ui->edit_executablePath, SIGNAL(textChanged(QString)),
-          this, SLOT(updateLaunchEditor()));
   connect(ui->edit_arguments, SIGNAL(textChanged(QString)),
           this, SLOT(updateLaunchEditor()));
   connect(ui->edit_outputFilename, SIGNAL(textChanged(QString)),
-          this, SLOT(updateLaunchEditor()));
-  connect(ui->gb_executablePath, SIGNAL(toggled(bool)),
           this, SLOT(updateLaunchEditor()));
   connect(ui->text_launchTemplate, SIGNAL(textChanged()),
           this, SLOT(launchEditorTextChanged()));
@@ -68,15 +68,9 @@ ProgramConfigureDialog::ProgramConfigureDialog(Program *program,
 
   connect(ui->edit_name, SIGNAL(textChanged(QString)),
           this, SLOT(setDirty()));
-  connect(ui->edit_executableName, SIGNAL(textChanged(QString)),
-          this, SLOT(setDirty()));
-  connect(ui->edit_executablePath, SIGNAL(textChanged(QString)),
-          this, SLOT(setDirty()));
   connect(ui->edit_arguments, SIGNAL(textChanged(QString)),
           this, SLOT(setDirty()));
   connect(ui->edit_outputFilename, SIGNAL(textChanged(QString)),
-          this, SLOT(setDirty()));
-  connect(ui->gb_executablePath, SIGNAL(toggled(bool)),
           this, SLOT(setDirty()));
   connect(ui->combo_syntax, SIGNAL(currentIndexChanged(int)),
           this, SLOT(setDirty()));
@@ -148,9 +142,7 @@ void ProgramConfigureDialog::populateSyntaxCombo()
 void ProgramConfigureDialog::updateGuiFromProgram()
 {
   ui->edit_name->setText(m_program->name());
-  ui->edit_executableName->setText(m_program->executable());
-  ui->gb_executablePath->setChecked(m_program->useExecutablePath());
-  ui->edit_executablePath->setText(m_program->executablePath());
+  setExecutableName(m_program->executable());
   ui->edit_arguments->setText(m_program->arguments());
   ui->edit_outputFilename->setText(m_program->outputFilename());
 
@@ -186,9 +178,7 @@ bool ProgramConfigureDialog::updateProgramFromGui()
     }
   }
 
-  m_program->setExecutable(ui->edit_executableName->text());
-  m_program->setUseExecutablePath(ui->gb_executablePath->isChecked());
-  m_program->setExecutablePath(ui->edit_executablePath->text());
+  m_program->setExecutable(executableName());
   m_program->setArguments(ui->edit_arguments->text());
   m_program->setOutputFilename(ui->edit_outputFilename->text());
 
@@ -221,15 +211,12 @@ void ProgramConfigureDialog::updateLaunchEditor()
     launchText = m_program->queue()->launchTemplate();
   }
 
-  const QString executableName = ui->edit_executableName->text();
-  const QString executablePath = ui->edit_executablePath->text();
+  const QString executable     = executableName();
   const QString arguments      = ui->edit_arguments->text();
   const QString outputFilename = ui->edit_outputFilename->text();
-  const bool useExecutablePath = ui->gb_executablePath->isChecked();
 
   QString programExecution = Program::generateFormattedExecutionString(
-        executableName, arguments, outputFilename, executablePath,
-        useExecutablePath, syntax);
+        executable, arguments, outputFilename, syntax);
 
   launchText.replace("$$programExecution$$", programExecution);
 
@@ -323,6 +310,43 @@ void ProgramConfigureDialog::keyPressEvent(QKeyEvent *e)
   }
 
   QDialog::keyPressEvent(e);
+}
+
+void ProgramConfigureDialog::setExecutableWidget()
+{
+  // Allow local file browsing if the program is used with a local queue.
+  if (m_isLocal) {
+    ui->label_executable->setBuddy(ui->browse_localExecutable);
+    ui->browse_localExecutable->setMode(FileBrowseWidget::ExecutableFile);
+    connect(ui->browse_localExecutable, SIGNAL(fileNameChanged(QString)),
+            SLOT(updateLaunchEditor()));
+    connect(ui->browse_localExecutable, SIGNAL(fileNameChanged(QString)),
+            SLOT(setDirty()));
+  }
+  else { // Just use a line edit if the queue is remote.
+    ui->label_executable->setBuddy(ui->edit_remoteExecutable);
+    connect(ui->edit_remoteExecutable, SIGNAL(textChanged(QString)),
+            SLOT(updateLaunchEditor()));
+    connect(ui->edit_remoteExecutable, SIGNAL(textChanged(QString)),
+            SLOT(setDirty()));
+  }
+
+  ui->browse_localExecutable->setVisible(m_isLocal);
+  ui->edit_remoteExecutable->setVisible(!m_isLocal);
+}
+
+QString ProgramConfigureDialog::executableName() const
+{
+  return m_isLocal ? ui->browse_localExecutable->fileName()
+                   : ui->edit_remoteExecutable->text();
+}
+
+void ProgramConfigureDialog::setExecutableName(const QString &name)
+{
+  if (m_isLocal)
+    ui->browse_localExecutable->setFileName(name);
+  else
+    ui->edit_remoteExecutable->setText(name);
 }
 
 void ProgramConfigureDialog::showHelpDialog()

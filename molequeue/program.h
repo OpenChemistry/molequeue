@@ -139,12 +139,6 @@ public:
   void setExecutable(const QString &str) {m_executable = str;}
   QString executable() const {return m_executable;}
 
-  void setUseExecutablePath(bool b) {m_useExecutablePath = b;}
-  bool useExecutablePath() const {return m_useExecutablePath;}
-
-  void setExecutablePath(const QString &str) {m_executablePath = str;}
-  QString executablePath() const {return m_executablePath;}
-
   void setArguments(const QString &str) {m_arguments = str;}
   QString arguments() const {return m_arguments;}
 
@@ -170,9 +164,8 @@ public:
   QString launchTemplate() const;
 
   static QString generateFormattedExecutionString(
-      const QString &executableName_, const QString &arguments_,
-      const QString &outputFilename_, const QString &executablePath_,
-      bool useExecutablePath_, LaunchSyntax syntax_);
+      const QString &executable_, const QString &arguments_,
+      const QString &outputFilename_, LaunchSyntax syntax_);
 
 signals:
   /**
@@ -192,10 +185,6 @@ protected:
   QString m_name;
   /// Name of executable
   QString m_executable;
-  /// Toggle inclusion of path to executable
-  bool m_useExecutablePath;
-  /// Path to executable
-  QString m_executablePath;
   /// Executable arguments
   QString m_arguments;
   /// Output filename

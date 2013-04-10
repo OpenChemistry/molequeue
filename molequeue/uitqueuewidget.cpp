@@ -174,7 +174,6 @@ void UitQueueWidget::sleepTest()
     sleepProgram->setName("sleep (testing)");
     sleepProgram->setArguments("30");
     sleepProgram->setExecutable("sleep");
-    sleepProgram->setUseExecutablePath(false);
     sleepProgram->setOutputFilename("");
     sleepProgram->setLaunchSyntax(Program::PLAIN);
     m_queue->addProgram(sleepProgram);

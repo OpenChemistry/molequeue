@@ -66,11 +66,16 @@ protected:
   void keyPressEvent(QKeyEvent *);
 
 private:
+  void setExecutableWidget();
+  QString executableName() const;
+  void setExecutableName(const QString &name);
+
   Ui::ProgramConfigureDialog *ui;
   Program *m_program;
   TemplateKeywordDialog *m_helpDialog;
   bool m_isCustomized;
   bool m_dirty;
+  bool m_isLocal;
   QString m_customLaunchText;
 };
 
