@@ -1,0 +1,46 @@
+namespace Avogadro {
+
+/**
+
+@mainpage MoleQueue API Documentation
+
+@section molequeue Introduction
+
+The MoleQueue project is developed to support execution of command line
+executables, such as computational chemistry and simulation codes, both locally
+and remotely interacting with batch schedulers. These are provided as liberally
+BSD-licensed, open-source reuable components and an extensible system tray
+resident Qt application.
+
+@subsection main Main Classes
+
+The main bulk of the MoleQueue code implements a system tray resident Qt 4
+application. If you are interested in extending MoleQueue to support new
+queue types, transports and/or authentication mechanisms these classes will be
+of most interest. For applications looking to use the local socket JSON-RPC 2.0
+based API the client library will be of most interest.
+
+- MoleQueue::Queue : Abstract interface class for queues.
+  - MoleQueue::QueueLocal : Implementation of a local queue.
+  - MoleQueue::QueueRemote : Common API for remote queues.
+- MoleQueue::SshConnection : Interface for Ssh execution and transfer.
+- MoleQueue::LocalSocketConnectionListener : Listen for local connections.
+- The main two classes for client connections:
+  - MoleQueue::Client : Qt client class that can be used to manage jobs.
+  - MoleQueue::JsonRpcClient : General JSON-RPC 2.0 client.
+
+@section resources Resources
+
+This project is developed as part of the <a href="http://openchemistry.org/">
+Open Chemistry project</a>. Please see the
+<a href="http://wiki.openchemistry.org/Development">development guide</a> if
+you would like to contribute to the project. Some key resources include:
+
+- Wiki : http://wiki.openchemistry.org/
+- Bug tracker : http://projects.openchemistry.org/
+- Dashboard : http://cdash.openchemistry.org/index.php?project=MoleQueue
+- Mailing lists: http://www.openchemistry.org/OpenChemistry/help/mailing.html
+
+ */
+
+}
