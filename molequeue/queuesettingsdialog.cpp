@@ -270,8 +270,11 @@ bool QueueSettingsDialog::apply()
                                     "name.\n\nOverwrite existing queue?")
                                  .arg(name), QMessageBox::Yes | QMessageBox::No,
                                  QMessageBox::No);
-        if (reply != QMessageBox::Yes)
+        if (reply != QMessageBox::Yes) {
+          ui->nameLineEdit->selectAll();
+          ui->nameLineEdit->setFocus();
           return false;
+        }
       }
       m_queue->setName(name);
     }

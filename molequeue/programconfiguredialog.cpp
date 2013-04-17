@@ -173,8 +173,11 @@ bool ProgramConfigureDialog::updateProgramFromGui()
                                     "name.\n\nOverwrite existing program?")
                                  .arg(name), QMessageBox::Yes | QMessageBox::No,
                                  QMessageBox::No);
-        if (reply != QMessageBox::Yes)
+        if (reply != QMessageBox::Yes) {
+          ui->edit_name->selectAll();
+          ui->edit_name->setFocus();
           return false;
+        }
       }
       m_program->setName(name);
     }
