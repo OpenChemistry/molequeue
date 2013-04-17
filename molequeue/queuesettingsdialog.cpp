@@ -44,18 +44,21 @@ QueueSettingsDialog::QueueSettingsDialog(Queue *queue, QWidget *parentObject)
     ui(new Ui::QueueSettingsDialog),
     m_queue(queue),
     m_model(new QueueProgramItemModel (m_queue, this)),
-    m_settingsWidget(m_queue->settingsWidget())
+    m_settingsWidget(m_queue->settingsWidget()),
+    m_dirty(true)
 {
   ui->setupUi(this);
 
   ui->nameLineEdit->setText(queue->name());
   ui->typeNameLabel->setText(queue->typeName());
 
+
   // add queue settings widget
   if (m_settingsWidget) {
     m_settingsWidget->setParent(ui->settingsFrame);
     ui->settingsLayout->addWidget(m_settingsWidget);
     m_settingsWidget->reset();
+    connect(m_settingsWidget, SIGNAL(modified()), SLOT(setDirty()));
   }
 
   // populate programs table
@@ -80,9 +83,12 @@ QueueSettingsDialog::QueueSettingsDialog(Queue *queue, QWidget *parentObject)
           this, SLOT(enableProgramButtons(QItemSelection)));
   connect(ui->buttonBox, SIGNAL(clicked(QAbstractButton*)),
           this, SLOT(buttonBoxButtonClicked(QAbstractButton*)));
+  connect(ui->nameLineEdit, SIGNAL(textChanged(QString)), SLOT(setDirty()));
 
   ui->nameLineEdit->setValidator(new QRegExpValidator(
                                    QRegExp(VALID_NAME_REG_EXP)));
+
+  setDirty(false);
 }
 
 QueueSettingsDialog::~QueueSettingsDialog()
@@ -274,12 +280,29 @@ bool QueueSettingsDialog::apply()
   if (m_settingsWidget && m_settingsWidget->isDirty())
     m_settingsWidget->save();
 
+  setDirty(false);
   return true;
+}
+
+void QueueSettingsDialog::reset()
+{
+  ui->nameLineEdit->setText(m_queue->name());
+  if (m_settingsWidget)
+    m_settingsWidget->reset();
+  setDirty(false);
+}
+
+void QueueSettingsDialog::setDirty(bool dirty)
+{
+  if (dirty != m_dirty) {
+    m_dirty = dirty;
+    ui->buttonBox->button(QDialogButtonBox::Apply)->setEnabled(m_dirty);
+  }
 }
 
 void QueueSettingsDialog::closeEvent(QCloseEvent *e)
 {
-  if (m_settingsWidget && m_settingsWidget->isDirty()) {
+  if (m_dirty) {
     // apply or discard changes?
     QMessageBox::StandardButton reply =
         QMessageBox::warning(this, tr("Unsaved changes"),
@@ -294,10 +317,11 @@ void QueueSettingsDialog::closeEvent(QCloseEvent *e)
       e->ignore();
       return;
     case QMessageBox::Save:
-      m_settingsWidget->save();
+      apply();
     case QMessageBox::NoButton:
     case QMessageBox::Discard:
     default:
+      reset();
       e->accept();
       break;
     }

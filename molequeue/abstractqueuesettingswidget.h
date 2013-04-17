@@ -32,6 +32,10 @@ public:
   bool isDirty() const { return m_isDirty; }
 
 signals:
+  /**
+   * @brief Emitted when the options change from their initial settings.
+   */
+  void modified();
 
 public slots:
 
@@ -45,7 +49,12 @@ public slots:
 
 protected slots:
 
-  void setDirty(bool dirty = true) { m_isDirty = dirty; }
+  void setDirty(bool dirty = true)
+  {
+    m_isDirty = dirty;
+    if (m_isDirty)
+      emit modified();
+  }
 
 protected:
   bool m_isDirty;

@@ -56,7 +56,7 @@ protected slots:
   void launchSyntaxChanged(int enumVal);
   void customizeLauncherClicked();
 
-  void setDirty(bool dirty = true) { m_dirty = dirty; }
+  void setDirty(bool dirty = true);
 
   void showHelpDialog();
   void buttonBoxButtonClicked(QAbstractButton*);
