@@ -66,6 +66,7 @@ protected slots:
   bool apply();
   void reset();
   void setDirty(bool dirty = true);
+  void tabChanged(int index);
 
 protected:
   void closeEvent(QCloseEvent *);
