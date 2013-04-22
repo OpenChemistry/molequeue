@@ -64,6 +64,9 @@ protected slots:
   void removeProgramDialog();
   void buttonBoxButtonClicked(QAbstractButton*);
   bool apply();
+  void reset();
+  void setDirty(bool dirty = true);
+  void tabChanged(int index);
 
 protected:
   void closeEvent(QCloseEvent *);
@@ -78,6 +81,7 @@ protected:
   QueueProgramItemModel *m_model;
   QMap<Program *, ProgramConfigureDialog *> m_programConfigureDialogs;
   AbstractQueueSettingsWidget *m_settingsWidget;
+  bool m_dirty;
 };
 
 } // end MoleQueue namespace

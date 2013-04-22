@@ -43,7 +43,7 @@ ProgramConfigureDialog::ProgramConfigureDialog(Program *program,
   m_program(program),
   m_helpDialog(NULL),
   m_isCustomized((m_program->launchSyntax() == Program::CUSTOM)),
-  m_dirty(false),
+  m_dirty(true),
   m_isLocal((m_program != NULL
     && qobject_cast<QueueLocal*>(m_program->queue()) != NULL))
 {
@@ -88,6 +88,8 @@ ProgramConfigureDialog::ProgramConfigureDialog(Program *program,
 
   ui->edit_name->setValidator(new QRegExpValidator(
                                 QRegExp(VALID_NAME_REG_EXP)));
+
+  setDirty(false);
 }
 
 ProgramConfigureDialog::~ProgramConfigureDialog()
@@ -154,7 +156,7 @@ void ProgramConfigureDialog::updateGuiFromProgram()
   m_customLaunchText = m_program->customLaunchTemplate();
 
   updateLaunchEditor();
-  m_dirty = false;
+  setDirty(false);
 }
 
 bool ProgramConfigureDialog::updateProgramFromGui()
@@ -171,8 +173,11 @@ bool ProgramConfigureDialog::updateProgramFromGui()
                                     "name.\n\nOverwrite existing program?")
                                  .arg(name), QMessageBox::Yes | QMessageBox::No,
                                  QMessageBox::No);
-        if (reply != QMessageBox::Yes)
+        if (reply != QMessageBox::Yes) {
+          ui->edit_name->selectAll();
+          ui->edit_name->setFocus();
           return false;
+        }
       }
       m_program->setName(name);
     }
@@ -186,7 +191,7 @@ bool ProgramConfigureDialog::updateProgramFromGui()
         ui->combo_syntax->currentIndex());
   m_program->setLaunchSyntax(syntax);
   m_program->setCustomLaunchTemplate(m_customLaunchText);
-  m_dirty = false;
+  setDirty(false);
 
   return true;
 }
@@ -266,6 +271,14 @@ void ProgramConfigureDialog::customizeLauncherClicked()
   }
 
   ui->combo_syntax->setCurrentIndex(static_cast<int>(Program::CUSTOM));
+}
+
+void ProgramConfigureDialog::setDirty(bool dirty)
+{
+  if (dirty != m_dirty) {
+    m_dirty = dirty;
+    ui->buttonBox->button(QDialogButtonBox::Apply)->setEnabled(m_dirty);
+  }
 }
 
 void ProgramConfigureDialog::closeEvent(QCloseEvent *e)
