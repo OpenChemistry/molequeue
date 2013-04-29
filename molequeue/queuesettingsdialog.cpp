@@ -118,7 +118,7 @@ void QueueSettingsDialog::addProgramClicked()
     if (dialogCode == QDialog::Rejected)
       return;
 
-    programAccepted = m_queue->addProgram(prog, false);
+    programAccepted = m_model->addProgram(prog);
 
     if (!programAccepted) {
       QMessageBox::information(this, tr("Cannot Add Program"),
@@ -127,15 +127,16 @@ void QueueSettingsDialog::addProgramClicked()
                                   "different name."));
     }
   }
+
 }
 
 void QueueSettingsDialog::removeProgramClicked()
 {
-  QModelIndex index = ui->programsTable->currentIndex();
-  if (!index.isValid() || index.row() > m_queue->numPrograms())
-    return;
+  QList<Program*> selection = getSelectedPrograms();
 
-  m_model->removeRow(index.row());
+  foreach (Program *prog, selection)
+    m_model->removeProgram(prog);
+
   setEnabledProgramButtons(
         !ui->programsTable->selectionModel()->selectedIndexes().isEmpty());
 }

@@ -22,6 +22,7 @@
 namespace MoleQueue
 {
 class Queue;
+class Program;
 
 /// @brief Item model for interacting with a Queue's Program instances.
 class QueueProgramItemModel : public QAbstractItemModel
@@ -37,6 +38,9 @@ class QueueProgramItemModel : public QAbstractItemModel
 public:
   explicit QueueProgramItemModel(Queue *queue, QObject *parentObject = 0);
 
+  bool addProgram(Program *program);
+  bool removeProgram(Program *program);
+
   QModelIndex parent(const QModelIndex & modelIndex) const;
   int rowCount(const QModelIndex & modelIndex = QModelIndex()) const;
   int columnCount(const QModelIndex & modelIndex = QModelIndex()) const;
@@ -45,8 +49,6 @@ public:
   QVariant data(const QModelIndex & modelIndex,
                 int role = Qt::DisplayRole) const;
   Qt::ItemFlags flags(const QModelIndex & modelIndex) const;
-
-  bool removeRows(int row, int count, const QModelIndex &);
 
   QModelIndex index(int row, int column,
                     const QModelIndex & modelIndex = QModelIndex()) const;
