@@ -27,12 +27,52 @@ QueueProgramItemModel::QueueProgramItemModel(Queue *queue,
   : QAbstractItemModel(parentObject),
     m_queue(queue)
 {
-  connect(m_queue, SIGNAL(programAdded(QString,MoleQueue::Program*)),
-          this, SLOT(callReset()));
-  connect(m_queue, SIGNAL(programRemoved(QString,MoleQueue::Program*)),
-          this, SLOT(callReset()));
   connect(m_queue, SIGNAL(programRenamed(QString,Program*,QString)),
           this, SLOT(callReset()));
+}
+
+bool QueueProgramItemModel::addProgram(Program *program)
+{
+  if (!m_queue)
+    return false;
+
+  QString progName(program->name());
+  QStringList progNames(m_queue->programNames());
+
+  if (progName.isEmpty()
+      || progNames.contains(progName)) {
+    return false;
+  }
+
+  // Determine the model row that will be created:
+  int idx;
+  for (idx = 0; idx < progNames.size() && progName < progNames[idx]; ++idx) {}
+
+  beginInsertRows(QModelIndex(), idx, idx);
+
+  m_queue->addProgram(program, false);
+
+  endInsertRows();
+
+  return true;
+}
+
+bool QueueProgramItemModel::removeProgram(Program *program)
+{
+  if (!m_queue)
+    return false;
+
+  int idx = m_queue->programs().indexOf(program);
+  if (idx < 0)
+    return false;
+
+  beginRemoveRows(QModelIndex(), idx, idx);
+
+  m_queue->removeProgram(program);
+
+  endRemoveRows();
+
+  return true;
 }
 
 QModelIndex QueueProgramItemModel::parent(const QModelIndex &) const
@@ -96,22 +136,6 @@ QVariant QueueProgramItemModel::data(const QModelIndex &modelIndex,
 Qt::ItemFlags QueueProgramItemModel::flags(const QModelIndex &) const
 {
   return Qt::ItemIsSelectable | Qt::ItemIsEnabled;
-}
-
-bool QueueProgramItemModel::removeRows(int row, int count,
-                                       const QModelIndex &)
-{
-  if (!m_queue)
-    return false;
-
-  beginRemoveRows(QModelIndex(), row, row + count - 1);
-
-  for (int i = 0; i < count; ++i)
-    m_queue->removeProgram(m_queue->programs().at(row));
-
-  endRemoveRows();
-
-  return true;
 }
 
 QModelIndex QueueProgramItemModel::index(int row, int column,
