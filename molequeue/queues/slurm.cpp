@@ -68,7 +68,7 @@ bool QueueSlurm::parseQueueId(const QString &submissionOutput, IdType *queueId)
 {
   // Assuming submissionOutput is:
   // Submitted batch job <jobid>
-  QRegExp parser("^Submitted batch job (\\d+)$");
+  QRegExp parser("^Submitted batch job (\\d+)");
 
   int ind = parser.indexIn(submissionOutput);
   if (ind >= 0) {
