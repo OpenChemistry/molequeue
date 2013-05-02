@@ -273,7 +273,7 @@ void QueueRemoteSsh::jobSubmittedToRemoteQueue()
   }
   conn->deleteLater();
 
-  IdType queueId;
+  IdType queueId(0);
   parseQueueId(conn->output(), &queueId);
   Job job = conn->data().value<Job>();
 

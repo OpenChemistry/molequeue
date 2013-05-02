@@ -85,6 +85,10 @@ void QueueSlurmTest::testParseJobId()
   MoleQueue::IdType jobId;
   QVERIFY(m_queue.parseQueueId(submissionOutput, &jobId));
   QCOMPARE(jobId, static_cast<MoleQueue::IdType>(1234));
+
+  submissionOutput = "Submitted batch job 12345\n";
+  QVERIFY(m_queue.parseQueueId(submissionOutput, &jobId));
+  QCOMPARE(jobId, static_cast<MoleQueue::IdType>(12345));
 }
 
 void QueueSlurmTest::testParseQueueLine_data()
