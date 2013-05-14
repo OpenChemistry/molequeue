@@ -1,0 +1,19 @@
+{
+    "error": {
+        "code": -32602,
+        "data": {
+            "description": "registerOpenWith params member must be an object.",
+            "request": {
+                "id": "777",
+                "jsonrpc": "2.0",
+                "method": "registerOpenWith",
+                "params": [
+                    "I'm not an object at all!"
+                ]
+            }
+        },
+        "message": "Invalid params"
+    },
+    "id": "777",
+    "jsonrpc": "2.0"
+}

@@ -1,0 +1,28 @@
+{
+    "error": {
+        "code": -32602,
+        "data": {
+            "description": "\"params.name\" and \"params.executable\" must both be present and strings.",
+            "request": {
+                "id": "777",
+                "jsonrpc": "2.0",
+                "method": "registerOpenWith",
+                "params": {
+                    "name": 32,
+                    "patterns": [
+                        {
+                            "caseSensitive": true,
+                            "regexp": "spiff[\\d]*\\.(?:dat|out)"
+                        },
+                        {
+                            "wildcard": "*.spiffyout"
+                        }
+                    ]
+                }
+            }
+        },
+        "message": "Invalid params"
+    },
+    "id": "777",
+    "jsonrpc": "2.0"
+}

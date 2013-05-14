@@ -20,6 +20,8 @@
 
 #include "molequeuetestconfig.h"
 
+#include "actionfactorymanager.h"
+#include "jobactionfactories/programmableopenwithactionfactory.h"
 #include "jobmanager.h"
 #include "molequeueglobal.h"
 #include "program.h"
@@ -75,6 +77,8 @@ private slots:
 
   void handleMessage_data();
   void handleMessage();
+
+  void verifyOpenWithHandler();
 };
 
 void ServerTest::initTestCase()
@@ -291,6 +295,16 @@ void ServerTest::handleMessage_data()
   addValidation("lookupJob-moleQueueIdMissing");
   addValidation("lookupJob-moleQueueIdInvalid");
   addValidation("lookupJob");
+
+  // registerOpenWith
+  addValidation("registerOpenWith");
+  addValidation("registerOpenWith-duplicateName"); // Must follow registerOpenWith
+  addValidation("registerOpenWith-paramsNotObject");
+  addValidation("registerOpenWith-badNameExec");
+  addValidation("registerOpenWith-emptyName");
+  addValidation("registerOpenWith-patternsNotArray");
+  addValidation("registerOpenWith-patternNotObject");
+  addValidation("registerOpenWith-invalidPatternType");
 }
 
 void ServerTest::handleMessage()
@@ -319,6 +333,31 @@ void ServerTest::handleMessage()
 
   // Compare the reply with the reference reply
   QCOMPARE(QString(conn.popMessage().toJson()), responseString.toString());
+}
+
+// Verify that the action factory added by the registerOpenWith test is valid.
+void ServerTest::verifyOpenWithHandler()
+{
+  // Get handler:
+  ActionFactoryManager *afm = ActionFactoryManager::instance();
+  QList<JobActionFactory *> factories =
+      afm->factories(JobActionFactory::ProgrammableOpenWith);
+  QCOMPARE(factories.size(), 1);
+  ProgrammableOpenWithActionFactory *spiffyClient =
+      qobject_cast<ProgrammableOpenWithActionFactory*>(factories.first());
+  QVERIFY(spiffyClient != NULL);
+
+  // Verify settings:
+  QCOMPARE(spiffyClient->name(), QString("My Spiffy Client"));
+  QCOMPARE(spiffyClient->executable(), QString("client"));
+  QList<QRegExp> patterns = spiffyClient->recognizedFilePatterns();
+  QCOMPARE(patterns.size(), 2);
+  QCOMPARE(patterns[0].pattern(), QString("spiff[\\d]*\\.(?:dat|out)"));
+  QCOMPARE(patterns[0].patternSyntax(), QRegExp::RegExp2);
+  QCOMPARE(patterns[0].caseSensitivity(), Qt::CaseSensitive);
+  QCOMPARE(patterns[1].pattern(), QString("*.spiffyout"));
+  QCOMPARE(patterns[1].patternSyntax(), QRegExp::WildcardUnix);
+  QCOMPARE(patterns[1].caseSensitivity(), Qt::CaseInsensitive);
 }
 
 QTEST_MAIN(ServerTest)

@@ -191,6 +191,7 @@ private:
   void handleSubmitJobRequest(const MoleQueue::Message &message);
   void handleCancelJobRequest(const MoleQueue::Message &message);
   void handleLookupJobRequest(const MoleQueue::Message &message);
+  void handleRegisterOpenWithRequest(const MoleQueue::Message &message);
   void handleRpcKillRequest(const MoleQueue::Message &message);
   /**@}*/
 

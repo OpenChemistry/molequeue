@@ -1,0 +1,19 @@
+{
+    "jsonrpc": "2.0",
+    "method": "registerOpenWith",
+    "params": {
+        "name": "My Spiffy Client",
+        "executable": "client",
+        "patterns": [
+            {
+                "regexp": "spiff[\\d]*\\.(?:dat|out)",
+                "caseSensitive": true
+            },
+            {
+                "wildcard": "*.spiffyout"
+            },
+            12
+        ]
+    },
+    "id": "777"
+}
