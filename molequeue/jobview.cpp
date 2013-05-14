@@ -46,9 +46,9 @@ void JobView::contextMenuEvent(QContextMenuEvent *e)
 {
   // list of action factories. Map to sort by usefulness
   QMap<unsigned int, JobActionFactory*> factoryMap;
-  ActionFactoryManager *manager = ActionFactoryManager::getInstance();
+  ActionFactoryManager *manager = ActionFactoryManager::instance();
   foreach (JobActionFactory *factory,
-           manager->getFactories(JobActionFactory::ContextItem)) {
+           manager->factories(JobActionFactory::ContextItem)) {
     factoryMap.insertMulti(factory->usefulness(), factory);
   }
 

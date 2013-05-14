@@ -153,9 +153,9 @@ OpenWithManagerDialog::~OpenWithManagerDialog()
 void OpenWithManagerDialog::loadFactories()
 {
   reset();
-  ActionFactoryManager *manager = ActionFactoryManager::getInstance();
+  ActionFactoryManager *manager = ActionFactoryManager::instance();
   m_origFactories =
-      manager->getFactories(JobActionFactory::ProgrammableOpenWith);
+      manager->factories(JobActionFactory::ProgrammableOpenWith);
   foreach (JobActionFactory *factory,m_origFactories) {
     m_factories << ProgrammableOpenWithActionFactory(
                      *static_cast<ProgrammableOpenWithActionFactory*>(factory));
@@ -220,7 +220,7 @@ bool OpenWithManagerDialog::apply()
 
   // Delete the original factories from the manager and replace them with our
   // new ones
-  ActionFactoryManager *manager = ActionFactoryManager::getInstance();
+  ActionFactoryManager *manager = ActionFactoryManager::instance();
   foreach (JobActionFactory *factory, m_origFactories)
     manager->removeFactory(factory);
   foreach (ProgrammableOpenWithActionFactory factory, m_factories)

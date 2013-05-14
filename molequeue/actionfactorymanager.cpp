@@ -59,7 +59,7 @@ void ActionFactoryManager::writeSettings(QSettings &settings) const
   settings.beginGroup("ActionFactoryManager");
 
   QList<JobActionFactory*> progFactories =
-      getFactories(JobActionFactory::ProgrammableOpenWith);
+      factories(JobActionFactory::ProgrammableOpenWith);
 
   settings.beginWriteArray("ProgrammableOpenWithActionFactories",
                            progFactories.size());
@@ -75,7 +75,7 @@ void ActionFactoryManager::writeSettings(QSettings &settings) const
   settings.endGroup();
 }
 
-ActionFactoryManager *ActionFactoryManager::getInstance()
+ActionFactoryManager *ActionFactoryManager::instance()
 {
   if (!m_instance) {
     m_instance = new ActionFactoryManager;
@@ -92,12 +92,13 @@ void ActionFactoryManager::addFactory(JobActionFactory *newFactory)
   }
 }
 
-QList<JobActionFactory *> ActionFactoryManager::getFactories() const
+QList<JobActionFactory *> ActionFactoryManager::factories() const
 {
   return m_factories;
 }
 
-QList<JobActionFactory *> ActionFactoryManager::getFactories(JobActionFactory::Flags flags) const
+QList<JobActionFactory *>
+ActionFactoryManager::factories(JobActionFactory::Flags flags) const
 {
   QList<JobActionFactory *> result;
   foreach (JobActionFactory *factory, m_factories) {

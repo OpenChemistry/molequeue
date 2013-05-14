@@ -131,7 +131,7 @@ void MainWindow::readSettings()
   m_ui->jobTableWidget->showFilterBar(m_ui->actionViewJobFilter->isChecked());
 
   m_server->readSettings(settings);
-  ActionFactoryManager::getInstance()->readSettings(settings);
+  ActionFactoryManager::instance()->readSettings(settings);
 }
 
 void MainWindow::writeSettings()
@@ -143,7 +143,7 @@ void MainWindow::writeSettings()
   settings.setValue("viewJobFilter", m_ui->actionViewJobFilter->isChecked());
 
   m_server->writeSettings(settings);
-  ActionFactoryManager::getInstance()->writeSettings(settings);
+  ActionFactoryManager::instance()->writeSettings(settings);
 }
 
 void MainWindow::trayIconActivated(QSystemTrayIcon::ActivationReason reason)
@@ -411,7 +411,7 @@ void MainWindow::createJobTable()
 
 void MainWindow::createActionFactories()
 {
-  ActionFactoryManager *manager = ActionFactoryManager::getInstance();
+  ActionFactoryManager *manager = ActionFactoryManager::instance();
   manager->setServer(m_server);
 
   // Create default factories:

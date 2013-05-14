@@ -39,7 +39,7 @@ public:
   /**
    * @return The singleton instance of the manager.
    */
-  static ActionFactoryManager * getInstance();
+  static ActionFactoryManager * instance();
 
   ~ActionFactoryManager();
 
@@ -65,7 +65,7 @@ public:
   /**
    * @return A list of all factories owned by the manager.
    */
-  QList<JobActionFactory*> getFactories() const;
+  QList<JobActionFactory*> factories() const;
 
   /**
    * Obtain a subset of owned factories. Factories whose
@@ -75,7 +75,7 @@ public:
    * returned list.
    * @return A list of JobActionFactory pointers filtered by @a flags.
    */
-  QList<JobActionFactory*> getFactories(JobActionFactory::Flags flags) const;
+  QList<JobActionFactory*> factories(JobActionFactory::Flags flags) const;
 
   /**
    * Remove the factory pointed to by @a factory from the manager.
