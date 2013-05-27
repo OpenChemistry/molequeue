@@ -32,13 +32,12 @@ class OpenWithManagerDialog;
 namespace MoleQueue
 {
 class JobActionFactory;
+class OpenWithActionFactory;
 class OpenWithExecutableModel;
 class OpenWithPatternModel;
-class ProgrammableOpenWithActionFactory;
 class PatternTypeDelegate;
 
-/// @brief Dialog window for configuring ProgrammableOpenWithActionFactory
-/// objects.
+/// @brief Dialog window for configuring OpenWithActionFactory objects.
 class OpenWithManagerDialog : public QDialog
 {
   Q_OBJECT
@@ -77,8 +76,11 @@ private slots:
   void markClean();
   void markDirty();
 
-  void addExecutable();
-  void removeExecutable();
+  void addFactory();
+  void removeFactory();
+
+  void factoryTypeChanged(int type);
+
   void browseExecutable();
   ExecutableStatus validateExecutable(const QString &executable);
   ExecutableStatus validateExecutable(const QString &executable,
@@ -86,8 +88,8 @@ private slots:
   void testExecutable();
   void testExecutableMatch();
   void testExecutableNoMatch();
-  void executableSelectionChanged();
-  void setExecutableGuiEnabled(bool enable = true);
+  void factorySelectionChanged();
+  void setFactoryGuiEnabled(bool enable = true);
 
   void addPattern();
   void removePattern();
@@ -108,19 +110,19 @@ private:
    * not found.
    */
   static QString searchSystemPathForFile(const QString &exec);
-  QModelIndexList selectedExecutableIndices() const;
+  QModelIndexList selectedFactoryIndices() const;
   QModelIndexList selectedPatternIndices() const;
-  ProgrammableOpenWithActionFactory *selectedFactory();
+  OpenWithActionFactory *selectedFactory();
   QRegExp *selectedRegExp();
 
   Ui::OpenWithManagerDialog *ui;
 
-  QList<ProgrammableOpenWithActionFactory> m_factories;
-  QList<JobActionFactory*> m_origFactories;
-  OpenWithExecutableModel *m_execModel;
+  QList<OpenWithActionFactory> m_factories;
+  QList<OpenWithActionFactory*> m_origFactories;
+  OpenWithExecutableModel *m_factoryModel;
   OpenWithPatternModel *m_patternModel;
   QDataWidgetMapper *m_patternMapper;
-  QDataWidgetMapper *m_execMapper;
+  QDataWidgetMapper *m_handlerMapper;
 
   PatternTypeDelegate *m_patternTypeDelegate;
 

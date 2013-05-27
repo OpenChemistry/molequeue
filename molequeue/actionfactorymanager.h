@@ -78,6 +78,23 @@ public:
   QList<JobActionFactory*> factories(JobActionFactory::Flags flags) const;
 
   /**
+   * Get all factories of a specific type.
+   * @param FactoryType A subclass of JobActionFactory.
+   * @return A list of FactoryType pointers.
+   */
+  template <class FactoryType>
+  QList<FactoryType*> factoriesOfType() const
+  {
+    QList<FactoryType*> result;
+    foreach (JobActionFactory *factory, m_factories) {
+      if (FactoryType *f = qobject_cast<FactoryType*>(factory)) {
+        result << f;
+      }
+    }
+    return result;
+  }
+
+  /**
    * Remove the factory pointed to by @a factory from the manager.
    */
   void removeFactory(JobActionFactory *factory);

@@ -16,7 +16,7 @@
 
 #include "actionfactorymanager.h"
 
-#include "jobactionfactories/programmableopenwithactionfactory.h"
+#include "jobactionfactories/openwithactionfactory.h"
 
 namespace MoleQueue {
 
@@ -39,16 +39,13 @@ void ActionFactoryManager::readSettings(QSettings &settings)
   settings.beginGroup("ActionFactoryManager");
 
   int numFactories =
-      settings.beginReadArray("ProgrammableOpenWithActionFactories");
-
+      settings.beginReadArray("openWithActionFactories");
   for (int i = 0; i < numFactories; ++i) {
     settings.setArrayIndex(i);
-    ProgrammableOpenWithActionFactory *newFactory =
-        new ProgrammableOpenWithActionFactory;
+    OpenWithActionFactory *newFactory = new OpenWithActionFactory;
     newFactory->readSettings(settings);
     addFactory(newFactory);
   }
-
   settings.endArray();
 
   settings.endGroup();
@@ -58,18 +55,15 @@ void ActionFactoryManager::writeSettings(QSettings &settings) const
 {
   settings.beginGroup("ActionFactoryManager");
 
-  QList<JobActionFactory*> progFactories =
-      factories(JobActionFactory::ProgrammableOpenWith);
+  QList<OpenWithActionFactory*> factoryList =
+      factoriesOfType<OpenWithActionFactory>();
 
-  settings.beginWriteArray("ProgrammableOpenWithActionFactories",
-                           progFactories.size());
-
-  for (int i = 0; i < progFactories.size(); ++i) {
+  settings.beginWriteArray("openWithActionFactories",
+                           factoryList.size());
+  for (int i = 0; i < factoryList.size(); ++i) {
     settings.setArrayIndex(i);
-    static_cast<ProgrammableOpenWithActionFactory*>(
-          progFactories[i])->writeSettings(settings);
+    factoryList[i]->writeSettings(settings);
   }
-
   settings.endArray();
 
   settings.endGroup();

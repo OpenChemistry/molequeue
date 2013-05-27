@@ -1,0 +1,11 @@
+{
+    "jsonrpc": "2.0",
+    "method": "registerOpenWith",
+    "params": {
+        "name": "Remove me!",
+        "method": {
+            "executable": "exec"
+        }
+    },
+    "id": "779"
+}

@@ -21,7 +21,7 @@
 #include "molequeuetestconfig.h"
 
 #include "actionfactorymanager.h"
-#include "jobactionfactories/programmableopenwithactionfactory.h"
+#include "jobactionfactories/openwithactionfactory.h"
 #include "jobmanager.h"
 #include "molequeueglobal.h"
 #include "program.h"
@@ -298,6 +298,7 @@ void ServerTest::handleMessage_data()
 
   // registerOpenWith
   addValidation("registerOpenWith");
+  addValidation("registerOpenWith-rpc");
   addValidation("registerOpenWith-duplicateName"); // Must follow registerOpenWith
   addValidation("registerOpenWith-paramsNotObject");
   addValidation("registerOpenWith-badNameExec");
@@ -305,6 +306,15 @@ void ServerTest::handleMessage_data()
   addValidation("registerOpenWith-patternsNotArray");
   addValidation("registerOpenWith-patternNotObject");
   addValidation("registerOpenWith-invalidPatternType");
+
+  // listOpenWithName
+  addValidation("listOpenWithNames");
+
+  // unregisterOpenWith
+  addValidation("unregisterOpenWith-prepare"); // add a dummy handler, and
+  addValidation("unregisterOpenWith"); // remove it.
+  addValidation("unregisterOpenWith-paramsNotObject");
+  addValidation("unregisterOpenWith-nameNotString");
 }
 
 void ServerTest::handleMessage()
@@ -335,27 +345,40 @@ void ServerTest::handleMessage()
   QCOMPARE(QString(conn.popMessage().toJson()), responseString.toString());
 }
 
-// Verify that the action factory added by the registerOpenWith test is valid.
+// Verify that the action factories added by the registerOpenWith test are valid
 void ServerTest::verifyOpenWithHandler()
 {
-  // Get handler:
+  // Get handlers:
   ActionFactoryManager *afm = ActionFactoryManager::instance();
-  QList<JobActionFactory *> factories =
-      afm->factories(JobActionFactory::ProgrammableOpenWith);
-  QCOMPARE(factories.size(), 1);
-  ProgrammableOpenWithActionFactory *spiffyClient =
-      qobject_cast<ProgrammableOpenWithActionFactory*>(factories.first());
-  QVERIFY(spiffyClient != NULL);
+  QList<OpenWithActionFactory*> factories =
+      afm->factoriesOfType<OpenWithActionFactory>();
+  QCOMPARE(factories.size(), 2);
 
-  // Verify settings:
+  // test the executable handler's configuration
+  OpenWithActionFactory *spiffyClient = factories.first();
+  QVERIFY(spiffyClient != NULL);
   QCOMPARE(spiffyClient->name(), QString("My Spiffy Client"));
   QCOMPARE(spiffyClient->executable(), QString("client"));
-  QList<QRegExp> patterns = spiffyClient->recognizedFilePatterns();
+  QList<QRegExp> patterns = spiffyClient->filePatterns();
   QCOMPARE(patterns.size(), 2);
   QCOMPARE(patterns[0].pattern(), QString("spiff[\\d]*\\.(?:dat|out)"));
   QCOMPARE(patterns[0].patternSyntax(), QRegExp::RegExp2);
   QCOMPARE(patterns[0].caseSensitivity(), Qt::CaseSensitive);
   QCOMPARE(patterns[1].pattern(), QString("*.spiffyout"));
+  QCOMPARE(patterns[1].patternSyntax(), QRegExp::WildcardUnix);
+  QCOMPARE(patterns[1].caseSensitivity(), Qt::CaseInsensitive);
+
+  // test the rpc handler's configuration
+  spiffyClient = factories.at(1);
+  QVERIFY(spiffyClient != NULL);
+  QCOMPARE(spiffyClient->name(), QString("My Spiffy Client (RPC)"));
+  QCOMPARE(spiffyClient->rpcServer(), QString("rpc-client"));
+  patterns = spiffyClient->filePatterns();
+  QCOMPARE(patterns.size(), 2);
+  QCOMPARE(patterns[0].pattern(), QString("rpcspiff[\\d]*\\.(?:dat|out)"));
+  QCOMPARE(patterns[0].patternSyntax(), QRegExp::RegExp2);
+  QCOMPARE(patterns[0].caseSensitivity(), Qt::CaseSensitive);
+  QCOMPARE(patterns[1].pattern(), QString("rpc*.spiffyout"));
   QCOMPARE(patterns[1].patternSyntax(), QRegExp::WildcardUnix);
   QCOMPARE(patterns[1].caseSensitivity(), Qt::CaseInsensitive);
 }

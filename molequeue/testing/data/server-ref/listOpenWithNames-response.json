@@ -1,0 +1,8 @@
+{
+    "id": "777",
+    "jsonrpc": "2.0",
+    "result": [
+        "My Spiffy Client",
+        "My Spiffy Client (RPC)"
+    ]
+}

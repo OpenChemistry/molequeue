@@ -192,6 +192,8 @@ private:
   void handleCancelJobRequest(const MoleQueue::Message &message);
   void handleLookupJobRequest(const MoleQueue::Message &message);
   void handleRegisterOpenWithRequest(const MoleQueue::Message &message);
+  void handleListOpenWithNamesRequest(const MoleQueue::Message &message);
+  void handleUnregisterOpenWithRequest(const MoleQueue::Message &message);
   void handleRpcKillRequest(const MoleQueue::Message &message);
   /**@}*/
 
