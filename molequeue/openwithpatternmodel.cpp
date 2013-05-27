@@ -16,8 +16,6 @@
 
 #include "openwithpatternmodel.h"
 
-#include "jobactionfactories/programmableopenwithactionfactory.h"
-
 #include <QtCore/QRegExp>
 
 namespace MoleQueue

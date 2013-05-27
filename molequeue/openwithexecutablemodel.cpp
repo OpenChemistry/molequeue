@@ -16,12 +16,13 @@
 
 #include "openwithexecutablemodel.h"
 
-#include "jobactionfactories/programmableopenwithactionfactory.h"
+#include "jobactionfactories/openwithactionfactory.h"
 
 namespace {
 enum Column {
   FactoryName = 0,
-  Executable,
+  Type,
+  Target,
 
   COLUMN_COUNT
 };
@@ -62,8 +63,37 @@ QVariant OpenWithExecutableModel::data(const QModelIndex &ind, int role) const
   switch (static_cast<Column>(ind.column())) {
   case FactoryName:
     return (*m_factories)[ind.row()].name();
-  case Executable:
-    return (*m_factories)[ind.row()].executable();
+
+  case Type: {
+    if (role == Qt::DisplayRole) {
+      switch ((*m_factories)[ind.row()].handlerType()) {
+      default:
+      case OpenWithActionFactory::NoHandler:
+        return tr("N/A");
+      case OpenWithActionFactory::ExecutableHandler:
+        return tr("EXE", "executable abbreviation");
+      case OpenWithActionFactory::RpcHandler:
+        return tr("RPC", "remote procedure call abbreviation");
+      }
+    }
+    else {
+      return (*m_factories)[ind.row()].handlerType();
+    }
+  }
+
+  case Target: {
+    OpenWithActionFactory &f((*m_factories)[ind.row()]);
+    switch (f.handlerType()) {
+    default:
+    case OpenWithActionFactory::NoHandler:
+      return QString();
+    case OpenWithActionFactory::ExecutableHandler:
+      return f.executable();
+    case OpenWithActionFactory::RpcHandler:
+      return QString("%1@%2").arg(f.rpcMethod(), f.rpcServer());
+    }
+  }
+
   default:
     break;
   }
@@ -80,8 +110,10 @@ QVariant OpenWithExecutableModel::headerData(
     switch (static_cast<Column>(section)) {
     case FactoryName:
       return tr("Name");
-    case Executable:
-      return tr("Executable");
+    case Type:
+      return tr("Type");
+    case Target:
+      return tr("Target");
     default:
       break;
     }
@@ -97,17 +129,15 @@ bool OpenWithExecutableModel::insertRows(int row, int count,
     return false;
 
   beginInsertRows(QModelIndex(), row, row + count - 1);
-
   for (int i = 0; i < count; ++i) {
-    ProgrammableOpenWithActionFactory newFactory;
-    newFactory.setName(
-          tr("New%1").arg(count == 1 ? QString("") : QString::number(i+1)));
+    OpenWithActionFactory newFactory;
+    newFactory.setName(tr("New%1").arg(count == 1 ? QString("")
+                                                  : QString::number(i+1)));
     // Add a default regex that matches everything
-    newFactory.recognizedFilePatternsRef() << QRegExp("*", Qt::CaseInsensitive,
-                                                      QRegExp::Wildcard);
+    newFactory.filePatternsRef() << QRegExp("*", Qt::CaseInsensitive,
+                                            QRegExp::Wildcard);
     m_factories->insert(row, newFactory);
   }
-
   endInsertRows();
   return true;
 }
@@ -131,7 +161,6 @@ bool OpenWithExecutableModel::setData(const QModelIndex &ind,
                                       const QVariant &value, int role)
 {
   if (!m_factories
-      || !value.canConvert(QVariant::String)
       || !ind.isValid()
       || ind.row() >= m_factories->size() || ind.row() < 0
       || ind.column() >= COLUMN_COUNT || ind.column() < 0
@@ -143,9 +172,28 @@ bool OpenWithExecutableModel::setData(const QModelIndex &ind,
   case FactoryName:
     (*m_factories)[ind.row()].setName(value.toString());
     break;
-  case Executable:
-    (*m_factories)[ind.row()].setExecutable(value.toString());
+  case Type:
+    (*m_factories)[ind.row()].setHandlerType(
+          static_cast<OpenWithActionFactory::HandlerType>(value.toInt()));
     break;
+  case Target: {
+    OpenWithActionFactory &f((*m_factories)[ind.row()]);
+    switch (f.handlerType()) {
+    default:
+    case OpenWithActionFactory::NoHandler:
+      break;
+    case OpenWithActionFactory::ExecutableHandler:
+      f.setExecutable(value.toString());
+      break;
+    case OpenWithActionFactory::RpcHandler: {
+      QString rpcSpec(value.toString());
+      int split(rpcSpec.indexOf('@'));
+      f.setRpcDetails(rpcSpec.mid(split + 1), rpcSpec.left(split));
+      break;
+    }
+    }
+  }
+
   default:
     break;
   }
@@ -174,8 +222,8 @@ QModelIndex OpenWithExecutableModel::parent(const QModelIndex &) const
   return QModelIndex();
 }
 
-void OpenWithExecutableModel::setFactories(
-    QList<ProgrammableOpenWithActionFactory> *factories)
+void
+OpenWithExecutableModel::setFactories(QList<OpenWithActionFactory> *factories)
 {
   if (m_factories == factories)
     return;

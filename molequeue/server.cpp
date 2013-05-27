@@ -23,7 +23,7 @@
 #include "queue.h"
 #include "queuemanager.h"
 #include "pluginmanager.h"
-#include "jobactionfactories/programmableopenwithactionfactory.h"
+#include "jobactionfactories/openwithactionfactory.h"
 #include "transport/connectionlistenerfactory.h"
 
 #include <qjsonarray.h>
@@ -576,16 +576,36 @@ void Server::handleRegisterOpenWithRequest(const Message &message)
 
   QJsonObject paramsObject = message.params().toObject();
 
-  // At a minimum, name and executable must be specified:
+  // At a minimum, name and method must be specified:
   if (!paramsObject["name"].isString() ||
-      !paramsObject["executable"].isString()) {
-    handleInvalidParams(message, "\"params.name\" and \"params.executable\" "
-                        "must both be present and strings.");
+      !paramsObject["method"].isObject()) {
+    handleInvalidParams(message, "\"params.name\" (string) and "
+                        "\"params.method\" (object) must both be present.");
     return;
   }
 
   const QString name(paramsObject["name"].toString());
-  const QString executable(paramsObject["executable"].toString());
+  const QJsonObject methodObject(paramsObject["method"].toObject());
+
+  OpenWithActionFactory::HandlerType handlerType;
+  QString executable;
+  QString rpcServer;
+  QString rpcMethod;
+
+  if (methodObject["executable"].isString()) {
+    handlerType = OpenWithActionFactory::ExecutableHandler;
+    executable = methodObject["executable"].toString();
+  }
+  else if (methodObject["rpcServer"].isString() &&
+           methodObject["rpcMethod"].isString()) {
+    handlerType = OpenWithActionFactory::RpcHandler;
+    rpcServer = methodObject["rpcServer"].toString();
+    rpcMethod = methodObject["rpcMethod"].toString();
+  }
+  else {
+    handleInvalidParams(message, "\"params.method\" invalid.");
+    return;
+  }
 
   if (name.isEmpty()) {
     handleInvalidParams(message, "\"params.name\" must be a non-empty string.");
@@ -635,17 +655,16 @@ void Server::handleRegisterOpenWithRequest(const Message &message)
   }
 
   // If no patterns are specified, match all files:
-  if (patterns.empty()) {
+  if (patterns.empty())
     patterns << QRegExp("*", Qt::CaseSensitive, QRegExp::WildcardUnix);
-  }
 
   // Get existing open-with handlers
-  ActionFactoryManager *afm =ActionFactoryManager::instance();
-  QList<JobActionFactory*> factories =
-      afm->factories(JobActionFactory::ProgrammableOpenWith);
+  ActionFactoryManager *afm = ActionFactoryManager::instance();
+  QList<OpenWithActionFactory*> factories =
+      afm->factoriesOfType<OpenWithActionFactory>();
 
   // Check for name conflicts:
-  foreach (const JobActionFactory *factory, factories) {
+  foreach (const OpenWithActionFactory *factory, factories) {
     if (factory->name() == name) {
       Message error = message.generateErrorResponse();
       error.setErrorCode(1);
@@ -658,15 +677,25 @@ void Server::handleRegisterOpenWithRequest(const Message &message)
   }
 
   // Create a new handler:
-  ProgrammableOpenWithActionFactory *newFactory(
-        new ProgrammableOpenWithActionFactory);
+  OpenWithActionFactory *newFactory(new OpenWithActionFactory);
   newFactory->setName(name);
-  newFactory->setExecutable(executable);
-  newFactory->setRecognizedFilePatterns(patterns);
+  newFactory->setFilePatterns(patterns);
+
+  switch (handlerType) {
+  case OpenWithActionFactory::ExecutableHandler:
+    newFactory->setExecutable(executable);
+    break;
+  case OpenWithActionFactory::RpcHandler:
+    newFactory->setRpcDetails(rpcServer, rpcMethod);
+    break;
+  default:
+  case OpenWithActionFactory::NoHandler:
+    break;
+  }
+
   afm->addFactory(newFactory);
 
   Message response = message.generateResponse();
-
   response.setResult(QLatin1String("success"));
   response.send();
 }

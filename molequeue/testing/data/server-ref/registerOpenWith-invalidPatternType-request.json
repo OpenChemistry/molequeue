@@ -3,7 +3,9 @@
     "method": "registerOpenWith",
     "params": {
         "name": "My Spiffy Client",
-        "executable": "client",
+        "method": {
+            "executable": "client"
+        },
         "patterns": [
             {
                 "invalid": "spiff[\\d]*\\.(?:dat|out)",
