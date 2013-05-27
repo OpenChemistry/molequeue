@@ -8,7 +8,9 @@
                 "jsonrpc": "2.0",
                 "method": "registerOpenWith",
                 "params": {
-                    "executable": "client",
+                    "method": {
+                        "executable": "client"
+                    },
                     "name": "",
                     "patterns": [
                         {

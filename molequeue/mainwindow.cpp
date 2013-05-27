@@ -22,7 +22,6 @@
 #include "job.h"
 #include "jobactionfactories/killjobactionfactory.h"
 #include "jobactionfactories/opendirectoryactionfactory.h"
-#include "jobactionfactories/programmableopenwithactionfactory.h"
 #include "jobactionfactories/removejobactionfactory.h"
 #include "jobactionfactories/viewjoblogactionfactory.h"
 #include "jobmanager.h"

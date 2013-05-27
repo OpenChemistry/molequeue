@@ -3,7 +3,9 @@
     "method": "registerOpenWith",
     "params": {
         "name": "",
-        "executable": "client",
+        "method": {
+            "executable": "client"
+        },
         "patterns": [
             {
                 "regexp": "spiff[\\d]*\\.(?:dat|out)",

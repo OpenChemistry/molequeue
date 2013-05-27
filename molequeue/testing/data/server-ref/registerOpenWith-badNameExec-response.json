@@ -2,7 +2,7 @@
     "error": {
         "code": -32602,
         "data": {
-            "description": "\"params.name\" and \"params.executable\" must both be present and strings.",
+            "description": "\"params.name\" (string) and \"params.method\" (object) must both be present.",
             "request": {
                 "id": "777",
                 "jsonrpc": "2.0",
