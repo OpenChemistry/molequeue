@@ -19,7 +19,10 @@
 #include "jsonrpcclient.h"
 #include "job.h"
 
+#include <QtCore/QRegExp>
+
 #include <qjsondocument.h>
+#include <qjsonarray.h>
 
 namespace MoleQueue
 {
@@ -124,6 +127,46 @@ int Client::cancelJob(unsigned int moleQueueId)
   return localId;
 }
 
+int Client::registerOpenWith(const QString &name, const QString &executable,
+                             const QList<QRegExp> &filePatterns)
+{
+  if (!m_jsonRpcClient)
+    return -1;
+
+  QJsonObject method;
+  method["executable"] = executable;
+
+  QJsonObject packet(buildRegisterOpenWithRequest(name, filePatterns, method));
+
+  if (!m_jsonRpcClient->sendRequest(packet))
+    return -1;
+
+  int localId = static_cast<int>(packet["id"].toDouble());
+  m_requests[localId] = RegisterOpenWith;
+  return localId;
+}
+
+int Client::registerOpenWith(const QString &name,
+                             const QString &rpcServer, const QString &rpcMethod,
+                             const QList<QRegExp> &filePatterns)
+{
+  if (!m_jsonRpcClient)
+    return -1;
+
+  QJsonObject method;
+  method["rpcServer"] = rpcServer;
+  method["rpcMethod"] = rpcMethod;
+
+  QJsonObject packet(buildRegisterOpenWithRequest(name, filePatterns, method));
+
+  if (!m_jsonRpcClient->sendRequest(packet))
+    return -1;
+
+  int localId = static_cast<int>(packet["id"].toDouble());
+  m_requests[localId] = RegisterOpenWith;
+  return localId;
+}
+
 void Client::flush()
 {
   if (m_jsonRpcClient)
@@ -174,6 +217,44 @@ void Client::processError(const QJsonObject &error)
   emit errorReceived(static_cast<int>(error["id"].toDouble()),
                      static_cast<unsigned int>(0),
                      error["error"].toObject()["message"].toString());
+}
+
+QJsonObject Client::buildRegisterOpenWithRequest(
+    const QString &name, const QList<QRegExp> &filePatterns,
+    const QJsonObject &handlerMethod)
+{
+   QJsonArray patterns;
+   foreach (const QRegExp &regex, filePatterns) {
+     QJsonObject pattern;
+     switch (regex.patternSyntax()) {
+     case QRegExp::RegExp:
+     case QRegExp::RegExp2:
+       pattern["regexp"] = regex.pattern();
+       break;
+     case QRegExp::Wildcard:
+     case QRegExp::WildcardUnix:
+       pattern["wildcard"] = regex.pattern();
+       break;
+     default:
+     case QRegExp::FixedString:
+     case QRegExp::W3CXmlSchema11:
+       continue;
+     }
+
+     pattern["caseSensitive"] = regex.caseSensitivity() == Qt::CaseSensitive;
+     patterns.append(pattern);
+   }
+
+   QJsonObject params;
+   params["name"] = name;
+   params["method"] = handlerMethod;
+   params["patterns"] = patterns;
+
+   QJsonObject packet = m_jsonRpcClient->emptyRequest();
+   packet["method"] = QLatin1String("registerOpenWith");
+   packet["params"] = params;
+
+   return packet;
 }
 
 } // End namespace MoleQueue

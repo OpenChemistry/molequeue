@@ -32,6 +32,7 @@ JsonRpcClient::JsonRpcClient(QObject *parent_) :
 
 JsonRpcClient::~JsonRpcClient()
 {
+  flush();
 }
 
 bool JsonRpcClient::isConnected() const
