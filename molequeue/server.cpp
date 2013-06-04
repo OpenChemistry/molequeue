@@ -16,12 +16,14 @@
 
 #include "server.h"
 
+#include "actionfactorymanager.h"
 #include "job.h"
 #include "jobmanager.h"
 #include "logger.h"
 #include "queue.h"
 #include "queuemanager.h"
 #include "pluginmanager.h"
+#include "jobactionfactories/openwithactionfactory.h"
 #include "transport/connectionlistenerfactory.h"
 
 #include <qjsonarray.h>
@@ -32,6 +34,7 @@
 #include <QtCore/QDir>
 #include <QtCore/QList>
 #include <QtCore/QSettings>
+#include <QtCore/QStringBuilder>
 #include <QtCore/QTimerEvent>
 
 namespace MoleQueue
@@ -277,6 +280,12 @@ void Server::handleRequest(const Message &message)
     handleCancelJobRequest(message);
   else if (method == "lookupJob")
     handleLookupJobRequest(message);
+  else if (method == "registerOpenWith")
+    handleRegisterOpenWithRequest(message);
+  else if (method == "listOpenWithNames")
+    handleListOpenWithNamesRequest(message);
+  else if (method == "unregisterOpenWith")
+    handleUnregisterOpenWithRequest(message);
   else if (method == "rpcKill")
     handleRpcKillRequest(message);
   else
@@ -557,6 +566,203 @@ void Server::handleLookupJobRequest(const Message &message)
   // Send reply
   Message response = message.generateResponse();
   response.setResult(job.toJsonObject());
+  response.send();
+}
+
+void Server::handleRegisterOpenWithRequest(const Message &message)
+{
+  // validate request
+  if (!message.params().isObject()) {
+    handleInvalidParams(message,
+                        "registerOpenWith params member must be an object.");
+    return;
+  }
+
+  QJsonObject paramsObject = message.params().toObject();
+
+  // At a minimum, name and method must be specified:
+  if (!paramsObject["name"].isString() ||
+      !paramsObject["method"].isObject()) {
+    handleInvalidParams(message, "\"params.name\" (string) and "
+                        "\"params.method\" (object) must both be present.");
+    return;
+  }
+
+  const QString name(paramsObject["name"].toString());
+  const QJsonObject methodObject(paramsObject["method"].toObject());
+
+  OpenWithActionFactory::HandlerType handlerType;
+  QString executable;
+  QString rpcServer;
+  QString rpcMethod;
+
+  if (methodObject["executable"].isString()) {
+    handlerType = OpenWithActionFactory::ExecutableHandler;
+    executable = methodObject["executable"].toString();
+  }
+  else if (methodObject["rpcServer"].isString() &&
+           methodObject["rpcMethod"].isString()) {
+    handlerType = OpenWithActionFactory::RpcHandler;
+    rpcServer = methodObject["rpcServer"].toString();
+    rpcMethod = methodObject["rpcMethod"].toString();
+  }
+  else {
+    handleInvalidParams(message, "\"params.method\" invalid.");
+    return;
+  }
+
+  if (name.isEmpty()) {
+    handleInvalidParams(message, "\"params.name\" must be a non-empty string.");
+    return;
+  }
+
+  // Validate and extract patterns.
+  QList<QRegExp> patterns;
+  if (paramsObject.contains("patterns")) {
+    if (!paramsObject["patterns"].isArray()) {
+      handleInvalidParams(message, "\"params.patterns\" member must be a JSON "
+                          "array.");
+      return;
+    }
+
+    foreach (const QJsonValue &pattern, paramsObject["patterns"].toArray()) {
+      if (!pattern.isObject()) {
+        handleInvalidParams(message, "\"params.patterns\" array entries must "
+                            "be JSON objects.");
+        return;
+      }
+
+      const QJsonObject patternObject = pattern.toObject();
+      QRegExp regexp;
+      if (patternObject["regexp"].isString()) {
+        regexp.setPatternSyntax(QRegExp::RegExp2);
+        regexp.setPattern(patternObject["regexp"].toString());
+      }
+      else if (patternObject["wildcard"].isString()) {
+        regexp.setPatternSyntax(QRegExp::WildcardUnix);
+        regexp.setPattern(patternObject["wildcard"].toString());
+      }
+      else {
+        handleInvalidParams(message, "\"params.patterns\" contains an entry "
+                            "that is not a regexp or wildcard.");
+        return;
+      }
+
+      if (patternObject.contains("caseSensitive")) {
+        bool caseSensitive(patternObject.value("caseSensitive").toBool(true));
+        regexp.setCaseSensitivity(caseSensitive ? Qt::CaseSensitive
+                                                : Qt::CaseInsensitive);
+      }
+
+      patterns << regexp;
+    }
+  }
+
+  // If no patterns are specified, match all files:
+  if (patterns.empty())
+    patterns << QRegExp("*", Qt::CaseSensitive, QRegExp::WildcardUnix);
+
+  // Get existing open-with handlers
+  ActionFactoryManager *afm = ActionFactoryManager::instance();
+  QList<OpenWithActionFactory*> factories =
+      afm->factoriesOfType<OpenWithActionFactory>();
+
+  // Check for name conflicts:
+  foreach (const OpenWithActionFactory *factory, factories) {
+    if (factory->name() == name) {
+      Message error = message.generateErrorResponse();
+      error.setErrorCode(1);
+      error.setErrorMessage(
+            QLatin1Literal("Name conflict: An open-with handler named '") % name
+            % QLatin1Literal("' already exists."));
+      error.send();
+      return;
+    }
+  }
+
+  // Create a new handler:
+  OpenWithActionFactory *newFactory(new OpenWithActionFactory);
+  newFactory->setName(name);
+  newFactory->setFilePatterns(patterns);
+
+  switch (handlerType) {
+  case OpenWithActionFactory::ExecutableHandler:
+    newFactory->setExecutable(executable);
+    break;
+  case OpenWithActionFactory::RpcHandler:
+    newFactory->setRpcDetails(rpcServer, rpcMethod);
+    break;
+  default:
+  case OpenWithActionFactory::NoHandler:
+    break;
+  }
+
+  afm->addFactory(newFactory);
+
+  Message response = message.generateResponse();
+  response.setResult(QLatin1String("success"));
+  response.send();
+}
+
+void Server::handleListOpenWithNamesRequest(const Message &message)
+{
+  // Build result object
+  ActionFactoryManager *afm = ActionFactoryManager::instance();
+  QList<OpenWithActionFactory*> handlers(
+        afm->factoriesOfType<OpenWithActionFactory>());
+  QJsonArray result;
+  foreach (OpenWithActionFactory *handler, handlers)
+    result.append(handler->name());
+
+  // Create response message
+  Message response = message.generateResponse();
+  response.setResult(result);
+  response.send();
+}
+
+void Server::handleUnregisterOpenWithRequest(const Message &message)
+{
+  // Validate
+  if (!message.params().isObject()) {
+    handleInvalidParams(message, "params value must be an object.");
+    return;
+  }
+
+  QJsonObject paramsObject(message.params().toObject());
+  if (!paramsObject["name"].isString()) {
+    handleInvalidParams(message, "\"params.name\" value must be a string.");
+    return;
+  }
+
+  QString handlerName(paramsObject["name"].toString());
+
+  // Search for matching handler
+  ActionFactoryManager *afm = ActionFactoryManager::instance();
+  QList<OpenWithActionFactory*> handlers =
+      afm->factoriesOfType<OpenWithActionFactory>();
+  OpenWithActionFactory *handler;
+  foreach (OpenWithActionFactory *h, handlers) {
+    if (handlerName == h->name()) {
+      handler = h;
+      break;
+    }
+  }
+
+  if (!handler) {
+    Message error = message.generateErrorResponse();
+    error.setErrorCode(1);
+    error.setErrorMessage(QString("File handler '%1'' not found!")
+                          .arg(handlerName));
+    error.send();
+    return;
+  }
+
+  // Remove handler
+  afm->removeFactory(handler);
+
+  // Send response
+  Message response = message.generateResponse();
+  response.setResult(QLatin1String("success"));
   response.send();
 }
 

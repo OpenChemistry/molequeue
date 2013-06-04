@@ -1,0 +1,25 @@
+{
+    "error": {
+        "code": -32602,
+        "data": {
+            "description": "\"params.patterns\" member must be a JSON array.",
+            "request": {
+                "id": "777",
+                "jsonrpc": "2.0",
+                "method": "registerOpenWith",
+                "params": {
+                    "method": {
+                        "executable": "client"
+                    },
+                    "name": "My Spiffy Client",
+                    "patterns": {
+                        "derp": true
+                    }
+                }
+            }
+        },
+        "message": "Invalid params"
+    },
+    "id": "777",
+    "jsonrpc": "2.0"
+}

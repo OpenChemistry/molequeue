@@ -2,7 +2,7 @@
 
   This source file is part of the MoleQueue project.
 
-  Copyright 2012 Kitware, Inc.
+  Copyright 2012-2013 Kitware, Inc.
 
   This source code is released under the New BSD License, (the "License").
 
@@ -21,94 +21,188 @@
 
 #include "molequeueglobal.h"
 
+class QDir;
+
 namespace MoleQueue
 {
 
 /**
  * @class OpenWithActionFactory openwithactionfactory.h
  * <molequeue/jobactionfactories/openwithactionfactory.h>
- * @brief JobActionFactory which opens job output in an external application.
- * @author David C. Lonie
+ * @brief The OpenWithActionFactory class provides a generic mechanism for
+ * performing an action on a file in a job's directory. It is configured to
+ * process a file by calling an external executable or sending RPC requests.
  *
- * OpenWithActionFactory is an abstract subclass of JobActionFactory designed
- * to open job output with an external application.
+ * The OpenWithActionFactory allows arbitrary actions to be performed on files
+ * in a job's directory. A list of QRegExp objects is used to filter filenames
+ * so that the factory only produces actions for files that match one of the
+ * filePatterns().
  *
- * Subclasses should, at minimum, set m_executable to the name of the
- * external application in the constructor and reimplement isValidForJob.
- * See ProgrammableOpenWithActionFactory for an example.
+ * The actions will either call an external executable() to handle the file,
+ * or send a request (rpcMethod()) to a JSON-RPC 2.0 server (rpcServer()). The
+ * executable will be run as:
+~~~
+executable /absolute/path/to/selected/fileName
+~~~
+ *
+ * RPC requests will be of the form:
+~~~
+{
+    "jsonrpc": "2.0",
+    "method": "rpcMethod",
+    "params": {
+        "fileName": "/absolute/path/to/selected/fileName"
+        }
+    },
+    "id": "XXX"
+}
+~~~
+ * Use setExecutable() to set the actions to use an executable, or
+ * setRpcDetails() to use RPC calls. The type of file handler can be checked
+ * with handlerType().
  */
 class OpenWithActionFactory : public JobActionFactory
 {
   Q_OBJECT
 public:
+  /**
+   * The HandlerType enum identifies types of file handling strategies.
+   * @sa handlerType()
+   */
+  enum HandlerType {
+    /**
+     *No handler specified.
+     */
+    NoHandler = -1,
+    /**
+     * Open the file with an external executable.
+     * @sa setExecutable().
+     */
+    ExecutableHandler = 0,
+    /**
+     * Open the file with a JSON-RPC request.
+     * @sa setRpcDetails().
+     */
+    RpcHandler
+  };
+
+  /**
+   * Construct a new, uninitialized OpenWithActionFactory.
+   */
   OpenWithActionFactory();
-  OpenWithActionFactory(const OpenWithActionFactory &other);
+
   virtual ~OpenWithActionFactory();
-  OpenWithActionFactory & operator=(const OpenWithActionFactory &other);
 
   /**
-   * Read state from @a settings.
+   * Construct a copy of the OpenWithActionFactory @a other.
    */
-  virtual void readSettings(QSettings &settings);
+  OpenWithActionFactory(const OpenWithActionFactory &other);
 
   /**
-   * Write state to @a settings.
+   * Copy the OpenWithActionFactory @a other into @a this.
    */
-  virtual void writeSettings(QSettings &settings) const;
+  OpenWithActionFactory & operator=(OpenWithActionFactory other);
 
+  /**
+   * Save/restore state. @{
+   */
+  void readSettings(QSettings &settings);
+  void writeSettings(QSettings &settings) const;
+  /** @} */
+
+  /**
+   * The user-friendly GUI name of this action. Used to set the action menu text
+   * to "Open '[job description]' with '[name()]'". @{
+   */
+  QString name() const { return m_name; }
+  void setName(const QString &n) { m_name = n; }
+  /** @} */
+
+  // Reimplemented virtuals:
+  bool isValidForJob(const Job &job) const;
   void clearJobs();
-
-  /**
-   * The executable. May be either an absolute filepath, or an executable name
-   * to be looked up in the system path.
-   */
-  QString executable() const { return m_executable; }
-
   bool useMenu() const;
   QString menuText() const;
+  QList<QAction *> createActions();
+  unsigned int usefulness() const;
 
   /**
-   * Return a list of new QActions. The QActions will be preconfigured and must
-   * be deleted by the caller.
-   *
-   * The default implementation returns a QAction for each filename that the
-   * executable can handle. The text of the action will be the filename, and
-   * will be placed in a submenu with text
-   * "Open ['job description]' in [executable name]..."
-   *
-   * The QVariant data member of the action is set a relevant Job object.
-   *
-   * The action's "filename" property contains the absolute path to the file.
-   *
-   * The QAction::triggered() signal is connected to the actionTriggered slot
-   * of the factory. See that function's documentation for details of its
-   * default implementation.
+   * The type of file handling strategy to use.
+   * @sa HandlerType
+   * @sa setExecutable() setRpcDetails()
+   * @{
    */
-  virtual QList<QAction*> createActions();
+  void setHandlerType(HandlerType type);
+  HandlerType handlerType() const { return m_handlerType; }
+  /** @} */
 
-  /** Reimplemented from JobActionFactory. Default value: 800. */
-  virtual unsigned int usefulness() const;
-
-protected slots:
   /**
-   * This slot is connected to new the QAction::triggered() signal of new
-   * actions returned from createActions. This function must only be called as
-   * a response to the action's signal (i.e. sender() must be a QAction)
-   * and the sender's QAction::data() method must return a QList<Job>
-   * containing the jobs to be opened by the target application.
+   * Produce actions that execute @a exec on the selected file as:
+~~~
+executable /absolute/path/to/selected/fileName
+~~~
    *
-   * The default implementation launches the external application for each job
-   * in the sender's data list, with the absolute path to the job's output file
-   * as an argument.
+   * @note Calling setExecutable() erases the rpcServer() and rpcMethod()
+   * values.
+   * @{
    */
-  virtual void actionTriggered();
+  void setExecutable(const QString &exec);
+  QString executable() const;
+  /** @} */
 
-protected:
+  /**
+   * Produce actions that set JSON-RPC 2.0 requests to a local socket server
+   * named @a myRpcServer of the form:
+~~~
+{
+    "jsonrpc": "2.0",
+    "method": "myRpcMethod",
+    "params": {
+        "fileName": "/absolute/path/to/selected/fileName"
+        }
+    },
+    "id": "XXX"
+}
+~~~
+   * @note This method erases the executable() value.
+   */
+  void setRpcDetails(const QString &myRpcServer, const QString &myRpcMethod);
+
+  /**
+   * @return The target JSON-RPC server socket name.
+   */
+  QString rpcServer() const;
+
+  /**
+   * @return The method to use in JSON-RPC requests.
+   */
+  QString rpcMethod() const;
+
+  /**
+   * A list of QRegExp objects that match files supported by the file handler.
+   * An action will be produce for each file that matches any of these QRegExps.
+   * @{
+   */
+  QList<QRegExp> filePatterns() const;
+  QList<QRegExp>& filePatternsRef();
+  const QList<QRegExp>& filePatternsRef() const;
+  void setFilePatterns(const QList<QRegExp> &patterns);
+  /** @} */
+
+  class HandlerStrategy;
+private slots:
+  void actionTriggered();
+
+private:
+  bool scanDirectoryForRecognizedFiles(const QDir &baseDir,
+                                       const QDir &dir) const;
+
   QString m_name;
-  QString m_executable;
-  // display text, absolute file path
-  mutable QMap<QString, QString> m_filenames;
   QString m_menuText;
+  HandlerType m_handlerType;
+  HandlerStrategy *m_handler;
+  QList<QRegExp> m_filePatterns;
+  mutable QMap<QString, QString> m_fileNames; // GUI name: absolute file path
 };
 
 } // end namespace MoleQueue

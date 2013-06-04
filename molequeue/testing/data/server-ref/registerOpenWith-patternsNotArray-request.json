@@ -1,0 +1,14 @@
+{
+    "id": "777",
+    "jsonrpc": "2.0",
+    "method": "registerOpenWith",
+    "params": {
+        "method": {
+            "executable": "client"
+        },
+        "name": "My Spiffy Client",
+        "patterns": {
+            "derp": true
+        }
+    }
+}

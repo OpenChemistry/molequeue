@@ -21,9 +21,9 @@
 
 namespace MoleQueue
 {
-class ProgrammableOpenWithActionFactory;
+class OpenWithActionFactory;
 
-/// MVC item model for ProgrammableOpenWithActionFactory executable names.
+/// MVC item model for OpenWithActionFactory configurations.
 class OpenWithExecutableModel : public QAbstractItemModel
 {
   Q_OBJECT
@@ -47,10 +47,10 @@ public:
   QModelIndex parent(const QModelIndex &child) const;
 
 public slots:
-  void setFactories(QList<ProgrammableOpenWithActionFactory> *factories);
+  void setFactories(QList<OpenWithActionFactory> *factories);
 
 protected:
-  QList<ProgrammableOpenWithActionFactory> *m_factories;
+  QList<OpenWithActionFactory> *m_factories;
 };
 
 } // namespace MoleQueue

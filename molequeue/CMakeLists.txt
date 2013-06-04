@@ -49,7 +49,6 @@ if(MoleQueue_BUILD_APPLICATION)
     jobactionfactories/killjobactionfactory.cpp
     jobactionfactories/opendirectoryactionfactory.cpp
     jobactionfactories/openwithactionfactory.cpp
-    jobactionfactories/programmableopenwithactionfactory.cpp
     jobactionfactories/removejobactionfactory.cpp
     jobactionfactories/viewjoblogactionfactory.cpp
     jobdata.cpp

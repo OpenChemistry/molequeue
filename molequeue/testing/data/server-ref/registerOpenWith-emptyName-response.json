@@ -1,0 +1,31 @@
+{
+    "error": {
+        "code": -32602,
+        "data": {
+            "description": "\"params.name\" must be a non-empty string.",
+            "request": {
+                "id": "777",
+                "jsonrpc": "2.0",
+                "method": "registerOpenWith",
+                "params": {
+                    "method": {
+                        "executable": "client"
+                    },
+                    "name": "",
+                    "patterns": [
+                        {
+                            "caseSensitive": true,
+                            "regexp": "spiff[\\d]*\\.(?:dat|out)"
+                        },
+                        {
+                            "wildcard": "*.spiffyout"
+                        }
+                    ]
+                }
+            }
+        },
+        "message": "Invalid params"
+    },
+    "id": "777",
+    "jsonrpc": "2.0"
+}

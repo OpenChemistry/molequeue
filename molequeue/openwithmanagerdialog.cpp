@@ -18,7 +18,7 @@
 #include "ui_openwithmanagerdialog.h"
 
 #include "actionfactorymanager.h"
-#include "jobactionfactories/programmableopenwithactionfactory.h"
+#include "jobactionfactories/openwithactionfactory.h"
 #include "openwithexecutablemodel.h"
 #include "openwithpatternmodel.h"
 #include "patterntypedelegate.h"
@@ -43,10 +43,10 @@ namespace MoleQueue
 OpenWithManagerDialog::OpenWithManagerDialog(QWidget *parentObject) :
   QDialog(parentObject),
   ui(new Ui::OpenWithManagerDialog),
-  m_execModel(new OpenWithExecutableModel(this)),
+  m_factoryModel(new OpenWithExecutableModel(this)),
   m_patternModel(new OpenWithPatternModel(this)),
   m_patternMapper(new QDataWidgetMapper(this)),
-  m_execMapper(new QDataWidgetMapper(this)),
+  m_handlerMapper(new QDataWidgetMapper(this)),
   m_patternTypeDelegate(new PatternTypeDelegate(this)),
   m_dirty(false)
 {
@@ -54,17 +54,18 @@ OpenWithManagerDialog::OpenWithManagerDialog(QWidget *parentObject) :
   ui->setupUi(this);
 
   // Setup MVC:
-  ui->tableExec->setModel(m_execModel);
+  ui->tableFactories->setModel(m_factoryModel);
 
   ui->tablePattern->setModel(m_patternModel);
   ui->tablePattern->setItemDelegate(m_patternTypeDelegate);
 
   ui->comboMatch->setModel(m_patternTypeDelegate->patternTypeModel());
 
-  m_execMapper->setModel(m_execModel);
-  m_execMapper->setSubmitPolicy(QDataWidgetMapper::AutoSubmit);
-  m_execMapper->addMapping(ui->editName, 0);
-  m_execMapper->addMapping(ui->editExec, 1);
+  m_handlerMapper->setModel(m_factoryModel);
+  m_handlerMapper->setSubmitPolicy(QDataWidgetMapper::AutoSubmit);
+  m_handlerMapper->addMapping(ui->editName, 0);
+  m_handlerMapper->addMapping(ui->comboType, 1, "currentIndex");
+  m_handlerMapper->addMapping(ui->editExec, 2);
 
   m_patternMapper->setModel(m_patternModel);
   m_patternMapper->setSubmitPolicy(QDataWidgetMapper::ManualSubmit);
@@ -83,15 +84,20 @@ OpenWithManagerDialog::OpenWithManagerDialog(QWidget *parentObject) :
   QCompleter *fsCompleter = new QCompleter(fsModel, this);
   ui->editExec->setCompleter(fsCompleter);
 
-  // Executable GUI:
-  connect(ui->pushAddExec, SIGNAL(clicked()),
-          this, SLOT(addExecutable()));
-  connect(ui->pushRemoveExec, SIGNAL(clicked()),
-          this, SLOT(removeExecutable()));
-  connect(ui->pushExec, SIGNAL(clicked()), SLOT(browseExecutable()));
-  connect(ui->tableExec->selectionModel(),
+  // Factory GUI:
+  connect(ui->pushAddFactory, SIGNAL(clicked()),
+          this, SLOT(addFactory()));
+  connect(ui->pushRemoveFactory, SIGNAL(clicked()),
+          this, SLOT(removeFactory()));
+  connect(ui->comboType, SIGNAL(currentIndexChanged(int)),
+          this, SLOT(factoryTypeChanged(int)));
+  connect(ui->tableFactories->selectionModel(),
           SIGNAL(selectionChanged(QItemSelection,QItemSelection)),
-          this, SLOT(executableSelectionChanged()));
+          this, SLOT(factorySelectionChanged()));
+
+  // Executable GUI:
+  connect(ui->pushExec, SIGNAL(clicked()), SLOT(browseExecutable()));
+  connect(ui->editExec, SIGNAL(textChanged(QString)), SLOT(testExecutable()));
 
   // Pattern GUI:
   connect(ui->pushAddPattern, SIGNAL(clicked()),
@@ -112,9 +118,6 @@ OpenWithManagerDialog::OpenWithManagerDialog(QWidget *parentObject) :
   connect(m_patternModel, SIGNAL(modelReset()),
           this, SLOT(patternDimensionsChanged()));
 
-  // Executable checking
-  connect(ui->editExec, SIGNAL(textChanged(QString)), SLOT(testExecutable()));
-
   // Test updates:
   connect(ui->editTest, SIGNAL(textChanged(QString)),
           this, SLOT(checkTestText()));
@@ -122,7 +125,7 @@ OpenWithManagerDialog::OpenWithManagerDialog(QWidget *parentObject) :
           this, SLOT(checkTestText()));
   connect(m_patternModel, SIGNAL(layoutChanged()),
           this, SLOT(checkTestText()));
-  connect(ui->tableExec->selectionModel(),
+  connect(ui->tableFactories->selectionModel(),
           SIGNAL(selectionChanged(QItemSelection,QItemSelection)),
           this, SLOT(checkTestText()));
 
@@ -131,11 +134,11 @@ OpenWithManagerDialog::OpenWithManagerDialog(QWidget *parentObject) :
           SLOT(buttonBoxClicked(QAbstractButton*)));
 
   // Mark dirty when the data changes.
-  connect(m_execModel, SIGNAL(dataChanged(QModelIndex,QModelIndex)),
+  connect(m_factoryModel, SIGNAL(dataChanged(QModelIndex,QModelIndex)),
           SLOT(markDirty()));
-  connect(m_execModel, SIGNAL(rowsInserted(QModelIndex, int, int)),
+  connect(m_factoryModel, SIGNAL(rowsInserted(QModelIndex, int, int)),
           SLOT(markDirty()));
-  connect(m_execModel, SIGNAL(rowsRemoved(QModelIndex, int, int)),
+  connect(m_factoryModel, SIGNAL(rowsRemoved(QModelIndex, int, int)),
           SLOT(markDirty()));
   connect(m_patternModel, SIGNAL(dataChanged(QModelIndex,QModelIndex)),
           SLOT(markDirty()));
@@ -153,23 +156,20 @@ OpenWithManagerDialog::~OpenWithManagerDialog()
 void OpenWithManagerDialog::loadFactories()
 {
   reset();
-  ActionFactoryManager *manager = ActionFactoryManager::getInstance();
-  m_origFactories =
-      manager->getFactories(JobActionFactory::ProgrammableOpenWith);
-  foreach (JobActionFactory *factory,m_origFactories) {
-    m_factories << ProgrammableOpenWithActionFactory(
-                     *static_cast<ProgrammableOpenWithActionFactory*>(factory));
-  }
-  m_execModel->setFactories(&m_factories);
+  ActionFactoryManager *manager = ActionFactoryManager::instance();
+  m_origFactories = manager->factoriesOfType<OpenWithActionFactory>();
+  foreach (OpenWithActionFactory *factory, m_origFactories)
+    m_factories << *factory;
+  m_factoryModel->setFactories(&m_factories);
 }
 
 void OpenWithManagerDialog::reset()
 {
   m_factories.clear();
   m_origFactories.clear();
-  m_execModel->setFactories(NULL);
+  m_factoryModel->setFactories(NULL);
   m_patternModel->setRegExps(NULL);
-  setExecutableGuiEnabled(false);
+  setFactoryGuiEnabled(false);
   setPatternGuiEnabled(false);
   markClean();
 }
@@ -178,8 +178,13 @@ bool OpenWithManagerDialog::apply()
 {
   // Check that all factories are using valid executables:
   int index = -1;
-  foreach (const ProgrammableOpenWithActionFactory &factory, m_factories) {
+  foreach (const OpenWithActionFactory &factory, m_factories) {
     ++index;
+
+    // Skip non-executable handlers
+    if (factory.handlerType() != OpenWithActionFactory::ExecutableHandler)
+      continue;
+
     QString reason;
     QString name = factory.name();
     QString executable = factory.executable();
@@ -212,7 +217,7 @@ bool OpenWithManagerDialog::apply()
     if (response == QMessageBox::No)
       continue;
 
-    ui->tableExec->selectRow(index);
+    ui->tableFactories->selectRow(index);
     ui->editExec->selectAll();
     ui->editExec->setFocus();
     return false;
@@ -220,11 +225,11 @@ bool OpenWithManagerDialog::apply()
 
   // Delete the original factories from the manager and replace them with our
   // new ones
-  ActionFactoryManager *manager = ActionFactoryManager::getInstance();
-  foreach (JobActionFactory *factory, m_origFactories)
+  ActionFactoryManager *manager = ActionFactoryManager::instance();
+  foreach (OpenWithActionFactory *factory, m_origFactories)
     manager->removeFactory(factory);
-  foreach (ProgrammableOpenWithActionFactory factory, m_factories)
-    manager->addFactory(new ProgrammableOpenWithActionFactory(factory));
+  foreach (OpenWithActionFactory factory, m_factories)
+    manager->addFactory(new OpenWithActionFactory(factory));
 
   loadFactories();
 
@@ -299,35 +304,51 @@ void OpenWithManagerDialog::markDirty()
   ui->buttonBox->button(QDialogButtonBox::Apply)->setEnabled(true);
 }
 
-void OpenWithManagerDialog::addExecutable()
+void OpenWithManagerDialog::addFactory()
 {
-  QModelIndexList sel = selectedExecutableIndices();
+  QModelIndexList sel = selectedFactoryIndices();
   int index = -1;
-  if (sel.size() == m_execModel->columnCount())
+  if (sel.size() == m_factoryModel->columnCount())
     index = sel.first().row();
 
-  if (index + 1 > m_execModel->rowCount(QModelIndex()) || index < 0)
-    index = m_execModel->rowCount(QModelIndex());
+  if (index + 1 > m_factoryModel->rowCount(QModelIndex()) || index < 0)
+    index = m_factoryModel->rowCount(QModelIndex());
 
-  m_execModel->insertRow(index);
+  m_factoryModel->insertRow(index);
 
-  ui->tableExec->selectionModel()->select(
-        m_execModel->index(index, 0),
+  ui->tableFactories->selectionModel()->select(
+        m_factoryModel->index(index, 0),
         QItemSelectionModel::ClearAndSelect | QItemSelectionModel::Rows);
 }
 
-void OpenWithManagerDialog::removeExecutable()
+void OpenWithManagerDialog::removeFactory()
 {
-  QModelIndexList sel = selectedExecutableIndices();
-  if (sel.size() != m_execModel->columnCount())
+  QModelIndexList sel = selectedFactoryIndices();
+  if (sel.size() != m_factoryModel->columnCount())
     return;
 
   int index = sel.first().row();
 
-  if (index + 1 > m_execModel->rowCount(QModelIndex()) || index < 0)
+  if (index + 1 > m_factoryModel->rowCount(QModelIndex()) || index < 0)
     return;
 
-  m_execModel->removeRow(index);
+  m_factoryModel->removeRow(index);
+}
+
+void OpenWithManagerDialog::factoryTypeChanged(int type)
+{
+  ui->stackHandler->setCurrentIndex(type);
+  switch (static_cast<OpenWithActionFactory::HandlerType>(type)) {
+  default:
+  case OpenWithActionFactory::NoHandler:
+  case OpenWithActionFactory::ExecutableHandler:
+    m_handlerMapper->addMapping(ui->editExec, 2);
+    break;
+  case OpenWithActionFactory::RpcHandler:
+    m_handlerMapper->addMapping(ui->editRpc, 2);
+    break;
+
+  }
 }
 
 void OpenWithManagerDialog::browseExecutable()
@@ -346,7 +367,7 @@ void OpenWithManagerDialog::browseExecutable()
       // Found the path; initialize the file dialog to it
       if (!absoluteFilePath.isEmpty()) {
         ui->editExec->setText(absoluteFilePath);
-        m_execMapper->submit();
+        m_handlerMapper->submit();
         initialPath = absoluteFilePath;
       }
     }
@@ -361,7 +382,7 @@ void OpenWithManagerDialog::browseExecutable()
 
   if (!newFilePath.isEmpty()) {
     ui->editExec->setText(newFilePath);
-    m_execMapper->submit();
+    m_handlerMapper->submit();
   }
 
   testExecutable();
@@ -427,34 +448,34 @@ void OpenWithManagerDialog::testExecutableNoMatch()
   ui->editExec->setPalette(pal);
 }
 
-void OpenWithManagerDialog::executableSelectionChanged()
+void OpenWithManagerDialog::factorySelectionChanged()
 {
   // Get selected executable
-  QModelIndexList sel = selectedExecutableIndices();
+  QModelIndexList sel = selectedFactoryIndices();
   int index = -1;
-  if (sel.size() == m_execModel->columnCount())
+  if (sel.size() == m_factoryModel->columnCount())
     index = sel.first().row();
 
   // If valid, set the regexp list
-  if (index >= 0 && index < m_execModel->rowCount(QModelIndex())) {
-    setExecutableGuiEnabled(true);
+  if (index >= 0 && index < m_factoryModel->rowCount(QModelIndex())) {
+    setFactoryGuiEnabled(true);
     setPatternGuiEnabled(true);
-    m_patternModel->setRegExps(&m_factories[index].recognizedFilePatternsRef());
+    m_patternModel->setRegExps(&m_factories[index].filePatternsRef());
     m_patternMapper->toFirst();
   }
   // otherwise, clear the regexp list and disable the pattern GUI
   else {
-    setExecutableGuiEnabled(false);
+    setFactoryGuiEnabled(false);
     setPatternGuiEnabled(false);
     m_patternModel->setRegExps(NULL);
   }
 
   // Update the execMapper
   if (sel.size())
-    m_execMapper->setCurrentIndex(sel.first().row());
+    m_handlerMapper->setCurrentIndex(sel.first().row());
 }
 
-void OpenWithManagerDialog::setExecutableGuiEnabled(bool enable)
+void OpenWithManagerDialog::setFactoryGuiEnabled(bool enable)
 {
   ui->editExec->setEnabled(enable);
   ui->labelExec->setEnabled(enable);
@@ -462,6 +483,10 @@ void OpenWithManagerDialog::setExecutableGuiEnabled(bool enable)
   ui->editExec->setEnabled(enable);
   ui->editName->setEnabled(enable);
   ui->labelName->setEnabled(enable);
+  ui->labelType->setEnabled(enable);
+  ui->comboType->setEnabled(enable);
+  ui->labelRpc->setEnabled(enable);
+  ui->editRpc->setEnabled(enable);
   if (!enable) {
     ui->editExec->blockSignals(true);
     ui->editExec->clear();
@@ -544,7 +569,7 @@ void OpenWithManagerDialog::setPatternGuiEnabled(bool enable)
 
 void OpenWithManagerDialog::checkTestText()
 {
-  ProgrammableOpenWithActionFactory *factory = selectedFactory();
+  OpenWithActionFactory *factory = selectedFactory();
 
   if (!factory) {
     testTextNoMatch();
@@ -552,7 +577,7 @@ void OpenWithManagerDialog::checkTestText()
   }
 
   const QString testText = ui->editTest->text();
-  foreach (const QRegExp &regexp, factory->recognizedFilePatterns()) {
+  foreach (const QRegExp &regexp, factory->filePatterns()) {
     if (regexp.indexIn(testText) >= 0) {
       testTextMatch();
       return;
@@ -606,9 +631,9 @@ QString OpenWithManagerDialog::searchSystemPathForFile(const QString &exec)
   return result;
 }
 
-QModelIndexList OpenWithManagerDialog::selectedExecutableIndices() const
+QModelIndexList OpenWithManagerDialog::selectedFactoryIndices() const
 {
-  return ui->tableExec->selectionModel()->selectedIndexes();
+  return ui->tableFactories->selectionModel()->selectedIndexes();
 }
 
 QModelIndexList OpenWithManagerDialog::selectedPatternIndices() const
@@ -616,10 +641,10 @@ QModelIndexList OpenWithManagerDialog::selectedPatternIndices() const
   return ui->tablePattern->selectionModel()->selectedIndexes();
 }
 
-ProgrammableOpenWithActionFactory *OpenWithManagerDialog::selectedFactory()
+OpenWithActionFactory *OpenWithManagerDialog::selectedFactory()
 {
-  QModelIndexList sel = selectedExecutableIndices();
-  if (sel.size() != m_execModel->columnCount())
+  QModelIndexList sel = selectedFactoryIndices();
+  if (sel.size() != m_factoryModel->columnCount())
     return NULL;
 
   int index = sel.first().row();
@@ -639,15 +664,15 @@ QRegExp *OpenWithManagerDialog::selectedRegExp()
 
   int index = sel.first().row();
 
-  ProgrammableOpenWithActionFactory *factory = selectedFactory();
+  OpenWithActionFactory *factory = selectedFactory();
 
   if (!factory)
     return NULL;
 
-  if (index < 0 || index >= factory->recognizedFilePatterns().size())
+  if (index < 0 || index >= factory->filePatternsRef().size())
     return NULL;
 
-  return &factory->recognizedFilePatterns()[index];
+  return &factory->filePatternsRef()[index];
 }
 
 void OpenWithManagerDialog::keyPressEvent(QKeyEvent *ev)

@@ -1,0 +1,19 @@
+{
+    "error": {
+        "code": -32602,
+        "data": {
+            "description": "params value must be an object.",
+            "request": {
+                "id": "780",
+                "jsonrpc": "2.0",
+                "method": "unregisterOpenWith",
+                "params": [
+                    "Badly specified handler name"
+                ]
+            }
+        },
+        "message": "Invalid params"
+    },
+    "id": "780",
+    "jsonrpc": "2.0"
+}

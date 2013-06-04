@@ -1,0 +1,8 @@
+{
+    "error": {
+        "code": 1,
+        "message": "Name conflict: An open-with handler named 'My Spiffy Client' already exists."
+    },
+    "id": "777",
+    "jsonrpc": "2.0"
+}

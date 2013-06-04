@@ -1,0 +1,32 @@
+{
+    "error": {
+        "code": -32602,
+        "data": {
+            "description": "\"params.patterns\" array entries must be JSON objects.",
+            "request": {
+                "id": "777",
+                "jsonrpc": "2.0",
+                "method": "registerOpenWith",
+                "params": {
+                    "method": {
+                        "executable": "client"
+                    },
+                    "name": "My Spiffy Client",
+                    "patterns": [
+                        {
+                            "caseSensitive": true,
+                            "regexp": "spiff[\\d]*\\.(?:dat|out)"
+                        },
+                        {
+                            "wildcard": "*.spiffyout"
+                        },
+                        12
+                    ]
+                }
+            }
+        },
+        "message": "Invalid params"
+    },
+    "id": "777",
+    "jsonrpc": "2.0"
+}

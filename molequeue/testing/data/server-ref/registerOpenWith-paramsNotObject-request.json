@@ -1,0 +1,6 @@
+{
+    "jsonrpc": "2.0",
+    "method": "registerOpenWith",
+    "params": ["I'm not an object at all!"],
+    "id": "777"
+}

@@ -1,0 +1,6 @@
+{
+    "jsonrpc": "2.0",
+    "method": "unregisterOpenWith",
+    "params": ["Badly specified handler name"],
+    "id": "780"
+}

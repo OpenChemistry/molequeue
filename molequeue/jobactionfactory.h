@@ -42,9 +42,6 @@ public:
   enum Flag {
     /// Actions may be used as a context menu item.
     ContextItem          = 0x1,
-    /// This JobActionFactory is a ProgrammableOpenWithActionFactory. Used to
-    /// filter these out for serialization and various GUI operations.
-    ProgrammableOpenWith = 0x2
   };
   Q_DECLARE_FLAGS(Flags, Flag)
 

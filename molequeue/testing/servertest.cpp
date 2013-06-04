@@ -20,6 +20,8 @@
 
 #include "molequeuetestconfig.h"
 
+#include "actionfactorymanager.h"
+#include "jobactionfactories/openwithactionfactory.h"
 #include "jobmanager.h"
 #include "molequeueglobal.h"
 #include "program.h"
@@ -75,6 +77,8 @@ private slots:
 
   void handleMessage_data();
   void handleMessage();
+
+  void verifyOpenWithHandler();
 };
 
 void ServerTest::initTestCase()
@@ -242,6 +246,17 @@ void ServerTest::testClientDisconnected()
 #endif
 }
 
+// Simplify the addition of new validation tests. Expects files to exist in
+// molequeue/molequeue/testing/data/server-ref/ named:
+// - <name>-request.json: a client request.
+// - <name>-response.json: a reference server reply.
+void addValidation(const QString &name)
+{
+  QTest::newRow(qPrintable(name))
+      << QString("server-ref/%1-request.json").arg(name)
+      << QString("server-ref/%1-response.json").arg(name);
+}
+
 void ServerTest::handleMessage_data()
 {
   // Load testing jobs:
@@ -252,74 +267,54 @@ void ServerTest::handleMessage_data()
   QTest::addColumn<QString>("responseFile");
 
   // Invalid method
-  QTest::newRow("invalidMethod")
-      << "server-ref/invalidMethod-request.json"
-      << "server-ref/invalidMethod-response.json";
+  addValidation("invalidMethod");
 
   // listQueues
-  QTest::newRow("listQueues")
-      << "server-ref/listQueues-request.json"
-      << "server-ref/listQueues-response.json";
+  addValidation("listQueues");
 
   // submitJob
-  QTest::newRow("submitJob-paramsNotObject")
-      << "server-ref/submitJob-paramsNotObject-request.json"
-      << "server-ref/submitJob-paramsNotObject-response.json";
-  QTest::newRow("submitJob-queueMissing")
-      << "server-ref/submitJob-queueMissing-request.json"
-      << "server-ref/submitJob-queueMissing-response.json";
-  QTest::newRow("submitJob-programMissing")
-      << "server-ref/submitJob-programMissing-request.json"
-      << "server-ref/submitJob-programMissing-response.json";
-  QTest::newRow("submitJob-queueNotString")
-      << "server-ref/submitJob-queueNotString-request.json"
-      << "server-ref/submitJob-queueNotString-response.json";
-  QTest::newRow("submitJob-programNotString")
-      << "server-ref/submitJob-programNotString-request.json"
-      << "server-ref/submitJob-programNotString-response.json";
-  QTest::newRow("submitJob-queueDoesNotExist")
-      << "server-ref/submitJob-queueDoesNotExist-request.json"
-      << "server-ref/submitJob-queueDoesNotExist-response.json";
-  QTest::newRow("submitJob-programDoesNotExist")
-      << "server-ref/submitJob-programDoesNotExist-request.json"
-      << "server-ref/submitJob-programDoesNotExist-response.json";
-  QTest::newRow("submitJob")
-      << "server-ref/submitJob-request.json"
-      << "server-ref/submitJob-response.json";
+  addValidation("submitJob-paramsNotObject");
+  addValidation("submitJob-queueMissing");
+  addValidation("submitJob-programMissing");
+  addValidation("submitJob-queueNotString");
+  addValidation("submitJob-programNotString");
+  addValidation("submitJob-queueDoesNotExist");
+  addValidation("submitJob-programDoesNotExist");
+  addValidation("submitJob");
 
   // cancelJob
-  QTest::newRow("cancelJob-paramsNotObject")
-      << "server-ref/cancelJob-paramsNotObject-request.json"
-      << "server-ref/cancelJob-paramsNotObject-response.json";
-  QTest::newRow("cancelJob-moleQueueIdMissing")
-      << "server-ref/cancelJob-moleQueueIdMissing-request.json"
-      << "server-ref/cancelJob-moleQueueIdMissing-response.json";
-  QTest::newRow("cancelJob-moleQueueIdInvalid")
-      << "server-ref/cancelJob-moleQueueIdInvalid-request.json"
-      << "server-ref/cancelJob-moleQueueIdInvalid-response.json";
-  QTest::newRow("cancelJob-jobNotRunning")
-      << "server-ref/cancelJob-jobNotRunning-request.json"
-      << "server-ref/cancelJob-jobNotRunning-response.json";
-  QTest::newRow("cancelJob-invalidQueue")
-      << "server-ref/cancelJob-invalidQueue-request.json"
-      << "server-ref/cancelJob-invalidQueue-response.json";
-  QTest::newRow("cancelJob")
-      << "server-ref/cancelJob-request.json"
-      << "server-ref/cancelJob-response.json";
+  addValidation("cancelJob-paramsNotObject");
+  addValidation("cancelJob-moleQueueIdMissing");
+  addValidation("cancelJob-moleQueueIdInvalid");
+  addValidation("cancelJob-jobNotRunning");
+  addValidation("cancelJob-invalidQueue");
+  addValidation("cancelJob");
 
   // lookupJob
-  QTest::newRow("lookupJob-paramsNotObject")
-      << "server-ref/lookupJob-paramsNotObject-request.json"
-      << "server-ref/lookupJob-paramsNotObject-response.json";
-  QTest::newRow("lookupJob-moleQueueIdMissing")
-      << "server-ref/lookupJob-moleQueueIdMissing-request.json"
-      << "server-ref/lookupJob-moleQueueIdMissing-response.json";
-  QTest::newRow("lookupJob-moleQueueIdInvalid")
-      << "server-ref/lookupJob-moleQueueIdInvalid-request.json"
-      << "server-ref/lookupJob-moleQueueIdInvalid-response.json";
-  QTest::newRow("lookupJob")
-      << "server-ref/lookupJob-request.json"
-      << "server-ref/lookupJob-response.json";
+  addValidation("lookupJob-paramsNotObject");
+  addValidation("lookupJob-moleQueueIdMissing");
+  addValidation("lookupJob-moleQueueIdInvalid");
+  addValidation("lookupJob");
+
+  // registerOpenWith
+  addValidation("registerOpenWith");
+  addValidation("registerOpenWith-rpc");
+  addValidation("registerOpenWith-duplicateName"); // Must follow registerOpenWith
+  addValidation("registerOpenWith-paramsNotObject");
+  addValidation("registerOpenWith-badNameExec");
+  addValidation("registerOpenWith-emptyName");
+  addValidation("registerOpenWith-patternsNotArray");
+  addValidation("registerOpenWith-patternNotObject");
+  addValidation("registerOpenWith-invalidPatternType");
+
+  // listOpenWithName
+  addValidation("listOpenWithNames");
+
+  // unregisterOpenWith
+  addValidation("unregisterOpenWith-prepare"); // add a dummy handler, and
+  addValidation("unregisterOpenWith"); // remove it.
+  addValidation("unregisterOpenWith-paramsNotObject");
+  addValidation("unregisterOpenWith-nameNotString");
 }
 
 void ServerTest::handleMessage()
@@ -348,6 +343,44 @@ void ServerTest::handleMessage()
 
   // Compare the reply with the reference reply
   QCOMPARE(QString(conn.popMessage().toJson()), responseString.toString());
+}
+
+// Verify that the action factories added by the registerOpenWith test are valid
+void ServerTest::verifyOpenWithHandler()
+{
+  // Get handlers:
+  ActionFactoryManager *afm = ActionFactoryManager::instance();
+  QList<OpenWithActionFactory*> factories =
+      afm->factoriesOfType<OpenWithActionFactory>();
+  QCOMPARE(factories.size(), 2);
+
+  // test the executable handler's configuration
+  OpenWithActionFactory *spiffyClient = factories.first();
+  QVERIFY(spiffyClient != NULL);
+  QCOMPARE(spiffyClient->name(), QString("My Spiffy Client"));
+  QCOMPARE(spiffyClient->executable(), QString("client"));
+  QList<QRegExp> patterns = spiffyClient->filePatterns();
+  QCOMPARE(patterns.size(), 2);
+  QCOMPARE(patterns[0].pattern(), QString("spiff[\\d]*\\.(?:dat|out)"));
+  QCOMPARE(patterns[0].patternSyntax(), QRegExp::RegExp2);
+  QCOMPARE(patterns[0].caseSensitivity(), Qt::CaseSensitive);
+  QCOMPARE(patterns[1].pattern(), QString("*.spiffyout"));
+  QCOMPARE(patterns[1].patternSyntax(), QRegExp::WildcardUnix);
+  QCOMPARE(patterns[1].caseSensitivity(), Qt::CaseInsensitive);
+
+  // test the rpc handler's configuration
+  spiffyClient = factories.at(1);
+  QVERIFY(spiffyClient != NULL);
+  QCOMPARE(spiffyClient->name(), QString("My Spiffy Client (RPC)"));
+  QCOMPARE(spiffyClient->rpcServer(), QString("rpc-client"));
+  patterns = spiffyClient->filePatterns();
+  QCOMPARE(patterns.size(), 2);
+  QCOMPARE(patterns[0].pattern(), QString("rpcspiff[\\d]*\\.(?:dat|out)"));
+  QCOMPARE(patterns[0].patternSyntax(), QRegExp::RegExp2);
+  QCOMPARE(patterns[0].caseSensitivity(), Qt::CaseSensitive);
+  QCOMPARE(patterns[1].pattern(), QString("rpc*.spiffyout"));
+  QCOMPARE(patterns[1].patternSyntax(), QRegExp::WildcardUnix);
+  QCOMPARE(patterns[1].caseSensitivity(), Qt::CaseInsensitive);
 }
 
 QTEST_MAIN(ServerTest)

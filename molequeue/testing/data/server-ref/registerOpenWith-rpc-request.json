@@ -1,0 +1,21 @@
+{
+    "jsonrpc": "2.0",
+    "method": "registerOpenWith",
+    "params": {
+        "name": "My Spiffy Client (RPC)",
+        "method": {
+            "rpcServer": "rpc-client",
+            "rpcMethod": "readFile"
+        },
+        "patterns": [
+            {
+                "regexp": "rpcspiff[\\d]*\\.(?:dat|out)"
+            },
+            {
+                "wildcard": "rpc*.spiffyout",
+                "caseSensitive": false
+            }
+        ]
+    },
+    "id": "777"
+}

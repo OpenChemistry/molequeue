@@ -1,0 +1,19 @@
+{
+    "error": {
+        "code": -32602,
+        "data": {
+            "description": "\"params.name\" value must be a string.",
+            "request": {
+                "id": "780",
+                "jsonrpc": "2.0",
+                "method": "unregisterOpenWith",
+                "params": {
+                    "name": false
+                }
+            }
+        },
+        "message": "Invalid params"
+    },
+    "id": "780",
+    "jsonrpc": "2.0"
+}

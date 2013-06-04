@@ -1,0 +1,28 @@
+{
+    "error": {
+        "code": -32602,
+        "data": {
+            "description": "\"params.patterns\" contains an entry that is not a regexp or wildcard.",
+            "request": {
+                "id": "777",
+                "jsonrpc": "2.0",
+                "method": "registerOpenWith",
+                "params": {
+                    "method": {
+                        "executable": "client"
+                    },
+                    "name": "My Spiffy Client",
+                    "patterns": [
+                        {
+                            "caseSensitive": true,
+                            "invalid": "spiff[\\d]*\\.(?:dat|out)"
+                        }
+                    ]
+                }
+            }
+        },
+        "message": "Invalid params"
+    },
+    "id": "777",
+    "jsonrpc": "2.0"
+}

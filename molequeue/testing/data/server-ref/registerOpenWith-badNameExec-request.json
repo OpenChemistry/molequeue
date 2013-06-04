@@ -1,0 +1,17 @@
+{
+    "jsonrpc": "2.0",
+    "method": "registerOpenWith",
+    "params": {
+        "name": 32,
+        "patterns": [
+            {
+                "regexp": "spiff[\\d]*\\.(?:dat|out)",
+                "caseSensitive": true
+            },
+            {
+                "wildcard": "*.spiffyout"
+            }
+        ]
+    },
+    "id": "777"
+}
