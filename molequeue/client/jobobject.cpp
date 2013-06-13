@@ -34,9 +34,10 @@ void JobObject::setValue(const QString &key, const QVariant &value_)
   m_value[key] = QJsonValue::fromVariant(value_);
 }
 
-QVariant JobObject::value(const QString &key) const
+QVariant JobObject::value(const QString &key,
+                          const QVariant &defaultValue) const
 {
-  return m_value[key].toVariant();
+  return m_value.contains(key) ? m_value[key].toVariant() : defaultValue;
 }
 
 void JobObject::setQueue(const QString &queueName)
