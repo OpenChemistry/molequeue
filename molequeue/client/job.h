@@ -50,8 +50,10 @@ public:
   /** Set the @p value of the specified @p key. */
   void setValue(const QString &key, const QVariant &value);
 
-  /** Get the value of the specified @p key. */
-  QVariant value(const QString &key) const;
+  /** Get the value of the specified @p key. If the key is not set, return
+   * @p defaultValue. */
+  QVariant value(const QString &key,
+                 const QVariant &defaultValue = QVariant()) const;
 
   /**
    * Set the job up using the supplied JSON object. This replaces all previous
