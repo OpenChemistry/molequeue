@@ -1,7 +1,0 @@
-<RCC>
-  <qresource prefix="/" >
-    <file>icons/molequeue.png</file>
-    <file>icons/MoleQueue_About.png</file>
-  </qresource>
-</RCC>
-
