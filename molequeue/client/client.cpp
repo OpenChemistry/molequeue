@@ -17,7 +17,7 @@
 #include "client.h"
 
 #include "jsonrpcclient.h"
-#include "job.h"
+#include "jobobject.h"
 
 #include <QtCore/QRegExp>
 
