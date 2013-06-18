@@ -172,7 +172,7 @@ add_library(molequeue_static STATIC
   ${mq_srcs}
   ${ui_srcs})
 set_target_properties(molequeue_static PROPERTIES AUTOMOC TRUE)
-target_link_libraries(molequeue_static MoleQueueServerCore)
+target_link_libraries(molequeue_static MoleQueueServerCore ${QT_LIBRARIES})
 
 if(MoleQueue_USE_EZHPC_UIT)
   target_link_libraries(molequeue_static kdsoap)

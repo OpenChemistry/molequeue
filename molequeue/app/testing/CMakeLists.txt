@@ -2,11 +2,7 @@ include_directories(${CMAKE_SOURCE_DIR}/molequeue
   ${CMAKE_BINARY_DIR}/molequeue/client
   ${CMAKE_BINARY_DIR}/molequeue/app/testing)
 
-set(qt_components QtCore QtGui QtNetwork QtTest)
-
-if(MoleQueue_USE_EZHPC_UIT)
-  list(APPEND qt_components QtXmlPatterns)
-endif()
+set(qt_components QtTest)
 
 find_package(Qt4 4.8.0 COMPONENTS ${qt_components})
 include(${QT_USE_FILE})
@@ -81,9 +77,8 @@ foreach(test ${MyTests})
   add_executable(${test}test MACOSX_BUNDLE ${test}test.cpp)
   set_target_properties(${test}test PROPERTIES AUTOMOC TRUE)
   target_link_libraries(${test}test
-    ${QT_LIBRARIES}
-    MoleQueueServerCore
     testutils
+    ${QT_LIBRARIES}
     )
   add_test(NAME molequeue-${test} COMMAND ${test}test)
 endforeach()
