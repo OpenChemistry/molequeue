@@ -216,6 +216,6 @@ include_directories(
 configure_file(molequeueconfig.h.in molequeueconfig.h)
 
 # Only run tests if building both client and app:
-if(BUILD_TESTING AND MoleQueue_BUILD_CLIENT AND MoleQueue_BUILD_APPLICATION)
+if(ENABLE_TESTING AND MoleQueue_BUILD_CLIENT AND MoleQueue_BUILD_APPLICATION)
   add_subdirectory(testing)
 endif()
