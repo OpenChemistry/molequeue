@@ -30,7 +30,7 @@ class Connection;
 class ConnectionListener;
 
 /**
- * @class JsonRpc jsonrpc.h <molequeue/transport/jsonrpc.h>
+ * @class JsonRpc jsonrpc.h <molequeue/servercore/jsonrpc.h>
  * @brief The JsonRpc class manages ConnectionListener and Connection instances,
  * and emits incoming JSON-RPC Messages.
  * @author David C. Lonie

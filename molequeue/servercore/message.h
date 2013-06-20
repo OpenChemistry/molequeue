@@ -40,7 +40,7 @@ typedef QJsonValue MessageIdType;
 typedef QByteArray PacketType;
 
 /**
- * @class Message message.h <molequeue/transport/message.h>
+ * @class Message message.h <molequeue/servercore/message.h>
  * @brief The Message class encaspulates a single JSON-RPC transmission.
  * @author David C. Lonie
  *
