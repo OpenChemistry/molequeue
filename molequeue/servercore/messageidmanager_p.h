@@ -25,7 +25,6 @@
 namespace MoleQueue {
 
 /**
- * @class MessageIdManager messageidmanager_p.h <transport/molequeue/messageidmanager_p.h
  * @brief The MessageIdManager class provides a static lookup table that is used
  * to identify replys to JSON-RPC requests.
  * @author David C. Lonie

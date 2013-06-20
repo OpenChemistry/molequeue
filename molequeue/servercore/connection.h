@@ -27,7 +27,7 @@ namespace MoleQueue
 {
 
 /**
- * @class Connection connection.h <molequeue/connection.h>
+ * @class Connection connection.h <molequeue/servercore/connection.h>
  * @brief The Connection class is an interface defining the connection using to
  * communicate between MoleQueue processes. Subclasses provide concrete
  * implements for example based on local socket @see LocalSocketConnection

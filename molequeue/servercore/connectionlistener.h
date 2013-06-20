@@ -25,7 +25,8 @@ namespace MoleQueue
 {
 
 /**
- * @class ConnectionListener connectionlistener.h <molequeue/connectionlistener.h>
+ * @class ConnectionListener connectionlistener.h
+ * <molequeue/servercore/connectionlistener.h>
  * @brief The ConnectionListener class is an interface defining a listener waiting
  * for connection to a server. Implementations should emit the @newConnection()
  * signal. Subclasses provide concrete implements for example based on local sockets
