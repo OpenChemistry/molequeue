@@ -42,8 +42,6 @@ option(ENABLE_TESTING "Enable testing" OFF)
 
 option(BUILD_SHARED_LIBS "Build with shared libraries" ON)
 
-option(USE_ZERO_MQ "Build molequeue with ZeroMQ support" OFF)
-
 option(MoleQueue_USE_EZHPC_UIT "Build support for ezHPC UIT interface" OFF)
 
 if(ENABLE_TESTING)
