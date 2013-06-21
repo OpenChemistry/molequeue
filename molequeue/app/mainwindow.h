@@ -17,9 +17,12 @@
 #ifndef MOLEQUEUE_MAINWINDOW_H
 #define MOLEQUEUE_MAINWINDOW_H
 
+#include <QtGui/QMainWindow>
+
+#include <molequeue/app/molequeueglobal.h>
+
 #include <molequeue/servercore/connectionlistener.h>
 
-#include <QtGui/QMainWindow>
 #include <QtGui/QSystemTrayIcon>
 
 #include <QtNetwork/QAbstractSocket>

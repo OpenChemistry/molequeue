@@ -17,7 +17,7 @@
 #ifndef MOLEQUEUE_JOBDATA_H
 #define MOLEQUEUE_JOBDATA_H
 
-#include <molequeue/servercore/molequeueglobal.h>
+#include <molequeue/app/molequeueglobal.h>
 
 #include "filespecification.h"
 

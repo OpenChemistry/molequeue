@@ -16,6 +16,8 @@
 
 #include "jsonrpc.h"
 
+#include <QtCore/QMetaType>
+
 #include <qjsondocument.h>
 #include <qjsonarray.h>
 

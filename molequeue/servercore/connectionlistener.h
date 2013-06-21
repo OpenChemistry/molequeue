@@ -18,8 +18,9 @@
 #define MOLEQUEUE_CONNECTIONLISTENER_H
 
 #include <QtCore/QObject>
+#include <QtCore/QMetaType>
 
-#include "connection.h"
+#include <molequeue/servercore/connection.h>
 
 namespace MoleQueue
 {

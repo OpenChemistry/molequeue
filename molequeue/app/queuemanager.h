@@ -19,7 +19,7 @@
 
 #include <QtCore/QObject>
 
-#include <molequeue/servercore/molequeueglobal.h>
+#include <molequeue/app/molequeueglobal.h>
 
 #include <QtCore/QMap>
 

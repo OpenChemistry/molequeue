@@ -19,6 +19,8 @@
 
 #include "molequeueservercoreexport.h"
 
+#include <molequeue/servercore/servercoreglobal.h>
+
 #include <qjsonobject.h>
 
 #include <QtCore/QByteArray>
@@ -31,13 +33,6 @@ class ServerTest;
 namespace MoleQueue {
 class Connection;
 class JsonRpc;
-
-/// Type for Endpoint identifiers
-typedef QByteArray EndpointIdType;
-/// Type for Message identifiers (JSON-RPC ids)
-typedef QJsonValue MessageIdType;
-/// Type for RPC packets
-typedef QByteArray PacketType;
 
 /**
  * @class Message message.h <molequeue/servercore/message.h>

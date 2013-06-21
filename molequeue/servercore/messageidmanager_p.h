@@ -17,7 +17,7 @@
 #ifndef MESSAGEIDMANAGER_P_H
 #define MESSAGEIDMANAGER_P_H
 
-#include "message.h"
+#include <molequeue/servercore/servercoreglobal.h>
 
 #include <QtCore/QMap>
 #include <QtCore/QString>
