@@ -117,7 +117,7 @@ public:
     /// into an appropriate type.
     Raw = 0x10,
     /// This Message is invalid.
-    Invalid = 0x11
+    Invalid = 0x20
   };
   Q_DECLARE_FLAGS(MessageTypes, MessageType)
 
