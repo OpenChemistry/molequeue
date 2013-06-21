@@ -358,36 +358,34 @@ bool Message::parse(Message &errorMessage_)
   if (m_type != Raw)
     return true;
 
-  QJsonObject json = m_rawJson;
-
   // Validate the message
   QStringList errors;
 
   // jsonrpc must equal "2.0"
-  if (!json.contains("jsonrpc"))
+  if (!m_rawJson.contains("jsonrpc"))
     errors << "jsonrpc key missing.";
-  if (!json.value("jsonrpc").isString())
+  if (!m_rawJson.value("jsonrpc").isString())
     errors << "jsonrpc key must be a string.";
-  if (json.value("jsonrpc").toString() != "2.0") {
+  if (m_rawJson.value("jsonrpc").toString() != "2.0") {
     errors << QString("Unrecognized jsonrpc string: %1")
-              .arg(json.value("jsonrpc").toString());
+              .arg(m_rawJson.value("jsonrpc").toString());
   }
 
   // Must have either id or method
-  if (!json.contains("id") && !json.contains("method"))
+  if (!m_rawJson.contains("id") && !m_rawJson.contains("method"))
     errors << "Missing both id and method.";
 
   // If method is present, it must be a string.
   QString method_;
-  if (json.contains("method")) {
-    if (!json.value("method").isString())
+  if (m_rawJson.contains("method")) {
+    if (!m_rawJson.value("method").isString())
       errors << "method must be a string.";
     else
-      method_ = json.value("method").toString();
+      method_ = m_rawJson.value("method").toString();
   }
   else {
     // Lookup method for response/error.
-    method_ = MessageIdManager::lookupMethod(json.value("id"));
+    method_ = MessageIdManager::lookupMethod(m_rawJson.value("id"));
   }
 
   // If any errors have occurred, prep the response:
@@ -395,7 +393,7 @@ bool Message::parse(Message &errorMessage_)
     errors.prepend("Invalid request:");
     QJsonObject errorDataObject;
     errorDataObject.insert("description", errors.join(" "));
-    errorDataObject.insert("request", json);
+    errorDataObject.insert("request", m_rawJson);
     errorMessage_ = generateErrorResponse();
     errorMessage_.setErrorCode(-32600);
     errorMessage_.setErrorMessage("Invalid request");
@@ -405,21 +403,21 @@ bool Message::parse(Message &errorMessage_)
 
   // Results, errors, and notifications cannot return errors. Parse them
   // as best we can and return true.
-  if (json.contains("result")) {
-    interpretResponse(json, method_);
+  if (m_rawJson.contains("result")) {
+    interpretResponse(m_rawJson, method_);
     return true;
   }
-  else if (json.contains("error")) {
-    interpretError(json, method_);
+  else if (m_rawJson.contains("error")) {
+    interpretError(m_rawJson, method_);
     return true;
   }
-  else if (!json.contains("id")) {
-    interpretNotification(json);
+  else if (!m_rawJson.contains("id")) {
+    interpretNotification(m_rawJson);
     return true;
   }
 
   // Assume anything else is a request.
-  return interpretRequest(json, errorMessage_);
+  return interpretRequest(m_rawJson, errorMessage_);
 }
 
 inline
