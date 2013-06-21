@@ -19,7 +19,7 @@
 
 #include "../jobactionfactory.h"
 
-#include <molequeue/app/molequeueglobal.h>
+#include "molequeueglobal.h"
 
 class QDir;
 

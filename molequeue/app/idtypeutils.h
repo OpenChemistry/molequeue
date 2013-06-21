@@ -17,7 +17,7 @@
 #ifndef IDTYPEUTILS_H
 #define IDTYPEUTILS_H
 
-#include <molequeue/app/molequeueglobal.h>
+#include "molequeueglobal.h"
 
 #include <qjsonvalue.h>
 

@@ -17,7 +17,7 @@
 #ifndef MOLEQUEUE_JOBREFERENCEBASE_H
 #define MOLEQUEUE_JOBREFERENCEBASE_H
 
-#include <molequeue/app/molequeueglobal.h>
+#include "molequeueglobal.h"
 #include "idtypeutils.h"
 
 #include <QtCore/QDebug>

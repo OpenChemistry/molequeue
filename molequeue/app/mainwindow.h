@@ -19,7 +19,7 @@
 
 #include <QtGui/QMainWindow>
 
-#include <molequeue/app/molequeueglobal.h>
+#include "molequeueglobal.h"
 
 #include <molequeue/servercore/connectionlistener.h>
 
