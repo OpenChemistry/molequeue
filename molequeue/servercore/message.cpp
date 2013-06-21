@@ -45,42 +45,16 @@ Message::Message(Message::MessageType type_, Connection *conn,
     m_connection(conn),
     m_endpoint(endpoint_)
 {
-  // Initialize data.
-  switch (type_) {
-  case Request:
-  case Notification:
-    m_id = MessageIdType();
-    m_method = QString();
-    m_params = QJsonValue();
-    break;
-  case Response:
-    m_id = MessageIdType();
-    m_method = QString();
-    m_result = QJsonValue();
-    break;
-  case Error:
-    m_id = MessageIdType();
-    m_method = QString();
-    m_errorCode = 0;
-    m_errorMessage = QString();
-    m_errorData = QJsonValue();
-    break;
-  case Raw:
-    m_rawJson = QJsonObject();
-    break;
-  case Invalid:
-    break;
-  }
 }
 
 Message::Message(const QJsonObject &rawJson, Connection *conn,
                  EndpointIdType endpoint_)
   : m_type(Raw),
     m_errorCode(0),
+    m_rawJson(rawJson),
     m_connection(conn),
     m_endpoint(endpoint_)
 {
-  m_rawJson = rawJson;
 }
 
 Message::Message(const Message &other)
