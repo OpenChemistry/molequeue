@@ -19,7 +19,7 @@
 
 #include "jobactionfactory.h"
 
-#include <molequeue/servercore/molequeueglobal.h>
+#include "molequeueglobal.h"
 
 namespace MoleQueue {
 class LogWindow;

@@ -19,7 +19,7 @@
 
 #include <QtCore/QAbstractItemModel>
 
-#include <molequeue/servercore/molequeueglobal.h>
+#include "molequeueglobal.h"
 
 namespace MoleQueue
 {

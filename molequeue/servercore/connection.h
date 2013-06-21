@@ -20,8 +20,8 @@
 #include <QtCore/QObject>
 
 #include "molequeueservercoreexport.h"
-#include "molequeueglobal.h"
-#include "message.h" // for typedefs
+
+#include <molequeue/servercore/servercoreglobal.h>
 
 namespace MoleQueue
 {

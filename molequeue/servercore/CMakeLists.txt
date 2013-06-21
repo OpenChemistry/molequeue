@@ -28,7 +28,7 @@ set(hdrs
   localsocketconnection.h
   localsocketconnectionlistener.h
   message.h
-  molequeueglobal.h
+  servercoreglobal.h
 )
 
 generate_export_header(MoleQueueServerCore

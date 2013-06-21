@@ -19,6 +19,8 @@
 
 #include "molequeueservercoreexport.h"
 
+#include <molequeue/servercore/servercoreglobal.h>
+
 #include <qjsonobject.h>
 
 #include <QtCore/QByteArray>
@@ -31,13 +33,6 @@ class ServerTest;
 namespace MoleQueue {
 class Connection;
 class JsonRpc;
-
-/// Type for Endpoint identifiers
-typedef QByteArray EndpointIdType;
-/// Type for Message identifiers (JSON-RPC ids)
-typedef QJsonValue MessageIdType;
-/// Type for RPC packets
-typedef QByteArray PacketType;
 
 /**
  * @class Message message.h <molequeue/servercore/message.h>
@@ -122,7 +117,7 @@ public:
     /// into an appropriate type.
     Raw = 0x10,
     /// This Message is invalid.
-    Invalid = 0x11
+    Invalid = 0x20
   };
   Q_DECLARE_FLAGS(MessageTypes, MessageType)
 

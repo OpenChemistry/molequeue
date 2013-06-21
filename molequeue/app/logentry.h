@@ -17,7 +17,7 @@
 #ifndef MOLEQUEUE_LOGENTRY_H
 #define MOLEQUEUE_LOGENTRY_H
 
-#include <molequeue/servercore/molequeueglobal.h>
+#include "molequeueglobal.h"
 
 #include <QtCore/QDateTime>
 #include <QtCore/QString>

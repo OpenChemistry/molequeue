@@ -16,7 +16,7 @@
 
 #include "localsocketconnection.h"
 
-#include "message.h"
+#include "servercoreglobal.h"
 
 #include <QtCore/QDateTime>
 #include <QtCore/QDebug>

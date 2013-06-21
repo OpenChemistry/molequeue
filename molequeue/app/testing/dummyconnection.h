@@ -17,6 +17,8 @@
 #ifndef MOLEQUEUE_DUMMYCONNECTION_H
 #define MOLEQUEUE_DUMMYCONNECTION_H
 
+#include <molequeue/servercore/message.h>
+
 #include <molequeue/servercore/connection.h>
 
 class DummyConnection : public MoleQueue::Connection

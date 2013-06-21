@@ -19,7 +19,7 @@
 
 #include <QtGui/QDialog>
 
-#include <molequeue/servercore/molequeueglobal.h>
+#include "molequeueglobal.h"
 
 class QSpinBox;
 class QTextBlockFormat;
