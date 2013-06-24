@@ -2,9 +2,7 @@ include_directories(${CMAKE_SOURCE_DIR}/molequeue
   ${CMAKE_BINARY_DIR}/molequeue/client
   ${CMAKE_BINARY_DIR}/molequeue/app/testing)
 
-set(qt_components QtTest)
-
-find_package(Qt4 4.8.0 COMPONENTS ${qt_components})
+find_package(Qt4 4.8.0 COMPONENTS QtTest)
 include(${QT_USE_FILE})
 
 set(MoleQueue_HAS_ZMQ ${USE_ZERO_MQ})
@@ -34,9 +32,10 @@ set(testutils_SRCS
   xmlutils.cpp
 )
 
-add_library(testutils STATIC ${testutils_SRCS})
+add_library(testutils STATIC ${testutils_SRCS}
+  $<TARGET_OBJECTS:MoleQueueObjects>)
 set_target_properties(testutils PROPERTIES AUTOMOC TRUE)
-target_link_libraries(testutils molequeue_static)
+target_link_libraries(testutils ${MoleQueue_LINK_LIBRARIES})
 
 set(MyTests
   filespecification

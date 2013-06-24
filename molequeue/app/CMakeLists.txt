@@ -25,10 +25,6 @@ if(CMAKE_CONFIGURATION_TYPES)
   add_definitions(-DMULTI_CONFIG_BUILD)
 endif()
 
-if(CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND NOT WIN32)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
-endif()
-
 set(mq_srcs
   aboutdialog.cpp
   abstractqueuesettingswidget.cpp
@@ -168,18 +164,17 @@ qt4_wrap_ui(ui_srcs ${ui_files})
 
 qt4_add_resources(rcc_srcs queuetray.qrc)
 
-add_library(molequeue_static STATIC
-  ${mq_srcs}
-  ${ui_srcs})
-set_target_properties(molequeue_static PROPERTIES AUTOMOC TRUE)
-target_link_libraries(molequeue_static MoleQueueServerCore ${QT_LIBRARIES})
-
+# Use an object library for the bulk of the code in MoleQueue, this allows us
+# to reuse the objects in testing without additional work for the primary use
+# of the code in the application.
+add_library(MoleQueueObjects OBJECT ${mq_srcs} ${ui_srcs})
+set_target_properties(MoleQueueObjects PROPERTIES AUTOMOC TRUE)
+set(MoleQueue_LINK_LIBRARIES MoleQueueServerCore ${QT_LIBRARIES})
 if(MoleQueue_USE_EZHPC_UIT)
-  target_link_libraries(molequeue_static kdsoap)
+  list(APPEND MoleQueue_LINK_LIBRARIES kdsoap)
 endif()
-
 if(MoleQueue_BUILD_CLIENT)
-  target_link_libraries(molequeue_static MoleQueueClient)
+  list(APPEND MoleQueue_LINK_LIBRARIES MoleQueueClient)
 endif()
 
 set(sources main.cpp)
@@ -194,13 +189,11 @@ elseif(WIN32)
   list(APPEND sources icons/molequeue.rc)
 endif()
 
-add_executable(molequeue WIN32 MACOSX_BUNDLE ${sources} ${rcc_srcs})
-target_link_libraries(molequeue
-  molequeue_static
-  ${QT_LIBRARIES})
+add_executable(molequeue WIN32 MACOSX_BUNDLE ${sources} ${rcc_srcs}
+  $<TARGET_OBJECTS:MoleQueueObjects>)
+target_link_libraries(molequeue ${MoleQueue_LINK_LIBRARIES})
 if(APPLE)
-  set_target_properties(molequeue PROPERTIES
-    OUTPUT_NAME ${MACOSX_BUNDLE_NAME})
+  set_target_properties(molequeue PROPERTIES OUTPUT_NAME ${MACOSX_BUNDLE_NAME})
 endif()
 
 install(TARGETS molequeue
@@ -216,6 +209,6 @@ include_directories(
 configure_file(molequeueconfig.h.in molequeueconfig.h)
 
 # Only run tests if building both client and app:
-if(ENABLE_TESTING AND MoleQueue_BUILD_CLIENT AND MoleQueue_BUILD_APPLICATION)
+if(ENABLE_TESTING AND MoleQueue_BUILD_CLIENT)
   add_subdirectory(testing)
 endif()
