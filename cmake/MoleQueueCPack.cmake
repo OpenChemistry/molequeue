@@ -13,7 +13,7 @@ if(APPLE)
     "${MoleQueue_BINARY_DIR}/COPYING.txt" @ONLY)
   set(CPACK_RESOURCE_FILE_LICENSE "${MoleQueue_BINARY_DIR}/COPYING.txt")
   set(CPACK_PACKAGE_ICON
-    "${MoleQueue_SOURCE_DIR}/molequeue/icons/molequeue.icns")
+    "${MoleQueue_SOURCE_DIR}/molequeue/app/icons/molequeue.icns")
   set(CPACK_BUNDLE_ICON "${CPACK_PACKAGE_ICON}")
 else()
   set(CPACK_RESOURCE_FILE_LICENSE "${MoleQueue_SOURCE_DIR}/COPYING")
