@@ -2,7 +2,7 @@
 
 # NSIS specific settings
 if(CPACK_GENERATOR MATCHES "NSIS")
-  set(CPACK_NSIS_MUI_ICON "@CMAKE_SOURCE_DIR@/molequeue/icons\\\\molequeue.ico")
+  set(CPACK_NSIS_MUI_ICON "@CMAKE_SOURCE_DIR@/molequeue/app/icons\\\\molequeue.ico")
   set(CPACK_NSIS_HELP_LINK "http:\\\\openchemistry.org")
   set(CPACK_NSIS_URL_INFO_ABOUT "http:\\\\openchemistry.org")
   set(CPACK_PACKAGE_EXECUTABLES "molequeue" "MoleQueue")
