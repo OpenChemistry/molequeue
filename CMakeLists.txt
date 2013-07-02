@@ -13,7 +13,7 @@ include(DetermineVersion)
 
 # Set up our version.
 set(MoleQueue_VERSION_MAJOR   "0")
-set(MoleQueue_VERSION_MINOR   "5")
+set(MoleQueue_VERSION_MINOR   "6")
 set(MoleQueue_VERSION_PATCH   "0")
 set(MoleQueue_VERSION
   "${MoleQueue_VERSION_MAJOR}.${MoleQueue_VERSION_MINOR}.${MoleQueue_VERSION_PATCH}")
