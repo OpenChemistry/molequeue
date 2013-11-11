@@ -221,12 +221,8 @@ signals:
   /**
    * Emitted when an error response is received.
    */
-  void errorReceived(int localId, unsigned int moleQueueId, QString error);
-
-  /**
-   * Emitted when data from the RPC server could not be parsed/used.
-   */
-  void errorReceived(QString error);
+  void errorReceived(int localId, int errorCode, const QString &errorMessage,
+                     const QJsonValue &errorData);
 
 protected slots:
   /** Parse the response object and emit the appropriate signal(s). */
