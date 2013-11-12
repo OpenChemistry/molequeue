@@ -18,6 +18,7 @@
 
 #include <qjsondocument.h>
 #include <QtCore/QDataStream>
+#include <QtCore/QTimer>
 #include <QtNetwork/QLocalSocket>
 
 namespace MoleQueue
@@ -28,6 +29,8 @@ JsonRpcClient::JsonRpcClient(QObject *parent_) :
   m_packetCounter(0),
   m_socket(NULL)
 {
+  connect(this, SIGNAL(newPacket(QByteArray)), SLOT(readPacket(QByteArray)),
+          Qt::QueuedConnection);
 }
 
 JsonRpcClient::~JsonRpcClient()
@@ -141,12 +144,13 @@ void JsonRpcClient::readPacket(const QByteArray message)
 
 void JsonRpcClient::readSocket()
 {
-  QDataStream stream(m_socket);
-
-  while (m_socket->bytesAvailable()) {
+  if (m_socket->bytesAvailable() > 0) {
+    QDataStream stream(m_socket);
     QByteArray json;
     stream >> json;
-    readPacket(json);
+    emit newPacket(json);
+    if (m_socket->bytesAvailable() > 0)
+      QTimer::singleShot(0, this, SLOT(readSocket()));
   }
 }
 

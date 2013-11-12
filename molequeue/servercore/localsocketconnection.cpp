@@ -87,18 +87,21 @@ void LocalSocketConnection::readSocket()
   if(!m_socket->isValid())
     return;
 
-  if (m_holdRequests) {
+  if (m_holdRequests)
     return;
-  }
+
+  if (m_socket->bytesAvailable() == 0)
+    return;
 
   PacketType packet;
   (*m_dataStream) >> packet;
 
   emit packetReceived(packet, EndpointIdType());
 
-  // if there are more bytes available call again
-  if (m_socket->bytesAvailable())
-    QTimer::singleShot(0, this, SLOT(readSocket()));
+  // Check again in 50 ms if no more data is available, or immediately if there
+  // is. This helps ensure that burst traffic is handled robustly.
+  QTimer::singleShot(m_socket->bytesAvailable() > 0 ? 0 : 50,
+                     this, SLOT(readSocket()));
 }
 
 void LocalSocketConnection::open()
