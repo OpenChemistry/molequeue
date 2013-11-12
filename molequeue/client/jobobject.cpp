@@ -25,8 +25,20 @@ JobObject::JobObject()
 {
 }
 
+JobObject::JobObject(const JobObject &other)
+  : m_value(other.m_value)
+{
+}
+
 JobObject::~JobObject()
 {
+}
+
+JobObject &JobObject::operator=(JobObject other)
+{
+  using std::swap;
+  swap(*this, other);
+  return *this;
 }
 
 void JobObject::setValue(const QString &key, const QVariant &value_)
