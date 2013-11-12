@@ -45,7 +45,11 @@ class MOLEQUEUECLIENT_EXPORT JobObject
 {
 public:
   JobObject();
+  JobObject(const JobObject &other);
   ~JobObject();
+
+  JobObject& operator=(JobObject other);
+  friend void swap(JobObject &lhs, JobObject &rhs);
 
   /** Set the @p value of the specified @p key. */
   void setValue(const QString &key, const QVariant &value);
@@ -168,6 +172,12 @@ protected:
    */
   QJsonObject fileSpec(const QString &path);
 };
+
+inline void swap(JobObject &lhs, JobObject &rhs)
+{
+  using std::swap;
+  swap(lhs.m_value, rhs.m_value);
+}
 
 } // End namespace MoleQueue
 
