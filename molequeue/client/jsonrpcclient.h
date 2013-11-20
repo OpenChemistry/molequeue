@@ -136,6 +136,13 @@ signals:
    */
   void badPacketReceived(QString error);
 
+  /**
+   * Emitted when a new packet of data is received. This is handled internally,
+   * other classes should listen to resultReceived, notificationReceived,
+   * errorReceived, and badPacketReceived.
+   */
+  void newPacket(const QByteArray &packet);
+
 protected:
   unsigned int m_packetCounter;
   QLocalSocket *m_socket;
