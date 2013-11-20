@@ -240,9 +240,6 @@ void Client::processResult(const QJsonObject &response)
       break;
     }
   }
-  else {
-    emit errorReceived("We couldn't find a valid ID for the response.");
-  }
 }
 
 void Client::processNotification(const QJsonObject &notification)
@@ -257,9 +254,22 @@ void Client::processNotification(const QJsonObject &notification)
 
 void Client::processError(const QJsonObject &error)
 {
-  emit errorReceived(static_cast<int>(error["id"].toDouble()),
-                     static_cast<unsigned int>(0),
-                     error["error"].toObject()["message"].toString());
+  int localId = static_cast<int>(error["id"].toDouble());
+  int errorCode = -1;
+  QString errorMessage = tr("No message specified.");
+  QJsonValue errorData;
+
+  const QJsonValue &errorValue = error.value(QLatin1String("error"));
+  if (errorValue.isObject()) {
+    const QJsonObject errorObject = errorValue.toObject();
+    if (errorObject.value("code").isDouble())
+      errorCode = static_cast<int>(errorObject.value("code").toDouble());
+    if (errorObject.value("message").isString())
+      errorMessage = errorObject.value("message").toString();
+    if (errorObject.contains("data"))
+      errorData = errorObject.value("data");
+  }
+  emit errorReceived(localId, errorCode, errorMessage, errorData);
 }
 
 QJsonObject Client::buildRegisterOpenWithRequest(
