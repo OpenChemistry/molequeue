@@ -16,6 +16,8 @@
 
 #include "pluginmanager.h"
 
+#include "molequeueconfig.h"
+
 #include <molequeue/servercore/connectionlistenerfactory.h>
 
 #include <QtCore/QCoreApplication>
@@ -37,9 +39,10 @@ static PluginManager *pluginManagerInstance;
 
 PluginManager::PluginManager(QObject *p) : QObject(p)
 {
-  m_relativeToApp = "/../lib/molequeue/plugins";
+  QString libDir(MoleQueue_LIB_DIR);
+  m_relativeToApp = "/../" + libDir + "/molequeue/plugins";
 #ifdef __APPLE__
-  QString buildRelative("/../../../..");
+  QString buildRelative("/../../../../");
   m_relativeToApp = buildRelative + m_relativeToApp;
   qDebug() << QCoreApplication::applicationDirPath() + buildRelative
               + "/CMakeCache.txt";
@@ -47,13 +50,13 @@ PluginManager::PluginManager(QObject *p) : QObject(p)
                 + "/CMakeCache.txt").exists()) {
     qDebug() << QCoreApplication::applicationDirPath()
                 + buildRelative
-                + "/lib/molequeue/plugins";
+                + libDir + "/molequeue/plugins";
     m_pluginDirs.append(QDir(QCoreApplication::applicationDirPath()
                              + buildRelative
-                             + "/lib/molequeue/plugins").absolutePath());
+                             + libDir + "/molequeue/plugins").absolutePath());
     qDebug() << QDir(QCoreApplication::applicationDirPath()
                      + buildRelative
-                     + "/lib/molequeue/plugins").absolutePath();
+                     + libDir + "/molequeue/plugins").absolutePath();
   }
 #endif
 
@@ -64,7 +67,7 @@ PluginManager::PluginManager(QObject *p) : QObject(p)
   QString buildType = appDir.dirName();
 
   QDir condir(QCoreApplication::applicationDirPath()
-           + "/../../lib/molequeue/plugins/"+ buildType);
+           + "/../../" + libDir + "/molequeue/plugins/"+ buildType);
   m_pluginDirs.append(condir.absolutePath());
 #endif
   QDir dir(QCoreApplication::applicationDirPath() + m_relativeToApp);
