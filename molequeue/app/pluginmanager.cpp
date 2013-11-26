@@ -43,7 +43,7 @@ PluginManager::PluginManager(QObject *p) : QObject(p)
   m_relativeToApp = "/../" + libDir + "/molequeue/plugins";
 #ifdef __APPLE__
   QString buildRelative("/../../../../");
-  m_relativeToApp = buildRelative + m_relativeToApp;
+  m_relativeToApp = "/../lib/molequeue/plugins";;
   qDebug() << QCoreApplication::applicationDirPath() + buildRelative
               + "/CMakeCache.txt";
   if (QFileInfo(QCoreApplication::applicationDirPath() + buildRelative
@@ -68,8 +68,10 @@ PluginManager::PluginManager(QObject *p) : QObject(p)
 
   QDir condir(QCoreApplication::applicationDirPath()
            + "/../../" + libDir + "/molequeue/plugins/"+ buildType);
-  m_pluginDirs.append(condir.absolutePath());
+  m_pluginDirs.append(condir.absolutePatsh());
 #endif
+  qDebug() << "libDir:" << libDir;
+  qDebug() << "Path is:" << QCoreApplication::applicationDirPath() + m_relativeToApp;
   QDir dir(QCoreApplication::applicationDirPath() + m_relativeToApp);
   m_pluginDirs.append(dir.absolutePath());
 }
