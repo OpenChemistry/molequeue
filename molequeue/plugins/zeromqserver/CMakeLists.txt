@@ -8,5 +8,7 @@ add_library(ZeroMqServer MODULE zeromqconnectionlistenerfactory.cpp)
 set_target_properties(ZeroMqServer PROPERTIES AUTOMOC TRUE PREFIX "")
 target_link_libraries(ZeroMqServer MoleQueueZeroMq)
 
+set_property(GLOBAL APPEND PROPERTY MoleQueue_PLUGINS ZeroMqServer)
+
 install(TARGETS ZeroMqServer
   DESTINATION ${INSTALL_LIBRARY_DIR}/molequeue/plugins)
