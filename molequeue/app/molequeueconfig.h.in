@@ -14,4 +14,4 @@
 
 #cmakedefine MoleQueue_VERSION "@MoleQueue_VERSION@"
 
-#define MoleQueue_LIB_DIR "@INSTALL_LIBRARY_DIR@"
+#define MoleQueue_LIB_DIR "@MoleQueue_LIB_DIR@"

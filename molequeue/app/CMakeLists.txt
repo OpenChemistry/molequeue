@@ -10,6 +10,14 @@ endif()
 find_package(Qt4 4.8.0 COMPONENTS ${qt_components} REQUIRED)
 include(${QT_USE_FILE})
 
+# Provide some simple API to find the plugins, scripts, etc.
+if(APPLE)
+  # It is a special case, the app bundle logic breaks the relative pathing.
+  set(MoleQueue_LIB_DIR "lib")
+else()
+  set(MoleQueue_LIB_DIR "${INSTALL_LIBRARY_DIR}")
+endif()
+
 # Find a python 2.x interpreter.
 find_package(PythonInterp 2 QUIET)
 
