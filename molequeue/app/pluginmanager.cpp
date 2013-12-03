@@ -40,23 +40,18 @@ static PluginManager *pluginManagerInstance;
 PluginManager::PluginManager(QObject *p) : QObject(p)
 {
   QString libDir(MoleQueue_LIB_DIR);
+  // http://doc.qt.digia.com/qt/deployment-plugins.html#debugging-plugins
+  bool debugPlugins = !qgetenv("QT_DEBUG_PLUGINS").isEmpty();
+  QDir baseDir(QCoreApplication::applicationDirPath() + "/..");
   m_relativeToApp = "/../" + libDir + "/molequeue/plugins";
 #ifdef __APPLE__
-  QString buildRelative("/../../../../");
-  m_relativeToApp = buildRelative + m_relativeToApp;
-  qDebug() << QCoreApplication::applicationDirPath() + buildRelative
-              + "/CMakeCache.txt";
-  if (QFileInfo(QCoreApplication::applicationDirPath() + buildRelative
-                + "/CMakeCache.txt").exists()) {
-    qDebug() << QCoreApplication::applicationDirPath()
-                + buildRelative
-                + libDir + "/molequeue/plugins";
-    m_pluginDirs.append(QDir(QCoreApplication::applicationDirPath()
-                             + buildRelative
-                             + libDir + "/molequeue/plugins").absolutePath());
-    qDebug() << QDir(QCoreApplication::applicationDirPath()
-                     + buildRelative
-                     + libDir + "/molequeue/plugins").absolutePath();
+  // But if NOT running from the installed bundle on the Mac, the plugins are
+  // relative to the build directory instead:
+  if (!QFileInfo(baseDir.absolutePath() + "/Resources/qt.conf").exists()) {
+    QDir buildDir(QCoreApplication::applicationDirPath() + "/../../../..");
+    baseDir = buildDir;
+    if (debugPlugins)
+      qDebug() << "  using buildDir:" << buildDir.absolutePath();
   }
 #endif
 
@@ -67,11 +62,30 @@ PluginManager::PluginManager(QObject *p) : QObject(p)
   QString buildType = appDir.dirName();
 
   QDir condir(QCoreApplication::applicationDirPath()
-           + "/../../" + libDir + "/molequeue/plugins/"+ buildType);
+           + "/../../" + libDir + "/molequeue/plugins/" + buildType);
   m_pluginDirs.append(condir.absolutePath());
 #endif
-  QDir dir(QCoreApplication::applicationDirPath() + m_relativeToApp);
-  m_pluginDirs.append(dir.absolutePath());
+  // If the environment variable is set, use that as the base directory.
+  QByteArray pluginDir = qgetenv("MOLEQUEUE_PLUGIN_DIR");
+  if (!pluginDir.isEmpty())
+    baseDir.setPath(pluginDir);
+  if (debugPlugins)
+    qDebug() << "  baseDir:" << baseDir.absolutePath();
+  QDir pluginsDir(baseDir.absolutePath() + "/" + libDir + "/molequeue/plugins");
+  m_pluginDirs.append(pluginsDir.absolutePath());
+  if (debugPlugins) {
+    qDebug() << "  pluginsDir:" << pluginsDir.absolutePath();
+    int count = 0;
+    foreach(const QString &pluginPath, pluginsDir.entryList(QDir::Files)) {
+      ++count;
+      qDebug() << " " << pluginsDir.absolutePath() + "/" + pluginPath;
+    }
+
+    if (count > 0)
+      qDebug() << " " << count << "files found in" << pluginsDir.absolutePath();
+    else
+      qDebug() << "  no plugin files found in" << pluginsDir.absolutePath();
+  }
 }
 
 PluginManager::~PluginManager()
