@@ -111,7 +111,7 @@ bool QueueLocal::readJsonSettings(const QJsonObject &json, bool importOnly,
 
     QJsonArray jobsToResumeArray = json.value("jobsToResume").toArray();
     foreach (QJsonValue val, jobsToResumeArray) {
-      if (val.isDouble()) {
+      if (!val.isDouble()) {
         Logger::logError(tr("Error reading queue settings: Invalid format:\n%1")
                          .arg(QString(QJsonDocument(json).toJson())));
         return false;
