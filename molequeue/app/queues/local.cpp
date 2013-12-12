@@ -413,12 +413,12 @@ bool QueueLocal::startJob(IdType moleQueueId)
   QString args = arguments.join(" ");
   replaceKeywords(args, job, false);
 
-  proc->start(command + " " + args);
   Logger::logNotification(tr("Executing '%1 %2' in %3", "command, args, dir")
                           .arg(command).arg(args)
                           .arg(proc->workingDirectory()),
                           job.moleQueueId());
   m_runningJobs.insert(job.moleQueueId(), proc);
+  proc->start(command + " " + args);
 
   return true;
 }
