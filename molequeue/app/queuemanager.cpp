@@ -68,7 +68,14 @@ void QueueManager::readSettings()
     Queue *queue = addQueue(queueName, queueType, this);
 
     if (queue != NULL) {
-      queue->readSettings(absoluteFileName);
+      bool success = queue->readSettings(absoluteFileName);
+      if (!success) {
+        Logger::logError(tr("Cannot load queue '%1' with type '%2' from '%3'. "
+                            "Improper configuration file.")
+                         .arg(queueName, queueType, absoluteFileName));
+        removeQueue(queue);
+        queue = NULL;
+      }
     }
     else {
       Logger::logError(tr("Cannot load queue '%1' with type '%2' from '%3'.")
