@@ -54,7 +54,7 @@ void QueueManager::readSettings()
 {
   QDir queueDir(queueConfigDirectory());
   if (!queueDir.exists()) {
-    Logger::logWarning(tr("Cannot write queue settings: Queue config "
+    Logger::logWarning(tr("Cannot read queue settings: Queue config "
                           "directory does not exist (%1)")
                      .arg(queueDir.absolutePath()));
     return;
