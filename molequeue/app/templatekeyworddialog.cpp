@@ -135,7 +135,7 @@ void TemplateKeywordDialog::buildDocument()
                  "use it as a starting point initially.\n"
                  "The following list of keywords may be used in the "
                  "input templates and are replaced by information "
-                 "approriate to a specific job. Keywords are enclosed "
+                 "appropriate to a specific job. Keywords are enclosed "
                  "in '$$' or '$$$' and are case sensitive. Keywords with two "
                  "'$' symbols will be replaced by the appropriate data, while "
                  " those with three '$' have more specialized behavior ("
