@@ -124,9 +124,8 @@ class Client:
     connection_string  = 'ipc://%s/%s_%s' %  (tmpdir, 'zmq', server)
     self.socket.connect(connection_string)
 
-    io_loop = ioloop.IOLoop(ioloop.ZMQPoller())
-
-    self.stream = ZMQStream(self.socket, io_loop)
+    io_loop = ioloop.IOLoop.instance()
+    self.stream = ZMQStream(self.socket, io_loop=io_loop)
 
     # create partial function that has self as first argument
     callback = partial(_on_recv, self)
