@@ -117,11 +117,15 @@ void Server::readSettings(QSettings &settings)
   m_workingDirectoryBase = settings.value(
         "workingDirectoryBase",
         QDir::homePath() + "/.molequeue/local").toString();
+  QDir dir;
+  dir.mkpath(m_workingDirectoryBase);
   m_moleQueueIdCounter =
       settings.value("moleQueueIdCounter", 0).value<IdType>();
 
   m_queueManager->readSettings();
-  m_jobManager->loadJobState(m_workingDirectoryBase + "/jobs");
+  const QString jobsDir = m_workingDirectoryBase + "/jobs";
+  dir.mkpath(jobsDir);
+  m_jobManager->loadJobState(jobsDir);
 }
 
 void Server::writeSettings(QSettings &settings) const
