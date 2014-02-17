@@ -23,7 +23,7 @@
 ReferenceString::ReferenceString(const QString &filename)
 {
   QString realFilename = MoleQueue_TESTDATA_DIR + filename;
-  QFile refFile (realFilename);
+  QFile refFile(realFilename);
 
   if (!refFile.open(QFile::ReadOnly | QIODevice::Text)) {
     qDebug() << "Cannot access reference file" << realFilename;

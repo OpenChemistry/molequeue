@@ -37,6 +37,4 @@ ConnectionListener *ZeroMqConnectionListenerFactory::createConnectionListener(QO
   return new ZeroMqConnectionListener(parentObject, "ipc://" + connectionPath);
 }
 
-} /* namespace MoleQueue */
-
-Q_EXPORT_PLUGIN2(zeromq, MoleQueue::ZeroMqConnectionListenerFactory)
+} // namespace MoleQueue

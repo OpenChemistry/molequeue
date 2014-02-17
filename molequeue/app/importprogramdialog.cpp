@@ -20,8 +20,8 @@
 #include "program.h"
 #include "queue.h"
 
-#include <QtGui/QFileDialog>
-#include <QtGui/QMessageBox>
+#include <QtWidgets/QFileDialog>
+#include <QtWidgets/QMessageBox>
 #include <QtGui/QPalette>
 
 #include <QtCore/QSettings>

@@ -28,10 +28,10 @@
 #include <QtCore/QTimer>
 #include <QtCore/QSettings>
 
-#include <QtGui/QMessageBox>
-#include <QtGui/QProgressDialog>
+#include <QtWidgets/QMessageBox>
+#include <QtWidgets/QProgressDialog>
 #include <QtGui/QTextDocument>
-#include <QtGui/QFileDialog>
+#include <QtWidgets/QFileDialog>
 
 namespace MoleQueue
 {

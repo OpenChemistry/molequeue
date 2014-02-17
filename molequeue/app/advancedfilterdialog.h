@@ -17,7 +17,7 @@
 #ifndef MOLEQUEUE_ADVANCEDFILTERDIALOG_H
 #define MOLEQUEUE_ADVANCEDFILTERDIALOG_H
 
-#include <QtGui/QDialog>
+#include <QtWidgets/QDialog>
 
 namespace Ui {
 class AdvancedFilterDialog;

@@ -14,8 +14,8 @@
 
 ******************************************************************************/
 
-#ifndef QUEUEMANAGERITEMMODEL_H
-#define QUEUEMANAGERITEMMODEL_H
+#ifndef MOLEQUEUE_QUEUEMANAGERITEMMODEL_H
+#define MOLEQUEUE_QUEUEMANAGERITEMMODEL_H
 
 #include <QtCore/QAbstractItemModel>
 
@@ -61,7 +61,8 @@ protected:
   QueueManager *m_queueManager;
 
 private slots:
-  void callReset() { reset(); }
+  /// FIXME: This needs to be fixed to call begin/end reset at the right times.
+  void callReset() { beginResetModel(); endResetModel(); }
 };
 
 } // end namespace MoleQueue

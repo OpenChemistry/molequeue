@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.6 FATAL_ERROR)
+cmake_minimum_required(VERSION 2.8.8 FATAL_ERROR)
 
 project(MoleQueue)
 
@@ -50,11 +50,7 @@ if(ENABLE_TESTING)
 endif()
 
 # This is necessary for tests, includes etc.
-include_directories(FIRST "${MoleQueue_SOURCE_DIR}"
-  "${MoleQueue_SOURCE_DIR}/thirdparty"
-  "${MoleQueue_SOURCE_DIR}/thirdparty/qt5json/"
-  "${MoleQueue_BINARY_DIR}/thirdparty/qt5json/"
-  )
+include_directories(BEFORE "${MoleQueue_SOURCE_DIR}")
 set(EXPORT_TARGETS_NAME "MoleQueueTargets")
 add_subdirectory(thirdparty/qt5json)
 add_subdirectory(molequeue)

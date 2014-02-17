@@ -37,12 +37,12 @@
 #include <QtCore/QTimer>
 
 #include <QtGui/QCloseEvent>
-#include <QtGui/QInputDialog>
+#include <QtWidgets/QInputDialog>
 #include <QtGui/QKeyEvent>
-#include <QtGui/QLabel>
-#include <QtGui/QMessageBox>
-#include <QtGui/QShortcut>
-#include <QtGui/QStatusBar>
+#include <QtWidgets/QLabel>
+#include <QtWidgets/QMessageBox>
+#include <QtWidgets/QShortcut>
+#include <QtWidgets/QStatusBar>
 
 namespace MoleQueue {
 

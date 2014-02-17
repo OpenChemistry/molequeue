@@ -17,7 +17,7 @@
 #ifndef MOLEQUEUE_IMPORTQUEUEDIALOG_H
 #define MOLEQUEUE_IMPORTQUEUEDIALOG_H
 
-#include <QtGui/QDialog>
+#include <QtWidgets/QDialog>
 
 namespace Ui {
 class ImportQueueDialog;

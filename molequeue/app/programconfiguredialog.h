@@ -17,7 +17,7 @@
 #ifndef PROGRAMCONFIGUREDIALOG_H
 #define PROGRAMCONFIGUREDIALOG_H
 
-#include <QtGui/QDialog>
+#include <QtWidgets/QDialog>
 
 class QAbstractButton;
 

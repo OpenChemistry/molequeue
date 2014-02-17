@@ -21,8 +21,7 @@
 
 #include <QtCore/QRegExp>
 
-#include <qjsonarray.h>
-#include <qjsondocument.h>
+#include <QtCore/QJsonDocument>
 
 namespace MoleQueue
 {

@@ -1,5 +1,4 @@
-find_package(Qt4 4.8 COMPONENTS QtCore QtNetwork REQUIRED)
-include(${QT_USE_FILE})
+find_package(Qt5Network REQUIRED)
 
 if (MSVC)
   # Do not generate manifests for the plugins - caused issues loading plugins

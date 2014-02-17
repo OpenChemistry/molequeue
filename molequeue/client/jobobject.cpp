@@ -16,7 +16,7 @@
 
 #include "jobobject.h"
 
-#include "qjsonarray.h"
+#include <QtCore/QJsonArray>
 
 namespace MoleQueue
 {

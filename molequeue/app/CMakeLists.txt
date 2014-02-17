@@ -1,14 +1,15 @@
-set(qt_components QtCore QtGui QtNetwork)
+set(qt_components Core Widgets Network)
 
 if(MoleQueue_USE_EZHPC_UIT)
-  list(APPEND qt_components QtXmlPatterns)
+  list(APPEND qt_components XmlPatterns)
 endif()
 if(WIN32)
-  list(APPEND qt_components QtMain)
+  list(APPEND qt_components Main)
 endif()
 
-find_package(Qt4 4.8.0 COMPONENTS ${qt_components} REQUIRED)
-include(${QT_USE_FILE})
+foreach(_module ${qt_components})
+  find_package(Qt5${_module} REQUIRED)
+endforeach()
 
 # Provide some simple API to find the plugins, scripts, etc.
 if(APPLE)
@@ -23,10 +24,7 @@ find_package(PythonInterp 2 QUIET)
 
 include(GenerateExportHeader)
 
-include_directories(${CMAKE_CURRENT_BINARY_DIR}
-  ${CMAKE_CURRENT_SOURCE_DIR}
-  ${CMAKE_CURRENT_BINARY_DIR}/transport
-  ${CMAKE_CURRENT_BINARY_DIR}/transport/localsocket)
+include_directories(${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
 
 # multi configuration build? Needed for plugin search path
 if(CMAKE_CONFIGURATION_TYPES)
@@ -172,15 +170,14 @@ if(WIN32)
   list(APPEND mq_srcs puttycommand.cpp)
 endif()
 
-qt4_wrap_ui(ui_srcs ${ui_files})
+qt5_wrap_ui(ui_srcs ${ui_files})
 
-qt4_add_resources(rcc_srcs queuetray.qrc)
+qt5_add_resources(rcc_srcs queuetray.qrc)
 
-add_library(molequeue_static STATIC
-  ${mq_srcs}
-  ${ui_srcs})
+add_library(molequeue_static STATIC ${mq_srcs} ${ui_srcs})
+qt5_use_modules(molequeue_static ${qt_components})
 set_target_properties(molequeue_static PROPERTIES AUTOMOC TRUE)
-target_link_libraries(molequeue_static MoleQueueServerCore ${QT_LIBRARIES})
+target_link_libraries(molequeue_static MoleQueueServerCore)
 
 if(MoleQueue_USE_EZHPC_UIT)
   target_link_libraries(molequeue_static kdsoap)
@@ -203,9 +200,8 @@ elseif(WIN32)
 endif()
 
 add_executable(molequeue WIN32 MACOSX_BUNDLE ${sources} ${rcc_srcs})
-target_link_libraries(molequeue
-  molequeue_static
-  ${QT_LIBRARIES})
+qt5_use_modules(molequeue ${qt_components})
+target_link_libraries(molequeue molequeue_static)
 if(APPLE)
   set_target_properties(molequeue PROPERTIES
     OUTPUT_NAME ${MACOSX_BUNDLE_NAME})
@@ -216,9 +212,7 @@ install(TARGETS molequeue
   BUNDLE DESTINATION .
   )
 
-include_directories(
-  "${CMAKE_CURRENT_BINARY_DIR}/client" # For export macro
-  "${MoleQueue_SOURCE_DIR}/thirdparty/qt5json/") # For Qt5JSON
+include_directories("${CMAKE_CURRENT_BINARY_DIR}/client")
 
 # Config file for build options.
 configure_file(molequeueconfig.h.in molequeueconfig.h)

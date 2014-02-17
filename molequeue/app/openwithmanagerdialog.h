@@ -17,7 +17,7 @@
 #ifndef OPENWITHMANAGERDIALOG_H
 #define OPENWITHMANAGERDIALOG_H
 
-#include <QtGui/QDialog>
+#include <QtWidgets/QDialog>
 
 #include <QtCore/QModelIndexList>
 

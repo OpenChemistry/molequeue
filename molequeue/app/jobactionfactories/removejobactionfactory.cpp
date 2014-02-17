@@ -20,8 +20,8 @@
 #include "../jobmanager.h"
 #include "../server.h"
 
-#include <QtGui/QAction>
-#include <QtGui/QMessageBox>
+#include <QtWidgets/QAction>
+#include <QtWidgets/QMessageBox>
 
 Q_DECLARE_METATYPE(QList<MoleQueue::Job>)
 
