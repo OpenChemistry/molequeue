@@ -74,7 +74,7 @@ void JobManagerTest::setNewJobIds(MoleQueue::Job job)
 
 void JobManagerTest::testJobAboutToBeAdded()
 {
-  QSignalSpy spy (&m_jobManager, SIGNAL(jobAboutToBeAdded(MoleQueue::Job)));
+  QSignalSpy spy(&m_jobManager, SIGNAL(jobAboutToBeAdded(MoleQueue::Job)));
 
   m_jobManager.newJob();
   QCOMPARE(spy.count(), 1);

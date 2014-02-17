@@ -27,6 +27,7 @@ class LocalSocketConnectionListenerFactory: public QObject,
                                             public MoleQueue::ConnectionListenerFactory
 {
   Q_OBJECT
+  Q_PLUGIN_METADATA(IID "org.openchemistry.molequeue.ConnectionListenerFactory")
   Q_INTERFACES(MoleQueue::ConnectionListenerFactory)
 public:
   LocalSocketConnectionListenerFactory();

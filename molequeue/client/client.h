@@ -19,9 +19,10 @@
 
 #include "molequeueclientexport.h"
 
-#include <qjsonarray.h>
-#include <qjsonobject.h>
+#include <QtCore/QJsonArray>
+#include <QtCore/QJsonObject>
 #include <QtCore/QObject>
+#include <QtCore/QRegExp>
 
 #include <QtCore/QHash>
 

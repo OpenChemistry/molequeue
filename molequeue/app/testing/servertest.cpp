@@ -31,13 +31,12 @@
 #include "queue.h"
 #include "queuemanager.h"
 
-#include <qjsondocument.h>
-
-#include <QtGui/QApplication>
+#include <QtWidgets/QApplication>
 
 #include <QtNetwork/QLocalServer>
 #include <QtNetwork/QLocalSocket>
 
+#include <QtCore/QJsonDocument>
 #include <QtCore/QVariantList>
 
 #include <assert.h>

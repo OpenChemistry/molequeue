@@ -27,7 +27,7 @@
 #include <QtCore/QThread>
 #include <QtCore/QTimer>
 
-#include <QtGui/QApplication>
+#include <QtWidgets/QApplication>
 
 #include <QtNetwork/QLocalServer>
 #include <QtNetwork/QLocalSocket>

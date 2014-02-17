@@ -18,9 +18,9 @@
 #include <QtCore/QSettings>
 #include <QtCore/QStringList>
 
-#include <QtGui/QApplication>
-#include <QtGui/QSystemTrayIcon>
-#include <QtGui/QMessageBox>
+#include <QtWidgets/QApplication>
+#include <QtWidgets/QSystemTrayIcon>
+#include <QtWidgets/QMessageBox>
 
 #include "mainwindow.h"
 

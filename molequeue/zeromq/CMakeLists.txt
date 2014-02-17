@@ -1,7 +1,6 @@
-find_package(Qt4 4.8 COMPONENTS QtCore QtNetwork REQUIRED)
-add_definitions(${QT_DEFINITIONS})
+find_package(Qt5Network REQUIRED)
 find_package(ZeroMQ REQUIRED)
-include_directories(SYSTEM ${QT_INCLUDES} ${ZeroMQ_INCLUDE_DIR})
+include_directories(SYSTEM ${ZeroMQ_INCLUDE_DIR})
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 include(GenerateExportHeader)
@@ -14,11 +13,9 @@ set(sources
 )
 
 add_library(MoleQueueZeroMq ${sources})
+qt5_use_modules(MoleQueueZeroMq Network)
 set_target_properties(MoleQueueZeroMq PROPERTIES AUTOMOC TRUE)
-target_link_libraries(MoleQueueZeroMq
-  MoleQueueServerCore
-  ${QT_LIBRARIES}
-  ${ZeroMQ_LIBRARIES})
+target_link_libraries(MoleQueueZeroMq MoleQueueServerCore ${ZeroMQ_LIBRARIES})
 
 generate_export_header(MoleQueueZeroMq
   EXPORT_FILE_NAME molequeuezeromqexport.h)

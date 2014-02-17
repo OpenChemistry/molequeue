@@ -22,7 +22,7 @@
 #include "dummyqueuemanager.h"
 #include "server.h"
 
-#include <QtGui/QApplication>
+#include <QtWidgets/QApplication>
 
 #include <QtCore/QDateTime>
 #include <QtCore/QThread>

@@ -17,9 +17,9 @@
 #include "queuemanagerdialog.h"
 #include "ui_queuemanagerdialog.h"
 
-#include <QtGui/QItemSelection>
-#include <QtGui/QFileDialog>
-#include <QtGui/QMessageBox>
+#include <QtCore/QItemSelection>
+#include <QtWidgets/QFileDialog>
+#include <QtWidgets/QMessageBox>
 
 #include <QtCore/QFileInfo>
 #include <QtCore/QSettings>
@@ -45,7 +45,7 @@ QueueManagerDialog::QueueManagerDialog(QueueManager *queueManager,
   ui->setupUi(this);
 
   ui->queueTable->setModel(m_queueManagerItemModel);
-  ui->queueTable->horizontalHeader()->setResizeMode(3, QHeaderView::Stretch);
+  ui->queueTable->horizontalHeader()->setSectionResizeMode(3, QHeaderView::Stretch);
 
   connect(ui->queueTable, SIGNAL(doubleClicked(QModelIndex)),
           this, SLOT(doubleClicked(QModelIndex)));

@@ -23,16 +23,16 @@
 #include "openwithpatternmodel.h"
 #include "patterntypedelegate.h"
 
-#include <QtGui/QCompleter>
-#include <QtGui/QDataWidgetMapper>
-#include <QtGui/QFileDialog>
-#include <QtGui/QFileSystemModel>
-#include <QtGui/QHeaderView>
-#include <QtGui/QItemSelectionModel>
+#include <QtWidgets/QCompleter>
+#include <QtWidgets/QDataWidgetMapper>
+#include <QtWidgets/QFileDialog>
+#include <QtWidgets/QFileSystemModel>
+#include <QtWidgets/QHeaderView>
+#include <QtCore/QItemSelectionModel>
 #include <QtGui/QKeyEvent>
-#include <QtGui/QMessageBox>
+#include <QtWidgets/QMessageBox>
 #include <QtGui/QPalette>
-#include <QtGui/QStringListModel>
+#include <QtCore/QStringListModel>
 
 #include <QtCore/QProcessEnvironment>
 #include <QtCore/QUrl>
@@ -540,7 +540,7 @@ void OpenWithManagerDialog::patternSelectionChanged()
 
 void OpenWithManagerDialog::patternDimensionsChanged()
 {
-  ui->tablePattern->horizontalHeader()->setResizeMode(
+  ui->tablePattern->horizontalHeader()->setSectionResizeMode(
         OpenWithPatternModel::PatternCol, QHeaderView::Stretch);
 }
 

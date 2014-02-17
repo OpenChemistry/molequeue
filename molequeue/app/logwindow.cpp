@@ -23,17 +23,17 @@
 #include <QtCore/QSettings>
 
 #include <QtGui/QBrush>
-#include <QtGui/QHBoxLayout>
-#include <QtGui/QLabel>
-#include <QtGui/QPushButton>
-#include <QtGui/QSpinBox>
+#include <QtWidgets/QHBoxLayout>
+#include <QtWidgets/QLabel>
+#include <QtWidgets/QPushButton>
+#include <QtWidgets/QSpinBox>
 #include <QtGui/QTextBlockFormat>
 #include <QtGui/QTextCharFormat>
 #include <QtGui/QTextCursor>
 #include <QtGui/QTextDocument>
-#include <QtGui/QTextEdit>
+#include <QtWidgets/QTextEdit>
 #include <QtGui/QTextFrame>
-#include <QtGui/QVBoxLayout>
+#include <QtWidgets/QVBoxLayout>
 
 namespace MoleQueue {
 

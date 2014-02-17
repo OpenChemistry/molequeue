@@ -20,7 +20,7 @@
 #include "queue.h"
 #include "queuemanager.h"
 
-#include <QtGui/QMessageBox>
+#include <QtWidgets/QMessageBox>
 #include <QtGui/QRegExpValidator>
 
 namespace MoleQueue {

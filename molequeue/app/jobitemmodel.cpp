@@ -42,6 +42,7 @@ void JobItemModel::setJobManager(JobManager *newJobManager)
   if (m_jobManager == newJobManager)
     return;
 
+  beginResetModel();
   if (m_jobManager)
     m_jobManager->disconnect(this);
 
@@ -49,8 +50,7 @@ void JobItemModel::setJobManager(JobManager *newJobManager)
 
   connect(newJobManager, SIGNAL(jobUpdated(MoleQueue::Job)),
           this, SLOT(jobUpdated(MoleQueue::Job)));
-
-  reset();
+  endResetModel();
 }
 
 int JobItemModel::rowCount(const QModelIndex &modelIndex) const

@@ -25,10 +25,10 @@
 #include "../queuemanager.h"
 #include "../server.h"
 
-#include <QtGui/QAction>
-#include <QtGui/QFileDialog>
-#include <QtGui/QMessageBox>
-#include <QtGui/QProgressDialog>
+#include <QtWidgets/QAction>
+#include <QtWidgets/QFileDialog>
+#include <QtWidgets/QMessageBox>
+#include <QtWidgets/QProgressDialog>
 
 #include <QtCore/QEventLoop>
 #include <QtCore/QFile>
