@@ -22,18 +22,16 @@
 #include <QtCore/QDebug>
 #include <QtCore/QFile>
 #include <QtCore/QSettings>
+#include <QtCore/QJsonDocument>
+#include <QtCore/QJsonObject>
+#include <QtCore/QJsonArray>
+#include <QtWidgets/QApplication>
 
-#include <qjsonarray.h>
-#include <qjsondocument.h>
-#include <qjsonobject.h>
-
-namespace MoleQueue
-{
+namespace MoleQueue {
 
 Logger *Logger::m_instance = NULL;
 
 Logger::Logger() :
-  QObject(),
   m_printDebugMessages(false),
   m_printNotifications(false),
   m_printWarnings(false),
@@ -44,7 +42,7 @@ Logger::Logger() :
   m_logFile(NULL)
 {
   // Call destructor when program exits
-  atexit(&cleanUp);
+  connect(QApplication::instance(), SIGNAL(aboutToQuit()), SLOT(cleanUp()));
 
   QFile *lfile = logFile();
 
