@@ -14,10 +14,10 @@
 
 ******************************************************************************/
 
-#ifndef MESSAGEIDMANAGER_P_H
-#define MESSAGEIDMANAGER_P_H
+#ifndef MOLEQUEUE_MESSAGEIDMANAGER_P_H
+#define MOLEQUEUE_MESSAGEIDMANAGER_P_H
 
-#include <molequeue/servercore/servercoreglobal.h>
+#include "servercoreglobal.h"
 
 #include <QtCore/QMap>
 #include <QtCore/QString>
@@ -58,4 +58,4 @@ private:
 
 }
 
-#endif // MESSAGEIDMANAGER_P_H
+#endif // MOLEQUEUE_MESSAGEIDMANAGER_P_H

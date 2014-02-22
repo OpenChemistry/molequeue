@@ -16,10 +16,7 @@
 
 #include "localsocketconnection.h"
 
-#include "servercoreglobal.h"
-
 #include <QtCore/QDateTime>
-#include <QtCore/QDebug>
 #include <QtCore/QTimer>
 #include <QtCore/QDataStream>
 #include <QtNetwork/QLocalSocket>

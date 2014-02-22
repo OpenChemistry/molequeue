@@ -18,11 +18,9 @@
 #define MOLEQUEUE_MESSAGE_H
 
 #include "molequeueservercoreexport.h"
+#include "servercoreglobal.h"
 
-#include <molequeue/servercore/servercoreglobal.h>
-
-#include <qjsonobject.h>
-
+#include <QtCore/QJsonObject>
 #include <QtCore/QByteArray>
 #include <QtCore/QFlags>
 #include <QtCore/QString>
