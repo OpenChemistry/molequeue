@@ -215,10 +215,12 @@ public slots:
     Logger::getInstance()->m_silenceNewErrors = silence;
   }
 
+protected slots:
+  void cleanUp();
+
 private:
   Logger();
   ~Logger();
-  static void cleanUp();
   /// Create and return the log file. When finished, close but do not delete the
   /// object. If an error occurs, a message is printed to qWarning and NULL is
   /// returned.
