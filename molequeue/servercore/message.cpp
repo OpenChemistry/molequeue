@@ -19,11 +19,10 @@
 #include "connection.h"
 #include "messageidmanager_p.h"
 
-#include <qjsonarray.h>
-#include <qjsondocument.h>
-
-#include <QtCore/QDebug>
+#include <QtCore/QJsonArray>
+#include <QtCore/QJsonDocument>
 #include <QtCore/QStringList>
+#include <QtCore/QDebug>
 
 namespace MoleQueue {
 

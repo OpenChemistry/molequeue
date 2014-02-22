@@ -20,8 +20,7 @@
 #include <QtCore/QObject>
 
 #include "molequeueservercoreexport.h"
-
-#include <molequeue/servercore/servercoreglobal.h>
+#include "servercoreglobal.h"
 
 namespace MoleQueue
 {
