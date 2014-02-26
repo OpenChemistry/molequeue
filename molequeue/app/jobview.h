@@ -14,10 +14,10 @@
 
 ******************************************************************************/
 
-#ifndef JOBVIEW_H
-#define JOBVIEW_H
+#ifndef MOLEQUEUE_JOBVIEW_H
+#define MOLEQUEUE_JOBVIEW_H
 
-#include <QtGui/QTableView>
+#include <QtWidgets/QTableView>
 
 namespace MoleQueue
 {

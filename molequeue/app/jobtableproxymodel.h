@@ -17,7 +17,7 @@
 #ifndef MOLEQUEUE_JOBTABLEPROXYMODEL_H
 #define MOLEQUEUE_JOBTABLEPROXYMODEL_H
 
-#include <QtGui/QSortFilterProxyModel>
+#include <QtCore/QSortFilterProxyModel>
 
 namespace MoleQueue {
 

@@ -23,9 +23,9 @@
 #include "queues/local.h"
 #include "templatekeyworddialog.h"
 
-#include <QtGui/QFileDialog>
-#include <QtGui/QLineEdit>
-#include <QtGui/QMessageBox>
+#include <QtWidgets/QFileDialog>
+#include <QtWidgets/QLineEdit>
+#include <QtWidgets/QMessageBox>
 #include <QtGui/QRegExpValidator>
 #include <QtGui/QTextDocument>
 

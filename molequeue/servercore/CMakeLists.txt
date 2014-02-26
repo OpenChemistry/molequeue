@@ -1,6 +1,4 @@
-find_package(Qt4 4.8 COMPONENTS QtCore QtNetwork REQUIRED)
-include_directories(SYSTEM ${QT_INCLUDES})
-add_definitions(${QT_DEFINITIONS})
+find_package(Qt5Network REQUIRED)
 
 include(GenerateExportHeader)
 
@@ -14,11 +12,9 @@ add_library(MoleQueueServerCore
   messageidmanager_p.cpp
 )
 
+qt5_use_modules(MoleQueueServerCore Network)
 set_target_properties(MoleQueueServerCore PROPERTIES AUTOMOC TRUE)
-target_link_libraries(MoleQueueServerCore
-  ${QT_QTCORE_LIBRARY}
-  ${QT_QTNETWORK_LIBRARY}
-  Qt5Json)
+#target_link_libraries(MoleQueueServerCore)
 
 set(hdrs
   connection.h

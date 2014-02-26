@@ -17,7 +17,7 @@
 #ifndef MOLEQUEUE_LOGWINDOW_H
 #define MOLEQUEUE_LOGWINDOW_H
 
-#include <QtGui/QDialog>
+#include <QtWidgets/QDialog>
 
 #include "molequeueglobal.h"
 

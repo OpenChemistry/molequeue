@@ -14,13 +14,15 @@
 
 ******************************************************************************/
 
-#ifndef OPENWITHPATTERNMODEL_H
-#define OPENWITHPATTERNMODEL_H
+#ifndef MOLEQUEUE_OPENWITHPATTERNMODEL_H
+#define MOLEQUEUE_OPENWITHPATTERNMODEL_H
 
 #include <QtCore/QAbstractItemModel>
+#include <QtCore/QRegExp>
+#include <QtCore/QList>
 
-namespace MoleQueue
-{
+namespace MoleQueue {
+
 class ProgrammableOpenWithActionFactory;
 
 /// @brief MVC item model for interacting with ProgrammableOpenWithActionFactory
@@ -71,7 +73,6 @@ public:
     ComboIndexRole = Qt::UserRole
   };
 
-public slots:
   void setRegExps(QList<QRegExp> *regexps);
 
 protected:
@@ -81,4 +82,4 @@ protected:
 
 } // end namespace MoleQueue
 
-#endif // OPENWITHPATTERNMODEL_H
+#endif

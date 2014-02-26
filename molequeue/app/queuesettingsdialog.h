@@ -14,10 +14,10 @@
 
 ******************************************************************************/
 
-#ifndef QUEUESETTINGSDIALOG_H
-#define QUEUESETTINGSDIALOG_H
+#ifndef MOLEQUEUE_QUEUESETTINGSDIALOG_H
+#define MOLEQUEUE_QUEUESETTINGSDIALOG_H
 
-#include <QtGui/QDialog>
+#include <QtWidgets/QDialog>
 
 #include <QtCore/QMap>
 

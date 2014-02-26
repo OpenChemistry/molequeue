@@ -19,10 +19,7 @@
 #include "jsonrpcclient.h"
 #include "jobobject.h"
 
-#include <QtCore/QRegExp>
-
-#include <qjsonarray.h>
-#include <qjsondocument.h>
+#include <QtCore/QJsonDocument>
 
 namespace MoleQueue
 {

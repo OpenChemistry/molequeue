@@ -17,7 +17,7 @@
 #ifndef MOLEQUEUE_FILEBROWSEWIDGET_H
 #define MOLEQUEUE_FILEBROWSEWIDGET_H
 
-#include <QtGui/QWidget>
+#include <QtWidgets/QWidget>
 
 class QFileSystemModel;
 class QLineEdit;

@@ -22,7 +22,7 @@
 #include "jobitemmodel.h"
 #include "jobtableproxymodel.h"
 
-#include <QtGui/QMessageBox>
+#include <QtWidgets/QMessageBox>
 
 namespace MoleQueue
 {
@@ -74,11 +74,12 @@ void JobTableWidget::setJobManager(MoleQueue::JobManager *jobMan)
 
   for (int i = 0; i < m_proxyModel->columnCount(); ++i) {
     if (i == JobItemModel::JOB_TITLE) { // stretch description
-      ui->table->horizontalHeader()->setResizeMode(i, QHeaderView::Stretch);
+      ui->table->horizontalHeader()
+          ->setSectionResizeMode(i, QHeaderView::Stretch);
     }
     else { // resize to fit others
-      ui->table->horizontalHeader()->setResizeMode(
-            i, QHeaderView::ResizeToContents);
+      ui->table->horizontalHeader()
+          ->setSectionResizeMode(i, QHeaderView::ResizeToContents);
     }
   }
 

@@ -49,7 +49,7 @@ JobManager::~JobManager()
 
 void JobManager::loadJobState(const QString &path)
 {
-
+  m_itemModel->beginResetModel();
   QDir dir(path);
   foreach (const QString &subDirName,
            dir.entryList(QDir::AllDirs | QDir::NoDotAndDotDot)) {
@@ -68,7 +68,7 @@ void JobManager::loadJobState(const QString &path)
     }
   }
 
-  m_itemModel->reset();
+  m_itemModel->endResetModel();
 }
 
 void JobManager::syncJobState() const

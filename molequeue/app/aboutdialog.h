@@ -14,10 +14,10 @@
 
  ******************************************************************************/
 
-#ifndef ABOUTDIALOG_H_
-#define ABOUTDIALOG_H_
+#ifndef MOLEQUEUE_ABOUTDIALOG_H
+#define MOLEQUEUE_ABOUTDIALOG_H
 
-#include <QtGui/QDialog>
+#include <QtWidgets/QDialog>
 
 namespace Ui {
 class AboutDialog;
@@ -30,13 +30,13 @@ class AboutDialog : public QDialog
 {
   Q_OBJECT
 public:
-  AboutDialog(QWidget* Parent);
+  AboutDialog(QWidget* parent = 0);
   ~AboutDialog();
 
 private:
   Ui::AboutDialog *m_ui;
 };
 
-} /* namespace MoleQueue */
+} // End namespace
 
-#endif /* ABOUTDIALOG_H_ */
+#endif

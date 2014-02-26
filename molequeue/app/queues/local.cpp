@@ -39,8 +39,8 @@
 #include <QtCore/QTimerEvent>
 #include <QtCore/QThread> // For ideal thread count
 
-#include <QtGui/QFormLayout>
-#include <QtGui/QSpinBox>
+#include <QtWidgets/QFormLayout>
+#include <QtWidgets/QSpinBox>
 
 #include <QtCore/QDebug>
 

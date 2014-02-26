@@ -15,13 +15,11 @@
 ******************************************************************************/
 
 #include "jsonrpc.h"
+#include "connectionlistener.h"
 
 #include <QtCore/QMetaType>
-
-#include <qjsondocument.h>
-#include <qjsonarray.h>
-
-#include "connectionlistener.h"
+#include <QtCore/QJsonDocument>
+#include <QtCore/QJsonArray>
 
 namespace MoleQueue {
 
