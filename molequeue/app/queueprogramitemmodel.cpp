@@ -149,7 +149,9 @@ QModelIndex QueueProgramItemModel::index(int row, int column,
 
 void QueueProgramItemModel::callReset()
 {
-  reset();
+  /// FIXME: replace this with actual calls to begin/end reset at the right times.
+  beginResetModel();
+  endResetModel();
 }
 
 } // End of namespace

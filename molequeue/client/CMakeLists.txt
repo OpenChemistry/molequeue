@@ -1,6 +1,4 @@
-find_package(Qt4 4.8 COMPONENTS QtCore QtNetwork REQUIRED)
-include_directories(SYSTEM ${QT_INCLUDES})
-add_definitions(${QT_DEFINITIONS})
+find_package(Qt5Network REQUIRED)
 
 set(sources
   client.cpp
@@ -17,11 +15,8 @@ set(headers
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 add_library(MoleQueueClient ${sources})
+qt5_use_modules(MoleQueueClient Network)
 set_target_properties(MoleQueueClient PROPERTIES AUTOMOC TRUE)
-target_link_libraries(MoleQueueClient
-  ${QT_QTCORE_LIBRARY}
-  ${QT_QTNETWORK_LIBRARY}
-  Qt5Json)
 include(GenerateExportHeader)
 generate_export_header(MoleQueueClient EXPORT_FILE_NAME molequeueclientexport.h)
 list(APPEND headers "${CMAKE_CURRENT_BINARY_DIR}/molequeueclientexport.h")

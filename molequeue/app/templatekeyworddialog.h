@@ -17,7 +17,7 @@
 #ifndef MOLEQUEUE_TEMPLATEKEYWORDDIALOG_H
 #define MOLEQUEUE_TEMPLATEKEYWORDDIALOG_H
 
-#include <QtGui/QDialog>
+#include <QtWidgets/QDialog>
 #include <QtGui/QTextBlockFormat>
 #include <QtGui/QTextCharFormat>
 #include <QtGui/QTextCursor>

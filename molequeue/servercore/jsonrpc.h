@@ -17,8 +17,8 @@
 #ifndef MOLEQUEUE_JSONRPC_H
 #define MOLEQUEUE_JSONRPC_H
 
-#include <molequeue/servercore/message.h>
-#include <molequeue/servercore/servercoreglobal.h>
+#include "message.h"
+#include "servercoreglobal.h"
 
 #include <QtCore/QList>
 #include <QtCore/QMap>

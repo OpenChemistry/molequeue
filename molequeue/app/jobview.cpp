@@ -24,8 +24,8 @@
 
 #include <QtGui/QContextMenuEvent>
 #include <QtGui/QDesktopServices>
-#include <QtGui/QMenu>
-#include <QtGui/QMessageBox>
+#include <QtWidgets/QMenu>
+#include <QtWidgets/QMessageBox>
 
 #include <QtCore/QDebug>
 #include <QtCore/QProcess>

@@ -27,11 +27,11 @@
 #include "programconfiguredialog.h"
 
 #include <QtGui/QCloseEvent>
-#include <QtGui/QFileDialog>
+#include <QtWidgets/QFileDialog>
 #include <QtGui/QKeyEvent>
-#include <QtGui/QMessageBox>
+#include <QtWidgets/QMessageBox>
 #include <QtGui/QRegExpValidator>
-#include <QtGui/QHeaderView>
+#include <QtWidgets/QHeaderView>
 
 #include <QtCore/QDir>
 #include <QtCore/QFileInfo>
@@ -63,7 +63,7 @@ QueueSettingsDialog::QueueSettingsDialog(Queue *queue, QWidget *parentObject)
 
   // populate programs table
   ui->programsTable->setModel(m_model);
-  ui->programsTable->horizontalHeader()->setResizeMode(0, QHeaderView::Stretch);
+  ui->programsTable->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
 
   // Make connections
   connect(ui->addProgramButton, SIGNAL(clicked()),

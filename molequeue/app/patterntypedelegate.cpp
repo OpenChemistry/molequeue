@@ -18,8 +18,8 @@
 
 #include "openwithpatternmodel.h" // For enums
 
-#include <QtGui/QComboBox>
-#include <QtGui/QStringListModel>
+#include <QtWidgets/QComboBox>
+#include <QtCore/QStringListModel>
 
 #include <QtCore/QMetaProperty>
 

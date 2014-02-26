@@ -2,11 +2,6 @@ include_directories(${CMAKE_SOURCE_DIR}/molequeue
   ${CMAKE_BINARY_DIR}/molequeue/client
   ${CMAKE_BINARY_DIR}/molequeue/app/testing)
 
-set(qt_components QtTest)
-
-find_package(Qt4 4.8.0 COMPONENTS ${qt_components})
-include(${QT_USE_FILE})
-
 set(MoleQueue_HAS_ZMQ ${USE_ZERO_MQ})
 set(MoleQueue_TESTDATA_DIR
   "${MoleQueue_SOURCE_DIR}/molequeue/app/testing/data/")
@@ -75,11 +70,9 @@ endif()
 
 foreach(test ${MyTests})
   add_executable(${test}test MACOSX_BUNDLE ${test}test.cpp)
+  qt5_use_modules(${test}test Test)
   set_target_properties(${test}test PROPERTIES AUTOMOC TRUE)
-  target_link_libraries(${test}test
-    testutils
-    ${QT_LIBRARIES}
-    )
+  target_link_libraries(${test}test testutils)
   add_test(NAME molequeue-${test} COMMAND ${test}test)
 endforeach()
 

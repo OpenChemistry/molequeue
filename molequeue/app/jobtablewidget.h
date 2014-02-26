@@ -17,7 +17,7 @@
 #ifndef MOLEQUEUE_JOBTABLEWIDGET_H
 #define MOLEQUEUE_JOBTABLEWIDGET_H
 
-#include <QtGui/QWidget>
+#include <QtWidgets/QWidget>
 
 namespace Ui {
 class JobTableWidget;

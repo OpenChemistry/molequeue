@@ -32,7 +32,7 @@ class ConnectionListenerFactory
 {
 
 public:
-  virtual ~ConnectionListenerFactory() {};
+  virtual ~ConnectionListenerFactory() {}
   virtual ConnectionListener *createConnectionListener(QObject *parentObject,
                                                        const QString &connectionString) = 0;
 };
@@ -40,6 +40,6 @@ public:
 } // namespace MoleQueue
 
 Q_DECLARE_INTERFACE(MoleQueue::ConnectionListenerFactory,
-                    "org.openchemistry.molequeue.ConnectionListenerFactory/1.0")
+                    "org.openchemistry.molequeue.ConnectionListenerFactory")
 
 #endif // MOLEQUEUE_CONNECTIONLISTENERFACTORY_H

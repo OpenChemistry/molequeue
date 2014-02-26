@@ -40,5 +40,3 @@ ConnectionListener *
 }
 
 } /* namespace MoleQueue */
-
-Q_EXPORT_PLUGIN2(localsocket, MoleQueue::LocalSocketConnectionListenerFactory)

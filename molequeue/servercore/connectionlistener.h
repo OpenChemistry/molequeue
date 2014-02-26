@@ -20,7 +20,7 @@
 #include <QtCore/QObject>
 #include <QtCore/QMetaType>
 
-#include <molequeue/servercore/connection.h>
+#include "connection.h"
 
 namespace MoleQueue
 {

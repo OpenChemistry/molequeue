@@ -19,7 +19,7 @@
 
 #include "molequeueclientexport.h"
 
-#include <qjsonobject.h>
+#include <QtCore/QJsonObject>
 #include <QtCore/QObject>
 
 class QLocalSocket;

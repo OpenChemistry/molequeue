@@ -17,7 +17,7 @@
 #ifndef MOLEQUEUE_ABSTRACTQUEUESETTINGSWIDGET_H
 #define MOLEQUEUE_ABSTRACTQUEUESETTINGSWIDGET_H
 
-#include <QtGui/QWidget>
+#include <QtWidgets/QWidget>
 
 namespace MoleQueue {
 
