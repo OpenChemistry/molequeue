@@ -17,8 +17,7 @@
 #ifndef MOLEQUEUE_SERVERCORE_SERVERCOREGLOBAL_H
 #define MOLEQUEUE_SERVERCORE_SERVERCOREGLOBAL_H
 
-#include <qjsonvalue.h>
-
+#include <QtCore/QJsonValue>
 #include <QtCore/QByteArray>
 
 namespace MoleQueue
