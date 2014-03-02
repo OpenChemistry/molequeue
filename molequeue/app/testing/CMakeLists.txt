@@ -31,6 +31,7 @@ set(testutils_SRCS
 
 add_library(testutils STATIC ${testutils_SRCS})
 set_target_properties(testutils PROPERTIES AUTOMOC TRUE)
+qt5_use_modules(testutils Test)
 target_link_libraries(testutils molequeue_static)
 
 set(MyTests
