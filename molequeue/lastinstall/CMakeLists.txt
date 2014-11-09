@@ -27,8 +27,14 @@ if((APPLE OR WIN32) AND NOT ${CMAKE_VERSION} VERSION_LESS 2.8.8)
 
   set(dirs "${CMAKE_INSTALL_PREFIX}/${INSTALL_LIBRARY_DIR}")
   if(CMAKE_PREFIX_PATH)
-    list(APPEND dirs "${CMAKE_PREFIX_PATH}/bin" "${CMAKE_PREFIX_PATH}/lib")
+    foreach(dir ${CMAKE_PREFIX_PATH})
+      list(APPEND dirs "${dir}/bin" "${dir}/lib")
+    endforeach()
   endif()
-  include(DeployQt4)
-  install_qt4_executable(${exe} "${plugins}" "" "${dirs}" "lib/molequeue/plugins")
+
+  find_package(Qt5Widgets REQUIRED)
+  find_package(Qt5Network REQUIRED)
+
+  include(DeployQt5)
+  install_qt5_executable(${exe} "${plugins}" "" "${dirs}" "lib/molequeue/plugins")
 endif()
