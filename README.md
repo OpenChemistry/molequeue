@@ -19,7 +19,7 @@ Some highlights:
 * Support for local executation and remote schedulers (SGE, PBS, SLURM)
 * System tray resident application managing queue of queues and job lifetime
 * Simple, lightweight JSON-RPC 2.0 based communication over local sockets
-* Qt 4 client library for simple integration in Qt applications
+* Qt 5 client library for simple integration in Qt applications
 
 ![Open Chemistry project][OpenChemistryLogo]
 ![Kitware, Inc.][KitwareLogo]
@@ -39,11 +39,10 @@ building most dependencies.
 Contributing
 ------------
 
-Our project uses Gerrit for code review, and CDash@Home to test proposed
-patches before they are merged. Please check our [development][Development]
-guide for more details on developing and contributing to the project. The
-[project pages][Projects] provide bug, feature and support trackers, along
-with many other features such as source browsing.
+Our project uses the standard GitHub pull request process for code review
+and integration. Please check our [development][Development] guide for more
+details on developing and contributing to the project. The GitHub issue
+tracker can be used to report bugs, make feature requests, etc.
 
 Our [wiki][Wiki] is used to document features, flesh out designs and host other
 documentation. Our API is [documented using Doxygen][Doxygen] with updated
@@ -52,13 +51,12 @@ to coordinate development and to provide support.
 
   [MoleQueueLogo]: http://openchemistry.org/files/logos/molequeue.png "MoleQueue"
   [OpenChemistry]: http://openchemistry.org/ "Open Chemistry Project"
-  [OpenChemistryLogo]: http://openchemistry.org/opensourcelogos/openchem100.png "Open Chemistry"
+  [OpenChemistryLogo]: http://openchemistry.org/files/logos/openchem128.png "Open Chemistry"
   [Kitware]: http://kitware.com/ "Kitware, Inc."
   [KitwareLogo]: http://www.kitware.com/img/small_logo_over.png "Kitware"
   [Dashboard]: http://cdash.openchemistry.org/index.php?project=MoleQueue "MoleQueue Dashboard"
   [Build]: http://wiki.openchemistry.org/Build "Building MoleQueue"
   [Development]: http://wiki.openchemistry.org/Development "Development guide"
-  [Projects]: http://projects.openchemistry.org/ "Project trackers"
   [Wiki]: http://wiki.openchemistry.org/ "Open Chemistry wiki"
   [Doxygen]: http://doc.openchemistry.org/molequeue/api/ "API documentation"
-  [MailingLists]: http://openchemistry.org/OpenChemistry/help/mailing.html
+  [MailingLists]: http://openchemistry.org/mailing-lists "Mailing Lists"
