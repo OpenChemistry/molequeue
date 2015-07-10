@@ -35,6 +35,7 @@ if((APPLE OR WIN32) AND NOT ${CMAKE_VERSION} VERSION_LESS 2.8.8)
   find_package(Qt5Widgets REQUIRED)
   find_package(Qt5Network REQUIRED)
 
+  include(InstallRequiredSystemLibraries)
   include(DeployQt5)
   install_qt5_executable(${exe} "${plugins}" "" "${dirs}" "lib/molequeue/plugins")
 endif()
