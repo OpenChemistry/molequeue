@@ -47,8 +47,8 @@
 #include <QtCore/QSettings>
 #include <QtCore/QDir>
 #include <QtXmlPatterns/QAbstractMessageHandler>
-#include <QApplication>
-#include <QMessageBox>
+#include <QtWidgets/QApplication>
+#include <QtWidgets/QMessageBox>
 
 namespace MoleQueue
 {
