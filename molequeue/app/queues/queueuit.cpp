@@ -47,8 +47,8 @@
 #include <QtCore/QSettings>
 #include <QtCore/QDir>
 #include <QtXmlPatterns/QAbstractMessageHandler>
-#include <QtGui/QApplication>
-#include <QtGui/QMessageBox>
+#include <QtWidgets/QApplication>
+#include <QtWidgets/QMessageBox>
 
 namespace MoleQueue
 {
@@ -849,7 +849,7 @@ JobState QueueUit::jobEventToJobState(Uit::JobEvent jobEvent)
 
   JobState jobState = Unknown;
 
-  char state = jobStatus.toLower()[0].toAscii();
+  char state = jobStatus.toLower()[0].toLatin1()();
 
   switch (state) {
     case 'r':
