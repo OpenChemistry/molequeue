@@ -23,6 +23,7 @@
 
 #include <QtGlobal>
 
+#include <QtCore/QDataStream>
 #include <QtCore/QDateTime>
 #include <QtCore/QThread>
 #include <QtCore/QTimer>
