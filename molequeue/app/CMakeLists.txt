@@ -4,9 +4,7 @@ if(MoleQueue_USE_EZHPC_UIT)
   list(APPEND qt_components XmlPatterns)
 endif()
 
-foreach(_module ${qt_components})
-  find_package(Qt5${_module} REQUIRED)
-endforeach()
+find_package(Qt5 COMPONENTS ${qt_components} REQUIRED)
 
 # Provide some simple API to find the plugins, scripts, etc.
 if(APPLE)

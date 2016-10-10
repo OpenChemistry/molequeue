@@ -1,4 +1,4 @@
-find_package(Qt5Network REQUIRED)
+find_package(Qt5 COMPONENTS Network REQUIRED)
 find_package(ZeroMQ REQUIRED)
 include_directories(SYSTEM ${ZeroMQ_INCLUDE_DIR})
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
