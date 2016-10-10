@@ -1,4 +1,4 @@
-find_package(Qt5Network REQUIRED)
+find_package(Qt5 COMPONENTS Network REQUIRED)
 
 if (MSVC)
   # Do not generate manifests for the plugins - caused issues loading plugins

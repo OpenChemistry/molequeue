@@ -1,4 +1,4 @@
-find_package(Qt5Network REQUIRED)
+find_package(Qt5 COMPONENTS Network REQUIRED)
 
 include(GenerateExportHeader)
 

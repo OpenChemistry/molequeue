@@ -32,8 +32,7 @@ if((APPLE OR WIN32) AND NOT ${CMAKE_VERSION} VERSION_LESS 2.8.8)
     endforeach()
   endif()
 
-  find_package(Qt5Widgets REQUIRED)
-  find_package(Qt5Network REQUIRED)
+  find_package(Qt5 COMPONENTS Widgets Network REQUIRED)
 
   include(InstallRequiredSystemLibraries)
   include(DeployQt5)
