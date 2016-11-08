@@ -1,4 +1,5 @@
 if((APPLE OR WIN32) AND NOT ${CMAKE_VERSION} VERSION_LESS 2.8.8)
+  find_package(Qt5 COMPONENTS Core REQUIRED)
   set(pfx "")
   if(NOT APPLE)
     set(pfx "bin/")
