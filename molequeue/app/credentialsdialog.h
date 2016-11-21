@@ -17,7 +17,7 @@
 #ifndef CREDENTIALSDIALOG_H
 #define CREDENTIALSDIALOG_H
 
-#include <QtGui/QDialog>
+#include <QtWidgets/QDialog>
 
 namespace Ui {
 class CredentialsDialog;

@@ -849,7 +849,7 @@ JobState QueueUit::jobEventToJobState(Uit::JobEvent jobEvent)
 
   JobState jobState = Unknown;
 
-  char state = jobStatus.toLower()[0].toLatin1()();
+  char state = jobStatus.toLower()[0].toLatin1();
 
   switch (state) {
     case 'r':
