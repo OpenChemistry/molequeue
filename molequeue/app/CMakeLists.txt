@@ -175,7 +175,7 @@ set_target_properties(molequeue_static PROPERTIES AUTOMOC TRUE)
 target_link_libraries(molequeue_static MoleQueueServerCore)
 
 if(MoleQueue_USE_EZHPC_UIT)
-  target_link_libraries(molequeue_static kdsoap)
+  target_link_libraries(molequeue_static KDSoap::kdsoap)
 endif()
 
 if(MoleQueue_BUILD_CLIENT)
