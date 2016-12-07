@@ -82,7 +82,7 @@ void Authenticator::authenticateKerberosResponse(const QString &responseXml)
   }
 
   // If error message was return display and prompt user again.
-  if (response.errorMessage().length() != 0) {
+  if (response.errorMessage().length() == 0) {
     m_credentialsDialog->setErrorMessage(response.errorMessage());
     m_credentialsDialog->show();
   }

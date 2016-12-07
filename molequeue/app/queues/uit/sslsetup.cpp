@@ -23,6 +23,9 @@
 #include <QtCore/QCoreApplication>
 #include <QtCore/QDir>
 
+
+#include <QtNetwork/QSslConfiguration>
+
 namespace MoleQueue {
 namespace Uit {
 
@@ -46,6 +49,10 @@ void SslSetup::init()
                  + MoleQueue_SSL_CERT_DIR;
 
     QMutexLocker locker(&mutex);
+
+    QSslConfiguration sslConf = QSslConfiguration::defaultConfiguration();
+    sslConf.setPeerVerifyMode(QSslSocket::VerifyNone);
+    QSslConfiguration::setDefaultConfiguration(sslConf);
 
     if (!sslCertsLoaded) {
       foreach(const QString &dir, certDirs) {
