@@ -21,6 +21,7 @@
 #include <QtXmlPatterns/QXmlNamePool>
 #include <QtXmlPatterns/QXmlQuery>
 #include <QtCore/QList>
+#include <QtCore/QRegExp>
 
 namespace {
 
@@ -98,7 +99,9 @@ void  JobEventListXmlReceiver::endElement ()
     m_currentEvent.setEventTime(m_currentValue.toInt());
   }
   else if (m_currentName == "jobID") {
-    m_currentEvent.setJobId(m_currentValue.toLongLong());
+    QRegExp regex ("^(\\d+)\\..*$");
+    regex.indexIn(m_currentValue.trimmed());
+    m_currentEvent.setJobId(regex.cap(1).toLongLong());
   }
   else if (m_currentName == "jobQueue") {
     m_currentEvent.setJobQueue(m_currentValue);
@@ -169,32 +172,21 @@ void JobEventList::setContent(const QString &content, const QString &userName,
     query.setQuery("/list/JobEvent");
   }
   else {
-    QString xpath = "/list/JobEvent[";
-    QListIterator<qint64> iter(jobIds);
-
-    while (iter.hasNext()) {
-      qint64 jobId = iter.next();
-
-      if (userName.isEmpty()) {
-        xpath += QString("jobID='%1'").arg(jobId);
-      }
-      else {
-        xpath += QString("(jobID='%1' and userName='%2')")
-                 .arg(jobId).arg(userName);
-      }
-
-      if (iter.hasNext())
-        xpath += " or ";
-    }
-
-    xpath += "]";
-
+    QString xpath = "/list/JobEvent";
     query.setQuery(xpath);
   }
 
   m_valid = query.evaluateTo(&receiver);
 
   m_jobEvents = receiver.jobEvents();
+
+  QMutableListIterator<JobEvent> it(m_jobEvents);
+  while (it.hasNext()) {
+    JobEvent event = it.next();
+    if (!jobIds.contains(event.jobId())) {
+      it.remove();
+    }
+  }
 }
 
 } /* namespace Uit */

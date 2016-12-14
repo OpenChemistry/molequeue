@@ -840,10 +840,10 @@ void QueueUit::requestError(const QString &errorMessage)
 
 JobState QueueUit::jobEventToJobState(Uit::JobEvent jobEvent)
 {
-  QString jobStatus = jobEvent.jobStatus().trimmed();
+  QString jobStatus = jobEvent.jobStatusText().trimmed();
 
   if (jobStatus.length() != 1) {
-    Logger::logError(tr("Unrecognized jobStatus: %1").arg(jobEvent.jobStatus()));
+    Logger::logError(tr("Unrecognized jobStatus: %1").arg(jobStatus));
     return MoleQueue::Error;
   }
 

@@ -20,7 +20,7 @@ namespace MoleQueue {
 namespace Uit {
 
 JobEvent::JobEvent()
-  : m_eventTime(-1), m_jobID(-1), m_jobStatus(-1)
+  : m_eventTime(-1), m_jobID(-1)
 {
 
 }
