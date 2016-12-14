@@ -98,7 +98,7 @@ void JobSubmissionInfo::setContent(const QString &content)
     return;
 
   // jobNumber is of the form <job number>.sdb, so parse out number.
-  QRegExp regex ("^(\\d+)\\.sdb$");
+  QRegExp regex ("^(\\d+)\\..*$");
   int index = regex.indexIn(jobNum.trimmed());
 
   if (index != -1)
