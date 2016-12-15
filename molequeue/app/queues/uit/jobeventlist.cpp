@@ -172,21 +172,24 @@ void JobEventList::setContent(const QString &content, const QString &userName,
     query.setQuery("/list/JobEvent");
   }
   else {
-    QString xpath = "/list/JobEvent";
+    QString xpath = "/list/JobEvent/jobID[";
+    QListIterator<qint64> iter(jobIds);
+
+    while (iter.hasNext()) {
+      qint64 jobId = iter.next();
+      xpath += QString("starts-with(text(), '%1')").arg(jobId);
+      if (iter.hasNext())
+        xpath += " or ";
+    }
+
+    xpath += "]/parent::node()";
+
     query.setQuery(xpath);
   }
 
   m_valid = query.evaluateTo(&receiver);
 
   m_jobEvents = receiver.jobEvents();
-
-  QMutableListIterator<JobEvent> it(m_jobEvents);
-  while (it.hasNext()) {
-    JobEvent event = it.next();
-    if (!jobIds.contains(event.jobId())) {
-      it.remove();
-    }
-  }
 }
 
 } /* namespace Uit */
