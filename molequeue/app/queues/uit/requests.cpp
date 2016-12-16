@@ -95,9 +95,7 @@ KDSoapJob * SubmitBatchScriptJobRequest::createJob()
 
 JobSubmissionInfo SubmitBatchScriptJobRequest::jobSubmissionInfo()
 {
-  QString responseXml = m_response.childValues()
-                        .child(QLatin1String("submitBatchScriptJobReturn"))
-                        .value().value<QString>();
+  QString responseXml = m_response.value().value<QString>();
 
   JobSubmissionInfo info = JobSubmissionInfo::fromXml(responseXml);
 
@@ -122,9 +120,7 @@ KDSoapJob * GetUserHostAssocRequest::createJob()
 
 UserHostAssocList GetUserHostAssocRequest::userHostAssocList()
 {
-  QString responseXml = m_response.childValues()
-                        .child(QLatin1String("getUserHostAssocReturn"))
-                        .value().value<QString>();
+  QString responseXml = m_response.value().value<QString>();
 
   UserHostAssocList info = UserHostAssocList::fromXml(responseXml);
 
@@ -169,9 +165,7 @@ KDSoapJob * GetStreamingFileUploadURLRequest::createJob()
 
 QString GetStreamingFileUploadURLRequest::url()
 {
-  return m_response.childValues()
-         .child(QLatin1String("getStreamingFileUploadURLReturn"))
-         .value().value<QString>();
+  return m_response.value().value<QString>();
 }
 
 
@@ -201,9 +195,7 @@ JobEventList GetJobsForHostForUserByNumDaysRequest::jobEventList(
   QList<qint64> jobIds)
 {
   QString responseXml
-    = m_response.childValues()
-      .child(QLatin1String("getJobsForHostForUserByNumDaysReturn")).value()
-      .value<QString>();
+    = m_response.value().value<QString>();
 
   JobEventList list = JobEventList::fromXml(responseXml, m_searchUser, jobIds);
 
@@ -228,9 +220,7 @@ GetStreamingFileDownloadURLJob *soapJob = new GetStreamingFileDownloadURLJob(
 
 QString GetStreamingFileDownloadURLRequest::url()
 {
-  return m_response.childValues()
-         .child(QLatin1String("getStreamingFileDownloadURLReturn")).value()
-         .value<QString>();
+  return m_response.value().value<QString>();
 }
 
 
@@ -255,9 +245,7 @@ KDSoapJob * GetDirectoryListingRequest::createJob()
 
 DirListingInfo GetDirectoryListingRequest::dirListingInfo()
 {
-  QString responseXml = m_response.childValues()
-                        .child(QLatin1String("getDirectoryListingReturn"))
-                        .value().value<QString>();
+  QString responseXml = m_response.value().value<QString>();
 
   DirListingInfo info = DirListingInfo::fromXml(responseXml);
 
@@ -342,9 +330,7 @@ KDSoapJob * StatFileRequest::createJob()
 
 QString StatFileRequest::output()
 {
-  QString statOutput = m_response.childValues()
-                         .child(QLatin1String("statFileReturn"))
-                         .value().value<QString>();
+  QString statOutput = m_response.value().value<QString>();
 
   return statOutput;
 }
