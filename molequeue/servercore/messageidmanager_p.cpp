@@ -18,6 +18,8 @@
 
 #include "message.h"
 
+#include <cstdlib>
+
 namespace MoleQueue {
 
 MessageIdManager *MessageIdManager::m_instance = NULL;
