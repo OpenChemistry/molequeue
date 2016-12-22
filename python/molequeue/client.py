@@ -89,6 +89,7 @@ class EventLoop(Thread):
 
   def stop(self):
     self.io_loop.stop()
+    self.join()
 
 class MoleQueueException(Exception):
   """The base class of all MoleQueue exceptions """
