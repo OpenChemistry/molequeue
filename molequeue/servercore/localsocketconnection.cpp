@@ -150,7 +150,23 @@ bool LocalSocketConnection::send(const PacketType &packet,
                                  const EndpointIdType &endpoint)
 {
   Q_UNUSED(endpoint);
+
+  // Because of a possible bug with Qt 5.8 and 5.9 on Windows,
+  // (*m_dataStream) << packet
+  // sends two packets instead of one. The packets will fail to get read
+  // correctly on the other side of the message. To fix this, we write the
+  // message to a byte array and send it in all together as a single raw data
+  // packet. If this bug gets fixed in the future, we will not need the
+  // Windows section...
+  // See https://bugreports.qt.io/browse/QTBUG-61097 for the bug report.
+#ifdef _WIN32
+  PacketType byteArray;
+  QDataStream tmpStream(&byteArray, QIODevice::WriteOnly);
+  tmpStream << packet;
+  m_dataStream->writeRawData(byteArray, byteArray.size());
+#else
   (*m_dataStream) << packet;
+#endif
 
   return true;
 }
