@@ -20,7 +20,6 @@ target_link_libraries(MoleQueueZeroMq MoleQueueServerCore ${ZeroMQ_LIBRARIES})
 generate_export_header(MoleQueueZeroMq
   EXPORT_FILE_NAME molequeuezeromqexport.h)
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
-add_compiler_export_flags(molequeue_export_flags)
 set_property(TARGET MoleQueueZeroMq APPEND
   PROPERTY COMPILE_FLAGS ${molequeue_export_flags})
 

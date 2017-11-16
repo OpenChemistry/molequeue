@@ -54,7 +54,6 @@ include(GenerateExportHeader)
 generate_export_header(${QT5_JSON_LIBRARY_NAME}
   EXPORT_FILE_NAME qt5jsonexport.h
   EXPORT_MACRO_NAME QT5JSON_EXPORT)
-add_compiler_export_flags(qt5json_export_flags)
 
 set_property(TARGET ${QT5_JSON_LIBRARY_NAME} APPEND
   PROPERTY COMPILE_FLAGS ${qt5json_export_flags})
