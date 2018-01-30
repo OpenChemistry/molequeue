@@ -60,8 +60,6 @@ endif()
 # This is necessary for tests, includes etc.
 include_directories(BEFORE "${MoleQueue_SOURCE_DIR}")
 set(EXPORT_TARGETS_NAME "MoleQueueTargets")
-# We might want qt5json back if we build a Qt 4 client library.
-#add_subdirectory(thirdparty/qt5json)
 add_subdirectory(molequeue)
 
 option(BUILD_DOCUMENTATION "Build project documentation" OFF)
