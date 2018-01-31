@@ -96,7 +96,7 @@ install(
   FILES
     README.md
     CONTRIBUTING.md
-    COPYING
+    LICENSE
   DESTINATION "${INSTALL_DOC_DIR}/molequeue")
 
 include(MoleQueueCPack)
