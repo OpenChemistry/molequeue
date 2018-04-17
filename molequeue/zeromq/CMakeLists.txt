@@ -13,9 +13,8 @@ set(sources
 )
 
 add_library(MoleQueueZeroMq ${sources})
-qt5_use_modules(MoleQueueZeroMq Network)
 set_target_properties(MoleQueueZeroMq PROPERTIES AUTOMOC TRUE)
-target_link_libraries(MoleQueueZeroMq MoleQueueServerCore ${ZeroMQ_LIBRARIES})
+target_link_libraries(MoleQueueZeroMq MoleQueueServerCore ${ZeroMQ_LIBRARIES} Qt5::Network)
 
 generate_export_header(MoleQueueZeroMq
   EXPORT_FILE_NAME molequeuezeromqexport.h)
