@@ -31,8 +31,7 @@ set(testutils_SRCS
 
 add_library(testutils STATIC ${testutils_SRCS})
 set_target_properties(testutils PROPERTIES AUTOMOC TRUE)
-qt5_use_modules(testutils Test)
-target_link_libraries(testutils molequeue_static)
+target_link_libraries(testutils molequeue_static Qt5::Test)
 
 set(MyTests
   filespecification
@@ -71,9 +70,8 @@ endif()
 
 foreach(test ${MyTests})
   add_executable(${test}test MACOSX_BUNDLE ${test}test.cpp)
-  qt5_use_modules(${test}test Test)
   set_target_properties(${test}test PROPERTIES AUTOMOC TRUE)
-  target_link_libraries(${test}test testutils)
+  target_link_libraries(${test}test testutils Qt5::Test)
   add_test(NAME molequeue-${test} COMMAND ${test}test)
 endforeach()
 

@@ -12,7 +12,7 @@ add_library(MoleQueueServerCore
   messageidmanager_p.cpp
 )
 
-qt5_use_modules(MoleQueueServerCore Network)
+target_link_libraries(MoleQueueServerCore Qt5::Network)
 set_target_properties(MoleQueueServerCore PROPERTIES AUTOMOC TRUE)
 #target_link_libraries(MoleQueueServerCore)
 

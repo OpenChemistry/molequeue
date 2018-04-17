@@ -1,10 +1,8 @@
-set(qt_components Core Widgets Network)
+find_package(Qt5 REQUIRED COMPONENTS Core Widgets Network)
 
 if(MoleQueue_USE_EZHPC_UIT)
-  list(APPEND qt_components XmlPatterns)
+  find_package(Qt5 REQUIRED COMPONENTS XmlPatterns)
 endif()
-
-find_package(Qt5 COMPONENTS ${qt_components} REQUIRED)
 
 # Provide some simple API to find the plugins, scripts, etc.
 if(APPLE)
@@ -170,12 +168,11 @@ qt5_wrap_ui(ui_srcs ${ui_files})
 qt5_add_resources(rcc_srcs queuetray.qrc)
 
 add_library(molequeue_static STATIC ${mq_srcs} ${ui_srcs})
-qt5_use_modules(molequeue_static ${qt_components})
 set_target_properties(molequeue_static PROPERTIES AUTOMOC TRUE)
-target_link_libraries(molequeue_static MoleQueueServerCore)
+target_link_libraries(molequeue_static MoleQueueServerCore Qt5::Core Qt5::Widgets Qt5::Network)
 
 if(MoleQueue_USE_EZHPC_UIT)
-  target_link_libraries(molequeue_static KDSoap::kdsoap)
+  target_link_libraries(molequeue_static KDSoap::kdsoap Qt5::XmlPatterns)
 endif()
 
 if(MoleQueue_BUILD_CLIENT)
@@ -195,8 +192,7 @@ elseif(WIN32)
 endif()
 
 add_executable(molequeue WIN32 MACOSX_BUNDLE ${sources} ${rcc_srcs})
-qt5_use_modules(molequeue ${qt_components})
-target_link_libraries(molequeue molequeue_static)
+target_link_libraries(molequeue molequeue_static Qt5::Core Qt5::Widgets Qt5::Network)
 if(WIN32)
   target_link_libraries(molequeue Qt5::WinMain)
 endif()

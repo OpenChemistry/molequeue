@@ -15,7 +15,7 @@ set(headers
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 add_library(MoleQueueClient ${sources})
-qt5_use_modules(MoleQueueClient Network)
+target_link_libraries(MoleQueueClient Qt5::Network)
 set_target_properties(MoleQueueClient PROPERTIES AUTOMOC TRUE)
 include(GenerateExportHeader)
 generate_export_header(MoleQueueClient EXPORT_FILE_NAME molequeueclientexport.h)
