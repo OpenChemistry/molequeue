@@ -1,8 +1,11 @@
-find_package(Qt5 REQUIRED COMPONENTS Core Widgets Network)
-
-if(MoleQueue_USE_EZHPC_UIT)
-  find_package(Qt5 REQUIRED COMPONENTS XmlPatterns)
+set(_qt_packages Core Widgets Network)
+if(ENABLE_TESTING)
+  list(APPEND _qt_packages Test)
 endif()
+if(MoleQueue_USE_EZHPC_UIT)
+  list(APPEND _qt_packages XmlPatterns)
+endif()
+find_package(Qt5 REQUIRED COMPONENTS ${_qt_packages})
 
 # Provide some simple API to find the plugins, scripts, etc.
 if(APPLE)
