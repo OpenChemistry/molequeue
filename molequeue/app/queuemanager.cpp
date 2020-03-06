@@ -26,6 +26,7 @@
 #include "queues/pbs.h"
 #include "queues/sge.h"
 #include "queues/slurm.h"
+#include "queues/oar.h"
 #ifdef MoleQueue_USE_EZHPC_UIT
 #include "queues/queueuit.h"
 #endif
@@ -93,7 +94,7 @@ void QueueManager::writeSettings() const
 QStringList QueueManager::availableQueues()
 {
   QStringList result;
-  result << "Local" << "Sun Grid Engine" << "PBS/Torque" << "SLURM";
+  result << "Local" << "Sun Grid Engine" << "PBS/Torque" << "SLURM" << "OAR";
 #ifdef MoleQueue_USE_EZHPC_UIT
   result << "ezHPC UIT";
 #endif
@@ -124,6 +125,8 @@ Queue * QueueManager::addQueue(const QString &queueName,
     newQueue = new QueuePbs(this);
   else if (queueType== "SLURM")
     newQueue = new QueueSlurm(this);
+  else if (queueType== "OAR")
+    newQueue = new QueueOar(this);
 #ifdef MoleQueue_USE_EZHPC_UIT
   else if (queueType== "ezHPC UIT")
     newQueue = new QueueUit(this);

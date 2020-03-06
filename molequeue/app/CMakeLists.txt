@@ -80,6 +80,7 @@ set(mq_srcs
   queues/remotessh.cpp
   queues/sge.cpp
   queues/slurm.cpp
+  queues/oar.cpp
   queuesettingsdialog.cpp
   remotequeuewidget.cpp
   server.cpp
