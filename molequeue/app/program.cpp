@@ -46,6 +46,8 @@ Program::Program(Queue *parentQueue) :
 Program::Program(const Program &other)
   : QObject(other.parent()),
     m_queue(other.m_queue),
+    m_queueManager(other.m_queueManager),
+    m_server(other.m_server),
     m_name(other.m_name),
     m_executable(other.m_executable),
     m_arguments(other.m_arguments),
@@ -62,6 +64,8 @@ Program::~Program()
 Program &Program::operator=(const Program &other)
 {
   m_queue = other.m_queue;
+  m_queueManager = other.m_queueManager;
+  m_server = other.m_server;
   m_name = other.m_name;
   m_executable = other.m_executable;
   m_arguments = other.m_arguments;
