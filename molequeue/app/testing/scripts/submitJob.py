@@ -16,7 +16,7 @@ mq_id_lock = Lock()
 def run_test():
   global socketname, molequeue_ids_done, clientId, mq_id_lock, num_jobs
   if debug:
-    print "Client %s connecting to socket: %s"%(clientId, socketname)
+    print ("Client %s connecting to socket: %s"%(clientId, socketname))
   client = mq.Client()
   client.connect_to_server(socketname)
 
@@ -29,9 +29,9 @@ def run_test():
           with mq_id_lock:
             molequeue_ids_done.append(moleQueueId)
           if debug:
-            print "Job %d finished! (Client %s)"%(moleQueueId, clientId)
+            print ("Job %d finished! (Client %s)"%(moleQueueId, clientId))
     except Exception as ex:
-      print "Unexpected notification:", msg, ex
+      print ("Unexpected notification:", msg, ex)
     sys.stdout.flush()
 
   client.register_notification_callback(notification_callback)
@@ -50,15 +50,15 @@ def run_test():
       client.disconnect()
       raise Exception("Connection timed out!")
     if debug:
-      print "Submitted job %d (Client %s)"%(molequeue_id, clientId)
+      print ("Submitted job %d (Client %s)"%(molequeue_id, clientId))
     sys.stdout.flush()
 
   timeout = 30
   mq_id_lock.acquire()
   while len(molequeue_ids) != len(molequeue_ids_done) and timeout > 0:
     if debug:
-      print "Client %s waiting to finish (timeout=%d unmatchedIDs=%d)"%\
-        (clientId, timeout, len(molequeue_ids) - len(molequeue_ids_done))
+      print ("Client %s waiting to finish (timeout=%d unmatchedIDs=%d)"%\
+        (clientId, timeout, len(molequeue_ids) - len(molequeue_ids_done)))
     sys.stdout.flush()
     timeout -= 1
     mq_id_lock.release()
@@ -90,10 +90,10 @@ def main(argv):
   try:
     test_result = run_test()
   except Exception as ex:
-    print ex
+    print (ex)
     test_result = 1
   if debug:
-    print "Exiting with code: %d (client %s)"%(test_result, clientId)
+    print ("Exiting with code: %d (client %s)"%(test_result, clientId))
   sys.stdout.flush()
   return test_result
 

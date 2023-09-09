@@ -10,7 +10,7 @@ socketname = ""
 def run_test():
   global socketname
   if debug:
-    print "Connecting to socket: %s"%socketname
+    print ("Connecting to socket: %s"%socketname)
   client = mq.Client()
   client.connect_to_server(socketname)
   res = client._send_rpc_kill_request(5)
@@ -32,10 +32,10 @@ def main(argv):
   try:
     test_result = run_test()
   except Exception as ex:
-    print ex
+    print (ex)
     test_result = 1
   if debug:
-    print "Exiting with code: %d"%test_result
+    print ("Exiting with code: %d"%test_result)
   sys.stdout.flush()
   return test_result
 
