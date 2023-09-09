@@ -21,7 +21,7 @@ class TestClient(unittest.TestCase):
 
     molequeue_id = client.submit_job(job)
 
-    print ("MoleQueue ID: ", molequeue_id)
+    print("MoleQueue ID: ", molequeue_id)
 
     self.assertTrue(isinstance(molequeue_id, int))
 
@@ -105,7 +105,7 @@ class TestClient(unittest.TestCase):
     queues = client.request_queue_list_update()
 
     for q in queues:
-      print (q.name, ", ", q.programs)
+      print(q.name, ", ", q.programs)
 
     client.disconnect()
 
