@@ -57,7 +57,7 @@ def run_test():
   mq_id_lock.acquire()
   while len(molequeue_ids) != len(molequeue_ids_done) and timeout > 0:
     if debug:
-      print("Client %s waiting to finish (timeout=%d unmatchedIDs=%d)"%\
+      print("Client %s waiting to finish (timeout=%d unmatchedIDs=%d)"%
         (clientId, timeout, len(molequeue_ids) - len(molequeue_ids_done)))
     sys.stdout.flush()
     timeout -= 1
