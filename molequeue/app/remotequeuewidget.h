@@ -34,7 +34,7 @@ class TemplateKeywordDialog;
  *
  * @brief A generic configuration dialog for remote queuing systems.
  *
- * @author David C. Lonie
+ * @author Allison Vacanti
  */
 class RemoteQueueWidget: public AbstractQueueSettingsWidget
 {

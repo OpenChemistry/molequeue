@@ -39,7 +39,7 @@ class JsonRpc;
 
 /**
  * @brief The Server class handles incoming JSON-RPC messages.
- * @author David C. Lonie
+ * @author Allison Vacanti
  *
  * The Server class is the root of the server-side heirarchy. It owns the
  * JobManager, QueueManager, and JsonRpc listener.

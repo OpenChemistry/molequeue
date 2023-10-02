@@ -31,7 +31,7 @@ namespace MoleQueue
 /**
  * @class Logger logger.h <molequeue/logger.h>
  * @brief Manage log messages.
- * @author David C. Lonie
+ * @author Allison Vacanti
  *
  * The singleton Logger class is used to handle log messages in MoleQueue. Log
  * messages are represented as objects consisting of a user-friendly string,

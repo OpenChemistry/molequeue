@@ -35,7 +35,7 @@ class JsonRpc;
 /**
  * @class Message message.h <molequeue/servercore/message.h>
  * @brief The Message class encaspulates a single JSON-RPC transmission.
- * @author David C. Lonie
+ * @author Allison Vacanti
  *
  * The Message class provides an interface to construct, interpret, and
  * manipulate JSON-RPC messages.

@@ -31,7 +31,7 @@ class TerminalProcess;
  * @brief Abstract subclass of SshConnection providing base implementaton using
  * commandline ssh/scp.
  *
- * @author Marcus D. Hanwell, David C. Lonie, Chris Harris
+ * @author Marcus D. Hanwell, Allison Vacanti, Chris Harris
  *
  * The SshCommand provides an base implementation of the SshConnection interface
  * that calls the commandline ssh and scp executables in a TerminalProcess.

@@ -27,7 +27,7 @@ namespace MoleQueue
  * <molequeue/jobactionfactories/removejobactionfactory.h>
  * @brief JobActionFactory subclass which removes jobs from the Server
  * JobManager.
- * @author David C. Lonie
+ * @author Allison Vacanti
  */
 class RemoveJobActionFactory : public JobActionFactory
 {

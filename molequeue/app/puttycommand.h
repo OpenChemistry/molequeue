@@ -27,7 +27,7 @@ class TerminalProcess;
 /**
  * @class PuttyCommand puttycommand.h <molequeue/puttycommand.h>
  * @brief Concrete implementation of SshCommand using commandline plink/pscp.
- * @author Marcus D. Hanwell, David C. Lonie, Chris Harris
+ * @author Marcus D. Hanwell, Allison Vacanti, Chris Harris
  *
  * The PuttyCommand provides an implementation of the SshCommand interface
  * that calls the commandline plink and pscp executables in a TerminalProcess.

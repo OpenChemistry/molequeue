@@ -31,7 +31,7 @@ class Logger;
 /**
  * @class LogEntry logentry.h <molequeue/logentry.h>
  * @brief Message and metadata for log messages.
- * @author David C. Lonie
+ * @author Allison Vacanti
  *
  * Each LogEntry object represents an entry in the MoleQueue log. LogEntries
  * fall into one of four categories:

@@ -39,7 +39,7 @@ class Server;
 /**
  * @class JobData jobdata.h <molequeue/jobdata.h>
  * @brief Internal container for job details.
- * @author David C. Lonie
+ * @author Allison Vacanti
  *
  * Each JobData instance stores information about a specific job. All JobData
  * objects are owned by a JobManager, which dispenses JobReferenceBase
