@@ -36,7 +36,7 @@ class JobReferenceBase;
 /**
  * @class JobManager jobmanager.h <molequeue/jobmanager.h>
  * @brief Owns and manages JobData objects.
- * @author David C. Lonie
+ * @author Allison Vacanti
  *
  * The JobManager class owns all JobData objects. At least two JobManager
  * objects exist during normal operation; the Client class holds a JobManager to

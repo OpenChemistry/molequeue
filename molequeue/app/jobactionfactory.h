@@ -31,7 +31,7 @@ class Server;
  * @class JobActionFactory jobactionfactory.h <molequeue/jobactionfactory.h>
  * @brief Base class for implementing a factory which creates QActions that
  * operate on Job instances.
- * @author David C. Lonie
+ * @author Allison Vacanti
  */
 class JobActionFactory : public QObject
 {

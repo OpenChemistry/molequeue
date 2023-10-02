@@ -30,7 +30,7 @@ class Server;
  * @class ActionFactoryManager actionfactorymanager.h
  * <molequeue/actionfactorymanager.h>
  * @brief Singleton container for JobActionFactory objects.
- * @author David C. Lonie
+ * @author Allison Vacanti
  */
 class ActionFactoryManager : public QObject
 {

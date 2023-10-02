@@ -33,7 +33,7 @@ class JobManager;
 /**
  * @class Job job.h <molequeue/job.h>
  * @brief Server-side interface to JobData properties.
- * @author David C. Lonie
+ * @author Allison Vacanti
  *
  * The Job class provides a lightweight interface to a specific instance of
  * JobData. Since JobData contains dynamic information that changes during its

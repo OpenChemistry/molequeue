@@ -27,7 +27,7 @@ class TerminalProcess;
 /**
  * @class OpenSshCommand opensshcommand.h <molequeue/opensshcommand.h>
  * @brief Concrete implementation of SshCommand using commandline open ssh/scp.
- * @author Marcus D. Hanwell, David C. Lonie, Chris Harris
+ * @author Marcus D. Hanwell, Allison Vacanti, Chris Harris
  *
  * The OpenSshCommand provides an implementation of the SshCommand interface
  * that calls the commandline ssh and scp executables in a TerminalProcess.

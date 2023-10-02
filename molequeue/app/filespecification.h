@@ -32,7 +32,7 @@ class FileSpecificationPrivate;
 /**
  * @class FileSpecification filespecification.h <molequeue/filespecification.h>
  * @brief Specify files for simplifying Client-Server communication.
- * @author David C. Lonie
+ * @author Allison Vacanti
  *
  * The FileSpecification class contains a description of a file to facilite
  * file manipulation during RPC communication. Files are stored as either a path

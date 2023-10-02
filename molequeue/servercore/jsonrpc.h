@@ -34,7 +34,7 @@ class ConnectionListener;
  * @class JsonRpc jsonrpc.h <molequeue/servercore/jsonrpc.h>
  * @brief The JsonRpc class manages ConnectionListener and Connection instances,
  * and emits incoming JSON-RPC Messages.
- * @author David C. Lonie
+ * @author Allison Vacanti
  *
  * To use the JsonRpc class, create one or more ConnectionListener instances
  * and call addConnectionListener(). Connect a slot to messageReceived and

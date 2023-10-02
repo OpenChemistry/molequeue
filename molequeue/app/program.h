@@ -34,7 +34,7 @@ class Server;
 /**
  * @class Program program.h <molequeue/program.h>
  * @brief A class defining interactions with an executable accessible by a Queue.
- * @author Marcus D. Hanwell, David C. Lonie
+ * @author Marcus D. Hanwell, Allison Vacanti
  *
  * The Program class describes an executable which runs a Job on a particular
  * Queue. Each Program object is unique to the Queue, and contains details

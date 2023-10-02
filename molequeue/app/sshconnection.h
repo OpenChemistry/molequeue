@@ -26,7 +26,7 @@ namespace MoleQueue {
  * @class SshConnection sshconnection.h <molequeue/sshconnection.h>
  * @brief Abstract base class defining remote execution and file transfer
  * operations over the ssh protocol.
- * @author Marcus D. Hanwell, David C. Lonie
+ * @author Marcus D. Hanwell, Allison Vacanti
  *
  * The SshConnection is the interface to use when writing code that requires
  * interactions with a remote host. Subclasses provide concrete implementations

@@ -30,7 +30,7 @@ class JobManager;
 /**
  * @class JobReferenceBase jobreferencebase.h <molequeue/jobreferencebase.h>
  * @brief Base class for lightweight interfaces to JobData objects.
- * @author David C. Lonie
+ * @author Allison Vacanti
  *
  * JobData objects, owned by JobManager, each contain data pertaining to a
  * specific job running a Program on a Queue. JobData contains several dynamic

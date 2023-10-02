@@ -42,7 +42,7 @@ class Server;
 /**
  * @class Queue queue.h <molequeue/queue.h>
  * @brief Abstract interface for queuing systems.
- * @author Marcus D. Hanwell, David C. Lonie
+ * @author Marcus D. Hanwell, Allison Vacanti
  *
  * The Queue interface defines interactions with a distributed resource
  * management system, such as job submission and job status updates. Each
