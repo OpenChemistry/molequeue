@@ -46,6 +46,7 @@ set(MyTests
   server
   sge
   slurm
+  oar
   sshcommand
   )
 
