@@ -195,12 +195,7 @@ void QueueLocal::processStarted()
   if (moleQueueId == 0)
     return;
 
-  IdType queueId;
-#ifdef _WIN32
-  queueId = static_cast<IdType>(process->pid()->dwProcessId);
-#else // WIN32
-  queueId = static_cast<IdType>(process->pid());
-#endif // WIN32
+  IdType queueId = static_cast<IdType>(process->processId());
 
   // Get pointer to jobmanager to lookup job
   if (!m_server) {

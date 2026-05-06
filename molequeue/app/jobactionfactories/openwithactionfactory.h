@@ -21,6 +21,8 @@
 
 #include "molequeueglobal.h"
 
+#include <QtCore5Compat/QRegExp>
+
 class QDir;
 
 namespace MoleQueue

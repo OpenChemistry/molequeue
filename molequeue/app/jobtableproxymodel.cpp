@@ -202,23 +202,23 @@ bool JobTableProxyModel::filterAcceptsRow(int sourceRow,
   }
 
   if (!m_filterString.isEmpty()) {
-    QStringList filterTerms = m_filterString.split(QRegExp("\\s+"),
-                                                   QString::SkipEmptyParts);
+    QStringList filterTerms = m_filterString.split(QRegularExpression("\\s+"),
+                                                   Qt::SkipEmptyParts);
     foreach (QString fullTerm, filterTerms) {
       bool termMatch = false;
       bool isNegated = false;
 
-      QStringRef term(&fullTerm);
+      QStringView term(fullTerm);
       // terms starting with '-' should not be present
       if (term.startsWith('-')) {
         isNegated = true;
-        term = fullTerm.midRef(1);
+        term = QStringView(fullTerm).mid(1);
       }
 
       for (int i = 0; i < static_cast<int>(sourceModel()->columnCount()); ++i) {
         const QVariant disp = sourceModel()->data(
               sourceModel()->index(sourceRow, i), Qt::DisplayRole);
-        if (disp.canConvert(QVariant::String)) {
+        if (disp.canConvert<QString>()) {
           if (disp.toString().contains(term, Qt::CaseInsensitive)) {
             termMatch = true;
             break;

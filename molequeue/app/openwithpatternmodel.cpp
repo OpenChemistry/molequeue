@@ -16,7 +16,7 @@
 
 #include "openwithpatternmodel.h"
 
-#include <QtCore/QRegExp>
+#include <QtCore5Compat/QRegExp>
 
 namespace MoleQueue
 {
@@ -120,7 +120,7 @@ bool OpenWithPatternModel::setData(const QModelIndex &ind,
   QRegExp &regexp = (*m_regexps)[ind.row()];
 
   if (role == Qt::CheckStateRole) {
-    if (value.canConvert(QVariant::Int)) {
+    if (value.canConvert<int>()) {
       Qt::CheckState state = static_cast<Qt::CheckState>(value.toInt());
       if (ind.column() == CaseSensitivityCol) {
         regexp.setCaseSensitivity(state == Qt::Checked ? Qt::CaseSensitive
@@ -129,7 +129,7 @@ bool OpenWithPatternModel::setData(const QModelIndex &ind,
         return true;
       }
     }
-    if (value.canConvert(QVariant::Bool)) {
+    if (value.canConvert<bool>()) {
       if (ind.column() == CaseSensitivityCol) {
         regexp.setCaseSensitivity(value.toBool() ? Qt::CaseSensitive
                                                  : Qt::CaseInsensitive);
@@ -144,7 +144,7 @@ bool OpenWithPatternModel::setData(const QModelIndex &ind,
 
   switch (static_cast<ColumnType>(ind.column())) {
   case PatternCol:
-    if (value.canConvert(QVariant::String)) {
+    if (value.canConvert<QString>()) {
       regexp.setPattern(value.toString());
       emit dataChanged(ind, ind);
       return true;
@@ -154,7 +154,7 @@ bool OpenWithPatternModel::setData(const QModelIndex &ind,
     }
 
   case PatternTypeCol:
-    if (value.type() == QVariant::String) {
+    if (value.typeId() == QMetaType::QString) {
       QString str = value.toString().simplified();
       if (!str.isEmpty()) {
         QChar firstChar = str.at(0).toLower();
@@ -187,7 +187,7 @@ bool OpenWithPatternModel::setData(const QModelIndex &ind,
     return false;
 
   case CaseSensitivityCol:
-    if (value.canConvert(QVariant::Bool)) {
+    if (value.canConvert<bool>()) {
       regexp.setCaseSensitivity(value.toBool() ? Qt::CaseSensitive
                                                : Qt::CaseInsensitive);
       emit dataChanged(ind, ind);

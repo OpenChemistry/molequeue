@@ -103,7 +103,7 @@ void QueueManagerTest::testToQueueList()
 {
   MoleQueue::QueueListType list = m_queueManager.toQueueList();
   QStringList queueNames = list.keys();
-  qSort(queueNames);
+  std::sort(queueNames.begin(), queueNames.end());
   QCOMPARE(queueNames.size(), 2);
   QCOMPARE(queueNames[0], QString("First Queue"));
   QCOMPARE(queueNames[1], QString("Second Queue"));

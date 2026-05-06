@@ -22,7 +22,7 @@
 #include <QtCore/QJsonArray>
 #include <QtCore/QJsonObject>
 #include <QtCore/QObject>
-#include <QtCore/QRegExp>
+#include <QtCore5Compat/QRegExp>
 #include <QtCore/QHash>
 
 namespace MoleQueue

@@ -34,9 +34,6 @@ class TerminalProcess : public QProcess
 public:
   explicit TerminalProcess(QObject *parentObject = 0);
   ~TerminalProcess();
-
-protected:
-  virtual void setupChildProcess();
 };
 
 } // End namespace

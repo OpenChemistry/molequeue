@@ -16,12 +16,12 @@
 
 #include "xmlutils.h"
 
-#include <QtCore/QRegExp>
+#include <QtCore/QRegularExpression>
 
 
 QString & XmlUtils::stripWhitespace(QString &xml)
 {
-  QRegExp whiteSpace(">\\s*<");
+  QRegularExpression whiteSpace(">\\s*<");
 
   return xml.replace(whiteSpace, "><");
 }

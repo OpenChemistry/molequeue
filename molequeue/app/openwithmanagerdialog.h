@@ -20,6 +20,7 @@
 #include <QtWidgets/QDialog>
 
 #include <QtCore/QModelIndexList>
+#include <QtCore5Compat/QRegExp>
 
 class QAbstractButton;
 class QDataWidgetMapper;

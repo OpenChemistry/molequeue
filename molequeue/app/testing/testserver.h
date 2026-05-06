@@ -25,6 +25,7 @@
 
 #include <QtCore/QDataStream>
 #include <QtCore/QDateTime>
+#include <QtCore/QRandomGenerator>
 #include <QtCore/QThread>
 #include <QtCore/QTimer>
 
@@ -88,8 +89,8 @@ public:
     unsigned int seed = static_cast<unsigned int>(
           (threadPtr ^ procId) ^ ((msecs << 16) ^ msecs));
     qDebug() << "Seed:" << seed;
-    qsrand(seed);
-    int randVal = qrand();
+    QRandomGenerator gen(seed);
+    int randVal = gen.bounded(std::numeric_limits<int>::max());
 
     return QString("MoleQueue-testing-%1").arg(QString::number(randVal));
   }

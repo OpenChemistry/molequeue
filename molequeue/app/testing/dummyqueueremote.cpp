@@ -16,6 +16,8 @@
 
 #include "dummyqueueremote.h"
 
+#include <QtCore/QRegularExpression>
+
 using namespace MoleQueue;
 
 DummyQueueRemote::DummyQueueRemote(const QString &queueName,
@@ -45,7 +47,7 @@ bool DummyQueueRemote::parseQueueLine(const QString &queueListOutput,
                                       IdType *queueId, JobState *state)
 {
   // Output is "[queueId] [stateAsString]"
-  QStringList split = queueListOutput.split(QRegExp("\\s+"));
+  QStringList split = queueListOutput.split(QRegularExpression("\\s+"));
   if (split.size() < 2)
     return false;
 

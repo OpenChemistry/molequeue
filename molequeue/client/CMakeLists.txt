@@ -1,4 +1,4 @@
-find_package(Qt5 COMPONENTS Network REQUIRED)
+find_package(Qt6 COMPONENTS Core5Compat Network REQUIRED)
 
 set(sources
   client.cpp
@@ -15,7 +15,7 @@ set(headers
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 add_library(MoleQueueClient ${sources})
-target_link_libraries(MoleQueueClient Qt5::Network)
+target_link_libraries(MoleQueueClient Qt6::Core5Compat Qt6::Network)
 set_target_properties(MoleQueueClient PROPERTIES AUTOMOC TRUE)
 include(GenerateExportHeader)
 generate_export_header(MoleQueueClient EXPORT_FILE_NAME molequeueclientexport.h)

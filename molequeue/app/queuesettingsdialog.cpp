@@ -30,7 +30,7 @@
 #include <QtWidgets/QFileDialog>
 #include <QtGui/QKeyEvent>
 #include <QtWidgets/QMessageBox>
-#include <QtGui/QRegExpValidator>
+#include <QtGui/QRegularExpressionValidator>
 #include <QtWidgets/QHeaderView>
 
 #include <QtCore/QDir>
@@ -86,8 +86,8 @@ QueueSettingsDialog::QueueSettingsDialog(Queue *queue, QWidget *parentObject)
   connect(ui->nameLineEdit, SIGNAL(textChanged(QString)), SLOT(setDirty()));
   connect(ui->tabWidget, SIGNAL(currentChanged(int)), SLOT(tabChanged(int)));
 
-  ui->nameLineEdit->setValidator(new QRegExpValidator(
-                                   QRegExp(VALID_NAME_REG_EXP)));
+  ui->nameLineEdit->setValidator(new QRegularExpressionValidator(
+                                   QRegularExpression(VALID_NAME_REG_EXP)));
 
   setDirty(false);
 }
@@ -218,7 +218,7 @@ QList<int> QueueSettingsDialog::getSelectedRows()
       rows << ind.row();
   }
 
-  qSort(rows);
+  std::sort(rows.begin(), rows.end());
   return rows;
 }
 

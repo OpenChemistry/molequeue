@@ -41,7 +41,7 @@
 #include <QtGui/QKeyEvent>
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QMessageBox>
-#include <QtWidgets/QShortcut>
+#include <QtGui/QShortcut>
 #include <QtWidgets/QStatusBar>
 
 namespace MoleQueue {
@@ -318,7 +318,7 @@ void MainWindow::updateJobCounts(int totalJobs, int shownJobs)
     m_statusHiddenJobs->setText(tr("%n job(s) are hidden by filters", "",
                                    hiddenJobs));
     QPalette pal;
-    pal.setColor(QPalette::Foreground, Qt::darkRed);
+    pal.setColor(QPalette::WindowText, Qt::darkRed);
     m_statusHiddenJobs->setPalette(pal);
     m_statusHiddenJobs->show();
   }

@@ -18,7 +18,7 @@
 #define MOLEQUEUE_OPENWITHPATTERNMODEL_H
 
 #include <QtCore/QAbstractItemModel>
-#include <QtCore/QRegExp>
+#include <QtCore5Compat/QRegExp>
 #include <QtCore/QList>
 
 namespace MoleQueue {

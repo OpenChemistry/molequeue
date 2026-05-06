@@ -37,6 +37,7 @@
 #include <QtCore/QSettings>
 #include <QtCore/QStringBuilder>
 #include <QtCore/QTimerEvent>
+#include <QtCore5Compat/QRegExp>
 
 namespace MoleQueue
 {
@@ -678,8 +679,8 @@ void Server::handleRegisterOpenWithRequest(const Message &message)
       Message error = message.generateErrorResponse();
       error.setErrorCode(1);
       error.setErrorMessage(
-            QLatin1Literal("Name conflict: An open-with handler named '") % name
-            % QLatin1Literal("' already exists."));
+            QLatin1String("Name conflict: An open-with handler named '") % name
+            % QLatin1String("' already exists."));
       error.send();
       return;
     }

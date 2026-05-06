@@ -1,4 +1,7 @@
-if((APPLE OR WIN32) AND NOT ${CMAKE_VERSION} VERSION_LESS 2.8.8)
+option(MoleQueue_USE_BUNDLE_DEPLOY
+  "Bundle Qt and plugins into the install tree (Qt5-only, pre-1.0)" OFF)
+
+if(MoleQueue_USE_BUNDLE_DEPLOY AND (APPLE OR WIN32))
   find_package(Qt5 COMPONENTS Core REQUIRED)
   set(pfx "")
   if(NOT APPLE)

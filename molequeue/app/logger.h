@@ -21,7 +21,7 @@
 
 #include "logentry.h"
 
-#include <QtCore/QLinkedList>
+#include <QtCore5Compat/QLinkedList>
 
 class QFile;
 
