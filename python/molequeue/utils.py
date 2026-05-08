@@ -1,7 +1,6 @@
 import json
 import re
 import itertools
-import types
 import molequeue
 
 class JsonRpc:
@@ -22,7 +21,7 @@ class JsonRpc:
   def json_to_job(json):
     job = molequeue.Job()
     # convert response into Job object
-    for key, value in json['result'].iteritems():
+    for key, value in json['result'].items():
       field = camelcase_to_underscore(key)
       if key in JsonRpc.INTERNAL_FIELDS:
         field = '_' + field
@@ -34,7 +33,7 @@ class JsonRpc:
   def json_to_queues(json):
     queues = []
 
-    for name, programs in json['result'].iteritems():
+    for name, programs in json['result'].items():
       queue = molequeue.Queue();
       queue.name = name
       queue.programs = programs
@@ -46,11 +45,8 @@ class JsonRpc:
   def object_to_json_params(job):
     params = {}
 
-    for key, value in job.__dict__.iteritems():
+    for key, value in job.__dict__.items():
       field = underscore_to_camelcase(key)
-
-      if type(value) == types.InstanceType:
-        value = JsonRpc.object_to_json_params(value)
 
       params[field] = value
 
@@ -64,7 +60,7 @@ def underscore_to_camelcase(value):
 
   c = camelcase()
 
-  return ''.join(c.next()(x) for x in value.split('_'))
+  return ''.join(next(c)(x) for x in value.split('_'))
 
 def camelcase_to_underscore(value):
   operation = itertools.cycle((lambda x : x.lower(), lambda x : '_' + x.lower()))

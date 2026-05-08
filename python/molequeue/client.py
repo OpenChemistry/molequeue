@@ -11,9 +11,9 @@ import time
 import tempfile
 import sys
 
-from utils import underscore_to_camelcase
-from utils import camelcase_to_underscore
-from utils import JsonRpc
+from .utils import underscore_to_camelcase
+from .utils import camelcase_to_underscore
+from .utils import JsonRpc
 import threading
 
 class JobState:
@@ -270,7 +270,7 @@ class Client:
       while self._request_response_map[packet_id] == None:
         # need to set a wait time otherwise the wait can't be interrupted
         # See http://bugs.python.org/issue8844
-        wait_time = sys.maxint
+        wait_time = sys.maxsize
         if timeout != None:
           wait_time = timeout - (time.time() - start)
           if wait_time <= 0:
