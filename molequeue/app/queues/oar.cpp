@@ -20,6 +20,7 @@
 
 #include <QtCore/QDebug>
 #include <QtCore/QStringList>
+#include <QtCore5Compat/QRegExp>
 
 namespace MoleQueue
 {

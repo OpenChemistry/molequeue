@@ -29,6 +29,8 @@
 
 #include <QtCore/QTimer>
 #include <QtCore/QDebug>
+#include <QtCore/QRegularExpression>
+#include <QtCore5Compat/QRegExp>
 
 #include <QtGui>
 
@@ -122,7 +124,7 @@ void QueueRemote::replaceKeywords(QString &launchScript,
   }
   // Otherwise, erase all lines containing the keyword
   else {
-    QRegExp expr("\\n[^\\n]*\\${3,3}maxWallTime\\${3,3}[^\\n]*\\n");
+    QRegularExpression expr("\\n[^\\n]*\\${3,3}maxWallTime\\${3,3}[^\\n]*\\n");
     launchScript.replace(expr, "\n");
   }
 

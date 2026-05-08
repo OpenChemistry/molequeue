@@ -18,7 +18,7 @@
 
 #include "../job.h"
 
-#include <QtWidgets/QAction>
+#include <QtGui/QAction>
 #include <QtGui/QDesktopServices>
 
 #include <QtCore/QUrl>

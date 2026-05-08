@@ -26,7 +26,7 @@
 #include <QtWidgets/QFileDialog>
 #include <QtWidgets/QLineEdit>
 #include <QtWidgets/QMessageBox>
-#include <QtGui/QRegExpValidator>
+#include <QtGui/QRegularExpressionValidator>
 #include <QtGui/QTextDocument>
 
 #include <QtCore/QDir>
@@ -86,8 +86,8 @@ ProgramConfigureDialog::ProgramConfigureDialog(Program *program,
 
   launchSyntaxChanged(ui->combo_syntax->currentIndex());
 
-  ui->edit_name->setValidator(new QRegExpValidator(
-                                QRegExp(VALID_NAME_REG_EXP)));
+  ui->edit_name->setValidator(new QRegularExpressionValidator(
+                                QRegularExpression(VALID_NAME_REG_EXP)));
 
   setDirty(false);
 }

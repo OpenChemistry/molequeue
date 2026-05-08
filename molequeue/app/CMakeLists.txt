@@ -1,11 +1,11 @@
-set(_qt_packages Core Widgets Network)
+set(_qt_packages Core Core5Compat Widgets Network)
 if(ENABLE_TESTING)
   list(APPEND _qt_packages Test)
 endif()
 if(MoleQueue_USE_EZHPC_UIT)
   list(APPEND _qt_packages XmlPatterns)
 endif()
-find_package(Qt5 REQUIRED COMPONENTS ${_qt_packages})
+find_package(Qt6 REQUIRED COMPONENTS ${_qt_packages})
 
 # Provide some simple API to find the plugins, scripts, etc.
 if(APPLE)
@@ -15,7 +15,7 @@ else()
   set(MoleQueue_LIB_DIR "${INSTALL_LIBRARY_DIR}")
 endif()
 
-find_package(Python QUIET COMPONENTS Interpreter)
+find_package(Python3 QUIET COMPONENTS Interpreter)
 
 include(GenerateExportHeader)
 
@@ -166,16 +166,16 @@ if(WIN32)
   list(APPEND mq_srcs puttycommand.cpp)
 endif()
 
-qt5_wrap_ui(ui_srcs ${ui_files})
+qt6_wrap_ui(ui_srcs ${ui_files})
 
-qt5_add_resources(rcc_srcs queuetray.qrc)
+qt6_add_resources(rcc_srcs queuetray.qrc)
 
 add_library(molequeue_static STATIC ${mq_srcs} ${ui_srcs})
 set_target_properties(molequeue_static PROPERTIES AUTOMOC TRUE)
-target_link_libraries(molequeue_static MoleQueueServerCore Qt5::Core Qt5::Widgets Qt5::Network)
+target_link_libraries(molequeue_static MoleQueueServerCore Qt6::Core Qt6::Core5Compat Qt6::Widgets Qt6::Network)
 
 if(MoleQueue_USE_EZHPC_UIT)
-  target_link_libraries(molequeue_static KDSoap::kdsoap Qt5::XmlPatterns)
+  target_link_libraries(molequeue_static KDSoap::kdsoap Qt6::XmlPatterns)
 endif()
 
 if(MoleQueue_BUILD_CLIENT)
@@ -195,9 +195,9 @@ elseif(WIN32)
 endif()
 
 add_executable(molequeue WIN32 MACOSX_BUNDLE ${sources} ${rcc_srcs})
-target_link_libraries(molequeue molequeue_static Qt5::Core Qt5::Widgets Qt5::Network)
+target_link_libraries(molequeue molequeue_static Qt6::Core Qt6::Widgets Qt6::Network)
 if(WIN32)
-  target_link_libraries(molequeue Qt5::WinMain)
+  target_link_libraries(molequeue Qt6::EntryPointPrivate)
 endif()
 if(APPLE)
   set_target_properties(molequeue PROPERTIES

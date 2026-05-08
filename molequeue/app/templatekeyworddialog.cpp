@@ -21,6 +21,8 @@
 #include <QtGui/QTextCursor>
 #include <QtGui/QTextDocument>
 
+#include <QtCore/QRegularExpression>
+
 namespace MoleQueue {
 
 TemplateKeywordDialog::TemplateKeywordDialog(QWidget *parent_) :
@@ -197,7 +199,7 @@ void TemplateKeywordDialog::highlightKeywords()
   QTextCursor cur(doc);
   cur.movePosition(QTextCursor::Start);
 
-  QRegExp expr("[^\\$]?\\${2,2}[^\\$\\s]+\\${2,2}[^\\$]?");
+  QRegularExpression expr("[^\\$]?\\${2,2}[^\\$\\s]+\\${2,2}[^\\$]?");
 
   cur = doc->find(expr, cur);
   while (!cur.isNull()) {

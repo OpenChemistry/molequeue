@@ -23,7 +23,7 @@
 #include <QtWidgets/QFileDialog>
 #include <QtWidgets/QMessageBox>
 #include <QtGui/QPalette>
-#include <QtGui/QRegExpValidator>
+#include <QtGui/QRegularExpressionValidator>
 
 #include <QtCore/QSettings>
 
@@ -43,8 +43,8 @@ ImportQueueDialog::ImportQueueDialog(QueueManager *queueManager, QWidget *parent
 
   // Restrict queue names to alphanumeric strings with internal whitespace
   // (the input is trimmed() in accept()).
-  ui->nameEdit->setValidator(new QRegExpValidator(
-                               QRegExp(VALID_NAME_REG_EXP)));
+  ui->nameEdit->setValidator(new QRegularExpressionValidator(
+                               QRegularExpression(VALID_NAME_REG_EXP)));
 }
 
 ImportQueueDialog::~ImportQueueDialog()

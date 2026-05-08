@@ -18,14 +18,14 @@
 
 #include <QtWidgets/QCompleter>
 #include <QtWidgets/QFileDialog>
-#include <QtWidgets/QFileSystemModel>
+#include <QtGui/QFileSystemModel>
 #include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QLineEdit>
 #include <QtWidgets/QPushButton>
 
 #include <QtCore/QFileInfo>
 #include <QtCore/QProcessEnvironment>
-#include <QtCore/QRegExp>
+#include <QtCore5Compat/QRegExp>
 
 namespace MoleQueue {
 
@@ -173,15 +173,14 @@ QString FileBrowseWidget::searchSystemPathForFile(const QString &exec)
   if (!env.contains("PATH"))
     return result;
 
-  static QRegExp pathSplitter = QRegExp(
+  static const QChar pathSplitter =
 #ifdef Q_OS_WIN32
-        ";"
+        QLatin1Char(';');
 #else // WIN32
-        ":"
+        QLatin1Char(':');
 #endif// WIN32
-        );
   QStringList paths =
-      env.value("PATH").split(pathSplitter, QString::SkipEmptyParts);
+      env.value("PATH").split(pathSplitter, Qt::SkipEmptyParts);
 
   foreach (const QString &path, paths) {
     QFileInfo info(path + "/" + exec);

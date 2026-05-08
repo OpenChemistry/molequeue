@@ -19,6 +19,7 @@
 #include "logger.h"
 
 #include <QtCore/QDebug>
+#include <QtCore5Compat/QRegExp>
 
 namespace MoleQueue
 {

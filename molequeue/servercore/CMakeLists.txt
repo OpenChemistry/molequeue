@@ -1,4 +1,4 @@
-find_package(Qt5 COMPONENTS Network REQUIRED)
+find_package(Qt6 COMPONENTS Network REQUIRED)
 
 include(GenerateExportHeader)
 
@@ -12,7 +12,7 @@ add_library(MoleQueueServerCore
   messageidmanager_p.cpp
 )
 
-target_link_libraries(MoleQueueServerCore Qt5::Network)
+target_link_libraries(MoleQueueServerCore Qt6::Network)
 set_target_properties(MoleQueueServerCore PROPERTIES AUTOMOC TRUE)
 #target_link_libraries(MoleQueueServerCore)
 

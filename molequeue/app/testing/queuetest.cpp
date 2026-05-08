@@ -114,7 +114,7 @@ void QueueTest::testNumPrograms()
 void QueueTest::testProgramNames()
 {
   QStringList programNames = m_queue.programNames();
-  qSort(programNames);
+  std::sort(programNames.begin(), programNames.end());
   QCOMPARE(programNames.size(), 2);
   QCOMPARE(programNames[0], QString("First Program"));
   QCOMPARE(programNames[1], QString("Second Program"));

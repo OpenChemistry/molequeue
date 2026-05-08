@@ -45,11 +45,11 @@ JobView::~JobView()
 void JobView::contextMenuEvent(QContextMenuEvent *e)
 {
   // list of action factories. Map to sort by usefulness
-  QMap<unsigned int, JobActionFactory*> factoryMap;
+  QMultiMap<unsigned int, JobActionFactory*> factoryMap;
   ActionFactoryManager *manager = ActionFactoryManager::instance();
   foreach (JobActionFactory *factory,
            manager->factories(JobActionFactory::ContextItem)) {
-    factoryMap.insertMulti(factory->usefulness(), factory);
+    factoryMap.insert(factory->usefulness(), factory);
   }
 
   // Get job under cursor

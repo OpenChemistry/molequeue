@@ -19,7 +19,7 @@
 #include "logwindow.h"
 #include "job.h"
 
-#include <QtWidgets/QAction>
+#include <QtGui/QAction>
 
 Q_DECLARE_METATYPE(QList<MoleQueue::Job>)
 

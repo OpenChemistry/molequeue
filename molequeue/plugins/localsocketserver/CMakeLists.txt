@@ -3,7 +3,7 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY
 
 add_library(LocalSocketServer MODULE localsocketconnectionlistenerfactory.cpp)
 set_target_properties(LocalSocketServer PROPERTIES AUTOMOC TRUE PREFIX "")
-target_link_libraries(LocalSocketServer MoleQueueServerCore Qt5::Network)
+target_link_libraries(LocalSocketServer MoleQueueServerCore Qt6::Network)
 
 set_property(GLOBAL APPEND PROPERTY MoleQueue_PLUGINS LocalSocketServer)
 

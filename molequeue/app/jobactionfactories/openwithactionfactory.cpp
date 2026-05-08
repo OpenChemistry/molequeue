@@ -25,7 +25,7 @@
 #include "../queuemanager.h"
 #include "../server.h"
 
-#include <QtWidgets/QAction>
+#include <QtGui/QAction>
 #include <QtWidgets/QFileDialog>
 #include <QtWidgets/QMessageBox>
 #include <QtWidgets/QProgressDialog>
@@ -269,7 +269,7 @@ void OpenWithActionFactory::readSettings(QSettings &settings)
   int numPatterns = settings.beginReadArray("patterns");
   for (int i = 0; i < numPatterns; ++i) {
     settings.setArrayIndex(i);
-    m_filePatterns << settings.value("regexp").toRegExp();
+    m_filePatterns << settings.value("regexp").value<QRegExp>();
   }
   settings.endArray();
 }

@@ -25,20 +25,16 @@ namespace MoleQueue {
 TerminalProcess::TerminalProcess(QObject *parentObject) :
   QProcess(parentObject)
 {
-}
-
-TerminalProcess::~TerminalProcess()
-{
-}
-
-void TerminalProcess::setupChildProcess()
-{
 #ifdef Q_OS_UNIX
   // Become the session leader on Unix (no-op on Windows). This makes things
   // like SSH use GUIs to prompt for passwords (SSH_ASKPASS) as there is no
   // tty associated with the process.
-  setsid();
+  setChildProcessModifier([] { setsid(); });
 #endif
+}
+
+TerminalProcess::~TerminalProcess()
+{
 }
 
 } // End namespace

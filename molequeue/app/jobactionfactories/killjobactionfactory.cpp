@@ -21,7 +21,7 @@
 #include "../queuemanager.h"
 #include "../server.h"
 
-#include <QtWidgets/QAction>
+#include <QtGui/QAction>
 #include <QtWidgets/QMessageBox>
 
 Q_DECLARE_METATYPE(QList<MoleQueue::Job>)

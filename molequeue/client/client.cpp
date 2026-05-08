@@ -20,6 +20,7 @@
 #include "jobobject.h"
 
 #include <QtCore/QJsonDocument>
+#include <QtCore5Compat/QRegExp>
 
 namespace MoleQueue
 {

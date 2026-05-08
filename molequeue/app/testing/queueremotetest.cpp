@@ -27,6 +27,7 @@
 
 #include <QtCore/QDir>
 #include <QtCore/QFile>
+#include <QtCore5Compat/QRegExp>
 
 using namespace MoleQueue;
 

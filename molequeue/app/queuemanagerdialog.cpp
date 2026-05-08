@@ -24,6 +24,8 @@
 #include <QtCore/QFileInfo>
 #include <QtCore/QSettings>
 
+#include <algorithm>
+
 #include "queue.h"
 #include "logger.h"
 #include "mainwindow.h"
@@ -206,7 +208,7 @@ QList<int> QueueManagerDialog::getSelectedRows()
       rows << ind.row();
   }
 
-  qSort(rows);
+  std::sort(rows.begin(), rows.end());
   return rows;
 }
 

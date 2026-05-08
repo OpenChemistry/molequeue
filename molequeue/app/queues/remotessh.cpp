@@ -353,7 +353,7 @@ void QueueRemoteSsh::handleQueueUpdate()
     return;
   }
 
-  QStringList output = conn->output().split("\n", QString::SkipEmptyParts);
+  QStringList output = conn->output().split("\n", Qt::SkipEmptyParts);
 
   // Get list of submitted queue ids so that we detect when jobs have left
   // the queue.

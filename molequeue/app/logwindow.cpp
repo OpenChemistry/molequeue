@@ -20,6 +20,7 @@
 #include "logger.h"
 #include "idtypeutils.h"
 
+#include <QtCore/QRegularExpression>
 #include <QtCore/QSettings>
 
 #include <QtGui/QBrush>
@@ -176,7 +177,7 @@ void LogWindow::addLogEntry(const LogEntry &entry)
   }
   cur.insertText(" ");
   // Modify newlines to align with the hanging indent.
-  cur.insertText(entry.message().replace(QRegExp("\\n+"), "\n  "),
+  cur.insertText(entry.message().replace(QRegularExpression("\\n+"), "\n  "),
                  *m_messageFormat);
   cur.endEditBlock();
 }

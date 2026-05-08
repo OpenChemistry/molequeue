@@ -8,8 +8,8 @@ set(MoleQueue_TESTDATA_DIR
 set(MoleQueue_TESTSCRIPT_DIR
   "${MoleQueue_SOURCE_DIR}/molequeue/app/testing/scripts/")
 set(MoleQueue_TESTEXEC_DIR "${MoleQueue_BINARY_DIR}/bin/")
-if(Python_EXECUTABLE)
-  set(MoleQueue_PYTHON_EXECUTABLE "${Python_EXECUTABLE}")
+if(Python3_EXECUTABLE)
+  set(MoleQueue_PYTHON_EXECUTABLE "${Python3_EXECUTABLE}")
 endif()
 configure_file(molequeuetestconfig.h.in molequeuetestconfig.h)
 
@@ -31,7 +31,7 @@ set(testutils_SRCS
 
 add_library(testutils STATIC ${testutils_SRCS})
 set_target_properties(testutils PROPERTIES AUTOMOC TRUE)
-target_link_libraries(testutils molequeue_static Qt5::Test)
+target_link_libraries(testutils molequeue_static Qt6::Test)
 
 set(MyTests
   filespecification
@@ -72,7 +72,7 @@ endif()
 foreach(test ${MyTests})
   add_executable(${test}test MACOSX_BUNDLE ${test}test.cpp)
   set_target_properties(${test}test PROPERTIES AUTOMOC TRUE)
-  target_link_libraries(${test}test testutils Qt5::Test)
+  target_link_libraries(${test}test testutils Qt6::Test)
   add_test(NAME molequeue-${test} COMMAND ${test}test)
 endforeach()
 
