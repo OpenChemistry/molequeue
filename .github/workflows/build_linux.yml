@@ -19,4 +19,5 @@ jobs:
         cmake --build build
     - name: test
       run: |
+        export QT_QPA_PLATFORM=offscreen
         ctest --test-dir build --output-on-failure
